@@ -346,9 +346,8 @@ public partial class PropertyGrid : UserControl
                 RefreshSelectedObject(editor);
             }
 
-            // Check if FullPriorityMode is enabled via attached property
             bool fullPriorityMode = false;
-            if (property.IsCollection && property.DefaultEditorResourceKey == "CollectionEditorWindow")
+            if (property.IsCollection)
             {
                 fullPriorityMode = GetFullPriorityMode(editor);
             }
