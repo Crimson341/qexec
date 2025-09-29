@@ -29,6 +29,21 @@ public partial class PropertyGrid : UserControl
     public static readonly DependencyProperty ValueEditorTemplateSelectorProperty =
         DependencyProperty.Register("ValueEditorTemplateSelector", typeof(DataTemplateSelector), typeof(PropertyGrid), new FrameworkPropertyMetadata(null));
 
+    // Attached property for FullPriorityMode
+    public static readonly DependencyProperty FullPriorityModeProperty =
+        DependencyProperty.RegisterAttached("FullPriorityMode", typeof(bool), typeof(PropertyGrid), new PropertyMetadata(true));
+
+    public static bool GetFullPriorityMode(DependencyObject obj)
+    {
+        return (bool)obj.GetValue(FullPriorityModeProperty);
+    }
+
+    public static void SetFullPriorityMode(DependencyObject obj, bool value)
+    {
+        obj.SetValue(FullPriorityModeProperty, value);
+    }
+
+
     public static readonly RoutedEvent BrowseEvent = EventManager.RegisterRoutedEvent("Browse", RoutingStrategy.Bubble, typeof(RoutedEventHandler), typeof(PropertyGrid));
 
     public static RoutedCommand NewGuidCommand = new RoutedCommand();
@@ -69,6 +84,7 @@ public partial class PropertyGrid : UserControl
         get { return (bool)GetValue(IsReadOnlyProperty); }
         set { SetValue(IsReadOnlyProperty, value); }
     }
+
 
     public bool GroupByCategory
     {
@@ -330,7 +346,22 @@ public partial class PropertyGrid : UserControl
                 RefreshSelectedObject(editor);
             }
 
-            ret = editor.ShowDialog();
+            // Check if FullPriorityMode is enabled via attached property
+            bool fullPriorityMode = false;
+            if (property.IsCollection && property.DefaultEditorResourceKey == "CollectionEditorWindow")
+            {
+                fullPriorityMode = GetFullPriorityMode(editor);
+            }
+
+            if (fullPriorityMode)
+            {
+                ret = editor.ShowDialog();
+            }
+            else
+            {
+                editor.Show();
+                ret = null;
+            }
             if (go != null)
             {
                 go.EditorClosed(property, editor);

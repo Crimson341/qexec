@@ -53,6 +53,7 @@
             Width="700"
             Height="500"
             x:Shared="false"
+            wpf:PropertyGrid.FullPriorityMode="False"
             FocusManager.FocusedElement="{Binding ElementName=EditorSelector}"
             Style="{StaticResource CustomWindow}"
             WindowStartupLocation="CenterScreen">
