@@ -1,20 +1,24 @@
-﻿using Skua.App.WPF.Properties;
+using Skua.App.WPF.Properties;
 using System;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Windows;
 
 namespace Skua.App.WPF;
+
 public static class Program
 {
     [STAThread]
     public static void Main()
     {
+        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+
         AppDomain currentDomain = AppDomain.CurrentDomain;
         currentDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssemblies);
         currentDomain.UnhandledException += CurrentDomain_UnhandledException;
-        
+
         App app = new();
         app.InitializeComponent();
         app.Run();
@@ -26,7 +30,7 @@ public static class Program
         MessageBox.Show($"Application Crash.\r\nVersion: {Settings.Default.ApplicationVersion}\r\nMessage: {ex.Message}\r\nStackTrace: {ex.StackTrace}", "Application");
     }
 
-    static Assembly? ResolveAssemblies(object? sender, ResolveEventArgs args)
+    private static Assembly? ResolveAssemblies(object? sender, ResolveEventArgs args)
     {
         if (args.Name.Contains(".resources"))
             return null;

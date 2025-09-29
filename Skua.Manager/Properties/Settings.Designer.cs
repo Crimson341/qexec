@@ -30,6 +30,8 @@ namespace Skua.Manager.Properties {
   <string>Skua,Dark,#FF607D8B,#FF607D8B,#FF000000,#FF000000,true,4.5,Medium,All</string>
   <string>RBot,Light,#FF9C934E,#FF9C934E,#FF000000,#FF000000</string>
   <string>Grimoire,Dark,#FFCC1F41,#FFCC1F41,#FFFFFFFF,#FFFFFFFF</string>
+  <string>Purple,Dark,#FF9651D6,#FF9651D6,#FFFFFFFF,#FFFFFFFF,true,4.5,Medium,All</string>
+  <string>Phonk,Dark,#FFFE27D7,#FF607D8B,#FF000000,#FF000000,true,4.5,Medium,All</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection DefaultThemes {
             get {
@@ -105,6 +107,15 @@ namespace Skua.Manager.Properties {
             }
             set {
                 this["CheckClientPrereleases"] = value;
+            }
+        }
+        
+        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.3.0.0")]
+        public string ApplicationVersion {
+            get {
+                return ((string)(this["ApplicationVersion"]));
             }
         }
         
@@ -227,12 +238,27 @@ namespace Skua.Manager.Properties {
             }
         }
         
-        [global::System.Configuration.ApplicationScopedSettingAttribute()]
+        [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.2.5.4")]
-        public string ApplicationVersion {
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string CustomBackgroundPath {
             get {
-                return ((string)(this["ApplicationVersion"]));
+                return ((string)(this["CustomBackgroundPath"]));
+            }
+            set {
+                this["CustomBackgroundPath"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Generic2.swf")]
+        public string DefaultBackground {
+            get {
+                return ((string)(this["DefaultBackground"]));
+            }
+            set {
+                this["DefaultBackground"] = value;
             }
         }
     }

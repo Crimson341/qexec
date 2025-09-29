@@ -1,10 +1,11 @@
-﻿using Skua.Core.Interfaces;
-using Skua.Core.Flash;
 using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.Flash;
+using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models.Monsters;
 
 namespace Skua.Core.Scripts;
+
 public partial class ScriptCombat : IScriptCombat
 {
     public ScriptCombat(
@@ -21,7 +22,6 @@ public partial class ScriptCombat : IScriptCombat
         _lazyMap = map;
         _messenger = StrongReferenceMessenger.Default;
 
-        _messenger.Register<ScriptCombat, CounterAttackMessage, int>(this, (int)MessageChannels.GameEvents, CounterAttack);
         _messenger.Register<ScriptCombat, PlayerDeathMessage, int>(this, (int)MessageChannels.GameEvents, PlayerDead);
         _messenger.Register<ScriptCombat, ScriptStoppedMessage, int>(this, (int)MessageChannels.ScriptStatus, ScriptStopped);
     }
@@ -42,10 +42,12 @@ public partial class ScriptCombat : IScriptCombat
     public bool StopAttacking { get; set; }
 
     [MethodCallBinding("world.approachTarget", GameFunction = true)]
-    private void _approachTarget() { }
+    private void _approachTarget()
+    { }
 
     [MethodCallBinding("untargetSelf")]
-    private void _untargetSelf() { }
+    private void _untargetSelf()
+    { }
 
     [MethodCallBinding("world.cancelTarget", RunMethodPost = true, GameFunction = true)]
     private void _cancelTarget()
@@ -55,7 +57,8 @@ public partial class ScriptCombat : IScriptCombat
     }
 
     [MethodCallBinding("world.cancelAutoAttack", GameFunction = true)]
-    private void _cancelAutoAttack() { }
+    private void _cancelAutoAttack()
+    { }
 
     public void Exit()
     {
@@ -104,23 +107,5 @@ public partial class ScriptCombat : IScriptCombat
     private void ScriptStopped(ScriptCombat recipient, ScriptStoppedMessage message)
     {
         recipient.StopAttacking = false;
-    }
-
-    Monster? _target;
-    private void CounterAttack(ScriptCombat recipient, CounterAttackMessage message)
-    {
-        if (message.Faded)
-        {
-            recipient.StopAttacking = false;
-            if (recipient._target is not null)
-                recipient.Attack(recipient._target.MapID);
-            recipient._target = null;
-            return;
-        }
-
-        recipient.StopAttacking = true;
-        recipient._target = recipient.Player.Target;
-        recipient.CancelAutoAttack();
-        recipient.CancelTarget();
     }
 }

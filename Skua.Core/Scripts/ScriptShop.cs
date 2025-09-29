@@ -1,10 +1,11 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Items;
 using Skua.Core.Models.Shops;
+using System.Xml.Linq;
 
 namespace Skua.Core.Scripts;
 
@@ -54,9 +55,12 @@ public partial class ScriptShop : IScriptShop
 
     [ObjectBinding("world.shopinfo.items", Default = "new()")]
     private List<ShopItem> _items = new();
+
     public bool IsLoaded => !Flash.IsNull("world.shopinfo");
+
     [ObjectBinding("world.shopinfo.ShopID")]
     private int _ID;
+
     [ObjectBinding("world.shopinfo.sName", Default = "string.Empty")]
     private string _name = string.Empty;
 
@@ -68,7 +72,7 @@ public partial class ScriptShop : IScriptShop
             Wait.ForActionCooldown(GameActions.LoadShop);
         Flash.CallGameFunction("world.sendLoadShopRequest", id);
         if (Options.SafeTimings)
-            Wait.ForTrue(() => ID == id, 10);
+            Wait.ForTrue(() => IsLoaded && ID == id, 20);
     }
 
     public void BuyItem(string name, int quantity = -1)
@@ -80,13 +84,33 @@ public partial class ScriptShop : IScriptShop
             Wait.ForItemBuy();
     }
 
-    public void BuyItem(int id, int shopItemId = 0, int quantity = -1)
+    public void BuyItem(int id, int shopItemId = -1, int quantity = -1)
     {
         if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.BuyItem);
         Flash.Call("buyItemByID", id, shopItemId, quantity);
         if (Options.SafeTimings)
             Wait.ForItemBuy();
+    }
+
+    public void EnsureLoadAndBuyItem(int shopId, string itemName, int quantity = -1)
+    {
+        Flash.CallGameFunction("world.sendLoadShopRequest", shopId);
+        Wait.ForActionCooldown(GameActions.LoadShop);
+        Wait.ForTrue(() => IsLoaded && ID == shopId, 20);
+        Flash.Call("buyItemByName", itemName, quantity);
+        Wait.ForActionCooldown(GameActions.BuyItem);
+        Wait.ForItemBuy();
+    }
+
+    public void EnsureLoadAndBuyItem(int shopId, int itemId, int shopItemId = -1, int quantity = -1)
+    {
+        Wait.ForActionCooldown(GameActions.LoadShop);
+        Flash.CallGameFunction("world.sendLoadShopRequest", shopId);
+        Wait.ForTrue(() => IsLoaded && ID == shopId, 20);
+        Wait.ForActionCooldown(GameActions.BuyItem);
+        Flash.Call("buyItemByID", itemId, shopItemId, quantity);
+        Wait.ForItemBuy();
     }
 
     public void SellItem(string name)
@@ -121,5 +145,6 @@ public partial class ScriptShop : IScriptShop
     }
 
     [MethodCallBinding("openArmorCustomize", GameFunction = true)]
-    private void _loadArmourCustomizer() { }
+    private void _loadArmourCustomizer()
+    { }
 }
