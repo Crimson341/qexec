@@ -7,6 +7,7 @@ using Skua.Core.Models.Monsters;
 using Skua.Core.Models.Skills;
 
 namespace Skua.Core.Scripts;
+
 public partial class ScriptAuto : ObservableObject, IScriptAuto
 {
     public ScriptAuto(
@@ -69,7 +70,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         _ctsAuto = new CancellationTokenSource();
         _DoActionAuto(hunt: false, className, classUseMode);
     }
-    
+
     public void StartAutoHunt(string? className = null, ClassUseMode classUseMode = ClassUseMode.Base)
     {
         _ctsAuto = new CancellationTokenSource();
@@ -78,12 +79,12 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
     public void Stop()
     {
-        if(_ctsAuto is null)
+        if (_ctsAuto is null)
         {
             IsRunning = false;
             return;
         }
-        
+
         _ctsAuto?.Cancel();
         _autoTask?.Wait();
         Wait.ForTrue(() => _ctsAuto is null, 20);
@@ -93,12 +94,12 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
     public async ValueTask StopAsync()
     {
-        if(_ctsAuto is null)
+        if (_ctsAuto is null)
         {
             IsRunning = false;
             return;
         }
-        
+
         _ctsAuto?.Cancel();
         await Wait.ForTrueAsync(() => _ctsAuto is null && (_autoTask?.IsCompleted ?? true), 40);
         _autoTask?.Dispose();
@@ -143,6 +144,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
     }
 
     private string _target = "";
+
     private async Task _Attack(CancellationToken token)
     {
         Trace.WriteLine("Auto attack started.");

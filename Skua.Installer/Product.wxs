@@ -11,9 +11,9 @@
 		
 		<Upgrade Id="$(var.UpgradeCode)">
 			<!-- Downgrade Protection -->
-      <UpgradeVersion Minimum="$(var.BuildVersion)" OnlyDetect="yes" IncludeMinimum="no" Property="DOWNGRADE_DETECTED" />
-      <!-- Major Upgrade Configuration -->
-      <UpgradeVersion IncludeMinimum="no" Maximum="$(var.BuildVersion)" IncludeMaximum="yes" MigrateFeatures="yes" Property="UPGRADE_DETECTED" />
+			<UpgradeVersion Minimum="$(var.BuildVersion)" OnlyDetect="yes" IncludeMinimum="no" Property="DOWNGRADE_DETECTED" />
+			<!-- Major Upgrade Configuration -->
+			<UpgradeVersion IncludeMinimum="no" Maximum="$(var.BuildVersion)" IncludeMaximum="yes" MigrateFeatures="yes" Property="UPGRADE_DETECTED" />
     </Upgrade>
 
         <InstallExecuteSequence>
@@ -36,7 +36,7 @@
         <!-- Use the icon.ico icon for this installer (shows up in Add/Remove programs) -->
         <Property Id="ARPPRODUCTICON" Value="icon.ico" />
         <!-- Help/Support website (shows in the Add/Remove programs) -->
-        <Property Id="ARPURLINFOABOUT" Value="https://github.com/BrenoHenrike/Skua" />
+        <Property Id="ARPURLINFOABOUT" Value="https://github.com/auqw/Skua" />
 
         <!-- Create a basic UI for the installer -->
         <!--<UIRef Id="WixUI_Minimal" />-->
