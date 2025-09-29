@@ -6,7 +6,6 @@ using Skua.Core.Models.Skills;
 using System.Text;
 
 namespace Skua.Core.ViewModels;
-
 public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOptions
 {
     public CBOClassSelectViewModel(IScriptInventory inventory, IAdvancedSkillContainer advancedSkills)
@@ -18,7 +17,6 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     public List<string> PlayerClasses { get; private set; } = new();
 
     private string? _selectedSoloClass;
-
     public string? SelectedSoloClass
     {
         get { return _selectedSoloClass; }
@@ -32,17 +30,14 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             }
         }
     }
-
     public List<ClassUseMode> SoloUseModes { get; private set; } = new();
-
     [ObservableProperty]
     private ClassUseMode? _selectedSoloUseMode;
-
     [ObservableProperty]
     private bool _useSoloEquipment;
 
-    private string? _selectedFarmClass;
 
+    private string? _selectedFarmClass;
     public string? SelectedFarmClass
     {
         get { return _selectedFarmClass; }
@@ -56,25 +51,21 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             }
         }
     }
-
     public List<ClassUseMode> FarmUseModes { get; private set; } = new();
-
     [ObservableProperty]
     private ClassUseMode? _selectedFarmUseMode;
-
     [ObservableProperty]
     private bool _useFarmEquipment;
-
     private readonly IScriptInventory _inventory;
     private readonly IAdvancedSkillContainer _advancedSkills;
 
     [RelayCommand]
     private void ReloadClasses()
     {
-        PlayerClasses = _inventory.Items?.Where(i =>
+        PlayerClasses = _inventory.Items?.Where(i => 
             (i.Category == ItemCategory.Class) && (i.EnhancementLevel > 0)
         ).Select(i => i.Name).ToList() ?? new();
-
+        
         OnPropertyChanged(nameof(PlayerClasses));
 
         SoloUseModes = new();
@@ -105,7 +96,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             PlayerClasses.Add(values["SoloClassSelect"]);
             OnPropertyChanged(nameof(PlayerClasses));
             SelectedSoloClass = values["SoloClassSelect"];
-            if (values.TryGetValue("SoloEquipCheck", out string? check))
+            if(values.TryGetValue("SoloEquipCheck", out string? check))
             {
                 UseSoloEquipment = Convert.ToBoolean(check);
             }

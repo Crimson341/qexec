@@ -1,17 +1,20 @@
 ﻿using CommunityToolkit.Mvvm.DependencyInjection;
-using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using Skua.Core.AppStartup;
-using Skua.Core.Interfaces;
-using Skua.Core.Messaging;
-using Skua.Core.ViewModels;
-using Skua.Core.ViewModels.Manager;
-using Skua.Manager.Properties;
-using Skua.WPF.Services;
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
+using Skua.Core.AppStartup;
+using Skua.WPF.Services;
+using Skua.Core.Interfaces;
+using System.Collections.Specialized;
+using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.Messaging;
+using Skua.Manager.Properties;
+using System.Threading.Tasks;
+using Skua.Core.ViewModels.Manager;
+using System.Threading;
+using System.IO;
+using Skua.Core.ViewModels;
+using System.Windows.Navigation;
 
 namespace Skua.Manager;
 
@@ -22,7 +25,7 @@ public partial class App : Application
 {
     private const string _uniqueEventName = "Skua.Manager";
     private EventWaitHandle? _eventWaitHandle = null;
-
+    
     public App()
     {
         InitializeComponent();
@@ -60,10 +63,6 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-
-        // Don't register managed windows immediately - let them be registered lazily when needed
-        // This prevents early activation of ViewModels like ScriptRepoManagerViewModel
-
         bool isChangeLogActivated = Services.GetRequiredService<ISettingsService>().Get<bool>("ChangeLogActivated");
         if (!isChangeLogActivated)
         {
@@ -91,7 +90,7 @@ public partial class App : Application
             {
                 Current.Dispatcher.BeginInvoke((Action)(() =>
                 {
-                    if (Current.MainWindow != null)
+                    if (!Current.MainWindow.Equals(null))
                     {
                         var mainWindow = Current.MainWindow;
                         if (mainWindow.WindowState == WindowState.Minimized || mainWindow.Visibility != Visibility.Visible)

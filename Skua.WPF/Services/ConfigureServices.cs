@@ -1,10 +1,8 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Skua.Core.Interfaces;
-using Skua.Core.Services;
 using Skua.WPF.Flash;
 
 namespace Skua.WPF.Services;
-
 public static class ConfigureServices
 {
     public static IServiceCollection AddWindowsServices(this IServiceCollection services)
@@ -20,7 +18,6 @@ public static class ConfigureServices
         services.AddSingleton<IThemeService, ThemeService>();
         services.AddSingleton<ISoundService, SoundService>();
         services.AddSingleton<ThemeUserSettingsService>();
-        services.AddSingleton<BackgroundThemeService>();
 
         return services;
     }

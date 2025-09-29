@@ -12,7 +12,6 @@ using System.Windows;
 using System.Windows.Input;
 
 namespace Skua.WPF.Services;
-
 public class HotKeyService : IHotKeyService, IDisposable
 {
     public HotKeyService(Dictionary<string, IRelayCommand> hotKeys, ISettingsService settingsService, IDecamelizer decamelizer)
@@ -32,24 +31,24 @@ public class HotKeyService : IHotKeyService, IDisposable
     {
         // Clear previous bindings
         ClearRegisteredBindings();
-
+        
         if (Application.Current?.MainWindow == null)
             return;
-
+            
         StringCollection? hotkeys = _settingsService.Get<StringCollection>("HotKeys");
         if (hotkeys is null)
             return;
-
+            
         foreach (string? hk in hotkeys)
         {
             if (string.IsNullOrEmpty(hk))
                 continue;
 
             var split = hk.Split('|');
-            if (_hotKeys.ContainsKey(split[0]))
+            if(_hotKeys.ContainsKey(split[0]))
             {
                 KeyBinding? kb = ParseToKeyBinding(split[1]);
-                if (kb is null)
+                if(kb is null)
                 {
                     StrongReferenceMessenger.Default.Send<HotKeyErrorMessage>(new(split[0]));
                     continue;
@@ -60,7 +59,7 @@ public class HotKeyService : IHotKeyService, IDisposable
             }
         }
     }
-
+    
     private void ClearRegisteredBindings()
     {
         if (Application.Current?.MainWindow != null)
@@ -81,7 +80,7 @@ public class HotKeyService : IHotKeyService, IDisposable
             return new();
 
         List<T> parsed = new();
-        foreach (string hk in hotkeys)
+        foreach(string hk in hotkeys)
         {
             if (string.IsNullOrEmpty(hk))
                 continue;
@@ -130,7 +129,7 @@ public class HotKeyService : IHotKeyService, IDisposable
 
         return kb;
     }
-
+    
     private bool _disposed = false;
 
     public void Dispose()

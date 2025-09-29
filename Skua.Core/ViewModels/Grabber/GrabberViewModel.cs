@@ -2,7 +2,6 @@
 using System.Collections.ObjectModel;
 
 namespace Skua.Core.ViewModels;
-
 public partial class GrabberViewModel : BotControlViewModelBase
 {
     public GrabberViewModel(IEnumerable<GrabberListViewModel> grabberTabs)
@@ -16,7 +15,6 @@ public partial class GrabberViewModel : BotControlViewModelBase
     private ObservableCollection<GrabberListViewModel> _grabberTabs;
 
     private GrabberListViewModel _selectedTab;
-
     public GrabberListViewModel SelectedTab
     {
         get { return _selectedTab; }

@@ -81,5 +81,6 @@
                 Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}" />
         </Grid>
         <!--#endregion-->
+
     </Grid>
 </UserControl>

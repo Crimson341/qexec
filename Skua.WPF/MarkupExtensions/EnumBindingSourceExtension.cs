@@ -3,11 +3,9 @@ using System.Linq;
 using System.Windows.Markup;
 
 namespace Skua.WPF;
-
 public class EnumBindingSourceExtension : MarkupExtension
 {
     public Type EnumType { get; private set; }
-
     public EnumBindingSourceExtension(Type enumType)
     {
         if (enumType is null || !enumType!.IsEnum)
@@ -15,7 +13,6 @@ public class EnumBindingSourceExtension : MarkupExtension
 
         EnumType = enumType;
     }
-
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
         var names = Enum.GetNames(EnumType);

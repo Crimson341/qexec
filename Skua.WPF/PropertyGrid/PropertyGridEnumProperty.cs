@@ -1,7 +1,6 @@
 ﻿using System.Reflection;
 
 namespace Skua.WPF;
-
 public class PropertyGridEnumProperty : PropertyGridProperty
 {
     public PropertyGridEnumProperty(PropertyGridDataProvider provider)

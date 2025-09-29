@@ -68,7 +68,7 @@
                 Grid.Column="1"
                 Margin="3,3,0,3"
                 Command="{Binding OpenScriptRepoCommand}"
-                Content="Search Scripts" />
+                Content="Get Scripts" />
             <Button
                 Grid.Row="2"
                 Grid.Column="0"
@@ -104,6 +104,6 @@
             Grid.Row="3"
             Margin="0,3,0,0"
             Command="{Binding OpenBrowserFormCommand}"
-            Content="Report Issues to @Tato2/@bogalj" />
+            Content="Report/Request Script" />
     </Grid>
 </UserControl>

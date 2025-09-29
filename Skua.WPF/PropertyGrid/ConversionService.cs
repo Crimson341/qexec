@@ -1,7 +1,6 @@
 ﻿using System;
 
 namespace Skua.WPF;
-
 public static class ConversionService
 {
     public static bool TryChangeType<T>(object input, IFormatProvider provider, out T value)

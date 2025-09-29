@@ -1,8 +1,7 @@
-﻿using Skua.Core.Interfaces;
-using System;
+﻿using System;
+using Skua.Core.Interfaces;
 
 namespace Skua.WPF;
-
 public class BaseTypeResolver : ITypeResolver
 {
     public virtual Type ResolveType(string fullName, bool throwOnError)

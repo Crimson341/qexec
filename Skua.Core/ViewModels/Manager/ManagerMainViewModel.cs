@@ -7,7 +7,6 @@ using Skua.Core.Messaging;
 using Skua.Core.Utils;
 
 namespace Skua.Core.ViewModels.Manager;
-
 public partial class ManagerMainViewModel : ObservableRecipient
 {
     public ManagerMainViewModel(IEnumerable<TabItemViewModel> tabs, IDialogService dialogService, ISettingsService settingsService)
@@ -49,14 +48,12 @@ public partial class ManagerMainViewModel : ObservableRecipient
 
     [ObservableProperty]
     private bool _isAuthenticated;
-
     private readonly IDialogService _dialogService;
     private readonly ISettingsService _settingsService;
 
     public RangedObservableCollection<TabItemViewModel> Tabs { get; set; }
 
     private TabItemViewModel _selectedTab;
-
     public TabItemViewModel SelectedTab
     {
         get { return _selectedTab; }
@@ -65,9 +62,9 @@ public partial class ManagerMainViewModel : ObservableRecipient
             var lastTab = _selectedTab.Content;
             if (SetProperty(ref _selectedTab, value))
             {
-                if (lastTab is ObservableRecipient previous)
+                if(lastTab is ObservableRecipient previous)
                     previous.IsActive = false;
-                if (_selectedTab.Content is ObservableRecipient current)
+                if(_selectedTab.Content is ObservableRecipient current)
                     current.IsActive = true;
             }
         }

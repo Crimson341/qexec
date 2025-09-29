@@ -1,8 +1,12 @@
 ﻿using Skua.Core.Interfaces;
 using Skua.Manager.Properties;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
 namespace Skua.Manager;
-
 public class SettingsService : ISettingsService
 {
     public T? Get<T>(string key)

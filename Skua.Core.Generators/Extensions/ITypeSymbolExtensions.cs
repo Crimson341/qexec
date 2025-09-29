@@ -1,7 +1,6 @@
 ﻿using Microsoft.CodeAnalysis;
 
 namespace Skua.Core.Generators.Extensions;
-
 internal static class ITypeSymbolExtensions
 {
     /// <summary>

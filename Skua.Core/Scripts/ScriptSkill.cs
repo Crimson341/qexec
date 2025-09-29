@@ -1,8 +1,11 @@
-﻿using Skua.Core.Flash;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models.Skills;
 using Skua.Core.Skills;
+using System;
+using System.Diagnostics;
 
 namespace Skua.Core.Scripts;
 
@@ -62,17 +65,17 @@ public partial class ScriptSkill : IScriptSkill
 
     public void Start()
     {
-        if (BaseProvider is null)
+        if(BaseProvider is null)
         {
             BaseProvider = new AdvancedSkillProvider(Player, Combat);
             BaseProvider.Load(genericSkills);
             _provider = BaseProvider;
         }
         _provider = OverrideProvider ?? BaseProvider;
-
+        
         if (TimerRunning)
             return;
-
+        
         _skillThread = new(async () =>
         {
             _skillsCTS = new();
@@ -88,7 +91,7 @@ public partial class ScriptSkill : IScriptSkill
                 TimerRunning = false;
             }
         });
-
+        
         _skillThread.Name = "Skill Timer";
         _skillThread.Start();
         TimerRunning = true;
@@ -115,7 +118,7 @@ public partial class ScriptSkill : IScriptSkill
     {
         OverrideProvider = new AdvancedSkillProvider(Player, Combat);
 
-        if (className == "generic")
+        if(className == "generic")
         {
             OverrideProvider.Load(genericSkills);
             SkillUseMode = SkillUseMode.UseIfAvailable;
@@ -167,14 +170,14 @@ public partial class ScriptSkill : IScriptSkill
                 _counterAttack.WaitOne(10000);
                 Combat.StopAttacking = false;
             }
-
+           
             // if the player has target or bot attack without target option is on
             // then activate the skills
             if (Options.AttackWithoutTarget || Player.HasTarget)
             {
-                _Poll(token);
+               _Poll(token);
             }
-
+           
             // target reset if player has no target
             _provider?.OnTargetReset();
 
@@ -183,7 +186,7 @@ public partial class ScriptSkill : IScriptSkill
                 await Task.Delay(SkillInterval, token);
         }
     }
-
+    
     private void _Poll(CancellationToken token)
     {
         // if the current player has skills and the current class rank is different from the last rank
@@ -196,19 +199,19 @@ public partial class ScriptSkill : IScriptSkill
                 _playerSkills = playerSkills;
 
             int k = 0;
-            using FlashArray<object> skills = (FlashArray<object>)Flash.CreateFlashObject<object>("world.actions.active").ToArray();
+            using FlashArray<object> skills = (FlashArray<object>)Flash.CreateFlashObject<object>("world.actions.active").ToArray();   
             foreach (FlashObject<object> skill in skills)
             {
                 using FlashObject<long> ts = (FlashObject<long>)skill.GetChild<long>("ts");
                 ts.Value = _playerSkills[k++]?.LastUse ?? 0;
             }
         }
-
+        
         // Store the last rank if the player is ranking up
         _lastRank = Player.CurrentClassRank;
         if (token.IsCancellationRequested)
             return;
-
+        
         var (index, skillS) = _provider!.GetNextSkill();
 
         switch (_provider?.ShouldUseSkill(index, CanUseSkill(skillS)))
@@ -218,14 +221,12 @@ public partial class ScriptSkill : IScriptSkill
                     break;
                 UseSkill(skillS);
                 break;
-
             case null:
                 var (indexS, skill) = _provider!.GetNextSkill();
                 if (skill != -1 && !_playerSkills![skill].IsOk)
                     break;
                 UseSkill(skill);
                 break;
-
             default:
                 break;
         }
@@ -251,7 +252,6 @@ public partial class ScriptSkill : IScriptSkill
     }
 
     private readonly AutoResetEvent _counterAttack = new(false);
-
     private void CounterAttack(ScriptSkill recipient, CounterAttackMessage message)
     {
         if (message.Faded)

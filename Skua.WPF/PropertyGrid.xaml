@@ -394,6 +394,7 @@
                     ContentStringFormat="{Binding Attributes.Format}" />
             </Grid>
         </DataTemplate>
+
     </UserControl.Resources>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <DataGrid

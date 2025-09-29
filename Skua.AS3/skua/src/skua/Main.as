@@ -15,14 +15,11 @@ package skua
 	import flash.events.Event;
 	import flash.events.MouseEvent;
 	import flash.events.ProgressEvent;
-	import flash.events.IOErrorEvent;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	import flash.system.LoaderContext;
 	import flash.system.Security;
-	import flash.system.System;
-	import flash.system.Capabilities;
 	import flash.utils.getQualifiedClassName;
 	import flash.utils.setTimeout;
 	import flash.utils.clearTimeout;
@@ -44,25 +41,21 @@ package skua
 		
 		private var game:*;
 		private var external:skua.Externalizer;
+		
 		private var sURL:String = 'https://game.aq.com/game/';
 		private var versionUrl:String = (sURL + 'api/data/gameversion');
 		private var loginURL:String = (sURL + 'api/login/now');
+		
 		private var sFile:String;
-		private var sBG:String = 'hideme.swf';
+		private var sBG:String = 'Generic2.swf';
 		private var isEU:Boolean;
 		private var urlLoader:URLLoader;
-		private var vars:Object;
 		private var loader:Loader;
-		private var sTitle:String = '<font color="#FDAF2D">AURAS!!!</font>';
+		private var vars:Object;
+		private var sTitle:String = '<font color="#FDAF2D">Better Performance</font>';
+		
 		private var stg:Stage;
 		private var gameDomain:ApplicationDomain;
-		private var customBGLoader:Loader;
-		private var customBGReady:MovieClip = null;
-		private var customBackgroundURL:String;
-		private var backgroundConfig:Object;
-		public var bgConfigPath:String;
-		private var lastLoginChildCount:int = -1;
-		private var lastLoginVisible:Boolean = false;
 		
 		public function Main()
 		{
@@ -72,7 +65,7 @@ package skua
 			};
 			
 			Main.instance = this;
-
+			
 			if (stage) this.init();
 			else addEventListener(Event.ADDED_TO_STAGE, this.init);
 		}
@@ -80,7 +73,6 @@ package skua
 		public static function loadGame():void
 		{
 			Main.instance.onAddedToStage();
-			Main.instance.external.call('pre-load');
 		}
 		
 		private function init(e:Event = null):void
@@ -127,12 +119,11 @@ package skua
 			{
 				this.game.params[param] = root.loaderInfo.parameters[param];
 			}
-
-			this.loadBackgroundConfig();
+			
 			this.game.params.vars = this.vars;
 			this.game.params.sURL = this.sURL;
-			this.game.params.sBG = this.sBG;
 			this.game.params.sTitle = this.sTitle;
+			this.game.params.sBG = this.sBG;
 			this.game.params.isEU = this.isEU;
 			this.game.params.loginURL = this.loginURL;
 			
@@ -141,176 +132,15 @@ package skua
 			
 			Modules.init();
 			this.stg.addEventListener(Event.ENTER_FRAME, Modules.handleFrame);
-			this.stg.addEventListener(Event.ENTER_FRAME, this.monitorLoginScreen);
 			
 			this.game.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.key_StageGame);
 			
 			this.external.call('loaded');
 		}
+		
 		public function onExtensionResponse(packet:*):void
 		{
 			this.external.call('pext', JSON.stringify(packet));
-		}
-		
-		private function monitorLoginScreen():void
-		{
-			if (this.customBGReady && this.game && this.game.mcLogin) {
-				
-				var currentlyVisible:Boolean = this.game.mcLogin.visible;
-				if (currentlyVisible != this.lastLoginVisible) {
-					if (currentlyVisible) {
-						this.external.debug('Login screen became visible - applying background immediately');
-						this.tryApplyCustomBG();
-					}
-					this.lastLoginVisible = currentlyVisible;
-				}
-				
-				if (this.game.mcLogin.visible && this.game.mcLogin.mcTitle) {
-					
-					var currentChildCount:int = this.game.mcLogin.mcTitle.numChildren;
-					
-					if (currentChildCount != this.lastLoginChildCount) {
-						this.external.debug('Login screen child count changed: ' + this.lastLoginChildCount + ' -> ' + currentChildCount + ' - applying background immediately');
-						this.lastLoginChildCount = currentChildCount;
-						this.tryApplyCustomBG();
-					}
-					
-					if (currentChildCount > 0) {
-						var hasCustomBG:Boolean = false;
-						for (var i:int = 0; i < currentChildCount; i++) {
-							if (this.game.mcLogin.mcTitle.getChildAt(i) == this.customBGReady) {
-								hasCustomBG = true;
-								break;
-							}
-						}
-						
-						if (!hasCustomBG) {
-							this.tryApplyCustomBG();
-						}
-					}
-				}
-			}
-		}
-		
-		private function initCustomBackground():void
-		{
-			if (!this.customBackgroundURL) {
-				this.external.debug('No custom background URL provided');
-				return;
-			}
-			
-			this.customBGLoader = new Loader();
-			this.customBGLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, function(e:Event):void {
-				customBGReady = MovieClip(customBGLoader.content);
-				tryApplyCustomBG();
-				
-				var bgTimer:Timer = new Timer(500);
-				bgTimer.addEventListener(TimerEvent.TIMER, function(timerEvent:TimerEvent):void {
-					if (customBGReady && game && game.mcLogin && game.mcLogin.visible) {
-						tryApplyCustomBG();
-					}
-				});
-				bgTimer.start();
-			});
-			this.customBGLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function(e:IOErrorEvent):void {
-				external.debug('Custom background load error: ' + e.text);
-			});
-			this.customBGLoader.load(new URLRequest(this.customBackgroundURL));
-			
-			this.stg.addEventListener(Event.ENTER_FRAME, function(e:Event):void {
-				if (game && game.mcLogin && game.mcLogin.mcTitle && game.mcLogin.mcTitle.numChildren > 0) {
-					stg.removeEventListener(Event.ENTER_FRAME, arguments.callee);
-					tryApplyCustomBG();
-				}
-			});
-		}
-		
-		private function tryApplyCustomBG():void
-		{
-			if (!this.customBGReady) {
-				return;
-			}
-			
-			if (!this.game || !this.game.mcLogin || !this.game.mcLogin.mcTitle) {
-				return;
-			}
-			
-			try {
-				var numChildren:int = this.game.mcLogin.mcTitle.numChildren;
-				if (numChildren > 0) {
-					var topChild:* = this.game.mcLogin.mcTitle.getChildAt(numChildren - 1);
-					if (topChild == this.customBGReady) {
-						return;
-					}
-				}
-				
-				while (this.game.mcLogin.mcTitle.numChildren > 0) {
-					this.game.mcLogin.mcTitle.removeChildAt(0);
-				}
-				
-				this.game.mcLogin.mcTitle.addChild(this.customBGReady);
-				
-			} catch (e:Error) {
-				this.external.debug('Custom background apply error: ' + e.message);
-			}
-		}
-		
-		private function loadBackgroundConfig():void
-		{
-			try {
-				var configLoader:URLLoader = new URLLoader();
-				configLoader.addEventListener(Event.COMPLETE, onConfigLoaded);
-				configLoader.addEventListener(IOErrorEvent.IO_ERROR, onConfigError);
-				
-			var configPath:String = instance.bgConfigPath;
-			if (!configPath) {
-				setTimeout(loadBackgroundConfig, 500);
-				return;
-			}
-			
-			if (!configPath) {
-				this.external.debug('No background config path available, using default background');
-				this.setDefaultBackground();
-				return;
-			}
-				configLoader.load(new URLRequest(configPath));
-			} catch (e:Error) {
-				this.external.debug('Background config load error: ' + e.message);
-				this.setDefaultBackground();
-			}
-		}
-		
-		private function onConfigLoaded(event:Event):void
-		{
-			try {
-				var configLoader:URLLoader = event.target as URLLoader;
-				this.backgroundConfig = JSON.parse(configLoader.data);
-				
-				if (this.backgroundConfig && this.backgroundConfig.sBG) {
-					this.sBG = this.backgroundConfig.sBG;
-					this.game.params.sBG = this.backgroundConfig.sBG;
-				}
-				
-				if (this.backgroundConfig && this.backgroundConfig.customBackground) {
-					this.customBackgroundURL = this.backgroundConfig.customBackground;
-				}
-				this.initCustomBackground();
-				
-			} catch (e:Error) {
-				this.external.debug('Background config parse error: ' + e.message);
-				this.setDefaultBackground();
-			}
-		}
-		
-		private function onConfigError(event:IOErrorEvent):void
-		{
-			this.setDefaultBackground();
-		}
-		
-		private function setDefaultBackground():void
-		{
-			this.sBG = 'Generic2.swf';
-			this.customBackgroundURL = null;
 		}
 		
 		public function key_StageGame(kbArgs:KeyboardEvent):void
@@ -661,39 +491,24 @@ package skua
 		public static function auraComparison(target:String, operator:String, auraName:String, auraValue:int):String
 		{
 			var aura:Object = null;
-			var auras:Object = null;
-			try
+			var auras:Object = target == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
+			for each (aura in auras)
 			{
-				auras = target == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-			}
-			catch (e:Error)
-			{
-				return false.toString();
-			}
-			
-			for (var i:int = 0; i < auras.length; i++)
-			{
-				aura = auras[i];
 				if (aura.nam.toLowerCase() == auraName.toLowerCase())
 				{
-					var actualValue:int = (aura.val == undefined || aura.val == null) ? 1 : parseInt(aura.val);
-					if (operator == 'Greater' && actualValue > auraValue)
+					if (aura.val == null || aura.val == 'undefined' || aura.val == '')
+					{
+						return false.toString();
+					}
+					if (operator == 'Greater' && aura.val.toFixed(0) > auraValue.toFixed(0))
 					{
 						return true.toString();
 					}
-					if (operator == 'Less' && actualValue < auraValue)
+					if (operator == 'Less' && aura.val.toFixed(0) < auraValue.toFixed(0))
 					{
 						return true.toString();
 					}
-					if (operator == 'Equal' && actualValue == auraValue)
-					{
-						return true.toString();
-					}
-					if (operator == 'GreaterOrEqual' && actualValue >= auraValue)
-					{
-						return true.toString();
-					}
-					if (operator == 'LessOrEqual' && actualValue <= auraValue)
+					if (operator == 'Equal' && aura.val.toFixed(0) == auraValue.toFixed(0))
 					{
 						return true.toString();
 					}
@@ -722,143 +537,6 @@ package skua
 				auraArray.push({'name': aura.nam, 'value': aura.val == undefined ? 0 : aura.val, 'passive': aura.passive, 'timeStamp': aura.ts, 'duration': parseInt(aura.dur), 'potionType': aura.potionType, 'cat': aura.cat, 't': aura.t, 's': aura.s, 'fx': aura.fx, 'animOn': aura.animOn, 'animOff': aura.animOff, 'msgOn': aura.msgOn, 'isNew': aura.isNew});
 			}
 			return JSON.stringify(auraArray);
-		}
-		
-		public static function GetAurasValue(subject:String, auraName:String):String
-		{
-			var aura:Object = null;
-			var auras:Object = null;
-			try
-			{
-				auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-			}
-			catch (e:Error)
-			{
-				return '0';
-			}
-			
-			for (var i:int = 0; i < auras.length; i++)
-			{
-				aura = auras[i];
-				if (aura.nam.toLowerCase() == auraName.toLowerCase())
-				{
-					return (aura.val == undefined || aura.val == null ? 1 : aura.val).toString();
-				}
-			}
-			return '0';
-		}
-		
-		public static function HasAnyActiveAura(subject:String, auraNames:String):String
-		{
-			var auraList:Array = auraNames.split(',');
-			var auras:Object = null;
-			try
-			{
-				auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-			}
-			catch (e:Error)
-			{
-				return false.toString();
-			}
-			
-			for (var i:int = 0; i < auras.length; i++)
-			{
-				var aura:Object = auras[i];
-				for (var j:int = 0; j < auraList.length; j++)
-				{
-					if (aura.nam.toLowerCase() == auraList[j].toLowerCase().trim())
-					{
-						return true.toString();
-					}
-				}
-			}
-			return false.toString();
-		}
-		
-		public static function HasAllActiveAuras(subject:String, auraNames:String):String
-		{
-			var auraList:Array = auraNames.split(',');
-			var auras:Object = null;
-			try
-			{
-				auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-			}
-			catch (e:Error)
-			{
-				return false.toString();
-			}
-			
-			var foundCount:int = 0;
-			for (var i:int = 0; i < auraList.length; i++)
-			{
-				for (var j:int = 0; j < auras.length; j++)
-				{
-					if (auras[j].nam.toLowerCase() == auraList[i].toLowerCase().trim())
-					{
-						foundCount++;
-						break;
-					}
-				}
-			}
-			return (foundCount == auraList.length).toString();
-		}
-		
-		public static function GetTotalAuraStacks(subject:String, auraNamePattern:String):String
-		{
-			var auras:Object = null;
-			try
-			{
-				auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-			}
-			catch (e:Error)
-			{
-				return '0';
-			}
-			
-			var totalStacks:int = 0;
-			var pattern:String = auraNamePattern.toLowerCase();
-			
-			for (var i:int = 0; i < auras.length; i++)
-			{
-				var aura:Object = auras[i];
-				var auraName:String = aura.nam.toLowerCase();
-				
-				if (auraName == pattern || auraName.indexOf(pattern) != -1)
-				{
-					var stacks:int = (aura.val == undefined || aura.val == null) ? 1 : parseInt(aura.val);
-					totalStacks += stacks;
-				}
-			}
-			return totalStacks.toString();
-		}
-		
-		public static function GetAuraSecondsRemaining(subject:String, auraName:String):String
-		{
-			var aura:Object = null;
-			var auras:Object = null;
-			try
-			{
-				auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-			}
-			catch (e:Error)
-			{
-				return '0';
-			}
-			
-			for (var i:int = 0; i < auras.length; i++)
-			{
-				aura = auras[i];
-				if (aura.nam.toLowerCase() == auraName.toLowerCase())
-				{
-					var currentTime:Number = new Date().getTime();
-					var auraTime:Number = parseFloat(aura.ts);
-					var duration:Number = parseFloat(aura.dur) * 1000;
-					var expiresAt:Number = auraTime + duration;
-					var remaining:Number = Math.max(0, (expiresAt - currentTime) / 1000);
-					return Math.floor(remaining).toString();
-				}
-			}
-			return '0';
 		}
 		
 		public static function getAvatar(id:int):String
@@ -895,7 +573,7 @@ package skua
 		public static function canUseSkill(index:int):String
 		{
 			var skill:* = instance.game.world.actions.active[index];
-			return (instance.game.world.myAvatar.target != null && instance.game.world.myAvatar.target.dataLeaf.intHP > 0 && skua.ExtractedFuncs.actionTimeCheck(skill) && skill.isOK && !skill.skillLock && !skill.lock).toString();
+			return (instance.game.world.myAvatar.target != null && instance.game.world.myAvatar.target.dataLeaf.intHP > 0 && skua.ExtractedFuncs.actionTimeCheck(skill) && skill.isOK && (!skill.skillLock || !skill.lock)).toString();
 		}
 		
 		public static function walkTo(xPos:int, yPos:int, walkSpeed:int):void
@@ -916,14 +594,14 @@ package skua
 		
 		public static function attackMonsterByID(id:int):String
 		{
-			var bestTarget:* = getBestMonsterTargetByID(id);
-			return attackTarget(bestTarget);
+			var monster:* = instance.game.world.getMonster(id);
+			return attackTarget(monster);
 		}
-			
+		
 		public static function attackMonsterByName(name:String):String
 		{
-			var bestTarget:* = getBestMonsterTarget(name);
-			return attackTarget(bestTarget);
+			var monster:* = getMonster(name);
+			return attackTarget(monster);
 		}
 		
 		public static function attackPlayer(name:String):String
@@ -942,136 +620,36 @@ package skua
 					return monster;
 				}
 			}
-		return null;
-		}
-	
-		public static function getBestMonsterTarget(name:String):*
-		{
-			var targetCandidates:Array = [];
-			
-			for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame))
-			{
-				var monName:String = monster.objData.strMonName.toLowerCase();
-				if ((monName.indexOf(name.toLowerCase()) > -1 || name == '*') && monster.pMC != null)
-				{
-					targetCandidates.push(monster);
-				}
-			}
-			
-			if (targetCandidates.length == 0)
-				return null;
-			
-			targetCandidates.sort(function(a:*, b:*):Number {
-				var aHP:int = (a.dataLeaf && a.dataLeaf.intHP) ? a.dataLeaf.intHP : 0;
-				var bHP:int = (b.dataLeaf && b.dataLeaf.intHP) ? b.dataLeaf.intHP : 0;
-				
-				var aAlive:Boolean = aHP > 0;
-				var bAlive:Boolean = bHP > 0;
-				
-				if (aAlive != bAlive) {
-					return aAlive ? -1 : 1;
-				}
-				
-				if (aHP != bHP) {
-					return aHP - bHP; 
-				}
-				
-				var aMapID:int = a.objData ? a.objData.MonMapID : 0;
-				var bMapID:int = b.objData ? b.objData.MonMapID : 0;
-				return aMapID - bMapID;
-			});
-			return targetCandidates[0];
-		}
-	
-		public static function getBestMonsterTargetByID(id:int):*
-		{
-			var targetCandidates:Array = [];
-			
-			for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame))
-			{
-				if (monster.pMC != null && monster.objData && (monster.objData.MonMapID == id || monster.objData.MonID == id))
-				{
-					targetCandidates.push(monster);
-				}
-			}
-			
-			if (targetCandidates.length == 0)
-				return null;
-			
-			targetCandidates.sort(function(a:*, b:*):Number {
-				var aHP:int = (a.dataLeaf && a.dataLeaf.intHP) ? a.dataLeaf.intHP : 0;
-				var bHP:int = (b.dataLeaf && b.dataLeaf.intHP) ? b.dataLeaf.intHP : 0;
-				
-				var aAlive:Boolean = aHP > 0;
-				var bAlive:Boolean = bHP > 0;
-				
-				if (aAlive != bAlive) {
-					return aAlive ? -1 : 1;
-				}
-				
-				if (aHP != bHP) {
-					return aHP - bHP;
-				}
-				
-				var aMapID:int = a.objData ? a.objData.MonMapID : 0;
-				var bMapID:int = b.objData ? b.objData.MonMapID : 0;
-				return aMapID - bMapID;
-			});
-			return targetCandidates[0];
+			return null;
 		}
 		
-		public static function availableMonstersInCell():String
+		public static function getMonsterHealth(param1:String): String
 		{
-			var retMonsters:Array = [];
-			for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame))
-			{
-				if (monster.pMC != null)
-				{
-					var monsterData:Object = new Object();
-					for (var prop:String in monster.objData)
-					{
-						monsterData[prop] = monster.objData[prop];
-					}
-					if (monster.dataLeaf)
-					{
-						monsterData.intHP = monster.dataLeaf.intHP;
-						monsterData.intHPMax = monster.dataLeaf.intHPMax;
-						monsterData.intState = monster.dataLeaf.intState;
-						monsterData.auras = monster.dataLeaf.auras;
-					}
-					retMonsters.push(monsterData);
-				}
-			}
-			return JSON.stringify(retMonsters);
+			var curMonster:Object = getMonster(param1);
+			return curMonster.dataLeaf.intHP.toString();
 		}
 		
-		public static function getTargetMonster(): String
+		public static function getMonsterHealthById(param1:int): String
 		{
-			var monster:* = instance.game.world.myAvatar.target
-			var monsterData:Object = new Object();
-			for (var prop:String in monster.objData)
-			{
-				monsterData[prop] = monster.objData[prop];
-			}
-			if (monster.dataLeaf)
-			{
-				monsterData.intHP = monster.dataLeaf.intHP;
-				monsterData.intHPMax = monster.dataLeaf.intHPMax;
-				monsterData.intState = monster.dataLeaf.intState;
-			}
-			return JSON.stringify(monsterData);
+			var curMonster:Object = instance.game.world.getMonster(param1);
+			return curMonster.dataLeaf.intHP.toString();
 		}
 		
-		public static function getMonsters(): String
+		
+	public static function availableMonstersInCell():String
+	{
+		var retMonsters:Array = [];
+		for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame))
 		{
-			var retMonsters:Array = [];
-			for each (var monster:* in instance.game.world.monsters)
+			if (monster.pMC != null)
 			{
+				// Merge objData with dataLeaf properties to include HP
 				var monsterData:Object = new Object();
 				for (var prop:String in monster.objData)
 				{
 					monsterData[prop] = monster.objData[prop];
 				}
+				// Add dataLeaf properties if available
 				if (monster.dataLeaf)
 				{
 					monsterData.intHP = monster.dataLeaf.intHP;
@@ -1080,8 +658,9 @@ package skua
 				}
 				retMonsters.push(monsterData);
 			}
-			return JSON.stringify(retMonsters);
 		}
+		return JSON.stringify(retMonsters);
+	}
 		
 		public function requestDoomArenaPVPQueue():void
 		{
@@ -1187,62 +766,48 @@ package skua
 		
 		public static function buyItemByName(name:String, quantity:int = -1):void
 		{
-			var item:* = getShopItem(name);
-			if (item != null)
+			for each (var item:* in instance.game.world.shopinfo.items)
 			{
-				if (quantity == -1)
-					instance.game.world.sendBuyItemRequest(item);
-				else
+				if (item.sName.toLowerCase() == name.toLowerCase())
 				{
-					var buyItem:* = new Object();
-					buyItem.iSel = item;
-					buyItem.iQty = quantity;
-					buyItem.accept = 1;
-					instance.game.world.sendBuyItemRequestWithQuantity(buyItem);
+					if (quantity == -1)
+						instance.game.world.sendBuyItemRequest(item);
+					else
+					{
+						var buyItem:* = new Object();
+						buyItem = item;
+						buyItem.iSel = item;
+						buyItem.iQty = quantity;
+						buyItem.iSel.iQty = quantity;
+						buyItem.accept = 1;
+						instance.game.world.sendBuyItemRequestWithQuantity(buyItem);
+					}
+					break;
 				}
 			}
 		}
 		
 		public static function buyItemByID(id:int, shopItemID:int, quantity:int = -1):void
 		{
-			var item:* = getShopItemByID(id, shopItemID);
-			if (item != null)
-			{
-				if (quantity == -1)
-					instance.game.world.sendBuyItemRequest(item);
-				else
-				{
-					var buyItem:* = new Object();
-					buyItem.iSel = item;
-					buyItem.iQty = quantity;
-					buyItem.accept = 1;
-					instance.game.world.sendBuyItemRequestWithQuantity(buyItem);
-				}
-			}
-		}
-		
-		public static function getShopItem(name:String):*
-		{
 			for each (var item:* in instance.game.world.shopinfo.items)
 			{
-				if (item.sName.toLowerCase() == name.toLowerCase() && item != null)
+				if (item.ItemID == id && (shopItemID == 0 || item.ShopItemID == shopItemID))
 				{
-					return getShopItemByID(item.ID, item.ShopItemID);
+					if (quantity == -1)
+						instance.game.world.sendBuyItemRequest(item);
+					else
+					{
+						var buyItem:* = new Object();
+						buyItem = item;
+						buyItem.iSel = item;
+						buyItem.iQty = quantity;
+						buyItem.iSel.iQty = quantity;
+						buyItem.accept = 1;
+						instance.game.world.sendBuyItemRequestWithQuantity(buyItem);
+					}
+					break;
 				}
 			}
-			return null;
-		}
-
-		public static function getShopItemByID(itemID:int, shopItemID:int):*
-		{
-			for each (var item:* in instance.game.world.shopinfo.items)
-			{
-				if (item.ItemID == itemID && (shopItemID == -1 || item.ShopItemID == shopItemID) && item != null)
-				{
-					return item;
-				}
-			}
-			return null;
 		}
 		
 		private static function parseDrop(name:*):*
@@ -1392,11 +957,5 @@ package skua
 		{
 			return '"' + instance.game.world.myAvatar.objData.strGender.toUpperCase() + '"';
 		}
-		
-		public static function setBgConfigPath(path:String):void
-		{
-			instance.bgConfigPath = path;
-		}
-		
 	}
 }

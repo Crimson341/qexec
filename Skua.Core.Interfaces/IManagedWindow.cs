@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.Interfaces;
-
 public interface IManagedWindow
 {
     string Title { get; }

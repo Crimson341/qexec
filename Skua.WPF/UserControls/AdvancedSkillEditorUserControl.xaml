@@ -167,6 +167,7 @@
                         DockPanel.Dock="Right" />
                 </DockPanel>
             </Grid>
+
         </GroupBox>
         <!--#endregion-->
 

@@ -1,8 +1,8 @@
+﻿using Microsoft.Extensions.DependencyInjection;
 using Skua.Manager.Properties;
 using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Reflection;
 using System.Windows;
 
@@ -13,8 +13,6 @@ public class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
-
         AppDomain currentDomain = AppDomain.CurrentDomain;
         currentDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssemblies);
         currentDomain.UnhandledException += CurrentDomain_UnhandledException;
@@ -30,7 +28,7 @@ public class Program
         MessageBox.Show($"Manager Crash.\r\nVersion: {Settings.Default.ApplicationVersion}\r\nMessage: {ex.Message}\r\nInner Exception Message: {ex.InnerException?.Message}\r\nStackTrace: {ex.StackTrace}", "Application");
     }
 
-    private static Assembly? ResolveAssemblies(object? sender, ResolveEventArgs args)
+    static Assembly? ResolveAssemblies(object? sender, ResolveEventArgs args)
     {
         if (args.Name.Contains(".resources"))
             return null;

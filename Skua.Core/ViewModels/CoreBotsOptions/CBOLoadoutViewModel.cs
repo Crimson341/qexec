@@ -2,7 +2,6 @@
 using System.Text;
 
 namespace Skua.Core.ViewModels;
-
 public class CBOLoadoutViewModel : ObservableObject, IManageCBOptions
 {
     public CBOLoadoutViewModel(CBOClassSelectViewModel classSelectViewModel, CBOClassEquipmentViewModel classEquipmentViewModel)
@@ -15,7 +14,7 @@ public class CBOLoadoutViewModel : ObservableObject, IManageCBOptions
     public CBOClassEquipmentViewModel ClassEquipmentViewModel { get; }
 
     public StringBuilder Save(StringBuilder builder)
-    {
+    { 
         ClassSelectViewModel.Save(builder);
         ClassEquipmentViewModel.Save(builder);
         return builder;

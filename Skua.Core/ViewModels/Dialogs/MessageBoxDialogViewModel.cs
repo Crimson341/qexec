@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.ViewModels;
-
 public class MessageBoxDialogViewModel : DialogViewModelBase
 {
     public MessageBoxDialogViewModel(string message, string caption)
@@ -15,7 +14,6 @@ public class MessageBoxDialogViewModel : DialogViewModelBase
         Message = message;
         YesAndNo = yesAndNo;
     }
-
     public string Message { get; }
     public bool YesAndNo { get; }
 }

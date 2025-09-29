@@ -1,7 +1,6 @@
 ﻿using System.ComponentModel;
 
 namespace Skua.WPF;
-
 public class PropertyGridEventArgs : CancelEventArgs
 {
     public PropertyGridEventArgs(PropertyGridProperty property)

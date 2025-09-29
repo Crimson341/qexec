@@ -1,9 +1,9 @@
-﻿using Microsoft.CodeAnalysis;
-using Skua.Core.Generators.Extensions;
-using Skua.Core.Generators.Models;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Text;
+using Microsoft.CodeAnalysis;
+using Skua.Core.Generators.Extensions;
+using Skua.Core.Generators.Models;
 using static Skua.Core.Generators.Diagnostics.DiagnosticDescriptors;
 
 namespace Skua.Core.Generators;
@@ -16,8 +16,7 @@ public partial class ObjectBindingGenerator : GenericFieldAttributeGenerator<Obj
             Attributes.ObjectBindingFullName,
             Attributes.ObjectBindingName,
             Attributes.ObjectBindingSource,
-            ObjectBindingPropertyInfo.Comparer.Default)
-    { }
+            ObjectBindingPropertyInfo.Comparer.Default) { }
 
     protected override ObjectBindingPropertyInfo? TryGetInfo(IFieldSymbol fieldSymbol, out ImmutableArray<Diagnostic> diagnostics)
     {
@@ -81,7 +80,7 @@ public partial class ObjectBindingGenerator : GenericFieldAttributeGenerator<Obj
         {
             if (info.Values.RequireNotNull is not null)
                 source.Append($"if (Flash.IsNull(\"{info.Values.RequireNotNull}\")) return {defaultValue};");
-
+            
             source.Append("try{");
             if (info.Values.Select is not null)
                 source.Append($"{info.PropertyType}{(info.IsNullable ? string.Empty : "?")} returnValue = Newtonsoft.Json.JsonConvert.DeserializeObject<{info.PropertyType}>(Flash.Call(\"selectArrayObjects\", \"{info.Values.Paths[0]}\", \"{info.Values.Select}\"));");

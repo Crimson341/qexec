@@ -43,17 +43,15 @@ package skua
 			this.addCallback("jumpCorrectRoom", Main.jumpCorrectRoom);
 			
 			this.addCallback("availableMonsters", Main.availableMonstersInCell);
-			this.addCallback("getMonsters", Main.getMonsters);
-			this.addCallback("getTargetMonster", Main.getTargetMonster);
 			this.addCallback("attackMonsterName", Main.attackMonsterByName);
 			this.addCallback("attackMonsterID", Main.attackMonsterByID);
 			this.addCallback("untargetSelf", Main.untargetSelf);
 			this.addCallback("attackPlayer", Main.attackPlayer);
+			this.addCallback("getMonsterHealth", Main.getMonsterHealth);
+			this.addCallback("getMonsterHealthById", Main.getMonsterHealthById);
 			
 			this.addCallback("buyItemByName", Main.buyItemByName);
 			this.addCallback("buyItemByID", Main.buyItemByID);
-			this.addCallback("getShopItem", Main.getShopItem);
-			this.addCallback("getShopItemByID", Main.getShopItemByID);
 			
 			this.addCallback("sendClientPacket", Main.sendClientPacket);
 			this.addCallback("catchPackets", Main.catchPackets);
@@ -69,11 +67,6 @@ package skua
 			this.addCallback("auraComparison", Main.auraComparison);
 			this.addCallback("isTrue", Main.isTrue);
 			this.addCallback("getSubjectAuras", Main.getSubjectAuras);
-			this.addCallback("GetAurasValue", Main.GetAurasValue);
-			this.addCallback("GetAuraSecondsRemaining", Main.GetAuraSecondsRemaining);
-			this.addCallback("HasAnyActiveAura", Main.HasAnyActiveAura);
-			this.addCallback("HasAllActiveAuras", Main.HasAllActiveAuras);
-			this.addCallback("GetTotalAuraStacks", Main.GetTotalAuraStacks);
 			this.addCallback("getAvatar",Main.getAvatar);
 			
 			this.addCallback("injectScript", Main.injectScript);
@@ -100,9 +93,6 @@ package skua
 			
 			this.addCallback("modEnable", Modules.enable);
 			this.addCallback("modDisable", Modules.disable);
-			
-			// Background config path setter
-			this.addCallback("setBgConfigPath", Main.setBgConfigPath);
 			
 			this.debug("Externalizer::init done.");
 			this.call("requestLoadGame");

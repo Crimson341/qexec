@@ -1,11 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
-using Skua.Core.Generators.Extensions;
-using Skua.Core.Generators.Models;
-using System;
+﻿using System;
 using System.Collections.Immutable;
 using System.Text;
-using static Skua.Core.Generators.Attributes;
+using Microsoft.CodeAnalysis;
+using Skua.Core.Generators.Extensions;
+using Skua.Core.Generators.Models;
 using static Skua.Core.Generators.Diagnostics.DiagnosticDescriptors;
+using static Skua.Core.Generators.Attributes;
 
 namespace Skua.Core.Generators;
 
@@ -17,8 +17,7 @@ public class ModuleBindingGenerator : GenericFieldAttributeGenerator<ModuleBindi
             ModuleBindingFullName,
             ModuleBindingName,
             ModuleBindingSource,
-            ModuleBindingPropertyInfo.Comparer.Default)
-    { }
+            ModuleBindingPropertyInfo.Comparer.Default) { }
 
     protected override void GenerateProperties(StringBuilder source, ModuleBindingPropertyInfo info)
     {

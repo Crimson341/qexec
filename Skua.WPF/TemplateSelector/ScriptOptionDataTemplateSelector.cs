@@ -1,10 +1,9 @@
-﻿using Skua.Core.ViewModels;
-using System;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
+using Skua.Core.ViewModels;
 
 namespace Skua.WPF;
-
 public class OptionContainerDataTemplateSelector : DataTemplateSelector
 {
     public DataTemplate BoolTemplate { get; set; }

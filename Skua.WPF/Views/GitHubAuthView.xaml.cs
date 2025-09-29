@@ -1,8 +1,9 @@
-﻿using System.Windows;
+﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using Skua.Core.Interfaces;
+using System.Windows;
 using System.Windows.Controls;
 
 namespace Skua.WPF.Views;
-
 /// <summary>
 /// Interaction logic for GitHubAuthView.xaml
 /// </summary>

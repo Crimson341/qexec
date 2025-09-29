@@ -4,7 +4,6 @@ using Skua.Core.Interfaces;
 using Skua.Core.Utils;
 
 namespace Skua.Core.ViewModels;
-
 public partial class PacketSpammerViewModel : BotControlViewModelBase
 {
     public PacketSpammerViewModel(IScriptSend send, IFileDialogService fileDialog)
@@ -16,22 +15,16 @@ public partial class PacketSpammerViewModel : BotControlViewModelBase
 
     private readonly IScriptSend _send;
     private readonly IFileDialogService _fileDialog;
-
     [ObservableProperty]
     private RangedObservableCollection<string> _packets = new();
-
     [ObservableProperty]
     private bool _sendToClient;
-
     [ObservableProperty]
     private int _spamDelay = 1000;
-
     [ObservableProperty]
     private string _packetText = string.Empty;
-
     [ObservableProperty]
     private int _sendTimes = 1;
-
     [ObservableProperty]
     private int _selectedIndex = -1;
 
@@ -106,7 +99,6 @@ public partial class PacketSpammerViewModel : BotControlViewModelBase
 
         Send(PacketText);
     }
-
     private void Send(string packet)
     {
         bool json = packet.StartsWith("{");

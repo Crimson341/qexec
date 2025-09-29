@@ -10,7 +10,6 @@ public class SimpleReward : ItemBase
     /// </summary>
     [JsonProperty("iRate")]
     public double Rate { get; set; }
-
     /// <summary>
     /// The type of the item as an integer ID.
     /// </summary>

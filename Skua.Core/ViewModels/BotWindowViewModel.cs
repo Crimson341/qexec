@@ -1,9 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 
 namespace Skua.Core.ViewModels;
-
 public partial class BotWindowViewModel : ObservableObject
 {
     public BotWindowViewModel(IEnumerable<BotControlViewModelBase> views)
@@ -17,7 +16,6 @@ public partial class BotWindowViewModel : ObservableObject
     private int _selectedIndex;
 
     private BotControlViewModelBase _selectedItem;
-
     public BotControlViewModelBase SelectedItem
     {
         get { return _selectedItem; }
@@ -28,6 +26,7 @@ public partial class BotWindowViewModel : ObservableObject
             {
                 lastView.IsActive = false;
                 _selectedItem.IsActive = true;
+                
             }
         }
     }
@@ -45,7 +44,6 @@ public partial class BotWindowViewModel : ObservableObject
     {
         SelectedIndex++;
     }
-
     private bool CanMoveNext()
     {
         return SelectedIndex < BotViews.Count - 1;
@@ -56,7 +54,6 @@ public partial class BotWindowViewModel : ObservableObject
     {
         SelectedIndex--;
     }
-
     private bool CanMovePrev()
     {
         return SelectedIndex > 0;

@@ -2,7 +2,6 @@
 using Skua.Core.Utils;
 
 namespace Skua.Core.Interfaces;
-
 public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
 {
     /// <summary>
@@ -16,7 +15,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
             return ToBank(item!);
         return false;
     }
-
     /// <summary>
     /// Transfers the item with specified <paramref name="id"/> to the bank.
     /// </summary>
@@ -28,14 +26,12 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
             return ToBank(item!);
         return false;
     }
-
     /// <summary>
     /// Transfers the item with specified <paramref name="item"/> to the bank.
     /// </summary>
     /// <param name="name">Name of the item to transfer.</param>
     /// <returns><see langword="true"/> if the item was moved to the bank.</returns>
     bool ToBank(InventoryItem item);
-
     /// <summary>
     /// Transfers the items with specified <paramref name="names"/> to the bank.
     /// </summary>
@@ -45,7 +41,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
         for (int i = 0; i < names.Length; i++)
             ToBank(names[i]);
     }
-
     /// <summary>
     /// Transfers the items with specified <paramref name="ids"/> to the bank.
     /// </summary>
@@ -55,21 +50,18 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
         for (int i = 0; i < ids.Length; i++)
             ToBank(ids[i]);
     }
-
     /// <summary>
     /// Ensures the item with specified <paramref name="name"/> will be moved to the bank.
     /// </summary>
     /// <param name="name">Name of the item to transfer.</param>
     /// <remarks>It will try <see cref="IScriptOption.MaximumTries"/> then move on even if the transfer was unsuccessful.</remarks>
     bool EnsureToBank(string name);
-
     /// <summary>
     /// Ensures the item with specified <paramref name="id"/> will be moved to the bank.
     /// </summary>
     /// <param name="name">ID of the item to transfer.</param>
     /// <remarks>It will try <see cref="IScriptOption.MaximumTries"/> then move on even if the transfer was unsuccessful.</remarks>
     bool EnsureToBank(int id);
-
     /// <summary>
     /// Ensures the items with specified <paramref name="names"/> will be moved to the bank.
     /// </summary>
@@ -80,7 +72,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
         for (int i = 0; i < names.Length; i++)
             EnsureToBank(names[i]);
     }
-
     /// <summary>
     /// Ensures the items with specified <paramref name="ids"/> will be moved to the bank.
     /// </summary>
@@ -93,7 +84,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
                 EnsureToBank(ids[i]);
         }
     }
-
     /// <summary>
     /// Transfers all AC (coin) items that are not equipped to the bank.
     /// </summary>
@@ -102,7 +92,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
     {
         Items.Where(i => i.Coins && !i.Equipped && i.Name != "treasure potion").ForEach(i => ToBank(i));
     }
-
     /// <summary>
     /// Transfers all AC (coin) items that are not equipped and don't have the category listed in <paramref name="filterOut"/> to the bank.
     /// </summary>
@@ -112,7 +101,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
     {
         Items.Where(i => i.Coins && !i.Equipped && i.Name != "treasure potion" && !filterOut.Contains(i.Category)).ForEach(i => ToBank(i));
     }
-
     /// <summary>
     /// Transfers all AC (coin) items that are not equipped and don't have the name listed in <paramref name="excludeNames"/> to the bank.
     /// </summary>
@@ -122,7 +110,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
     {
         Items.Where(i => i.Coins && !i.Equipped && i.Name != "treasure potion" && !excludeNames.Contains(i.Name)).ForEach(i => ToBank(i));
     }
-
     /// <summary>
     /// Transfers all AC (coin) items that are not equipped and don't have the ID listed in <paramref name="excludeIds"/> to the bank.
     /// </summary>
@@ -132,7 +119,6 @@ public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
     {
         Items.Where(i => i.Coins && !i.Equipped && i.Name != "treasure potion" && !excludeIds.Contains(i.ID)).ForEach(i => ToBank(i));
     }
-
     /// <summary>
     /// Transfers all AC (coin) items that are not equipped and pass (returns <see langword="true"/>) the <paramref name="predicate"/> to the bank.
     /// </summary>

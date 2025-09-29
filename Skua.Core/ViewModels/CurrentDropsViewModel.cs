@@ -1,12 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
-using Skua.Core.Messaging;
 using Skua.Core.Models.Items;
+using Skua.Core.Messaging;
 
 namespace Skua.Core.ViewModels;
-
 public partial class CurrentDropsViewModel : BotControlViewModelBase
 {
     public CurrentDropsViewModel(IScriptDrop drops, IScriptPlayer player)
@@ -29,7 +28,6 @@ public partial class CurrentDropsViewModel : BotControlViewModelBase
 
     private readonly IScriptPlayer _player;
     private readonly IScriptDrop _drops;
-
     [ObservableProperty]
     private ItemBase? _selectedDrop;
 

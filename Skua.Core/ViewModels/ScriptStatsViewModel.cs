@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 
 namespace Skua.Core.ViewModels;
-
 public class ScriptStatsViewModel : ObservableObject, IManagedWindow
 {
     public ScriptStatsViewModel(IScriptBotStats scriptStats)

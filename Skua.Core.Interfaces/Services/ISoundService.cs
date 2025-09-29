@@ -1,12 +1,10 @@
 ﻿namespace Skua.Core.Interfaces;
-
 public interface ISoundService
 {
     /// <summary>
     /// Plays the sound of a beep.
     /// </summary>
     void Beep();
-
     /// <summary>
     /// Plays the sound of a beep with the desired <paramref name="frequency"/> and <paramref name="duration"/>.
     /// </summary>

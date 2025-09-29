@@ -1,8 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 
 namespace Skua.Core.ViewModels;
-
 public partial class LogsViewModel : BotControlViewModelBase
 {
     public LogsViewModel(IEnumerable<LogTabViewModel> logTabs)
@@ -14,7 +13,6 @@ public partial class LogsViewModel : BotControlViewModelBase
 
     [ObservableProperty]
     private ObservableCollection<LogTabViewModel> _logTabs;
-
     [ObservableProperty]
     private LogTabViewModel _selectedTab;
 }

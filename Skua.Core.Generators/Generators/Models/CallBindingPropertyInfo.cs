@@ -1,5 +1,5 @@
-﻿using Skua.Core.Generators.Helpers;
-using System;
+﻿using System;
+using Skua.Core.Generators.Helpers;
 
 namespace Skua.Core.Generators.Models;
 /// <summary>

@@ -1,10 +1,9 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Collections.Immutable;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Skua.Core.Interfaces;
 using Skua.Core.ViewModels;
-using System.Collections.Immutable;
 
 namespace Skua.Core.Services;
-
 public partial class MapService : ObservableObject, IMapService
 {
     private readonly IScriptMap Map;
@@ -15,7 +14,6 @@ public partial class MapService : ObservableObject, IMapService
         Map = map;
         Player = player;
     }
-
     public string MapName => Map.Name;
 
     public string Cell => Player.Cell;
@@ -23,10 +21,9 @@ public partial class MapService : ObservableObject, IMapService
     public string Pad => Player.Pad;
 
     public List<string> Cells => Map.Cells;
-
+    
     [ObservableProperty]
     private bool _UsePrivateRoom;
-
     [ObservableProperty]
     private int _PrivateRoomNumber = 111111;
 

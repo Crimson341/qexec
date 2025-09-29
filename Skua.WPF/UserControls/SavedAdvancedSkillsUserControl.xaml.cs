@@ -1,10 +1,9 @@
-﻿using Skua.Core.Models.Skills;
-using System;
+﻿using System;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Skua.Core.Models.Skills;
 
 namespace Skua.WPF.UserControls;
-
 /// <summary>
 /// Interaction logic for SavedAdvancedSkillsUserControl.xaml
 /// </summary>

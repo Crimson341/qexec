@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.Models;
-
 public enum ColorScheme
 {
     Primary,

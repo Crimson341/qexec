@@ -1,12 +1,11 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+﻿using System.Collections.ObjectModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
-using System.Collections.ObjectModel;
 
 namespace Skua.Core.ViewModels;
-
 public partial class MainMenuViewModel : ObservableRecipient
 {
     public MainMenuViewModel(IEnumerable<MainMenuItemViewModel> mainMenuItems, AutoViewModel auto, JumpViewModel jump, IWindowService windowService)
@@ -24,10 +23,8 @@ public partial class MainMenuViewModel : ObservableRecipient
     }
 
     private readonly IWindowService _windowService;
-
     [ObservableProperty]
     private ObservableCollection<MainMenuItemViewModel> _mainMenuItems = new();
-
     [ObservableProperty]
     private ObservableCollection<MainMenuItemViewModel> _plugins;
 

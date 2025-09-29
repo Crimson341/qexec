@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.ViewModels;
-
 public class CBOBoolChoiceOptionItemViewModel : DisplayOptionItemViewModel<bool>
 {
     public CBOBoolChoiceOptionItemViewModel(string optionTitle, string description, string tag, string firstChoice, string secondChoice)
@@ -9,7 +8,6 @@ public class CBOBoolChoiceOptionItemViewModel : DisplayOptionItemViewModel<bool>
         SecondChoice = secondChoice;
         Value = false;
     }
-
     public CBOBoolChoiceOptionItemViewModel(string optionTitle, string description, string tag, string firstChoice, string secondChoice, bool value)
         : base(optionTitle, description, tag)
     {

@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.Interfaces;
-
 public interface IOption
 {
     string Category { get; set; }

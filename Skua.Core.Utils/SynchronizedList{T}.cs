@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.Utils;
-
 /// <summary>
 /// A list that allows synchronous operations.
 /// </summary>

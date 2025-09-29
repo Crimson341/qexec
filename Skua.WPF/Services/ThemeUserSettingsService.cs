@@ -1,13 +1,12 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using MaterialDesignColors;
+﻿using MaterialDesignColors;
 using MaterialDesignThemes.Wpf;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Skua.Core.Interfaces;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
 
 namespace Skua.WPF.Services;
-
 public class ThemeUserSettingsService : ObservableObject
 {
     public ThemeUserSettingsService(ISettingsService settings)
@@ -33,7 +32,7 @@ public class ThemeUserSettingsService : ObservableObject
         if (themeStrings is null)
             return new();
         List<ThemeItem> themes = new();
-        foreach (string? themeString in themeStrings)
+        foreach(string? themeString in themeStrings)
             themes.Add(ThemeItem.FromString(themeString));
 
         return themes;
@@ -63,7 +62,7 @@ public class ThemeUserSettingsService : ObservableObject
         theme.SecondaryMid = new ColorPair(theme.SecondaryMid.Color, themeItem.SecondaryForegroundColor);
         theme.SecondaryDark = new ColorPair(theme.SecondaryDark.Color, themeItem.SecondaryForegroundColor);
 
-        if (theme is Theme internalTheme)
+        if(theme is Theme internalTheme)
             internalTheme.ColorAdjustment = themeItem.UseColorAdjustment ? themeItem.ColorAdjustment : null;
 
         theme.SetBaseTheme(themeItem.BaseTheme);

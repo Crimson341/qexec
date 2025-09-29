@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Windows;
 
 namespace Skua.WPF;
-
 public class PropertyGridWindowManager
 {
     public static readonly DependencyProperty OptionsProperty =

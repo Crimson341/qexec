@@ -7,7 +7,6 @@ using System.Net;
 using System.Reflection;
 
 namespace Skua.WPF;
-
 public class BaseConverter : IConverter
 {
     private static byte GetHexaByte(char c)

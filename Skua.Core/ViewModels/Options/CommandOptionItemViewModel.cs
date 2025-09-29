@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 
 namespace Skua.Core.ViewModels;
-
 public class CommandOptionItemViewModel<TDisplay> : CommandOptionItemViewModel
 {
     public CommandOptionItemViewModel(string content, IRelayCommand command) : base(content, command, typeof(TDisplay))
@@ -20,11 +19,6 @@ public class CommandOptionItemViewModel<TDisplay> : CommandOptionItemViewModel
     }
 
     public CommandOptionItemViewModel(string content, string description, string tag, IRelayCommand command, TDisplay? defaultValue) : base(content, description, tag, command, typeof(TDisplay))
-    {
-        Value = defaultValue;
-    }
-
-    public CommandOptionItemViewModel(string content, string description, string tag, string? suffixText, IRelayCommand command, TDisplay? defaultValue) : base(content, description, tag, suffixText, command, typeof(TDisplay))
     {
         Value = defaultValue;
     }
@@ -48,11 +42,6 @@ public class CommandOptionItemViewModel : DisplayOptionItemViewModelBase
     }
 
     public CommandOptionItemViewModel(string content, string description, string tag, IRelayCommand command, Type displayType) : base(content, description, tag, displayType)
-    {
-        Command = command;
-    }
-
-    public CommandOptionItemViewModel(string content, string description, string tag, string? suffixText, IRelayCommand command, Type displayType) : base(content, description, tag, suffixText, displayType)
     {
         Command = command;
     }

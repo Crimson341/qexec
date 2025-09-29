@@ -1,7 +1,6 @@
 ﻿using System;
 
 namespace Skua.WPF;
-
 [AttributeUsage(AttributeTargets.All, AllowMultiple = true)]
 public class PropertyGridAttribute : Attribute
 {

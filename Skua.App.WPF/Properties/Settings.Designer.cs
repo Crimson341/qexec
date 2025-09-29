@@ -12,7 +12,7 @@ namespace Skua.App.WPF.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.13.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.Editors.SettingsDesigner.SettingsSingleFileGenerator", "17.14.0.0")]
     internal sealed partial class Settings : global::System.Configuration.ApplicationSettingsBase {
         
         private static Settings defaultInstance = ((Settings)(global::System.Configuration.ApplicationSettingsBase.Synchronized(new Settings())));
@@ -75,8 +75,6 @@ namespace Skua.App.WPF.Properties {
   <string>Skua,Dark,#FF607D8B,#FF607D8B,#FF000000,#FF000000,true,4.5,Medium,All</string>
   <string>RBot,Light,#FF9C934E,#FF9C934E,#FF000000,#FF000000</string>
   <string>Grimoire,Dark,#FFCC1F41,#FFCC1F41,#FFFFFFFF,#FFFFFFFF</string>
-  <string>Purple,Dark,#FF9651D6,#FF9651D6,#FFFFFFFF,#FFFFFFFF,true,4.5,Medium,All</string>
-  <string>Phonk,Dark,#FFFE27D7,#FF607D8B,#FF000000,#FF000000,true,4.5,Medium,All</string>
 </ArrayOfString>")]
         public global::System.Collections.Specialized.StringCollection DefaultThemes {
             get {
@@ -180,7 +178,7 @@ namespace Skua.App.WPF.Properties {
         
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("1.3.0.0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("1.2.5.4")]
         public string ApplicationVersion {
             get {
                 return ((string)(this["ApplicationVersion"]));

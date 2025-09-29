@@ -10,7 +10,6 @@ public class Handler : IHandler
         Ticks = ticks;
         Function = function;
     }
-
     public string Name { get; }
     public int Ticks { get; }
     public Func<IScriptInterface, bool> Function { get; }

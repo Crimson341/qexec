@@ -1,7 +1,7 @@
-using Skua.Core.Flash;
-using Skua.Core.Interfaces;
+﻿using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using Skua.Core.Models.Items;
+using Skua.Core.Flash;
 using System.Dynamic;
 
 namespace Skua.Core.Scripts;
@@ -43,10 +43,8 @@ public partial class ScriptInventory : IScriptInventory
 
     [ObjectBinding("world.myAvatar.items", Default = "new()")]
     private List<InventoryItem> _items;
-
     [ObjectBinding("world.myAvatar.objData.iBagSlots")]
     private int _slots;
-
     [ObjectBinding("world.myAvatar.items.length")]
     private int _usedSlots;
 
@@ -59,25 +57,6 @@ public partial class ScriptInventory : IScriptInventory
         Flash.CallGameFunction("world.sendEquipItemRequest", item);
         if (Options.SafeTimings)
             Wait.ForItemEquip(id);
-    }
-
-    public void EquipUsableItem(InventoryItem item)
-    {
-        if (item is null)
-            return;
-        if (Options.SafeTimings)
-            Wait.ForActionCooldown(GameActions.EquipItem);
-
-        dynamic dynItem = new ExpandoObject();
-        dynItem.ItemID = item.ID;
-        dynItem.sDesc = item.Description;
-        dynItem.sFile = item.FileLink;
-        dynItem.sName = item.Name;
-
-        Flash.CallGameFunction("world.equipUseableItem", dynItem);
-
-        if (Options.SafeTimings)
-            Wait.ForItemEquip(item.ID);
     }
 
     public bool ToBank(InventoryItem item)

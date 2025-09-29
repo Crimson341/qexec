@@ -1,16 +1,15 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.DependencyInjection;
+﻿using System.Net;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using CommunityToolkit.Mvvm.Messaging;
 using CommunityToolkit.Mvvm.Messaging.Messages;
+using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using Skua.Core.Models.Servers;
 using Skua.Core.Utils;
-using System.Net;
+using CommunityToolkit.Mvvm.DependencyInjection;
 
 namespace Skua.Core.ViewModels;
-
 public partial class PacketInterceptorViewModel : BotControlViewModelBase
 {
     public PacketInterceptorViewModel(ICaptureProxy gameProxy, IScriptServers server)
@@ -34,15 +33,12 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
     private readonly ICaptureProxy _gameProxy;
     private readonly IScriptServers _server;
     private readonly InterceptorLogger _logger;
-
     [ObservableProperty]
     private Server? _selectedServer;
-
     [ObservableProperty]
     private RangedObservableCollection<InterceptedPacketViewModel> _packets = new();
 
     private bool _isLogging;
-
     public bool IsLogging
     {
         get { return _isLogging; }
@@ -57,10 +53,10 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
             }
         }
     }
-
     public bool Running => _gameProxy.Running;
     public List<Server> ServerList => _server.CachedServers;
     public IRelayCommand ClearPacketsCommand { get; }
+
 
     [RelayCommand]
     private void ConnectInterceptor()
@@ -100,7 +96,6 @@ public class InterceptorLogger : IInterceptor
     private readonly Action<InterceptedPacketViewModel> _addFunc;
 
     public int Priority => int.MaxValue;
-
     public InterceptorLogger(Action<InterceptedPacketViewModel> addFunc)
     {
         _addFunc = addFunc;

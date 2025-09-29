@@ -1,12 +1,11 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Utils;
 
 namespace Skua.Core.ViewModels;
-
 public partial class PluginsViewModel : BotControlViewModelBase
 {
     public PluginsViewModel(IPluginManager pluginManager, IFileDialogService fileService)
@@ -32,7 +31,6 @@ public partial class PluginsViewModel : BotControlViewModelBase
     }
 
     private readonly IFileDialogService _fileService;
-
     [ObservableProperty]
     private RangedObservableCollection<PluginItemViewModel> _plugins = new();
 

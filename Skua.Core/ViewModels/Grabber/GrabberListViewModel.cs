@@ -1,3 +1,4 @@
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
@@ -5,12 +6,9 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models;
-using Skua.Core.Models.Monsters;
 using Skua.Core.Utils;
-using System.Collections.ObjectModel;
 
 namespace Skua.Core.ViewModels;
-
 public partial class GrabberListViewModel : ObservableRecipient
 {
     public GrabberListViewModel(string title, IGrabberService grabberService, GrabberTypes grabType, IEnumerable<GrabberTaskViewModel> commands, bool selectMultiple = false)
@@ -30,7 +28,6 @@ public partial class GrabberListViewModel : ObservableRecipient
         _grabType = grabType;
         _grabberCommands = new() { command };
     }
-
     public GrabberListViewModel(string title, IGrabberService grabberService, GrabberTypes grabType, bool selectMultiple = false)
     {
         Title = title;
@@ -44,32 +41,22 @@ public partial class GrabberListViewModel : ObservableRecipient
     private readonly IGrabberService _grabberService;
     public string Title { get; }
     public bool SelectMultiple { get; }
-
     [ObservableProperty]
     private string _searchText = string.Empty;
-
     [ObservableProperty]
     private bool _isBusy = false;
-
     [ObservableProperty]
     private bool _showMessage = false;
-
     [ObservableProperty]
     private string _progressReportMessage = string.Empty;
-
     [ObservableProperty]
     private ObservableCollection<GrabberTaskViewModel> _grabberCommands;
-
     [ObservableProperty]
     private int _selectionMode;
-
     [ObservableProperty]
     private RangedObservableCollection<object> _grabbedItems = new();
-
-
     [ObservableProperty]
     private object? _selectedItem;
-
 
     [RelayCommand]
     private async Task Grab()
@@ -81,9 +68,7 @@ public partial class GrabberListViewModel : ObservableRecipient
         {
             IEnumerable<object> items = await Task.Run(() => _grabberService.Grab(_grabType));
             if (items.Any())
-            {
                 GrabbedItems.ReplaceRange(items);
-            }
         }
         finally
         {
@@ -103,7 +88,7 @@ public partial class GrabberListViewModel : ObservableRecipient
 
     protected override void OnActivated()
     {
-        foreach (var task in GrabberCommands)
+        foreach(var task in GrabberCommands)
             task.IsActive = true;
 
         Messenger.Register<GrabberListViewModel, PropertyChangedMessage<bool>>(this, IsBusyChanged);
@@ -134,7 +119,4 @@ public partial class GrabberListViewModel : ObservableRecipient
             receiver.ProgressReportMessage = message.NewValue;
         }
     }
-
-
-
 }

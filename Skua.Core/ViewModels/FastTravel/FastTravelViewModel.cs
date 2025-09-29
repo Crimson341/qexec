@@ -1,16 +1,15 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
-using Skua.Core.Messaging;
-using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using CommunityToolkit.Mvvm.ComponentModel;
+using Skua.Core.Messaging;
 
 namespace Skua.Core.ViewModels;
-
 public partial class FastTravelViewModel : BotControlViewModelBase
 {
-    public FastTravelViewModel(IMapService mapService, ISettingsService settings, IDialogService dialogService)
+    public FastTravelViewModel(IMapService mapService, ISettingsService settings, IDialogService dialogService) 
         : base("Fast Travel")
     {
         MapService = mapService;
@@ -38,7 +37,6 @@ public partial class FastTravelViewModel : BotControlViewModelBase
     private readonly ISettingsService _settings;
     private readonly IDialogService _dialogService;
     private readonly IRelayCommand<object> _travelCommand;
-
     [ObservableProperty]
     private int _selectedIndex = 0;
 
@@ -90,7 +88,7 @@ public partial class FastTravelViewModel : BotControlViewModelBase
 
         int index = recipient.FastTravelItems.IndexOf(message.FastTravel);
         FastTravelEditorDialogViewModel dialog = new(new(recipient.MapService, message.FastTravel));
-        if (recipient._dialogService.ShowDialog(dialog) == true)
+        if(recipient._dialogService.ShowDialog(dialog) == true)
             recipient.FastTravelItems[index] = dialog.Editor.Travel;
     }
 }

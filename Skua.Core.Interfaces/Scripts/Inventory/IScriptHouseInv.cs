@@ -2,4 +2,5 @@
 
 public interface IScriptHouseInv : ICheckEquipped
 {
+    
 }

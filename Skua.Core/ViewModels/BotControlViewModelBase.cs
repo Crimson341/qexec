@@ -2,7 +2,6 @@
 using Skua.Core.Interfaces;
 
 namespace Skua.Core.ViewModels;
-
 public class BotControlViewModelBase : ObservableRecipient, IManagedWindow
 {
     public string Title { get; }

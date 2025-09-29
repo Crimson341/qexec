@@ -1,8 +1,7 @@
-﻿using Skua.Core.Interfaces;
-using System;
+﻿using System;
+using Skua.Core.Interfaces;
 
 namespace Skua.WPF;
-
 public class BaseActivator : IActivator
 {
     public virtual object CreateInstance(Type type, params object[] args)

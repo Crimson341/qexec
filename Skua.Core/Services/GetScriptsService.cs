@@ -6,16 +6,15 @@ using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
 
 namespace Skua.Core.Services;
-
 public partial class GetScriptsService : ObservableObject, IGetScriptsService
 {
     private readonly IDialogService _dialogService;
-    private const string _rawScriptsJsonUrl = "auqw/Scripts/refs/heads/Skua/scripts.json";
-    private const string _skillsSetsRawUrl = "auqw/Scripts/refs/heads/Skua/Skills/AdvancedSkills.txt";
-
+    private const string _rawScriptsJsonUrl = "https://raw.githubusercontent.com/BrenoHenrike/Scripts/Skua/scripts.json";
+    private const string _skillsSetsRawUrl = "https://raw.githubusercontent.com/BrenoHenrike/Scripts/Skua/Skills/AdvancedSkills.txt";
+    
     [ObservableProperty]
     private RangedObservableCollection<ScriptInfo> _scripts = new();
-
+    
     public GetScriptsService(IDialogService dialogService)
     {
         _dialogService = dialogService;
@@ -25,7 +24,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
     {
         if (_scripts.Any())
             return _scripts.ToList();
-
+        
         await GetScripts(progress, false, token);
 
         return _scripts.ToList();
@@ -41,13 +40,13 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         try
         {
             Scripts.Clear();
-
+            
             progress?.Report("Fetching scripts...");
             List<ScriptInfo> scripts = await GetScriptsInfo(refresh, token);
 
             progress?.Report($"Found {scripts.Count} scripts.");
             _scripts.AddRange(scripts);
-
+            
             progress?.Report($"Fetched {scripts.Count} scripts.");
             OnPropertyChanged(nameof(Scripts));
         }
@@ -55,9 +54,9 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         {
             progress?.Report("Task Cancelled.");
         }
-        catch (Exception ex)
+        catch
         {
-            _dialogService.ShowMessageBox($"Something went wrong when retrieving scripts.\r\nPlease, try again later.\r\n Error: {ex}", "Search Scripts Error");
+            _dialogService.ShowMessageBox("Something went wrong when retrieving scripts.\r\nPlease, try again later.", "Get Scripts Error");
         }
     }
 
@@ -66,7 +65,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (_scripts.Count != 0 && !refresh)
             return _scripts.ToList();
 
-        using (HttpResponseMessage response = await HttpClients.GitHubRaw.GetAsync(_rawScriptsJsonUrl, token))
+        using (HttpResponseMessage response = await HttpClients.Default.GetAsync(_rawScriptsJsonUrl, token))
         {
             var content = await response.Content.ReadAsStringAsync(token);
             return JsonConvert.DeserializeObject<List<ScriptInfo>>(content)!;
@@ -91,7 +90,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         DirectoryInfo parent = Directory.GetParent(info.ManagerLocalFile)!;
         if (!parent.Exists)
             parent.Create();
-
+        
         using (HttpResponseMessage response = await HttpClients.Default.GetAsync(info.DownloadUrl))
         {
             string script = await response.Content.ReadAsStringAsync();
@@ -147,23 +146,29 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public async Task<long> CheckAdvanceSkillSetsUpdates()
     {
-        var response = await HttpClients.GitHubRaw.GetAsync(_skillsSetsRawUrl);
-        var content = await response.Content.ReadAsStringAsync();
-        return content.Length;
+        using (var client = new HttpClient())
+        {
+            var response = await client.GetAsync(_skillsSetsRawUrl);
+            var content = await response.Content.ReadAsStringAsync();
+            return content.Length;
+        }
     }
 
     public async Task<bool> UpdateSkillSetsFile()
     {
-        var response = await HttpClients.GitHubRaw.GetAsync(_skillsSetsRawUrl);
-        var content = await response.Content.ReadAsStringAsync();
-        try
+        using (var client = new HttpClient())
         {
-            await File.WriteAllTextAsync(ClientFileSources.SkuaAdvancedSkillsFile, content);
-            return true;
-        }
-        catch
-        {
-            return false;
+            var response = await client.GetAsync(_skillsSetsRawUrl);
+            var content = await response.Content.ReadAsStringAsync();
+            try
+            {
+                await File.WriteAllTextAsync(ClientFileSources.SkuaAdvancedSkillsFile, content);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
     }
 }

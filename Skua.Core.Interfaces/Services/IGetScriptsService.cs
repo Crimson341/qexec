@@ -1,9 +1,8 @@
-﻿using Skua.Core.Models.GitHub;
+﻿using System.ComponentModel;
+using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
-using System.ComponentModel;
 
 namespace Skua.Core.Interfaces;
-
 public interface IGetScriptsService : INotifyPropertyChanged
 {
     int Downloaded => Scripts.Count(s => s.Downloaded);
@@ -13,22 +12,15 @@ public interface IGetScriptsService : INotifyPropertyChanged
     RangedObservableCollection<ScriptInfo> Scripts { get; }
 
     ValueTask<List<ScriptInfo>> GetScriptsAsync(IProgress<string>? progress, CancellationToken token);
-
     public Task RefreshScriptsAsync(IProgress<string>? progress, CancellationToken token);
 
     public Task<long> CheckAdvanceSkillSetsUpdates();
-
     public Task DownloadScriptAsync(ScriptInfo info);
-
     public Task ManagerDownloadScriptAsync(ScriptInfo info);
-
     public Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred);
-
     public Task<int> ManagerDownloadAllWhereAsync(Func<ScriptInfo, bool> pred);
-
     public Task DeleteScriptAsync(ScriptInfo info);
 
     public long GetSkillsSetsTextFileSize();
-
     public Task<bool> UpdateSkillSetsFile();
 }

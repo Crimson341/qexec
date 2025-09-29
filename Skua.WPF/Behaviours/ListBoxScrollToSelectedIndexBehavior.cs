@@ -1,8 +1,10 @@
-﻿using Microsoft.Xaml.Behaviors;
+﻿using System.Threading;
+using System.Windows.Automation.Peers;
+using System.Windows.Automation.Provider;
 using System.Windows.Controls;
+using Microsoft.Xaml.Behaviors;
 
 namespace Skua.WPF;
-
 public class ListBoxScrollToSelectedIndexBehavior : Behavior<ListBox>
 {
     private void AssociatedObject_SelectionChanged(object sender, SelectionChangedEventArgs e)

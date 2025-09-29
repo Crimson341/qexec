@@ -5,7 +5,6 @@ using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 
 namespace Skua.Core.ViewModels;
-
 public partial class HotKeyItemViewModel : ObservableObject, IHotKey
 {
     public HotKeyItemViewModel(string title, string keyGesture)
@@ -14,8 +13,7 @@ public partial class HotKeyItemViewModel : ObservableObject, IHotKey
         _keyGesture = keyGesture;
     }
 
-    public HotKeyItemViewModel()
-    { }
+    public HotKeyItemViewModel() { }
 
     public string Binding { get; set; }
     public string Title { get; set; } = string.Empty;

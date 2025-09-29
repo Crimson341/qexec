@@ -4,7 +4,6 @@ using Skua.Core.Models;
 using Skua.Core.ViewModels;
 
 namespace Skua.Core.AppStartup;
-
 internal static class LogTabs
 {
     internal static IEnumerable<LogTabViewModel> CreateViewModels(IServiceProvider s)

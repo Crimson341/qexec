@@ -1,9 +1,8 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+﻿using System.Text;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Skua.Core.Utils;
-using System.Text;
 
 namespace Skua.Core.ViewModels;
-
 public class SkillItemViewModel : ObservableObject
 {
     public SkillItemViewModel(int skill, bool useRule, int waitValue, bool healthGreaterThanBool, int healthValue, bool manaGreaterThanBool, int manaValue, bool skipBool)
@@ -21,7 +20,6 @@ public class SkillItemViewModel : ObservableObject
         };
         _displayString = ToString();
     }
-
     public SkillItemViewModel(int skill, SkillRulesViewModel useRules)
     {
         Skill = skill;
@@ -83,7 +81,6 @@ public class SkillItemViewModel : ObservableObject
     }
 
     private SkillRulesViewModel _useRules;
-
     public SkillRulesViewModel UseRules
     {
         get { return _useRules; }
@@ -93,11 +90,9 @@ public class SkillItemViewModel : ObservableObject
             DisplayString = ToString();
         }
     }
-
     public int Skill { get; }
 
     private string _displayString;
-
     public string DisplayString
     {
         get { return _displayString; }
@@ -109,20 +104,20 @@ public class SkillItemViewModel : ObservableObject
         StringBuilder bob = new();
         bob.Append(Skill);
 
-        if (!UseRules.UseRuleBool)
+        if(!UseRules.UseRuleBool)
             return bob.ToString();
-
-        if (UseRules.WaitUseValue != 0)
+        
+        if(UseRules.WaitUseValue != 0)
             bob.Append($" - [Wait for {UseRules.WaitUseValue}]");
-
-        if (UseRules.HealthUseValue != 0)
+        
+        if(UseRules.HealthUseValue != 0)
         {
             bob.Append(" - [Health");
             _ = UseRules.HealthGreaterThanBool ? bob.Append(" > ") : bob.Append(" < ");
             bob.Append(UseRules.HealthUseValue);
             bob.Append("%]");
         }
-
+        
         if (UseRules.ManaUseValue != 0)
         {
             bob.Append(" - [Mana");
@@ -130,10 +125,10 @@ public class SkillItemViewModel : ObservableObject
             bob.Append(UseRules.ManaUseValue);
             bob.Append("%]");
         }
-
-        if (UseRules.SkipUseBool)
+        
+        if(UseRules.SkipUseBool)
             bob.Append(" - [Skip if not available]");
-
+        
         return bob.ToString();
     }
 

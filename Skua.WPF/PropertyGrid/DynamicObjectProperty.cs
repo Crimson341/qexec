@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Skua.WPF;
-
 /// <summary>
 /// Represents a dynamic object property.
 /// </summary>

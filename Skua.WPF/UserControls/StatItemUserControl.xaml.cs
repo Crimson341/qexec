@@ -1,9 +1,8 @@
-﻿using MaterialDesignThemes.Wpf;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using MaterialDesignThemes.Wpf;
 
 namespace Skua.WPF.UserControls;
-
 /// <summary>
 /// Interaction logic for StatItemUserControl.xaml
 /// </summary>

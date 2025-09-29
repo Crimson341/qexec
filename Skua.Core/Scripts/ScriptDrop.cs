@@ -52,10 +52,8 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
 
     [ObservableProperty]
     private int _interval;
-
     [ObservableProperty]
     private bool _rejectElse;
-
     public bool Enabled => _taskDrops is not null;
     private readonly SynchronizedList<string> _toPickup = new();
     public IEnumerable<string> ToPickup => _toPickup.Items ?? Enumerable.Empty<string>();
@@ -259,7 +257,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         if (message.Sender.GetType() != typeof(ScriptOption))
             return;
 
-        switch (message.PropertyName)
+        switch(message.PropertyName)
         {
             case nameof(IScriptOption.AcceptACDrops):
             case nameof(IScriptOption.AcceptAllDrops):
@@ -291,20 +289,12 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
 
     private async void ScriptStopped(ScriptDrop recipient, ScriptStoppedMessage message)
     {
-        try
-        {
-            await recipient.StopAsync();
-        }
-        catch (Exception ex)
-        {
-            // Log the exception to prevent unobserved task exceptions
-            System.Diagnostics.Trace.WriteLine($"Error in ScriptStopped handler: {ex.Message}");
-        }
+        await recipient.StopAsync();
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_taskDrops is not null)
+        if(_taskDrops is not null)
         {
             _ctsDrops?.Cancel();
             await _taskDrops;

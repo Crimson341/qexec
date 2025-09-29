@@ -1,19 +1,17 @@
-﻿using Skua.Core.ViewModels;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using Skua.Core.ViewModels;
 
 namespace Skua.WPF.UserControls;
-
 /// <summary>
 /// Interaction logic for GrabberListUserControl.xaml
 /// </summary>
 public partial class GrabberListUserControl : UserControl
 {
     private ICollectionView? _collectionView;
-
     public GrabberListUserControl()
     {
         InitializeComponent();
@@ -37,7 +35,7 @@ public partial class GrabberListUserControl : UserControl
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrWhiteSpace(SearchBox.Text))
+        if(string.IsNullOrWhiteSpace(SearchBox.Text))
             return true;
 
         return obj.ToString()?.Contains(SearchBox.Text) ?? false;

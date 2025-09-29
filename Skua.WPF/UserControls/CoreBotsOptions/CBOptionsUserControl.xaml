@@ -92,6 +92,8 @@
                 </DockPanel>
             </Border>
         </DataTemplate>
+
+
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>

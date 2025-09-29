@@ -3,7 +3,6 @@ using System;
 using System.Windows;
 
 namespace Skua.WPF.Services;
-
 public class DispatcherService : IDispatcherService
 {
     public void Invoke(Action action)

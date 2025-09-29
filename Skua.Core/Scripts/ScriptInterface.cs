@@ -1,17 +1,15 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
-using CommunityToolkit.Mvvm.Messaging;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
+using System.Diagnostics;
 using Skua.Core.Interfaces;
-using Skua.Core.Interfaces.Auras;
-using Skua.Core.Interfaces.Services;
-using Skua.Core.Messaging;
-using Skua.Core.Models;
 using Skua.Core.Models.Items;
 using Skua.Core.Utils;
-using System.Diagnostics;
+using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.Messaging;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Skua.Core.Models;
+using Skua.Core.Interfaces.Auras;
 
 namespace Skua.Core.Scripts;
-
 public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDisposable
 {
     private CancellationTokenSource? ScriptInterfaceCTS;
@@ -32,8 +30,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     public IScriptBotStats Stats { get; }
     public IScriptSelfAuras Self { get; }
     public IScriptTargetAuras Target { get; }
-    public IAuraMonitorService AuraMonitor { get; }
-    public IUltraBossHelper UltraBossHelper { get; }
     public IScriptCombat Combat { get; }
     public IScriptKill Kill { get; }
     public IScriptHunt Hunt { get; }
@@ -95,9 +91,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         ICaptureProxy gameProxy,
         IScriptAuto auto,
         IDialogService dialogService,
-        ISettingsService settingsService,
-        IAuraMonitorService auraMonitorService,
-        IUltraBossHelper ultraBossHelper)
+        ISettingsService settingsService)
     {
         _logger = logger;
         Manager = manager;
@@ -133,8 +127,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         Servers = server;
         Handlers = handlers;
         Flash = flash;
-        AuraMonitor = auraMonitorService;
-        UltraBossHelper = ultraBossHelper;
 
         Version = Version.Parse(settingsService.Get("ApplicationVersion", "0.0.0.0"));
 
@@ -182,7 +174,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         if (Manager.ShouldExit && Thread.CurrentThread.Name == "Script Thread")
             throw new OperationCanceledException();
     }
-
     public bool? ShowMessageBox(string message, string caption, bool yesAndNo = false)
     {
         return _dialogService.ShowMessageBox(message, caption, yesAndNo);
@@ -343,28 +334,12 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     {
         switch (name)
         {
-            case "pre-load":
-                Schedule(1000, _ =>
-                {
-                    try
-                    {
-                        Flash.Call("setBgConfigPath", "file:///" + ClientFileSources.SkuaBGConfigFile.Replace('\\', '/'));
-                    }
-                    catch (Exception ex)
-                    {
-                        Log($"Could not set background config path: {ex.Message}");
-                    }
-                });
-                break;
-
             case "loaded":
                 Initialize();
                 break;
-
             case "debug":
                 Trace.WriteLine(args[0]);
                 break;
-
             case "pext":
                 dynamic packet = JsonConvert.DeserializeObject<dynamic>((string)args[0])!;
                 string type = packet["params"].type;
@@ -379,7 +354,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             if (zone is not null)
                                 Messenger.Send<RunToAreaMessage, int>(new(zone), (int)MessageChannels.GameEvents);
                             break;
-
                         case "moveToArea":
                             Options.CustomName = !string.IsNullOrWhiteSpace(Options.CustomName) ? Options.CustomName : Player.Username;
                             Options.CustomGuild = !string.IsNullOrWhiteSpace(Options.CustomGuild) ? Options.CustomGuild : Player.Guild;
@@ -387,7 +361,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             Map.FilePath = Convert.ToString(data.strMapFileName);
                             Map.LastMap = Convert.ToString(data.strMapName);
                             break;
-
                         case "ct":
                             dynamic p = data.p?[Player.Username.ToLower()]!;
                             if (p is not null && p.intHP == 0)
@@ -421,22 +394,18 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                                 }
                             }
                             break;
-
                         case "sellItem":
                             Messenger.Send<ItemSoldMessage, int>(new(data.CharItemID, data.iQty, data.iQtyNow, data.intAmount, data.bCoins == 1), (int)MessageChannels.GameEvents);
                             break;
-
                         case "buyItem":
                             if (data.bitSuccess == 1)
                                 Messenger.Send<ItemBoughtMessage, int>(new(Convert.ToInt32(data.CharItemID)), (int)MessageChannels.GameEvents);
                             break;
-
                         case "dropItem":
                             string items = Convert.ToString(data["items"]);
                             InventoryItem drop = JsonConvert.DeserializeObject<Dictionary<string, InventoryItem>>(items)!.First().Value;
                             Messenger.Send<ItemDroppedMessage, int>(new(drop), (int)MessageChannels.GameEvents);
                             break;
-
                         case "addItems":
                             string addItems = Convert.ToString(data["items"]);
                             Dictionary<int, dynamic> addedItem = JsonConvert.DeserializeObject<Dictionary<int, dynamic>>(addItems)!;
@@ -444,7 +413,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             ItemBase invItem = Inventory.GetItem(itemID)!;
                             if (invItem is null)
                                 invItem = TempInv.GetItem(itemID)!;
-                            if (invItem is null)
+                            if(invItem is null)
                             {
                                 invItem = Bank.GetItem(itemID)!;
                                 Messenger.Send<ItemAddedToBankMessage, int>(new(invItem, invItem.Quantity), (int)MessageChannels.GameEvents);
@@ -454,18 +423,16 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                                 Stats.Drops++;
                             Messenger.Send<ItemDroppedMessage, int>(new(invItem, true, Convert.ToInt32(addedItem.Values.First().iQtyNow)), (int)MessageChannels.GameEvents);
                             break;
-
                         case "getDrop":
                             bool toBank = Convert.ToBoolean(data.bBank);
                             if (data.bSuccess == 1)
                                 Stats.Drops += (int)data.iQty;
-                            if (toBank)
+                            if(toBank)
                             {
                                 ItemBase bankItem = Bank.GetItem(Convert.ToInt32(data.ItemID))!;
                                 Messenger.Send<ItemAddedToBankMessage, int>(new(bankItem, Convert.ToInt32(data.iQtyNow)), (int)MessageChannels.GameEvents);
                             }
                             break;
-
                         case "addGoldExp":
                             if (data.typ == "m")
                             {
@@ -473,7 +440,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                                 Messenger.Send<MonsterKilledMessage, int>(new(Convert.ToInt32(data.id)), (int)MessageChannels.GameEvents);
                             }
                             break;
-
                         case "ccqr":
                             if (data.bSuccess == 1)
                             {
@@ -481,11 +447,9 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                                 Messenger.Send<QuestTurninMessage, int>(new(Convert.ToInt32(data.QuestID)), (int)MessageChannels.GameEvents);
                             }
                             break;
-
                         case "loadBank":
                             Messenger.Send<BankLoadedMessage, int>((int)MessageChannels.GameEvents);
                             break;
-
                         case "loadShop":
                             Messenger.Send<ShopLoadedMessage, int>(new(new(Shops.ID, Shops.Name, Shops.Items)), (int)MessageChannels.GameEvents);
                             break;
@@ -500,12 +464,10 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             string b = Convert.ToString(packet);
                             Debug.WriteLine(b);
                             break;
-
                         case "uotls":
                             if (Player.Username == (string)data[2] && data[3] == "afk:true")
                                 Messenger.Send<PlayerAFKMessage, int>((int)MessageChannels.GameEvents);
                             break;
-
                         case "loginResponse":
                             Messenger.Send<LoginMessage, int>(new(Convert.ToString(data[4])), (int)MessageChannels.GameEvents);
                             break;
@@ -513,7 +475,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 }
                 Messenger.Send<ExtensionPacketMessage, int>(new(packet), (int)MessageChannels.GameEvents);
                 break;
-
             case "packet":
                 string[] parts = ((string)args[0]).Split('%', StringSplitOptions.RemoveEmptyEntries);
                 switch (parts[2])
@@ -521,16 +482,13 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                     case "moveToCell":
                         Messenger.Send<CellChangedMessage, int>(new(Map.Name, parts[4], parts[5]), (int)MessageChannels.GameEvents);
                         break;
-
                     case "buyItem":
                         Messenger.Send<TryBuyItemMessage, int>(new(int.Parse(parts[5]), int.Parse(parts[4]), int.Parse(parts[6])), (int)MessageChannels.GameEvents);
                         break;
-
                     case "acceptQuest":
                         Stats.QuestsAccepted++;
                         Messenger.Send<QuestAcceptedMessage, int>(new(int.Parse(parts[4])), (int)MessageChannels.GameEvents);
                         break;
-
                     case "cmd":
                         if (parts.Length >= 5 && parts[4] == "logout")
                         {
@@ -547,7 +505,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     private Task? _reloginTask;
     private volatile bool _waitForLogin;
     private CancellationTokenSource? _reloginCTS;
-
     private void OnLogout()
     {
         if (!Options.AutoRelogin || _waitForLogin)
@@ -569,7 +526,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
         Relogin((!Options.SafeRelogin && !kicked) ? Options.ReloginTryDelay : 70000, wasRunning);
     }
-
     private void Relogin(int delay, bool startScript)
     {
         Servers.Logout();

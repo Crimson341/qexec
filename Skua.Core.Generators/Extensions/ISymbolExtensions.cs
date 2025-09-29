@@ -1,12 +1,11 @@
-﻿using Microsoft.CodeAnalysis;
-using Skua.Core.Generators.Models;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using Microsoft.CodeAnalysis;
+using Skua.Core.Generators.Models;
 
 namespace Skua.Core.Generators.Extensions;
-
-internal static class ISymbolExtensions
+static internal class ISymbolExtensions
 {
     /// <summary>
     /// Creates a <see cref="ClassInfo"/> from the symbol instance.

@@ -1,11 +1,10 @@
-﻿using Microsoft.Xaml.Behaviors;
-using System.Collections.Specialized;
+﻿using System.Collections.Specialized;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using Microsoft.Xaml.Behaviors;
 
 namespace Skua.WPF;
-
 public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
 {
     private ScrollViewer? _scrollViewer;
@@ -31,7 +30,7 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
     {
         if (AssociatedObject.ItemsSource is not INotifyCollectionChanged incc)
             return;
-
+        
         // Store reference to unsubscribe later
         _collectionSource = incc;
         _collectionSource.CollectionChanged += OnCollectionChanged;
@@ -51,7 +50,7 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
             _collectionSource.CollectionChanged -= OnCollectionChanged;
             _collectionSource = null;
         }
-
+        
         _scrollViewer = null;
     }
 
@@ -117,7 +116,7 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
 
 //        System.Windows.Automation.ScrollAmount scrollVertical = System.Windows.Automation.ScrollAmount.LargeIncrement;
 //        System.Windows.Automation.ScrollAmount scrollHorizontal = System.Windows.Automation.ScrollAmount.NoAmount;
-//        //If the vertical scroller is not available, the operation cannot be performed, which will raise an exception.
+//        //If the vertical scroller is not available, the operation cannot be performed, which will raise an exception. 
 //        if (_scrollInterface.VerticallyScrollable)
 //            _scrollInterface.Scroll(scrollHorizontal, scrollVertical);
 //    }

@@ -1,5 +1,10 @@
-﻿namespace Skua.Core.Models.Shops;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
+namespace Skua.Core.Models.Shops;
 public class ShopInfo
 {
     public int ID { get; set; }

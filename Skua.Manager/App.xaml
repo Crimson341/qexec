@@ -25,5 +25,6 @@
                 <ResourceDictionary Source="pack://application:,,,/Skua.WPF;component/XAML/Styles.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
+
     </Application.Resources>
 </Application>

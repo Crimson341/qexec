@@ -1,8 +1,7 @@
-﻿using Skua.Core.Interfaces;
-using System.Windows;
+﻿using System.Windows;
+using Skua.Core.Interfaces;
 
 namespace Skua.WPF.Services;
-
 public class ClipboardService : IClipboardService
 {
     public void SetText(string text)

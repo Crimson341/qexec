@@ -38,6 +38,7 @@
                 Margin="6,0,0,0"
                 Command="{Binding SaveThemeCommand}"
                 Content="Save" />
+
         </Grid>
         <StackPanel
             Grid.Column="1"

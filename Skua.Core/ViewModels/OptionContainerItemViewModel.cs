@@ -3,7 +3,6 @@ using Skua.Core.Interfaces;
 using Skua.Core.Options;
 
 namespace Skua.Core.ViewModels;
-
 public partial class OptionContainerItemViewModel : ObservableObject
 {
     public OptionContainerItemViewModel(IOptionContainer container, IOption option)
@@ -23,10 +22,8 @@ public partial class OptionContainerItemViewModel : ObservableObject
 
     [ObservableProperty]
     private object _value;
-
     [ObservableProperty]
     private List<string>? _enumValues;
-
     [ObservableProperty]
     private string? _selectedValue;
 

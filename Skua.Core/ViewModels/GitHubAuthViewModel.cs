@@ -6,7 +6,6 @@ using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
 
 namespace Skua.Core.ViewModels;
-
 public partial class GitHubAuthViewModel : BotControlViewModelBase
 {
     public GitHubAuthViewModel(IClipboardService clipboard, IProcessService processService, ISettingsService settingsService)
@@ -29,10 +28,8 @@ public partial class GitHubAuthViewModel : BotControlViewModelBase
 
     [ObservableProperty]
     private string _userCode = string.Empty;
-
     [ObservableProperty]
     private string _hintStatus = string.Empty;
-
     [ObservableProperty]
     private bool _isBusy;
 
@@ -48,7 +45,7 @@ public partial class GitHubAuthViewModel : BotControlViewModelBase
             IsBusy = false;
             return;
         }
-        for (int i = 10; i >= 0; i--)
+        for(int i = 10; i >= 0; i--)
         {
             HintStatus = $"Error. Please, wait {i} seconds.";
             await Task.Delay(1000);
@@ -56,7 +53,6 @@ public partial class GitHubAuthViewModel : BotControlViewModelBase
         IsBusy = false;
         HintStatus = "Try again";
     }
-
     private async Task<DeviceCodeResponse?> GetDeviceCode()
     {
         Dictionary<string, string>? content = new()
@@ -100,7 +96,7 @@ public partial class GitHubAuthViewModel : BotControlViewModelBase
             HintStatus = "All good to go!";
             return;
         }
-        for (int i = 10; i >= 0; i--)
+        for(int i = 10; i >= 0; i--)
         {
             HintStatus = $"Error. Please, wait {i} seconds";
             await Task.Delay(1000);

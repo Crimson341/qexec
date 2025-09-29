@@ -7,7 +7,6 @@ using System.Windows.Controls;
 using System.Windows.Markup;
 
 namespace Skua.WPF;
-
 [ContentProperty("DataTemplates")]
 public class TypeDataTemplateSelector : DataTemplateSelector
 {

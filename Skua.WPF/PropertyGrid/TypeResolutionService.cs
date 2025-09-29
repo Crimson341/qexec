@@ -1,8 +1,7 @@
-﻿using Skua.Core.Interfaces;
-using System;
+﻿using System;
+using Skua.Core.Interfaces;
 
 namespace Skua.WPF;
-
 public static class TypeResolutionService
 {
     public static Type ResolveType(string fullName)

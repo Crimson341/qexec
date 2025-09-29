@@ -1,13 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Skua.Core.Interfaces;
 using Skua.Core.ViewModels;
-using Skua.Core.ViewModels.Manager;
 
 namespace Skua.Core.AppStartup;
-
-public class ManagedWindows
+internal class ManagedWindows
 {
-    public static void Register(IServiceProvider s)
+    internal static void Register(IServiceProvider s)
     {
         IWindowService windowService = s.GetRequiredService<IWindowService>();
 
@@ -40,13 +38,5 @@ public class ManagedWindows
         windowService.RegisterManagedWindow("Logs", s.GetRequiredService<LogsViewModel>());
 
         windowService.RegisterManagedWindow("Plugins", s.GetRequiredService<PluginsViewModel>());
-    }
-
-    public static void RegisterForManager(IServiceProvider s)
-    {
-        IWindowService windowService = s.GetRequiredService<IWindowService>();
-
-        windowService.RegisterManagedWindow("Script Repo Manager", s.GetRequiredService<ScriptRepoManagerViewModel>());
-        windowService.RegisterManagedWindow("Application Themes", s.GetRequiredService<ApplicationThemesViewModel>());
     }
 }

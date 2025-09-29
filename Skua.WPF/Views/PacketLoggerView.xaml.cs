@@ -1,20 +1,18 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
-using Skua.Core.ViewModels;
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Skua.Core.ViewModels;
 
 namespace Skua.WPF.Views;
-
 /// <summary>
 /// Interaction logic for PacketLoggerView.xaml
 /// </summary>
 public partial class PacketLoggerView : UserControl
 {
-    private ICollectionView _logsCollectionView;
-    private ICollectionView _filtersCollectionView;
-
+    ICollectionView _logsCollectionView;
+    ICollectionView _filtersCollectionView;
     public PacketLoggerView()
     {
         InitializeComponent();
@@ -32,7 +30,7 @@ public partial class PacketLoggerView : UserControl
 
         return obj is string packet && packet.Contains(txtLogSearchBox.Text);
     }
-
+    
     private bool SearchFilters(object obj)
     {
         if (string.IsNullOrEmpty(txtFilterSearchBox.Text))

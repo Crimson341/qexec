@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 
 namespace Skua.Core.ViewModels;
-
 public partial class BoostsViewModel : ObservableObject
 {
     public BoostsViewModel(IScriptBoost boosts)

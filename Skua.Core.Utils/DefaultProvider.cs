@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.Utils;
-
 public class DefaultProvider
 {
     public static object? GetDefault<T>(Type type)

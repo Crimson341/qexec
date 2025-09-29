@@ -1,8 +1,8 @@
-﻿using System;
-using System.Windows;
-using System.Windows.Controls;
+﻿using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows;
+using System;
 
 namespace Skua.WPF;
 
@@ -76,11 +76,9 @@ public static class ScrollViewerHelper
     }
 
     public static void SetShiftScrollHorizontally(UIElement element, bool value) => element.SetValue(ShiftScrollHorizontallyProperty, value);
-
     public static bool GetShiftScrollHorizontally(UIElement element) => (bool)element.GetValue(ShiftScrollHorizontallyProperty);
 
     public static void SetScrollHorizontally(UIElement element, bool value) => element.SetValue(ScrollHorizontallyProperty, value);
-
     public static bool GetScrollHorizontally(UIElement element) => (bool)element.GetValue(ScrollHorizontallyProperty);
 
     private static T? FindDescendant<T>(this DependencyObject d) where T : DependencyObject

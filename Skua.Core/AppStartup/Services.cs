@@ -1,23 +1,21 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using Microsoft.CodeAnalysis;
+﻿using Skua.Core.Interfaces;
 using Microsoft.Extensions.DependencyInjection;
-using Skua.Core.GameProxy;
-using Skua.Core.Interfaces;
-using Skua.Core.Interfaces.Auras;
-using Skua.Core.Interfaces.Services;
-using Skua.Core.Options;
-using Skua.Core.Plugins;
 using Skua.Core.Scripts;
-using Skua.Core.Scripts.Auras;
-using Skua.Core.Scripts.Helpers;
-using Skua.Core.Services;
 using Skua.Core.Skills;
+using Skua.Core.Options;
+using Skua.Core.GameProxy;
+using Skua.Core.Plugins;
+using Skua.Core.Services;
 using Skua.Core.Utils;
 using Skua.Core.ViewModels;
-using Skua.Core.ViewModels.Manager;
+using Microsoft.CodeAnalysis;
 using System.Reflection;
-namespace Skua.Core.AppStartup;
+using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.ViewModels.Manager;
+using Skua.Core.Scripts.Auras;
+using Skua.Core.Interfaces.Auras;
 
+namespace Skua.Core.AppStartup;
 public static class Services
 {
     public static IServiceCollection AddCommonServices(this IServiceCollection services)
@@ -26,7 +24,7 @@ public static class Services
 
         services.AddSingleton(typeof(IMessenger), WeakReferenceMessenger.Default);
         services.AddSingleton(typeof(StrongReferenceMessenger), StrongReferenceMessenger.Default);
-
+        
         services.AddSingleton<IDecamelizer, Decamelizer>();
         services.AddSingleton<IGetScriptsService, GetScriptsService>();
         services.AddSingleton<IProcessService, ProcessStartService>();
@@ -54,7 +52,6 @@ public static class Services
         services.AddSingleton<IScriptBank, ScriptBank>();
 
         services.AddSingleton<IAdvancedSkillContainer, AdvancedSkillContainer>();
-        services.AddSingleton<IUltraBossHelper, UltraBossHelper>();
         services.AddSingleton<IScriptCombat, ScriptCombat>();
         services.AddSingleton<IScriptKill, ScriptKill>();
         services.AddSingleton<IScriptHunt, ScriptHunt>();
@@ -96,8 +93,6 @@ public static class Services
         services.AddSingleton<IQuestDataLoaderService, QuestDataLoaderService>();
         services.AddSingleton<IGrabberService, GrabberService>();
         services.AddSingleton<IClientFilesService, ClientFilesService>();
-        services.AddSingleton<IAuraMonitorService, AuraMonitorService>();
-        services.AddSingleton<BackgroundThemeService>();
 
         return services;
     }
@@ -196,7 +191,6 @@ public static class Services
         services.AddSingleton<ApplicationThemesViewModel>();
         services.AddSingleton<ThemeSettingsViewModel>();
         services.AddSingleton<ColorSchemeEditorViewModel>();
-        services.AddSingleton<BackgroundThemeViewModel>();
 
         return services;
     }
@@ -210,7 +204,7 @@ public static class Services
         services.AddSingleton<IClientFilesService, ClientFilesService>();
         services.AddSingleton<ClientUpdatesViewModel>();
         services.AddSingleton<GitHubAuthViewModel>();
-        services.AddSingleton<ScriptRepoManagerViewModel>();
+        services.AddSingleton<ScriptRepoViewModel>();
         services.AddSingleton<GoalsViewModel>();
         services.AddSingleton<AboutViewModel>();
         services.AddSingleton<ChangeLogsViewModel>();

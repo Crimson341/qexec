@@ -1,14 +1,12 @@
 ﻿using Skua.Core.Models.Factions;
 
 namespace Skua.Core.Interfaces;
-
 public interface IScriptFaction
 {
     /// <summary>
     /// Get a list of all factions the player has atleast 1 point in Reputation.
     /// </summary>
     List<Faction> FactionList { get; }
-
     /// <summary>
     /// Get the rank of the faction with specified <paramref name="name"/>.
     /// </summary>
@@ -18,7 +16,6 @@ public interface IScriptFaction
     {
         return FactionList.FirstOrDefault(f => f.Name == name)?.Rank ?? 0;
     }
-
     /// <summary>
     /// Get the rank of the faction with specified <paramref name="id"/>.
     /// </summary>
@@ -28,7 +25,6 @@ public interface IScriptFaction
     {
         return FactionList.FirstOrDefault(f => f.ID == id)?.Rank ?? 0;
     }
-
     /// <summary>
     /// Checks if the player has the desired <paramref name="rank"/> for the specified faction <paramref name="name"/>.
     /// </summary>
@@ -39,7 +35,6 @@ public interface IScriptFaction
     {
         return GetRank(name) >= rank;
     }
-
     /// <summary>
     /// Checks if the player has the desired <paramref name="rank"/> for the specified faction <paramref name="id"/>.
     /// </summary>

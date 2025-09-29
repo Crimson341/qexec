@@ -4,7 +4,6 @@ using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Messaging;
 
 namespace Skua.Core.ViewModels;
-
 public partial class GrabberTaskViewModel : ObservableRecipient
 {
     public GrabberTaskViewModel(string content, Func<IList<object>?, IProgress<string>, CancellationToken, Task> command)
@@ -19,11 +18,9 @@ public partial class GrabberTaskViewModel : ObservableRecipient
     }
 
     private readonly Func<IList<object>?, IProgress<string>, CancellationToken, Task> _command;
-
     [ObservableProperty]
     [NotifyPropertyChangedRecipients]
     private string _progressReportMessage = string.Empty;
-
     [ObservableProperty]
     [NotifyPropertyChangedRecipients]
     private bool _isBusy;

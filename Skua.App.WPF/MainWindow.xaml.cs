@@ -5,6 +5,7 @@ using Skua.Core.Messaging;
 using Skua.Core.ViewModels;
 using Skua.WPF;
 using Skua.WPF.UserControls;
+using System.ComponentModel;
 using System.Windows;
 
 namespace Skua.App.WPF;
@@ -16,7 +17,6 @@ public partial class MainWindow : CustomWindow
 {
     private readonly IScriptPlayer _player;
     private readonly IDispatcherService _dispatcherService;
-
     public MainWindow()
     {
         InitializeComponent();
@@ -56,7 +56,6 @@ public partial class MainWindow : CustomWindow
             });
         }
     }
-
     private void HideBalloon(MainWindow recipient, HideBalloonTipMessage message)
     {
         NotifyIcon.CloseBalloon();
@@ -74,7 +73,7 @@ public partial class MainWindow : CustomWindow
 
     private void ShowWindow()
     {
-        if (IsVisible)
+        if(IsVisible)
         {
             Hide();
             return;

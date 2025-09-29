@@ -1,10 +1,10 @@
-﻿using Newtonsoft.Json;
-using Skua.Core.Interfaces;
+﻿using Skua.Core.Models.Auras;
+using Skua.Core.Flash;
 using Skua.Core.Interfaces.Auras;
-using Skua.Core.Models.Auras;
+using Skua.Core.Interfaces;
+using Newtonsoft.Json;
 
 namespace Skua.Core.Scripts.Auras;
-
 public partial class ScriptSelfAuras : IScriptSelfAuras
 {
     private readonly Lazy<IFlashUtil> _lazyFlash;
@@ -15,12 +15,11 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
         _lazyFlash = lazyFlash;
     }
 
-    public List<Aura> Auras
+    public List<Aura>? Auras
     {
         get
         {
-            var auraData = Flash.Call("getSubjectAuras", SubjectType.Self.ToString());
-            return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
+            return JsonConvert.DeserializeObject<List<Aura>>(Flash.Call("getSubjectAuras", SubjectType.Self.ToString())) ?? new();
         }
     }
 
@@ -43,35 +42,5 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
         }
         aura = null;
         return false;
-    }
-
-    public int GetAuraValue(string auraName)
-    {
-        return Flash.Call<int>("GetAurasValue", SubjectType.Self.ToString(), auraName);
-    }
-
-    public bool HasAuraWithMinStacks(string auraName, int minStacks)
-    {
-        return GetAuraValue(auraName) >= minStacks;
-    }
-
-    public int GetAuraSecondsRemaining(string auraName)
-    {
-        return Flash.Call<int>("GetAuraSecondsRemaining", SubjectType.Self.ToString(), auraName);
-    }
-
-    public bool HasAnyActiveAura(params string[] auraNames)
-    {
-        return Flash.Call<bool>("HasAnyActiveAura", SubjectType.Self.ToString(), string.Join(",", auraNames));
-    }
-
-    public bool HasAllActiveAuras(params string[] auraNames)
-    {
-        return Flash.Call<bool>("HasAllActiveAuras", SubjectType.Self.ToString(), string.Join(",", auraNames));
-    }
-
-    public int GetTotalAuraStacks(string auraNamePattern)
-    {
-        return Flash.Call<int>("GetTotalAuraStacks", SubjectType.Self.ToString(), auraNamePattern);
     }
 }

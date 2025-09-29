@@ -4,7 +4,6 @@ using System.Windows.Controls;
 using System.Windows.Input;
 
 namespace Skua.WPF.UserControls;
-
 /// <summary>
 /// Interaction logic for AssignHotKeyDialog.xaml
 /// </summary>
@@ -12,7 +11,6 @@ public partial class AssignHotKeyDialog : UserControl
 {
     private Window? _window;
     private AssignHotKeyDialogViewModel? _vm;
-
     public AssignHotKeyDialog()
     {
         InitializeComponent();
@@ -32,8 +30,7 @@ public partial class AssignHotKeyDialog : UserControl
         window.DialogResult = true;
     }
 
-    private string backupKey = string.Empty;
-
+    string backupKey = string.Empty;
     private void AssignKey(object sender, RoutedEventArgs e)
     {
         if (_window is null || _vm is null)
@@ -45,7 +42,7 @@ public partial class AssignHotKeyDialog : UserControl
 
     private void _window_KeyDown(object sender, KeyEventArgs e)
     {
-        if (e.Key == Key.Escape)
+        if(e.Key == Key.Escape)
         {
             _vm!.KeyInput = backupKey;
             _window!.KeyDown -= _window_KeyDown;

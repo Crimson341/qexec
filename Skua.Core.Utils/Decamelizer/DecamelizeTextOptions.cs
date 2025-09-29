@@ -1,5 +1,4 @@
 ﻿namespace Skua.Core.Utils;
-
 [Flags]
 public enum DecamelizeTextOptions
 {
