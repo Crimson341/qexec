@@ -1102,7 +1102,8 @@ package skua
 		public static function useSkill(index:int):String
 		{
 			var skill:* = instance.game.world.actions.active[index];
-			if (skua.ExtractedFuncs.actionTimeCheck(skill))
+			skill.auto = false;
+			if (skill != null && skua.ExtractedFuncs.actionTimeCheck(skill))
 			{
 				instance.game.world.testAction(skill);
 				return true.toString();
