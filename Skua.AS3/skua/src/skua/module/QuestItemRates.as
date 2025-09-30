@@ -1,8 +1,7 @@
 package skua.module 
 {
-import flash.utils.getQualifiedClassName;
-
-public class QuestItemRates extends Module
+	import flash.utils.getQualifiedClassName;
+	public class QuestItemRates extends Module
 	{
 		
 		public function QuestItemRates() 

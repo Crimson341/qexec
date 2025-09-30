@@ -1,10 +1,9 @@
 package skua.module 
 {
-import flash.events.Event;
-
-import skua.Main;
-
-public class Modules
+	import flash.events.Event;
+	import skua.Main;
+	
+	public class Modules 
 	{
 		private static var _modules:* = new Object();
 		
@@ -27,7 +26,7 @@ public class Modules
 				module.enabled = true;
 				if (toggle)
 				{
-					module.onToggle(Main.instance.getGame());
+					module.onToggle(skua.Main.instance.getGame());
 				}
 			}
 		}
@@ -41,7 +40,7 @@ public class Modules
 				module.enabled = false;
 				if (toggle)
 				{
-					module.onToggle(Main.instance.getGame());
+					module.onToggle(skua.Main.instance.getGame());
 				}
 			}
 		}
@@ -53,7 +52,7 @@ public class Modules
 				var module:Module = _modules[name];
 				if (module.enabled)
 				{
-					module.onFrame(Main.instance.getGame());
+					module.onFrame(skua.Main.instance.getGame());
 				}
 			}
 		}

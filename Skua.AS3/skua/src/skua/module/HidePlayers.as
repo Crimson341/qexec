@@ -1,6 +1,8 @@
 package skua.module 
 {
-public class HidePlayers extends Module
+	import skua.Main;
+	
+	public class HidePlayers extends Module
 	{
 		public function HidePlayers()
 		{

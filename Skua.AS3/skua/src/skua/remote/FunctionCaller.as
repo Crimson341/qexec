@@ -1,6 +1,8 @@
 package skua.remote
 {
-public class FunctionCaller
+	import skua.Main;
+	
+	public class FunctionCaller
 	{
 		private var _obj:*;
 		private var _name:String;

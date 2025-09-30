@@ -1,9 +1,8 @@
 package skua.module 
 {
-import flash.display.MovieClip;
-import flash.utils.getQualifiedClassName;
-
-public class DisableFX extends Module
+	import flash.display.MovieClip;
+	import flash.utils.getQualifiedClassName;
+	public class DisableFX extends Module
 	{
 		
 		public function DisableFX() 
