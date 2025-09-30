@@ -1,8 +1,8 @@
 package skua.util
 {
-	import flash.events.Event;
-	
-	public class SFSEvent extends Event
+import flash.events.Event;
+
+public class SFSEvent extends Event
 	{
 		public static const onAdminMessage:String = "onAdminMessage";
 		public static const onBuddyList:String = "onBuddyList";

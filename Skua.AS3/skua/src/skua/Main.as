@@ -1,39 +1,32 @@
 package skua
 {
-	import flash.events.KeyboardEvent;
-	import flash.text.TextField;
-	import skua.Externalizer;
-	import skua.ExtractedFuncs;
-	import adobe.utils.ProductManager;
-	import flash.display.Loader;
-	import flash.display.LoaderInfo;
-	import flash.display.MovieClip;
-	import flash.display.Stage;
-	import flash.display.StageScaleMode;
-	import flash.display.StageAlign;
-	import flash.display.DisplayObject;
-	import flash.events.Event;
-	import flash.events.MouseEvent;
-	import flash.events.ProgressEvent;
-	import flash.events.IOErrorEvent;
-	import flash.net.URLLoader;
-	import flash.net.URLRequest;
-	import flash.system.ApplicationDomain;
-	import flash.system.LoaderContext;
-	import flash.system.Security;
-	import flash.system.System;
-	import flash.system.Capabilities;
-	import flash.utils.getQualifiedClassName;
-	import flash.utils.setTimeout;
-	import flash.utils.clearTimeout;
-	import flash.utils.Timer;
-	import flash.events.TimerEvent;
-	import skua.util.SFSEvent;
-	import flash.utils.getQualifiedClassName;
-	import skua.module.Modules;
-	import skua.module.ModalMC;
-	
-	[SWF(frameRate="30", backgroundColor="#000000", width="958", height="550")]
+import flash.display.DisplayObject;
+import flash.display.Loader;
+import flash.display.LoaderInfo;
+import flash.display.MovieClip;
+import flash.display.Stage;
+import flash.display.StageAlign;
+import flash.display.StageScaleMode;
+import flash.events.Event;
+import flash.events.IOErrorEvent;
+import flash.events.KeyboardEvent;
+import flash.events.MouseEvent;
+import flash.events.TimerEvent;
+import flash.net.URLLoader;
+import flash.net.URLRequest;
+import flash.system.ApplicationDomain;
+import flash.system.LoaderContext;
+import flash.system.Security;
+import flash.text.TextField;
+import flash.utils.Timer;
+import flash.utils.getQualifiedClassName;
+import flash.utils.setTimeout;
+
+import skua.module.ModalMC;
+import skua.module.Modules;
+import skua.util.SFSEvent;
+
+[SWF(frameRate="30", backgroundColor="#000000", width="958", height="550")]
 	public class Main extends MovieClip
 	{
 		public static var instance:Main;
@@ -44,7 +37,7 @@ package skua
 		private static var _handler:*;
 		
 		private var game:*;
-		private var external:skua.Externalizer;
+		private var external:Externalizer;
 		private var sURL:String = 'https://game.aq.com/game/';
 		private var versionUrl:String = (sURL + 'api/data/gameversion');
 		private var loginURL:String = (sURL + 'api/login/now');
@@ -64,7 +57,7 @@ package skua
 		public var bgConfigPath:String;
 		private var lastLoginChildCount:int = -1;
 		private var lastLoginVisible:Boolean = false;
-		
+
 		public function Main()
 		{
 			String.prototype.trim = function():String
@@ -87,7 +80,7 @@ package skua
 		private function init(e:Event = null):void
 		{
 			removeEventListener(Event.ADDED_TO_STAGE, this.init);
-			this.external = new skua.Externalizer();
+			this.external = new Externalizer();
 			this.external.init(this);
 		}
 		
@@ -333,7 +326,7 @@ package skua
 			return this.game;
 		}
 		
-		public function getExternal():skua.Externalizer
+		public function getExternal():Externalizer
 		{
 			return this.external;
 		}
@@ -896,7 +889,7 @@ package skua
 		public static function canUseSkill(index:int):String
 		{
 			var skill:* = instance.game.world.actions.active[index];
-			return (instance.game.world.myAvatar.target != null && instance.game.world.myAvatar.target.dataLeaf.intHP > 0 && skua.ExtractedFuncs.actionTimeCheck(skill) && skill.isOK && !skill.skillLock && !skill.lock).toString();
+			return (instance.game.world.myAvatar.target != null && instance.game.world.myAvatar.target.dataLeaf.intHP > 0 && ExtractedFuncs.actionTimeCheck(skill) && skill.isOK && !skill.skillLock && !skill.lock).toString();
 		}
 		
 		public static function walkTo(xPos:int, yPos:int, walkSpeed:int):void
@@ -1104,7 +1097,7 @@ package skua
 		{
 			var skill:* = instance.game.world.actions.active[index];
 			skill.auto = false;
-			if (skill != null && skua.ExtractedFuncs.actionTimeCheck(skill))
+			if (skill != null && ExtractedFuncs.actionTimeCheck(skill))
 			{
 				instance.game.world.testAction(skill);
 				return true.toString();

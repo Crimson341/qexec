@@ -1,10 +1,10 @@
 package skua.module
 {
-	import flash.display.MovieClip;
-	import flash.events.MouseEvent;
-	import flash.filters.GlowFilter;
-	
-	public class ModalMC extends MovieClip
+import flash.display.MovieClip;
+import flash.events.MouseEvent;
+import flash.filters.GlowFilter;
+
+public class ModalMC extends MovieClip
 	{
 		
 		public var cnt:MovieClip;
