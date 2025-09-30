@@ -346,13 +346,7 @@ public partial class PropertyGrid : UserControl
                 RefreshSelectedObject(editor);
             }
 
-            bool fullPriorityMode = false;
-            if (property.IsCollection)
-            {
-                fullPriorityMode = GetFullPriorityMode(editor);
-            }
-
-            if (fullPriorityMode)
+            if (property.IsCollection && GetFullPriorityMode(editor))
             {
                 ret = editor.ShowDialog();
             }
