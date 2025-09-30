@@ -1,10 +1,11 @@
 package skua
 {
-	import flash.external.ExternalInterface;
-	import skua.remote.RemoteRegistry;
-	import skua.module.Modules;
-	
-	public class Externalizer
+import flash.external.ExternalInterface;
+
+import skua.module.Modules;
+import skua.remote.RemoteRegistry;
+
+public class Externalizer
 	{
 		
 		public function Externalizer()

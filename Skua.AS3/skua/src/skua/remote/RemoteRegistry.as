@@ -1,8 +1,8 @@
 package skua.remote
 {
-	import skua.Main;
-	
-	public class RemoteRegistry
+import skua.Main;
+
+public class RemoteRegistry
 	{
 		
 		private static var cid:int = 0;
@@ -34,7 +34,7 @@ package skua.remote
 		{
 			var parts:Array = path.split(".");
 			var name:String = parts.pop();
-			return createLinked(skua.Main._getObjectA(skua.Main.instance.getGame(), parts), name).getId().toString();
+			return createLinked(Main._getObjectA(Main.instance.getGame(), parts), name).getId().toString();
 		}
 		
 		public static function ext_destroy(id:int):void

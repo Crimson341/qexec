@@ -1,15 +1,15 @@
 package skua.module
 {
-	import flash.display.MovieClip;
-	import flash.display.Sprite;
-	import flash.events.Event;
-	import flash.events.KeyboardEvent;
-	import flash.events.MouseEvent;
-	import flash.geom.Point;
-	import flash.text.TextField;
-	import flash.ui.Keyboard;
-	
-	public class QtySelectorMC extends Sprite
+import flash.display.MovieClip;
+import flash.display.Sprite;
+import flash.events.Event;
+import flash.events.KeyboardEvent;
+import flash.events.MouseEvent;
+import flash.geom.Point;
+import flash.text.TextField;
+import flash.ui.Keyboard;
+
+public class QtySelectorMC extends Sprite
 	{
 		
 		public var t1:TextField;
