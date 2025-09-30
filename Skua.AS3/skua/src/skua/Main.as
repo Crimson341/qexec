@@ -33,6 +33,7 @@ package skua
 	import skua.module.Modules;
 	import skua.module.ModalMC;
 	
+	[SWF(frameRate="30", backgroundColor="#000000", width="958", height="550")]
 	public class Main extends MovieClip
 	{
 		public static var instance:Main;
