@@ -889,7 +889,6 @@ import skua.util.SFSEvent;
 		public static function canUseSkill(index:int):String
 		{
 			var skill:* = instance.game.world.actions.active[index];
-            skill.auto = false;
 			return (instance.game.world.myAvatar.target != null && instance.game.world.myAvatar.target.dataLeaf.intHP > 0 && ExtractedFuncs.actionTimeCheck(skill) && skill.isOK && !skill.skillLock && !skill.lock).toString();
 		}
 		
@@ -1097,7 +1096,6 @@ import skua.util.SFSEvent;
 		public static function useSkill(index:int):String
 		{
 			var skill:* = instance.game.world.actions.active[index];
-			skill.auto = false;
 			if (skill != null && ExtractedFuncs.actionTimeCheck(skill))
 			{
 				instance.game.world.testAction(skill);

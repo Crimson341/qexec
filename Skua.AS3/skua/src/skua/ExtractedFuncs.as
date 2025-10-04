@@ -13,15 +13,6 @@ package skua
 			var finalCD:* = 0;
 			var currentTime:* = new Date().getTime();
 			var hasteMultiplier:* = 1 - Math.min(Math.max(Main.instance.getGame().world.myAvatar.dataLeaf.sta.$tha, -1), 0.5);
-			if (param1.auto)
-			{
-				if (Main.instance.getGame().world.autoActionTimer.running)
-				{
-					trace("AA TIMER SELF-CLIPPING");
-					return false;
-				}
-				return true;
-			}
 			if (currentTime - Main.instance.getGame().world.GCDTS < Main.instance.getGame().world.GCD)
 			{
 				return false;
