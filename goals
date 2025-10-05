@@ -1,11 +1,5 @@
 [
     {
-        "title":"Ingame Wiki Links",
-        "desc":"If we meet the goal at the end of the month, I'll work on making wiki buttons open the browser.",
-        "cur_value":"0",
-        "goal_value":"50"
-    },
-    {
         "title":"Suggestions",
         "desc":"Give me any idea, we can discuss about it and make it real.",
         "cur_value":"0",
