@@ -1,4 +1,6 @@
-﻿using Skua.Core.Interfaces;
+using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.Interfaces;
+using Skua.Core.Messaging;
 using Skua.Core.Utils;
 
 namespace Skua.Core.Skills;
@@ -7,12 +9,15 @@ public class AdvancedSkillProvider : ISkillProvider
 {
     private readonly IScriptPlayer _player;
     private readonly IScriptCombat _combat;
+    private readonly IMessenger _messenger;
     private readonly UseRule[] _none = new[] { new UseRule(SkillRule.None) };
 
     public AdvancedSkillProvider(IScriptPlayer player, IScriptCombat combat)
     {
         _player = player;
         _combat = combat;
+        _messenger = StrongReferenceMessenger.Default;
+        _messenger.Register<AdvancedSkillProvider, PlayerDeathMessage, int>(this, (int)MessageChannels.GameEvents, OnPlayerDeath);
     }
 
     public AdvancedSkillCommand Root { get; set; } = new AdvancedSkillCommand();
@@ -88,5 +93,10 @@ public class AdvancedSkillProvider : ISkillProvider
         _combat.CancelAutoAttack();
         _combat.CancelTarget();
         Root.Reset();
+    }
+
+    private void OnPlayerDeath(AdvancedSkillProvider recipient, PlayerDeathMessage message)
+    {
+        recipient.Root.Reset();
     }
 }
