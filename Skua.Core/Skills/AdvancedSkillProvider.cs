@@ -9,24 +9,20 @@ public class AdvancedSkillProvider : ISkillProvider
 {
     private readonly IScriptPlayer _player;
     private readonly IScriptCombat _combat;
-    private readonly IMessenger _messenger;
+    private readonly AdvancedSkillCommand _currentCommand = new();
     private readonly UseRule[] _none = new[] { new UseRule(SkillRule.None) };
 
     public AdvancedSkillProvider(IScriptPlayer player, IScriptCombat combat)
     {
         _player = player;
         _combat = combat;
-        _messenger = StrongReferenceMessenger.Default;
-        _messenger.Register<AdvancedSkillProvider, PlayerDeathMessage, int>(this, (int)MessageChannels.GameEvents, OnPlayerDeath);
     }
-
-    public AdvancedSkillCommand Root { get; set; } = new AdvancedSkillCommand();
 
     public bool ResetOnTarget { get; set; } = false;
 
     public (int, int) GetNextSkill()
     {
-        return Root.GetNextSkill();
+        return _currentCommand.GetNextSkill();
     }
 
     public void Load(string skills)
@@ -36,8 +32,8 @@ public class AdvancedSkillProvider : ISkillProvider
         {
             if (int.TryParse(command.AsSpan(0, 1), out int skill))
             {
-                Root.Skills.Add(index, skill);
-                Root.UseRules.Add(command.Length <= 1 ? _none : ParseUseRule(command[1..]));
+                _currentCommand.Skills.Add(index, skill);
+                _currentCommand.UseRules.Add(command.Length <= 1 ? _none : ParseUseRule(command[1..]));
                 ++index;
             }
         }
@@ -80,23 +76,23 @@ public class AdvancedSkillProvider : ISkillProvider
     public void OnTargetReset()
     {
         if (ResetOnTarget && !_player.HasTarget)
-            Root.Reset();
+            _currentCommand.Reset();
     }
 
     public bool? ShouldUseSkill(int skillIndex, bool canUse)
     {
-        return Root.ShouldUse(_player, skillIndex, canUse);
+        return _currentCommand.ShouldUse(_player, skillIndex, canUse);
     }
 
     public void Stop()
     {
         _combat.CancelAutoAttack();
         _combat.CancelTarget();
-        Root.Reset();
+        _currentCommand.Reset();
     }
 
-    private void OnPlayerDeath(AdvancedSkillProvider recipient, PlayerDeathMessage message)
+    public void OnPlayerDeath()
     {
-        recipient.Root.Reset();
+        _currentCommand.Reset();
     }
 }

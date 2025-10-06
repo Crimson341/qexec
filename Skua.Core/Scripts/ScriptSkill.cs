@@ -1,4 +1,5 @@
-﻿using Skua.Core.Flash;
+﻿using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models.Skills;
@@ -168,9 +169,14 @@ public partial class ScriptSkill : IScriptSkill
                 Combat.StopAttacking = false;
             }
 
+            if (!Player.Alive)
+            {
+                _provider?.OnPlayerDeath();
+            }
+
             // if the player has target or bot attack without target option is on
             // then activate the skills
-            if (Options.AttackWithoutTarget || Player.HasTarget)
+            if (Options.AttackWithoutTarget && Player.Loaded && Player.Alive || Player.HasTarget && Player.Loaded && Player.Alive)
             {
                 _Poll(token);
             }

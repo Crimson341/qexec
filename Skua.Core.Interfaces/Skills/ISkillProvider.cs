@@ -23,6 +23,11 @@ public interface ISkillProvider
     void OnTargetReset();
 
     /// <summary>
+    /// This method is called when the player dies.
+    /// </summary>
+    void OnPlayerDeath();
+
+    /// <summary>
     /// This method is called when the skill timer is stopped.
     /// </summary>
     void Stop();

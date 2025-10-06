@@ -57,17 +57,17 @@ function Write-Header {
 
 function Write-Success {
     param([string]$Message)
-    Write-Host "✓ $Message" -ForegroundColor Green
+    Write-Host "✓  $Message" -ForegroundColor Green
 }
 
 function Write-BuildError {
     param([string]$Message)
-    Write-Host "✗ $Message" -ForegroundColor Red
+    Write-Host "✗  $Message" -ForegroundColor Red
 }
 
 function Write-Info {
     param([string]$Message)
-    Write-Host "ℹ $Message" -ForegroundColor Yellow
+    Write-Host "ℹ  $Message" -ForegroundColor Yellow
 }
 
 

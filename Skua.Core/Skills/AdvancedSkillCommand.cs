@@ -39,6 +39,9 @@ public class AdvancedSkillCommand
                     shouldUse = ManaUseRule(player, useRule.Greater, useRule.Value);
                     break;
 
+                case SkillRule.Aura:
+                    break;
+
                 case SkillRule.Wait:
                     if (useRule.ShouldSkip && !canUse)
                         return null;
@@ -68,6 +71,12 @@ public class AdvancedSkillCommand
         return greater ? player.Mana >= mana : player.Mana <= mana;
     }
 
+    // TODO: Implement auras into player
+    private bool AuraUseRule(IScriptPlayer player, bool greater, int count)
+    {
+        return false;
+    }
+
     public void Reset()
     {
         _Index = 0;
@@ -79,6 +88,7 @@ public enum SkillRule
     None,
     Health,
     Mana,
+    Aura,
     Wait
 }
 
