@@ -12,6 +12,11 @@ public interface IScriptMap
     string LastMap { get; set; }
 
     /// <summary>
+    /// Checks World.mapLoadInProgress
+    /// </summary>
+    bool Loading { get; }
+
+    /// <summary>
     /// The file path to the last loaded map SWF.
     /// </summary>
     string FilePath { get; set; }
@@ -20,6 +25,7 @@ public interface IScriptMap
     /// The name of the map SWF file.
     /// </summary>
     string FileName { get; }
+
 
     /// <summary>
     /// Gets the name of the currently loaded map.

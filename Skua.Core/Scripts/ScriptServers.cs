@@ -64,6 +64,8 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
     [MethodCallBinding("logout", RunMethodPost = true, GameFunction = true)]
     private void _logout()
     {
+        if (IsConnected)
+            Flash.CallGameFunction("sfc.disconnect");
         Flash.CallGameFunction("gotoAndPlay", "Login");
     }
 
@@ -87,6 +89,9 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
         Wait.ForTrue(() => !Manager.ShouldExit && Player.Playing && Flash.IsWorldLoaded, 30);
         return Player.Playing;
     }
+
+    [ObjectBinding("sfc.isConnected", RequireNotNull = "sfc",  Default = "false")]
+    private bool _isConnected;
 
     public void Login() => Login(Player.Username, Player.Password);
 
@@ -221,8 +226,13 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
         int tries = 0;
         try
         {
-            while (!token.IsCancellationRequested && !Manager.ShouldExit && !Player.Playing && ++tries < Options.ReloginTries)
+            while (!token.IsCancellationRequested && !Manager.ShouldExit && !IsConnected && !Player.Playing && ++tries < Options.ReloginTries)
             {
+                if (!IsConnected && tries % 10 == 0 && tries > 0)
+                {
+                    Logout();
+                }
+
                 Login();
 
                 if (!Flash.Call<bool>("clickServer", server.Name))

@@ -57,6 +57,9 @@ public partial class ScriptMap : IScriptMap
     [ObjectBinding("world.strMapName", RequireNotNull = "world", Default = "string.Empty")]
     private string _name = string.Empty;
 
+    [ObjectBinding("world.mapLoadInProgress", Default = "false")]
+    private bool _loading;
+
     [ObjectBinding("world.curRoom")]
     private int _roomID;
 

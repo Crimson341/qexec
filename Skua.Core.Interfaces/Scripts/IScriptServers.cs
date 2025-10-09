@@ -62,6 +62,11 @@ public interface IScriptServers : INotifyPropertyChanged
     bool ConnectIP(string serverIp);
 
     /// <summary>
+    /// Checks if the player is currently connected to a game server.
+    /// </summary>
+    bool IsConnected { get; }
+
+    /// <summary>
     /// Logs into the game with the specified username and password.
     /// </summary>
     /// <param name="username">Username to login with.</param>
