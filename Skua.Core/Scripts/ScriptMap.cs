@@ -75,7 +75,7 @@ public partial class ScriptMap : IScriptMap
     public List<PlayerInfo> Players => _playersDictionary.Values.ToList();
     public List<PlayerInfo> CellPlayers => Players.FindAll(p => p.Cell == Player.Cell);
 
-    public bool Loaded => !Flash.GetGameObject<bool>("world.mapLoadInProgress")
+    public bool Loaded => !Loading
                           && Flash.IsNull("mcConnDetail.stage");
 
     [ObjectBinding("world.map.currentScene.labels", Select = "name", Default = "new()")]
