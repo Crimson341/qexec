@@ -1,4 +1,6 @@
-﻿namespace Skua.Core.ViewModels;
+﻿using System.Numerics;
+
+namespace Skua.Core.ViewModels;
 
 public partial class CBOChoiceOptionItemViewModel : DisplayOptionItemViewModel<int>
 {
@@ -13,7 +15,12 @@ public partial class CBOChoiceOptionItemViewModel : DisplayOptionItemViewModel<i
         : base(optionTitle, description, tag)
     {
         Options = options;
-        Value = value;
+        Value = ParseValue(value);
+    }
+
+    private static int ParseValue(int? parse)
+    {
+        return parse is not null && int.TryParse(parse.ToString(), result: out int integer) ? integer : 10000;
     }
 
     public List<string> Options { get; }
