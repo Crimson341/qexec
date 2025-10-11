@@ -16,60 +16,27 @@ internal static class PacketLogger
                     (p[2] == "restRequest" || p[2] == "gar" || p[2] == "aggroMon");
             }),
             new("User Data", p =>
-            {
-                return p.Length >= 3 &&
-                    (p[2] == "retrieveUserData" || p[2] == "retrieveUserDatas");
-            }),
+                p.Length >= 3 && (p[2] == "retrieveUserData" || p[2] == "retrieveUserDatas")),
             new("Join", p =>
-            {
-                return p.Length >= 5 &&
-                    (p[4] == "tfer" || p[2] == "house");
-            }),
+                p.Length >= 5 && (p[4] == "tfer" || p[2] == "house")),
             new("Jump", p =>
-            {
-                return p.Length >= 3 &&
-                    p[2] == "moveToCell";
-            }),
+                p.Length >= 3 && p[2] == "moveToCell"),
             new("Movement", p =>
-            {
-                return p.Length >= 3 &&
-                    p[2] == "mv" || p[2] == "mtcid";
-            }),
+                p.Length >= 3 && p[2] == "mv" || p[2] == "mtcid"),
             new("Get Map", p =>
-            {
-                return p.Length >= 3 &&
-                    p[2] == "getMapItem";
-            }),
+                p.Length >= 3 && p[2] == "getMapItem"),
             new("Quest", p =>
-            {
-                return p.Length >= 3 &&
-                    (p[2] == "getQuest" || p[2] == "acceptQuest" || p[2] == "tryQuestComplete" || p[2] == "updateQuest");
-            }),
+                p.Length >= 3 && (p[2] == "getQuest" || p[2] == "acceptQuest" || p[2] == "tryQuestComplete" || p[2] == "updateQuest")),
             new("Shop", p =>
-            {
-                return p.Length >= 3 &&
-                    (p[2] == "loadShop" || p[2] == "buyItem" || p[2] == "sellItem");
-            }),
+                p.Length >= 3 && (p[2] == "loadShop" || p[2] == "buyItem" || p[2] == "sellItem")),
             new("Equip", p =>
-            {
-                return p.Length >= 3 &&
-                    p[2] == "equipItem";
-            }),
+                p.Length >= 3 && p[2] == "equipItem"),
             new("Drop", p =>
-            {
-                return p.Length >= 3 &&
-                    p[2] == "getDrop";
-            }),
+                p.Length >= 3 && p[2] == "getDrop"),
             new("Chat", p =>
-            {
-                return p.Length >= 3 &&
-                    (p[2] == "message" || p[2] == "cc");
-            }),
+                p.Length >= 3 && (p[2] == "message" || p[2] == "cc")),
             new("Misc", p =>
-            {
-                return p.Length >= 3 &&
-                    (p[2] == "crafting" || p[2] == "setHomeTown" || p[2] == "afk" || p[2] == "summonPet");
-            })
+                p.Length >= 3 && (p[2] == "crafting" || p[2] == "setHomeTown" || p[2] == "afk" || p[2] == "summonPet"))
         };
 
         return new PacketLoggerViewModel(filters, s.GetService<IFlashUtil>()!, s.GetService<IFileDialogService>()!);

@@ -10,9 +10,9 @@ public class OptionContainer : ObservableObject, IOptionContainer
 
     public List<IOption> Options { get; } = new List<IOption>();
 
-    public Dictionary<string, List<IOption>> MultipleOptions { get; } = new Dictionary<string, List<IOption>>();
+    public Dictionary<string, List<IOption>> MultipleOptions { get; } = new();
 
-    public Dictionary<IOption, string> OptionValues { get; } = new Dictionary<IOption, string>();
+    public Dictionary<IOption, string> OptionValues { get; } = new();
     public virtual string OptionsFile { get; set; } = string.Empty;
 
     public OptionContainer(IDialogService dialogService)
@@ -23,9 +23,8 @@ public class OptionContainer : ObservableObject, IOptionContainer
     public void SetDefaults()
     {
         Options.ForEach(o => OptionValues[o] = o.DefaultValue?.ToString() ?? string.Empty);
-        foreach (KeyValuePair<string, List<IOption>> kvp in MultipleOptions)
-            foreach (IOption option in kvp.Value)
-                OptionValues[option] = option.DefaultValue?.ToString() ?? string.Empty;
+        foreach (IOption option in MultipleOptions.SelectMany(kvp => kvp.Value))
+            OptionValues[option] = option.DefaultValue?.ToString() ?? string.Empty;
     }
 
     public T? Get<T>(string name) where T : IConvertible
@@ -43,18 +42,19 @@ public class OptionContainer : ObservableObject, IOptionContainer
         if (option is null)
             return default;
 
-        if (OptionValues.TryGetValue(option, out string? value))
+        if (!OptionValues.TryGetValue(option, out string? value))
         {
-            if (string.IsNullOrEmpty(value))
-                return default;
-
-            if (typeof(T).IsEnum)
-                return (T)Enum.Parse(typeof(T), value.Replace(' ', '_'));
-
-            return (T)Convert.ChangeType(value, typeof(T));
+            return default;
         }
 
-        return default;
+        if (string.IsNullOrEmpty(value))
+            return default;
+
+        if (typeof(T).IsEnum)
+            return (T)Enum.Parse(typeof(T), value.Replace(' ', '_'));
+
+        return (T)Convert.ChangeType(value, typeof(T));
+
     }
 
     public string GetDirect(IOption? option)
@@ -96,32 +96,39 @@ public class OptionContainer : ObservableObject, IOptionContainer
 
     public void Load()
     {
-        if (File.Exists(OptionsFile))
+        if (!File.Exists(OptionsFile))
         {
-            foreach (string line in File.ReadLines(OptionsFile))
-            {
-                string[] parts = line.Trim().Split(new char[] { ':', '=' }, 3);
-                if (parts.Length == 3)
-                {
-                    IOption? option = parts[0] switch
-                    {
-                        "Options" => Options.Find(o => o.Name == parts[1]),
-                        _ => MultipleOptions[parts[0]].Find(o => o.Name == parts[1]),
-                    };
-                    if (option is not null)
-                        OptionValues[option] = parts[2];
-                }
-                if (parts.Length == 2)
-                {
-                    IOption? option = Options.Find(o => o.Name == parts[0]);
-                    if (option is not null)
-                        OptionValues[option] = parts[1];
-                }
-            }
-            OnPropertyChanged(nameof(MultipleOptions));
-            OnPropertyChanged(nameof(OptionValues));
-            OnPropertyChanged(nameof(Options));
+            return;
         }
+
+        foreach (string line in File.ReadLines(OptionsFile))
+        {
+            string[] parts = line.Trim().Split(new char[] { ':', '=' }, 3);
+            switch (parts.Length)
+            {
+                case 3:
+                    {
+                        IOption? option = parts[0] switch
+                        {
+                            "Options" => Options.Find(o => o.Name == parts[1]),
+                            _ => MultipleOptions[parts[0]].Find(o => o.Name == parts[1]),
+                        };
+                        if (option is not null)
+                            OptionValues[option] = parts[2];
+                        break;
+                    }
+                case 2:
+                    {
+                        IOption? option = Options.Find(o => o.Name == parts[0]);
+                        if (option is not null)
+                            OptionValues[option] = parts[1];
+                        break;
+                    }
+            }
+        }
+        OnPropertyChanged(nameof(MultipleOptions));
+        OnPropertyChanged(nameof(OptionValues));
+        OnPropertyChanged(nameof(Options));
     }
 
     public void Save()

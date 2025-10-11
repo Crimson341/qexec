@@ -11,13 +11,7 @@ public class Option<T> : IOption where T : IConvertible
     public object? DefaultValue { get; set; }
     public bool Transient { get; set; }
 
-    public Type Type
-    {
-        get
-        {
-            return typeof(T);
-        }
-    }
+    public Type Type => typeof(T);
 
     /// <summary>
     /// Constructs an option definition with the given attributes.

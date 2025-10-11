@@ -107,31 +107,28 @@ public static class Services
         services.AddSingleton<MainViewModel>();
         services.AddSingleton(MainMenu.CreateViewModel);
         services.AddTransient<BotWindowViewModel>();
-        services.AddSingleton<IEnumerable<BotControlViewModelBase>>(s =>
+        services.AddSingleton<IEnumerable<BotControlViewModelBase>>(s => new List<BotControlViewModelBase>()
         {
-            return new List<BotControlViewModelBase>()
-            {
-                s.GetRequiredService<ScriptLoaderViewModel>(),
-                s.GetRequiredService<ScriptRepoViewModel>(),
-                s.GetRequiredService<LogsViewModel>(),
-                s.GetRequiredService<AutoViewModel>(),
-                s.GetRequiredService<JumpViewModel>(),
-                s.GetRequiredService<FastTravelViewModel>(),
-                s.GetRequiredService<CurrentDropsViewModel>(),
-                s.GetRequiredService<RuntimeHelpersViewModel>(),
-                s.GetRequiredService<LoaderViewModel>(),
-                s.GetRequiredService<GrabberViewModel>(),
-                s.GetRequiredService<GameOptionsViewModel>(),
-                s.GetRequiredService<ApplicationOptionsViewModel>(),
-                s.GetRequiredService<ConsoleViewModel>(),
-                s.GetRequiredService<AdvancedSkillsViewModel>(),
-                s.GetRequiredService<PacketInterceptorViewModel>(),
-                s.GetRequiredService<PacketSpammerViewModel>(),
-                s.GetRequiredService<PacketLoggerViewModel>(),
-                s.GetRequiredService<ApplicationThemesViewModel>(),
-                s.GetRequiredService<HotKeysViewModel>(),
-                s.GetRequiredService<PluginsViewModel>()
-            };
+            s.GetRequiredService<ScriptLoaderViewModel>(),
+            s.GetRequiredService<ScriptRepoViewModel>(),
+            s.GetRequiredService<LogsViewModel>(),
+            s.GetRequiredService<AutoViewModel>(),
+            s.GetRequiredService<JumpViewModel>(),
+            s.GetRequiredService<FastTravelViewModel>(),
+            s.GetRequiredService<CurrentDropsViewModel>(),
+            s.GetRequiredService<RuntimeHelpersViewModel>(),
+            s.GetRequiredService<LoaderViewModel>(),
+            s.GetRequiredService<GrabberViewModel>(),
+            s.GetRequiredService<GameOptionsViewModel>(),
+            s.GetRequiredService<ApplicationOptionsViewModel>(),
+            s.GetRequiredService<ConsoleViewModel>(),
+            s.GetRequiredService<AdvancedSkillsViewModel>(),
+            s.GetRequiredService<PacketInterceptorViewModel>(),
+            s.GetRequiredService<PacketSpammerViewModel>(),
+            s.GetRequiredService<PacketLoggerViewModel>(),
+            s.GetRequiredService<ApplicationThemesViewModel>(),
+            s.GetRequiredService<HotKeysViewModel>(),
+            s.GetRequiredService<PluginsViewModel>()
         });
 
         services.AddTransient<LoaderViewModel>();
@@ -223,8 +220,7 @@ public static class Services
     private static Compiler CreateCompiler(IServiceProvider s)
     {
         Compiler compiler = new();
-        var refPaths = new[]
-        {
+        string[] refPaths = {
             typeof(object).GetTypeInfo().Assembly.Location,
             typeof(Console).GetTypeInfo().Assembly.Location,
             typeof(object).Assembly.Location,
@@ -232,7 +228,7 @@ public static class Services
             typeof(ScriptManager).Assembly.Location,
             Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location)!, "System.Runtime.dll")
         };
-        var refs = AppDomain.CurrentDomain
+        List<PortableExecutableReference> refs = AppDomain.CurrentDomain
             .GetAssemblies()
             .Where(a => !a.IsDynamic)
             .Select(a => a.Location)

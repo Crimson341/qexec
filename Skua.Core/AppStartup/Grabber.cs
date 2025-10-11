@@ -55,16 +55,16 @@ internal class Grabber
         };
         return new List<GrabberListViewModel>()
         {
-            new GrabberListViewModel("Shop Items", grabberService, GrabberTypes.Shop_Items, new GrabberTaskViewModel("Buy", BuyItems), true),
-            new GrabberListViewModel("Shop IDs", grabberService, GrabberTypes.Shop_IDs, new GrabberTaskViewModel("Load Shop", LoadShop), false),
-            new GrabberListViewModel("Quests", grabberService, GrabberTypes.Quests, questCommands, true),
-            new GrabberListViewModel("Inventory", grabberService, GrabberTypes.Inventory_Items, inventoryCommands, true),
-            new GrabberListViewModel("House Inventory", grabberService, GrabberTypes.House_Inventory_Items, new GrabberTaskViewModel("To Bank", HouseInvToBank), true),
-            new GrabberListViewModel("Temp Inventory", grabberService, GrabberTypes.Temp_Inventory_Items, false),
-            new GrabberListViewModel("Bank Items", grabberService, GrabberTypes.Bank_Items, new GrabberTaskViewModel("To Inventory", BankToInv), true),
-            new GrabberListViewModel("Cell Monsters", grabberService, GrabberTypes.Cell_Monsters, new GrabberTaskViewModel("Kill", KillMonster), true),
-            new GrabberListViewModel("Map Monsters", grabberService, GrabberTypes.Map_Monsters, mapMonstersCommands, true),
-            new GrabberListViewModel("GetMap Item IDs", grabberService, GrabberTypes.GetMap_Item_IDs, mapItemCommands, true)
+            new("Shop Items", grabberService, GrabberTypes.Shop_Items, new GrabberTaskViewModel("Buy", BuyItems), true),
+            new("Shop IDs", grabberService, GrabberTypes.Shop_IDs, new GrabberTaskViewModel("Load Shop", LoadShop), false),
+            new("Quests", grabberService, GrabberTypes.Quests, questCommands, true),
+            new("Inventory", grabberService, GrabberTypes.Inventory_Items, inventoryCommands, true),
+            new("House Inventory", grabberService, GrabberTypes.House_Inventory_Items, new GrabberTaskViewModel("To Bank", HouseInvToBank), true),
+            new("Temp Inventory", grabberService, GrabberTypes.Temp_Inventory_Items, false),
+            new("Bank Items", grabberService, GrabberTypes.Bank_Items, new GrabberTaskViewModel("To Inventory", BankToInv), true),
+            new("Cell Monsters", grabberService, GrabberTypes.Cell_Monsters, new GrabberTaskViewModel("Kill", KillMonster), true),
+            new("Map Monsters", grabberService, GrabberTypes.Map_Monsters, mapMonstersCommands, true),
+            new("GetMap Item IDs", grabberService, GrabberTypes.GetMap_Item_IDs, mapItemCommands, true)
         };
     }
 
@@ -77,20 +77,19 @@ internal class Grabber
         }
 
         List<MapItem> mapItems = i.Cast<MapItem>().ToList();
-        var map = Ioc.Default.GetService<IScriptMap>()!;
-        var dialogService = Ioc.Default.GetService<IDialogService>()!;
-        if (mapItems.Count == 1)
-            p.Report($"Getting Map Item [{mapItems[0].ID}, input quantity...");
-        else
-            p.Report($"Getting {mapItems.Count} Map Items, input quantity...");
-        InputDialogViewModel diag = new($"{(mapItems.Count == 1 ? $"Getting {mapItems[0].ID}" : $"Getting {mapItems.Count} Map Items")}", $"Quantity:");
-        if (dialogService.ShowDialog(diag) != true)
+        IScriptMap map = Ioc.Default.GetService<IScriptMap>()!;
+        IDialogService dialogService = Ioc.Default.GetService<IDialogService>()!;
+        p.Report(mapItems.Count == 1
+            ? $"Getting Map Item [{mapItems[0].ID}, input quantity..."
+            : $"Getting {mapItems.Count} Map Items, input quantity...");
+        InputDialogViewModel dialog = new($"{(mapItems.Count == 1 ? $"Getting {mapItems[0].ID}" : $"Getting {mapItems.Count} Map Items")}", $"Quantity:");
+        if (dialogService.ShowDialog(dialog) != true)
         {
             p.Report("Cancelled.");
             return;
         }
 
-        if (!int.TryParse(diag.DialogTextInput, out int result))
+        if (!int.TryParse(dialog.DialogTextInput, out int result))
             return;
         try
         {
@@ -126,7 +125,7 @@ internal class Grabber
         }
 
         Monster monster = i.Cast<Monster>().ToList()[0];
-        var map = Ioc.Default.GetService<IScriptMap>()!;
+        IScriptMap map = Ioc.Default.GetService<IScriptMap>()!;
         try
         {
             await Task.Run(() => map.Jump(monster.Cell, "Left"), t);
@@ -159,12 +158,12 @@ internal class Grabber
                     return;
                 }
 
-                for (int index = 0; index < monsters.Count; index++)
+                foreach (Monster t1 in monsters)
                 {
-                    p.Report($"Killing {monsters[index].Name}.");
-                    Kill(monsters[index], t);
+                    p.Report($"Killing {t1.Name}.");
+                    Kill(t1, t);
                     await Task.Delay(1000, t);
-                    p.Report($"Killed {monsters[index].Name}.");
+                    p.Report($"Killed {t1.Name}.");
                 }
             }, t);
         }
@@ -174,7 +173,9 @@ internal class Grabber
                 p.Report("Task cancelled.");
         }
 
-        void Kill(Monster monster, CancellationToken token)
+        return;
+
+        static void Kill(Monster monster, CancellationToken token)
         {
             if (monster.Cell != Ioc.Default.GetService<IScriptPlayer>()!.Cell)
                 Ioc.Default.GetService<IScriptMap>()!.Jump(monster.Cell, "Left");
@@ -215,23 +216,20 @@ internal class Grabber
             p.Report("No quests found/selected.");
             return;
         }
-        IEnumerable<int>? questIds = null;
-        switch (i.First())
-        {
-            case Quest:
-                questIds = i.Cast<Quest>().Select(q => q.ID);
-                break;
 
-            case MapItem:
-                questIds = i.Cast<MapItem>().Select(m => m.QuestID);
-                break;
-        }
+        IEnumerable<int>? questIds = i.First() switch
+        {
+            Quest => i.Cast<Quest>().Select(q => q.ID),
+            MapItem => i.Cast<MapItem>().Select(m => m.QuestID),
+            _ => null
+        };
         try
         {
             if (questIds is not null)
             {
-                p.Report($"{identifier} {questIds.Count()} quests...");
-                await Task.Run(() => action(questIds.ToArray()), t);
+                IEnumerable<int> enumerable = questIds as int[] ?? questIds.ToArray();
+                p.Report($"{identifier} {enumerable.Count()} quests...");
+                await Task.Run(() => action(enumerable.ToArray()), t);
                 p.Report("Finished.");
             }
         }
@@ -270,28 +268,28 @@ internal class Grabber
             p.Report("No items found/selected.");
             return;
         }
-        var dialogService = Ioc.Default.GetService<IDialogService>()!;
-        var shop = Ioc.Default.GetService<IScriptShop>()!;
-        var player = Ioc.Default.GetService<IScriptPlayer>()!;
+        IDialogService dialogService = Ioc.Default.GetService<IDialogService>()!;
+        IScriptShop shop = Ioc.Default.GetService<IScriptShop>()!;
+        IScriptPlayer player = Ioc.Default.GetService<IScriptPlayer>()!;
 
         List<ShopItem> items = i.Cast<ShopItem>().ToList();
         if (items.Count == 1)
         {
             ShopItem item = items[0];
-            if (item.Coins && item.Cost > 0)
+            if (item is { Coins: true, Cost: > 0 })
             {
                 ACWarning(p, dialogService);
                 return;
             }
             p.Report($"Buying {item.Name}, input quantity...");
-            InputDialogViewModel diag = new($"Buying {item.Name}", $"Buy quantity (Cost: {item.Cost} {(item.Coins ? "AC" : "Gold")})");
-            if (dialogService.ShowDialog(diag) != true)
+            InputDialogViewModel dialog = new($"Buying {item.Name}", $"Buy quantity (Cost: {item.Cost} {(item.Coins ? "AC" : "Gold")})");
+            if (dialogService.ShowDialog(dialog) != true)
             {
                 p.Report("Cancelled.");
                 return;
             }
 
-            if (!int.TryParse(diag.DialogTextInput, out int result))
+            if (!int.TryParse(dialog.DialogTextInput, out int result))
                 return;
 
             if (result > item.MaxStack)
@@ -316,10 +314,10 @@ internal class Grabber
             }
         }
 
-        List<ShopItem> coinItems = items.Where(i => i.Coins).ToList();
-        List<ShopItem> goldItems = items.Where(i => !i.Coins).ToList();
+        List<ShopItem> coinItems = items.Where(item => item.Coins).ToList();
+        List<ShopItem> goldItems = items.Where(item => !item.Coins).ToList();
 
-        if (coinItems.Count > 0 && coinItems.Sum(i => i.Cost) > 0)
+        if (coinItems.Count > 0 && coinItems.Sum(item => item.Cost) > 0)
         {
             ACWarning(p, dialogService);
             return;
@@ -347,7 +345,9 @@ internal class Grabber
                 p.Report("Task cancelled.");
         }
 
-        void ACWarning(IProgress<string> p, IDialogService dialogService)
+        return;
+
+        static void ACWarning(IProgress<string> p, IDialogService dialogService)
         {
             p.Report("AC item - Cancelled");
             dialogService.ShowMessageBox("Don't use this to buy AC items that aren't 0 AC.", "AC Item");
@@ -378,14 +378,14 @@ internal class Grabber
         var shop = Ioc.Default.GetService<IScriptShop>()!;
         try
         {
-            InputDialogViewModel diag = new($"Selling {item.Name}", $"Sell quantity (Currently has: {(item.Category == ItemCategory.Class ? 1 : item.Quantity)})");
-            if (dialogService.ShowDialog(diag) != true)
+            InputDialogViewModel dialog = new($"Selling {item.Name}", $"Sell quantity (Currently has: {(item.Category == ItemCategory.Class ? 1 : item.Quantity)})");
+            if (dialogService.ShowDialog(dialog) != true)
             {
                 p.Report("Cancelled.");
                 return;
             }
 
-            if (!int.TryParse(diag.DialogTextInput, out int result))
+            if (!int.TryParse(dialog.DialogTextInput, out int result))
                 return;
             if (result == 1)
             {

@@ -83,8 +83,8 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
                 _client = localClient;
                 _forwarder = localForwarder;
 
-                var client = localClient;
-                var forwarder = localForwarder;
+                TcpClient client = localClient;
+                TcpClient forwarder = localForwarder;
 
                 Task.Factory.StartNew(() => _DataInterceptor(client, forwarder, true, token), token);
                 Task.Factory.StartNew(() => _DataInterceptor(forwarder, client, false, token), token);
@@ -105,15 +105,14 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
 
     private async Task _DataInterceptor(TcpClient target, TcpClient destination, bool outbound, CancellationToken token)
     {
-        byte[] msgbuf = new byte[4096];
-        int read = 0;
+        byte[] messageBuffer = new byte[4096];
         List<byte> cpacket = new();
 
         try
         {
             while (!token.IsCancellationRequested && target.Connected && destination.Connected)
             {
-                read = await target.GetStream().ReadAsync(msgbuf, 0, 4096, token);
+                int read = await target.GetStream().ReadAsync(messageBuffer, token);
 
                 if (read == 0)
                 {
@@ -126,7 +125,7 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
                     if (token.IsCancellationRequested)
                         break;
 
-                    byte b = msgbuf[i];
+                    byte b = messageBuffer[i];
                     if (b > 0)
                     {
                         cpacket.Add(b);
