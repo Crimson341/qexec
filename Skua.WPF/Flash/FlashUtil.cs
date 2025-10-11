@@ -112,7 +112,7 @@ public class FlashUtil : IFlashUtil
     public object Call(string function, Type type, params object[] args)
     {
         if (_lazyManager.Value.ShouldExit && Thread.CurrentThread.Name == "Script Thread")
-            _lazyManager.Value.ScriptCTS?.Token.ThrowIfCancellationRequested();
+            _lazyManager.Value.ScriptCts?.Token.ThrowIfCancellationRequested();
         try
         {
             StringBuilder req = new StringBuilder().Append($"<invoke name=\"{function}\" returntype=\"xml\">");

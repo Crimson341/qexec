@@ -8,12 +8,12 @@ namespace Skua.Core.Interfaces;
 /// and stack status.
 /// </summary>
 /// <remarks>
-/// This interface extends IItemContainer to provide additional inventory-specific operations, such as
+/// This interface extends <see cref="IItemContainer{T}"/> to provide additional inventory-specific operations, such as
 /// verifying item presence, retrieving items, and checking stack limits. Implementations are expected to support
 /// efficient lookups by both item name and ID. Methods that return quantities or items will return default values (such
 /// as 0 or null) if the specified item does not exist in the inventory.
 /// </remarks>
-/// <typeparam name="T">The type of item contained in the inventory. Must derive from ItemBase.</typeparam>
+/// <typeparam name="T">The type of item contained in the inventory. Must derive from <see cref="ItemBase"/>.</typeparam>
 public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
 {
     /// <summary>
@@ -61,7 +61,7 @@ public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
                     return false;
             }
         }
-        return false;
+        return needAll;
     }
 
     /// <summary>
@@ -87,7 +87,7 @@ public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
                     return false;
             }
         }
-        return false;
+        return needAll;
     }
 
     /// <summary>

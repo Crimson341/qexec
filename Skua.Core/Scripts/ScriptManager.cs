@@ -64,9 +64,9 @@ public partial class ScriptManager : ObservableObject, IScriptManager
 
     public IScriptOptionContainer? Config { get; set; }
 
-    public CancellationTokenSource? ScriptCTS { get; private set; }
+    public CancellationTokenSource? ScriptCts { get; private set; }
 
-    public bool ShouldExit => ScriptCTS?.IsCancellationRequested ?? false;
+    public bool ShouldExit => ScriptCts?.IsCancellationRequested ?? false;
 
     public async Task<Exception?> StartScriptAsync()
     {
@@ -90,7 +90,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager
             _currentScriptThread = new(async () =>
             {
                 Exception? exception = null;
-                ScriptCTS = new();
+                ScriptCts = new();
                 try
                 {
                     script?.GetType().GetMethod("ScriptMain")?.Invoke(script, new object[] { _lazyBot.Value });
@@ -137,8 +137,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager
 
                     AuraMonitor.StopMonitoring();
 
-                    ScriptCTS.Dispose();
-                    ScriptCTS = null;
+                    ScriptCts.Dispose();
+                    ScriptCts = null;
                     StrongReferenceMessenger.Default.Send<ScriptStoppedMessage, int>((int)MessageChannels.ScriptStatus);
                     ScriptRunning = false;
                 }
@@ -184,13 +184,13 @@ public partial class ScriptManager : ObservableObject, IScriptManager
     {
         _runScriptStoppingBool = runScriptStoppingEvent;
         _stoppedByScript = true;
-        ScriptCTS?.Cancel();
+        ScriptCts?.Cancel();
         if (Thread.CurrentThread.Name == "Script Thread")
         {
-            ScriptCTS?.Token.ThrowIfCancellationRequested();
+            ScriptCts?.Token.ThrowIfCancellationRequested();
             return;
         }
-        Wait.ForTrue(() => ScriptCTS == null, 20);
+        Wait.ForTrue(() => ScriptCts == null, 20);
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
@@ -198,13 +198,13 @@ public partial class ScriptManager : ObservableObject, IScriptManager
     {
         _runScriptStoppingBool = runScriptStoppingEvent;
         _stoppedByScript = true;
-        ScriptCTS?.Cancel();
+        ScriptCts?.Cancel();
         if (Thread.CurrentThread.Name == "Script Thread")
         {
-            ScriptCTS?.Token.ThrowIfCancellationRequested();
+            ScriptCts?.Token.ThrowIfCancellationRequested();
             return;
         }
-        await Wait.ForTrueAsync(() => ScriptCTS == null, 30);
+        await Wait.ForTrueAsync(() => ScriptCts == null, 30);
         OnPropertyChanged(nameof(ScriptRunning));
     }
 

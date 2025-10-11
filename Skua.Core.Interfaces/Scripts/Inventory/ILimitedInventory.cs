@@ -1,5 +1,8 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents an inventory with a limited number of slots, providing information about total, used, and free slots.
+/// </summary>
 public interface ILimitedInventory
 {
     /// <summary>

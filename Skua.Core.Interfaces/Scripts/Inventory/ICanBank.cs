@@ -10,7 +10,7 @@ namespace Skua.Core.Interfaces;
 /// <remarks>
 /// Implementations of this interface typically provide mechanisms to move items from an inventory to a
 /// bank, with options to filter which items are transferred and to ensure transfer attempts are retried according to
-/// script options. Inherits inventory checking and limitation capabilities from ICheckInventory and
+/// script options. Inherits inventory checking and limitation capabilities from <see cref="ICheckInventory{T}"/> and
 /// <see cref="ILimitedInventory"/>.
 /// </remarks>
 public interface ICanBank : ICheckInventory<InventoryItem>, ILimitedInventory
