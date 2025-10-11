@@ -19,4 +19,4 @@ public interface IInterceptor
     /// <param name="outbound">Whether this packet is outbound (client -&gt; server).</param>
     /// <returns>The (un)modified message.</returns>
     void Intercept(MessageInfo message, bool outbound);
-}s
+}
