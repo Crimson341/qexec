@@ -15,7 +15,7 @@ internal static class AttributeDataExtensions
     /// <param name="attributeData">The target <see cref="AttributeData"/> instance to check.</param>
     /// <param name="name">The name of the argument to check.</param>
     /// <param name="value">The expected value for the target named argument.</param>
-    /// <returns>Whether or not <paramref name="attributeData"/> contains an argument named <paramref name="name"/> with the expected value.</returns>
+    /// <returns>Whether <paramref name="attributeData"/> contains an argument named <paramref name="name"/> with the expected value.</returns>
     public static bool HasNamedArgument<T>(this AttributeData attributeData, string name, T? value)
     {
         foreach (KeyValuePair<string, TypedConstant> properties in attributeData.NamedArguments)
@@ -56,7 +56,7 @@ internal static class AttributeDataExtensions
     /// <param name="attributeData">The target <see cref="AttributeData"/> instance to check.</param>
     /// <param name="name">The name of the argument to check.</param>
     /// <param name="value">The resulting argument value, if present.</param>
-    /// <returns>Whether or not <paramref name="attributeData"/> contains an argument named <paramref name="name"/> with a valid value.</returns>
+    /// <returns>Whether <paramref name="attributeData"/> contains an argument named <paramref name="name"/> with a valid value.</returns>
     public static bool TryGetNamedArgument<T>(this AttributeData attributeData, string name, out T? value)
     {
         foreach (KeyValuePair<string, TypedConstant> properties in attributeData.NamedArguments)

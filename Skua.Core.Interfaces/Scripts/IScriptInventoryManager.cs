@@ -1,5 +1,15 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Provides methods for checking the presence and quantity of items across player, bank, temporary, and house
+/// inventories.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface enable scripts to verify whether specific items exist in sufficient
+/// quantity in any supported inventory location. Methods may optionally move items to the player's main inventory if
+/// requested. These checks are useful for automating inventory management tasks, such as ensuring required items are
+/// available before performing actions or quests.
+/// </remarks>
 public interface IScriptInventoryHelper
 {
     /// <summary>
@@ -7,7 +17,7 @@ public interface IScriptInventoryHelper
     /// </summary>
     /// <param name="name">Name of the item.</param>
     /// <param name="quantity">Desired quantity.</param>
-    /// <param name="moveToInventory">Whether or not send the item to Inventory.</param>
+    /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Whether the item exists in the desired quantity in the bank, player, temporary and house inventory.</returns>
     public bool Check(string name, int quantity = 1, bool moveToInventory = true);
 
@@ -16,7 +26,7 @@ public interface IScriptInventoryHelper
     /// </summary>
     /// <param name="id">ID of the item.</param>
     /// <param name="quantity">Desired quantity</param>
-    /// <param name="moveToInventory">Whether or not send the item to Inventory.</param>
+    /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Whether the item exists in the desired quantity in the bank, player, temporary and house inventory.</returns>
     public bool Check(int id, int quantity = 1, bool moveToInventory = true);
 
@@ -25,17 +35,17 @@ public interface IScriptInventoryHelper
     /// </summary>
     /// <param name="itemNames">Names of the items to be checked.</param>
     /// <param name="quantity">Desired quantity.</param>
-    /// <param name="moveToInventory">Whether or not send the item to Inventory.</param>
+    /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Returns whether all the items exist in the bank or player inventory.</returns>
     public bool HasAll(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
     /// Check if the bank/inventory has at least 1 of all listed items.
     /// </summary>
-    /// <param name="itemNames">Array of names of the items to be check</param>
+    /// <param name="itemNames">Array of names of the items to be checked</param>
     /// <param name="quantity">Desired quantity.</param>
-    /// <param name="moveToInventory">Whether or not send the item to Inventory</param>
-    /// <returns>Returns whether atleast 1 of the items exist in the bank or player inventory.</returns>
+    /// <param name="moveToInventory">Whether send the item to Inventory</param>
+    /// <returns>Returns whether at-least 1 of the items exist in the bank or player inventory.</returns>
     public bool HasAny(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
@@ -43,16 +53,16 @@ public interface IScriptInventoryHelper
     /// </summary>
     /// <param name="itemIds">Names of the items to be checked.</param>
     /// <param name="quantity">Desired quantity.</param>
-    /// <param name="moveToInventory">Whether or not send the item to Inventory.</param>
+    /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Returns whether all the items exist in the bank or player inventory.</returns>
     public bool HasAll(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
     /// Check if the bank/inventory has at least 1 of all listed items.
     /// </summary>
-    /// <param name="itemIds">Array of names of the items to be check</param>
+    /// <param name="itemIds">Array of names of the items to be checked</param>
     /// <param name="quantity">Desired quantity.</param>
-    /// <param name="moveToInventory">Whether or not send the item to Inventory</param>
-    /// <returns>Returns whether atleast 1 of the items exist in the bank or player inventory.</returns>
+    /// <param name="moveToInventory">Whether send the item to Inventory</param>
+    /// <returns>Returns whether at-least 1 of the items exist in the bank or player inventory.</returns>
     public bool HasAny(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true);
 }

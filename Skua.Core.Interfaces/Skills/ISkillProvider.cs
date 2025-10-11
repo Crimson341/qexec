@@ -7,7 +7,7 @@ public interface ISkillProvider
     /// <summary>
     /// This method should return true if the bot should attempt to use a skill at the given time.
     /// </summary>
-    /// <returns>Whether or not the bot should attempt to use a skill.</returns>
+    /// <returns>Whether the bot should attempt to use a skill.</returns>
     bool? ShouldUseSkill(int skillIndex, bool canUse);
 
     /// <summary>

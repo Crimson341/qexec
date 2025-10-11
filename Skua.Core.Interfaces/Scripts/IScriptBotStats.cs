@@ -2,6 +2,16 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents a set of statistics related to script bot activity, including counts of deaths, kills, drops, quests, and
+/// re-logins.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide real-time tracking of key gameplay events for a script bot.
+/// Properties are typically updated as the bot performs actions in the game. Changes to property values raise the
+/// PropertyChanged event, allowing clients to observe updates. The Reset method resets all statistics to their initial
+/// state.
+/// </remarks>
 public interface IScriptBotStats : INotifyPropertyChanged
 {
     /// <summary>

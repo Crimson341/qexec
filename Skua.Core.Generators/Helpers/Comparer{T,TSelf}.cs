@@ -59,6 +59,6 @@ public abstract class Comparer<T, TSelf> : IEqualityComparer<T>
     /// </summary>
     /// <param name="x">The first <typeparamref name="T"/> instance to compare.</param>
     /// <param name="y">The second <typeparamref name="T"/> instance to compare.</param>
-    /// <returns>Whether or not <paramref name="x"/> and <paramref name="y"/> are equal.</returns>
+    /// <returns>Whether <paramref name="x"/> and <paramref name="y"/> are equal.</returns>
     public abstract bool AreEqual(T x, T y);
 }

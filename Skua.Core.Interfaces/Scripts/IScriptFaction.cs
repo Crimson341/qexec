@@ -2,10 +2,20 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents a collection of player faction reputation data and provides methods to query faction ranks and reputation
+/// status.
+/// </summary>
+/// <remarks>
+/// Use this interface to access the list of factions in which the player has earned reputation, retrieve
+/// the player's rank within a specific faction, or check if the player meets a required rank for a given faction.
+/// Factions can be referenced by either their name or unique identifier. Implementations should ensure that faction
+/// lookups are consistent and that rank queries reflect the player's current reputation state.
+/// </remarks>
 public interface IScriptFaction
 {
     /// <summary>
-    /// Get a list of all factions the player has atleast 1 point in Reputation.
+    /// Get a list of all factions the player has at-least 1 point in Reputation.
     /// </summary>
     List<Faction> FactionList { get; }
 

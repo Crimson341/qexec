@@ -9,7 +9,7 @@ internal static class ITypeSymbolExtensions
     /// </summary>
     /// <param name="typeSymbol">The target <see cref="ITypeSymbol"/> instance to check.</param>
     /// <param name="name">The name of the attribute to look for.</param>
-    /// <returns>Whether or not <paramref name="typeSymbol"/> has an attribute with the specified type name.</returns>
+    /// <returns>Whether <paramref name="typeSymbol"/> has an attribute with the specified type name.</returns>
     public static bool HasOrInheritsAttributeWithFullyQualifiedName(this ITypeSymbol typeSymbol, string name)
     {
         for (ITypeSymbol? currentType = typeSymbol; currentType is not null; currentType = currentType.BaseType)

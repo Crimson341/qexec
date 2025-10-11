@@ -11,7 +11,7 @@ public class MessageInfo
     public string Content { get; set; }
 
     /// <summary>
-    /// Whether or not to pass the packet through the proxy.
+    /// Whether to pass the packet through the proxy.
     /// </summary>
     public bool Send { get; set; } = true;
 

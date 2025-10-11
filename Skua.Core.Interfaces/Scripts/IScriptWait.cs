@@ -244,7 +244,7 @@ public interface IScriptWait
     /// </summary>
     /// <param name="name">Name of the map to wait for.</param>
     /// <param name="timeout">Number of times the thread should be slept (for <see cref="WAIT_SLEEP"/> milliseconds) before the wait is cancelled.</param>
-    /// <returns>Whether or not the timeout was reached.</returns>
+    /// <returns>Whether the timeout was reached.</returns>
     bool ForMapLoad(string name, int timeout = 20);
 
     /// <summary>

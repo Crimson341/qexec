@@ -4,13 +4,35 @@ using Skua.Core.Models;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods for initializing and managing script-related timers within a component.
+/// </summary>
 public interface IScriptInterfaceManager
 {
+    /// <summary>
+    /// Initializes the component and prepares it for use.
+    /// </summary>
     void Initialize();
 
+    /// <summary>
+    /// Asynchronously stops the running timer, if it is active.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous stop operation.</returns>
     Task StopTimerAsync();
 }
 
+/// <summary>
+/// Defines the contract for the main scripting interface, providing access to core bot services, game automation
+/// features, and script management utilities.
+/// </summary>
+/// <remarks>
+/// The IScriptInterface exposes a comprehensive set of properties and methods for interacting with game
+/// elements, managing script execution, and customizing bot behavior. It serves as the primary entry point for scripts,
+/// aggregating functionality such as combat automation, inventory management, quest handling, event monitoring, and
+/// user interface interactions. Implementations of this interface are expected to be thread-safe only if explicitly
+/// documented. Consumers should use the provided properties and methods to interact with the game environment and
+/// control script flow, rather than accessing underlying implementations directly.
+/// </remarks>
 public interface IScriptInterface
 {
     /// <summary>
@@ -43,7 +65,14 @@ public interface IScriptInterface
     /// </summary>
     IScriptBotStats Stats { get; }
 
+    /// <summary>
+    /// Gets the collection of aura effects currently applied to the player.
+    /// </summary>
     IScriptSelfAuras Self { get; }
+
+    /// <summary>
+    /// Gets the collection of auras currently applied to the target entity.
+    /// </summary>
     IScriptTargetAuras Target { get; }
 
     /// <summary>
@@ -52,7 +81,7 @@ public interface IScriptInterface
     IAuraMonitorService AuraMonitor { get; }
 
     /// <summary>
-    /// Helper for managing ultra boss mechanics including counter attacks and aura monitoring.
+    /// Helper for managing ultra boss mechanics including counter-attacks and aura monitoring.
     /// </summary>
     IUltraBossHelper UltraBossHelper { get; }
 
@@ -222,7 +251,7 @@ public interface IScriptInterface
     Task Schedule(int delay, Action<IScriptInterface> action);
 
     /// <summary>
-    /// Schedules the specified <paramref name="action"/> to run after the desired <paramref name="delay"/> in ms.
+    /// Schedules the specified <paramref name="function"/> to run after the desired <paramref name="delay"/> in ms.
     /// </summary>
     /// <param name="delay">Time to wait before invoking the action.</param>
     /// <param name="function">Action to run. This can be passed as a lambda expression.</param>
@@ -243,6 +272,6 @@ public interface IScriptInterface
     /// <param name="message">Message in the popup.</param>
     /// <param name="caption">Title of the popup.</param>
     /// <param name="buttons">A list of buttons that will be shown.</param>
-    /// <returns>A <see cref="DialogResult"/> object with the text and value of the button. The value is the index of the button in the passed array, meaning that -1 is no button found.</returns>
+    /// <returns>A <see cref="DialogResult"/> object with the text and value of the button. The value is the index of the button in the array that was passed, meaning that -1 is no button found.</returns>
     DialogResult ShowMessageBox(string message, string caption, params string[] buttons);
 }

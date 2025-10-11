@@ -1,5 +1,14 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents the status and control interface for a running script, providing properties to query script state and
+/// methods to manage script execution.
+/// </summary>
+/// <remarks>
+/// Use this interface to monitor the execution state of a script and to perform actions such as
+/// restarting or stopping the script. Implementations may provide additional behavior or state information relevant to
+/// script management.
+/// </remarks>
 public interface IScriptStatus
 {
     /// <summary>
@@ -22,11 +31,31 @@ public interface IScriptStatus
     /// </summary>
     string CompiledScript { get; }
 
+    /// <summary>
+    /// Gets or sets the script configuration options for this instance.
+    /// </summary>
+    /// <remarks>
+    /// Use this property to provide or retrieve custom script options that influence script
+    /// execution or behavior. The value may be null if no configuration is specified.
+    /// </remarks>
     IScriptOptionContainer? Config { get; set; }
 
+    /// <summary>
+    /// Asynchronously restarts the currently running script.
+    /// </summary>
+    /// <returns>A task that represents the asynchronous restart operation.</returns>
     Task RestartScriptAsync();
 
+    /// <summary>
+    /// Stops the currently running script, optionally triggering the script stopping event.
+    /// </summary>
+    /// <param name="runScriptStoppingEvent">true to raise the script stopping event before stopping the script; otherwise, false.</param>
     void StopScript(bool runScriptStoppingEvent = true);
 
+    /// <summary>
+    /// Asynchronously stops the currently running script.
+    /// </summary>
+    /// <param name="runScriptStoppingEvent">true to trigger the script stopping event before stopping the script; otherwise, false.</param>
+    /// <returns>A ValueTask that represents the asynchronous stop operation.</returns>
     ValueTask StopScriptAsync(bool runScriptStoppingEvent = true);
 }

@@ -85,7 +85,7 @@ public class SynchronizedList<T>
     /// <summary>
     /// Determines if any item inside the underlying list satisfies the condition.
     /// </summary>
-    /// <returns><see langword="true"/> if the list is not empty and have atleast one item that satifies the <paramref name="predicate"/>, otherwise <see langword="false"/>.</returns>
+    /// <returns><see langword="true"/> if the list is not empty and have at-least one item that satifies the <paramref name="predicate"/>, otherwise <see langword="false"/>.</returns>
     public bool Any(Func<T, bool> predicate)
     {
         lock (sync)

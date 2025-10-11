@@ -31,9 +31,6 @@ public partial class ScriptLite : IScriptLite
     [ObjectBinding("litePreference.data.bUntargetDead", HasSetter = true)]
     private bool _untargetDead;
 
-    [ObjectBinding("litePreference.data.bDisSkillAnim", HasSetter = true)]
-    private bool _disableSkillAnimations;
-
     [ObjectBinding("litePreference.data.bCustomDrops", HasSetter = true)]
     private bool _customDropsUI;
 

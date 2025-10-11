@@ -4,6 +4,16 @@ using System.ComponentModel;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for managing and interacting with item drops, including querying available drops, configuring
+/// pickup behavior, and performing pickup or rejection operations.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface allow scripts or applications to automate the process of collecting
+/// or rejecting item drops, with support for configurable pickup lists, intervals, and filtering options. The interface
+/// provides both synchronous and asynchronous control methods, as well as events for property change notifications via
+/// <see cref="INotifyPropertyChanged"/>. Thread safety and specific timing behaviors may depend on the implementation.
+/// </remarks>
 public interface IScriptDrop : INotifyPropertyChanged
 {
     /// <summary>
@@ -22,7 +32,7 @@ public interface IScriptDrop : INotifyPropertyChanged
     bool Enabled { get; }
 
     /// <summary>
-    /// The interval, in milliseconds, at which to pickup the drops (the base interval is 1000ms, any value assigned to this property will be added to that interval).
+    /// The interval, in milliseconds, at which to pick up the drops (the base interval is 1000ms, any value assigned to this property will be added to that interval).
     /// </summary>
     int Interval { get; set; }
 
@@ -32,12 +42,12 @@ public interface IScriptDrop : INotifyPropertyChanged
     bool RejectElse { get; set; }
 
     /// <summary>
-    /// The list of item names to pickup every <see cref="Interval"/>.
+    /// The list of item names to pick up every <see cref="Interval"/>.
     /// </summary>
     IEnumerable<string> ToPickup { get; }
 
     /// <summary>
-    /// The list of item IDs to pickup every <see cref="Interval"/>
+    /// The list of item IDs to pick up every <see cref="Interval"/>
     /// </summary>
     IEnumerable<int> ToPickupIDs { get; }
 
@@ -128,7 +138,7 @@ public interface IScriptDrop : INotifyPropertyChanged
     /// <summary>
     /// Pickup all the items with the IDs specified in <paramref name="ids"/>
     /// </summary>
-    /// <param name="names">IDs of the items to pickup.</param>
+    /// <param name="ids">IDs of the items to pickup.</param>
     void Pickup(params int[] ids);
 
     /// <summary>
@@ -151,8 +161,8 @@ public interface IScriptDrop : INotifyPropertyChanged
     /// <param name="names">Names of the items to pickup.</param>
     void PickupFast(params string[] names)
     {
-        for (int i = 0; i < names.Length; i++)
-            Pickup(names[i]);
+        foreach (string t in names)
+            Pickup(t);
     }
 
     /// <summary>
@@ -161,8 +171,8 @@ public interface IScriptDrop : INotifyPropertyChanged
     /// <param name="ids">IDs of the items to pickup</param>
     void PickupFast(params int[] ids)
     {
-        for (int i = 0; i < ids.Length; i++)
-            Pickup(ids[i]);
+        foreach (int t in ids)
+            Pickup(t);
     }
 
     /// <summary>

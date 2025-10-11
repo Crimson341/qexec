@@ -3,6 +3,17 @@ using System.ComponentModel;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for controlling automated attack and hunt features, including starting, stopping, and
+/// monitoring the running state.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide mechanisms to automate attack or hunt actions in a game
+/// context. The interface supports both synchronous and asynchronous stopping operations, making it suitable for
+/// integration with UI components that require non-blocking behavior. The interface also notifies listeners of property
+/// changes via the <see cref="INotifyPropertyChanged"/> interface, allowing consumers to react to changes in the running
+/// state.
+/// </remarks>
 public interface IScriptAuto : INotifyPropertyChanged
 {
     /// <summary>

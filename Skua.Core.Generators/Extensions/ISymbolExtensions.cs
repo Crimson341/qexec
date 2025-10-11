@@ -44,7 +44,7 @@ internal static class ISymbolExtensions
     /// </summary>
     /// <param name="symbol">The input <see cref="ISymbol"/> instance to check.</param>
     /// <param name="name">The attribute name to look for.</param>
-    /// <returns>Whether or not <paramref name="symbol"/> has an attribute with the specified name.</returns>
+    /// <returns>Whether <paramref name="symbol"/> has an attribute with the specified name.</returns>
     public static bool HasAttributeWithFullyQualifiedName(this ISymbol symbol, string name)
     {
         ImmutableArray<AttributeData> attributes = symbol.GetAttributes();

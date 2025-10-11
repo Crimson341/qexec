@@ -3,6 +3,16 @@ using System.ComponentModel;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for managing and applying various boost types, such as class, experience, gold, and reputation
+/// boosts, including their activation, identification, and timer control.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface allow clients to enable or disable boost timers, retrieve and set
+/// boost IDs, check boost status, and control which boost types are in use. The interface also provides methods to
+/// search for available boosts in the player's inventory or bank, and to apply boosts as needed. Property change
+/// notifications are provided via the <see cref="INotifyPropertyChanged"/>  interface, enabling data binding scenarios.
+/// </remarks>
 public interface IScriptBoost : INotifyPropertyChanged
 {
     /// <summary>

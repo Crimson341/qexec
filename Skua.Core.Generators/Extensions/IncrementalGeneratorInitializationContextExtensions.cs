@@ -24,10 +24,10 @@ internal static class IncrementalGeneratorInitializationContextExtensions
     }
 
     /// <summary>
-    /// Get all fields with atleast 1 attribute.
+    /// Get all fields with at-least 1 attribute.
     /// </summary>
     /// <param name="context">The input <see cref="IncrementalGeneratorInitializationContext"/> instance.</param>
-    /// <returns>An <see cref="IncrementalValuesProvider{IFieldSymbol}"/> of all found fields with atleast 1 attribute.</returns>
+    /// <returns>An <see cref="IncrementalValuesProvider{IFieldSymbol}"/> of all found fields with at-least 1 attribute.</returns>
     public static IncrementalValuesProvider<IFieldSymbol> GetFieldsWithAttributes(this IncrementalGeneratorInitializationContext context)
     {
         return context.SyntaxProvider
