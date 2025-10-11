@@ -20,10 +20,7 @@ public partial class ScriptTargetAuras : IScriptTargetAuras
         get
         {
             string? auraData = Flash.Call("getSubjectAuras", nameof(SubjectType.Target));
-            if (auraData != null)
-            {
-                return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
-            }
+            return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
         }
     }
 
