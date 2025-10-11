@@ -134,7 +134,7 @@ public partial class ScriptPlayer : IScriptPlayer
     [ObjectBinding("world.myAvatar.dataLeaf.sta")]
     private PlayerStats? _stats;
 
-    public InventoryItem? CurrentClass => Playing ? Inventory.Items?.Find(i => i.Equipped && i.Category == ItemCategory.Class) : null;
+    public InventoryItem? CurrentClass => Playing ? Inventory.Items?.Find(i => i is { Equipped: true, Category: ItemCategory.Class }) : null;
 
     public void Rest(bool full = false)
     {

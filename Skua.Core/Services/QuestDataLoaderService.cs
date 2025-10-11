@@ -62,7 +62,7 @@ public class QuestDataLoaderService : IQuestDataLoaderService
                 progress?.Report($"Loading Quests {i}-{i + 29}...");
 
                 List<Quest> currQuests = new();
-                StrongReferenceMessenger.Default.Register<QuestDataLoaderService, ExtensionPacketMessage, int>(this, (int)MessageChannels.GameEvents, packetListener);
+                StrongReferenceMessenger.Default.Register<QuestDataLoaderService, ExtensionPacketMessage, int>(this, (int)MessageChannels.GameEvents, PacketListener);
 
                 _quests.Load(Enumerable.Range(i, 29).ToArray());
 
@@ -77,8 +77,9 @@ public class QuestDataLoaderService : IQuestDataLoaderService
                 quests.AddRange(currQuests.Select(q => ConvertToQuestData(q)));
                 if (!token.IsCancellationRequested)
                     await Task.Delay(1500);
+                continue;
 
-                void packetListener(QuestDataLoaderService recipient, ExtensionPacketMessage message)
+                void PacketListener(QuestDataLoaderService recipient, ExtensionPacketMessage message)
                 {
                     if ((message.Packet["params"].type == "json") && (message.Packet["params"].dataObj.cmd == "getQuests"))
                     {
@@ -90,7 +91,7 @@ public class QuestDataLoaderService : IQuestDataLoaderService
             }
 
             quests.AddRange(_quests.Cached);
-            await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.Distinct().OrderBy(q => q.ID), Formatting.Indented));
+            await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.Distinct().OrderBy(q => q.ID), Formatting.Indented), token);
             progress?.Report($"Getting quests from file {fileName}");
 
             return _quests.Cached = await GetFromFileAsync(fileName);

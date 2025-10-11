@@ -69,9 +69,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
             return;
         }
 
-        foreach (int[] idchunk in ids.Chunk(30))
+        foreach (int[] idChunks in ids.Chunk(30))
         {
-            Flash.CallGameFunction("world.showQuests", idchunk.Select(id => id.ToString()).Join(','), "q");
+            Flash.CallGameFunction("world.showQuests", idChunks.Select(id => id.ToString()).Join(','), "q");
             Thread.Sleep(Options.ActionDelay);
         }
     }
@@ -99,9 +99,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public void Accept(params int[] ids)
     {
-        for (int i = 0; i < ids.Length; i++)
+        foreach (int t in ids)
         {
-            Accept(ids[i]);
+            Accept(t);
             Thread.Sleep(Options.ActionDelay);
         }
     }
@@ -120,9 +120,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public void EnsureAccept(params int[] ids)
     {
-        for (int i = 0; i < ids.Length; i++)
+        foreach (int t in ids)
         {
-            EnsureAccept(ids[i]);
+            EnsureAccept(t);
             Thread.Sleep(Options.ActionDelay);
         }
     }
@@ -139,9 +139,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public void Complete(params int[] ids)
     {
-        for (int i = 0; i < ids.Length; i++)
+        foreach (int t in ids)
         {
-            Complete(ids[i]);
+            Complete(t);
             Thread.Sleep(Options.ActionDelay);
         }
     }
@@ -167,9 +167,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public void EnsureComplete(params int[] ids)
     {
-        for (int i = 0; i < ids.Length; i++)
+        foreach (int t in ids)
         {
-            EnsureComplete(ids[i]);
+            EnsureComplete(t);
             Thread.Sleep(Options.ActionDelay);
         }
     }
@@ -209,21 +209,13 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         requirements.AddRange(quest.AcceptRequirements);
         if (requirements.Count == 0)
             return true;
-        foreach (ItemBase item in requirements)
-        {
-            if (InvHelper.Check(item.ID, item.Quantity, false))
-                continue;
-            return false;
-        }
-        return true;
+        return requirements.All(item => InvHelper.Check(item.ID, item.Quantity, false));
     }
 
     public bool IsDailyComplete(int id)
     {
         Quest? quest = EnsureLoad(id);
-        if (quest is null)
-            return false;
-        return IsDailyComplete(quest);
+        return quest is not null && IsDailyComplete(quest);
     }
 
     public bool IsDailyComplete(Quest quest)
@@ -234,9 +226,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     public bool IsUnlocked(int id)
     {
         Quest? quest = EnsureLoad(id);
-        if (quest is null)
-            return false;
-        return IsUnlocked(quest);
+        return quest is not null && IsUnlocked(quest);
     }
 
     public bool IsUnlocked(Quest quest)
@@ -247,9 +237,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     public bool HasBeenCompleted(int id)
     {
         Quest? quest = EnsureLoad(id);
-        if (quest is null)
-            return false;
-        return HasBeenCompleted(quest);
+        return quest is not null && HasBeenCompleted(quest);
     }
 
     public bool HasBeenCompleted(Quest quest)
@@ -286,7 +274,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 {
                     await _Poll(_questsCTS.Token);
                 }
-                catch { }
+                catch { /* ignored */ }
                 _questsCTS?.Dispose();
                 _questsCTS = null;
             })
@@ -361,7 +349,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         if (Cached.Count > 0)
             return;
 
-        var skuaQuestFile = File.ReadAllText(ClientFileSources.SkuaQuestsFile);
+        string skuaQuestFile = File.ReadAllText(ClientFileSources.SkuaQuestsFile);
         Cached = JsonConvert.DeserializeObject<List<QuestData>>(skuaQuestFile) ?? new();
         CachedDictionary = Cached.ToDictionary(x => x.ID, x => x);
     }

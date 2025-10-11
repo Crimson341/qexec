@@ -129,8 +129,8 @@ public partial class ScriptSkill : IScriptSkill
             Wait.ForItemEquip(className);
         }
 
-        List<AdvancedSkill> skills = AdvancedSkillContainer.LoadedSkills.Where(s => s.ClassName.ToLower() == className.ToLower()).ToList();
-        if (skills is null || skills.Count == 0)
+        List<AdvancedSkill> skills = AdvancedSkillContainer.LoadedSkills.Where(s => string.Equals(s.ClassName, className, StringComparison.CurrentCultureIgnoreCase)).ToList();
+        if (skills.Count == 0)
         {
             OverrideProvider.Load(genericSkills);
             SkillUseMode = SkillUseMode.UseIfAvailable;
@@ -176,7 +176,7 @@ public partial class ScriptSkill : IScriptSkill
 
             // if the player has target or bot attack without target option is on
             // then activate the skills
-            if (Options.AttackWithoutTarget && Player.Loaded && Player.Playing || Player.HasTarget && Player.Loaded && Player.Playing)
+            if (Options.AttackWithoutTarget && Player is { Loaded: true, Playing: true } or { HasTarget: true, Loaded: true, Playing: true })
             {
                 _Poll(token);
             }
@@ -194,7 +194,7 @@ public partial class ScriptSkill : IScriptSkill
     {
         // if the current player has skills and the current class rank is different from the last rank
         // then update the skills since classes will enable a certain skill base on the rank
-        if (_playerSkills is not null && Player.CurrentClassRank > _lastRank)
+        if (Player.CurrentClassRank > _lastRank)
         {
             // Update the player skills skills
             SkillInfo[]? playerSkills = Player.Skills;
@@ -215,7 +215,7 @@ public partial class ScriptSkill : IScriptSkill
         if (token.IsCancellationRequested)
             return;
 
-        var (index, skillS) = _provider!.GetNextSkill();
+        (int index, int skillS) = _provider!.GetNextSkill();
 
         switch (_provider?.ShouldUseSkill(index, CanUseSkill(skillS)))
         {
@@ -226,7 +226,7 @@ public partial class ScriptSkill : IScriptSkill
                 break;
 
             case null:
-                var (indexS, skill) = _provider!.GetNextSkill();
+                (int indexS, int skill) = _provider!.GetNextSkill();
                 if (skill != -1 && !_playerSkills![skill].IsOk)
                     break;
                 UseSkill(skill);
@@ -235,6 +235,8 @@ public partial class ScriptSkill : IScriptSkill
             default:
                 break;
         }
+
+        return;
 
         // This method will activate a skill
         void UseSkill(int skill)

@@ -117,7 +117,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager
                             switch (await Task.Run(async () => await StrongReferenceMessenger.Default.Send<ScriptStoppingRequestMessage, int>(new(exception), (int)MessageChannels.ScriptStatus)))
                             {
                                 case true:
-                                    Trace.WriteLine("Script finished succesfully.");
+                                    Trace.WriteLine("Script finished successfully.");
                                     break;
 
                                 case false:
@@ -259,54 +259,58 @@ public partial class ScriptManager : ObservableObject, IScriptManager
 
     private string ProcessSources(string source, ref HashSet<string> references)
     {
-        var toRemove = new StringBuilder();
-        var sources = new List<string> { source };
+        StringBuilder toRemove = new StringBuilder();
+        List<string> sources = new List<string> { source };
 
-        foreach (var line in source.Split('\n').Select(l => l.Trim()))
+        foreach (string line in source.Split('\n').Select(l => l.Trim()))
         {
             if (line.StartsWith("using"))
                 break;
 
-            if (line.StartsWith("//cs_"))
+            if (!line.StartsWith("//cs_"))
             {
-                var parts = line.Split((char[])null!, 2, StringSplitOptions.RemoveEmptyEntries);
-                var cmd = parts[0].Substring(5);
-                switch (cmd)
-                {
-                    case "ref":
-                        var local = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
-                        if (File.Exists(local))
-                            references.Add(local);
-                        else if (File.Exists(parts[1]))
-                            references.Add(parts[1]);
-                        break;
-
-                    case "include":
-                        var localSource = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
-                        if (File.Exists(localSource))
-                            sources.Add($"// Added from {localSource}\n{File.ReadAllText(localSource)}");
-                        else if (File.Exists(parts[1]))
-                            sources.Add($"// Added from {parts[1]}\n{File.ReadAllText(parts[1])}");
-                        break;
-                }
-                toRemove.Append(line).AppendLine();
+                continue;
             }
+
+            string[] parts = line.Split((char[])null!, 2, StringSplitOptions.RemoveEmptyEntries);
+            string cmd = parts[0][5..];
+            switch (cmd)
+            {
+                case "ref":
+                    string local = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
+                    if (File.Exists(local))
+                        references.Add(local);
+                    else if (File.Exists(parts[1]))
+                        references.Add(parts[1]);
+                    break;
+
+                case "include":
+                    string localSource = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
+                    if (File.Exists(localSource))
+                        sources.Add($"// Added from {localSource}\n{File.ReadAllText(localSource)}");
+                    else if (File.Exists(parts[1]))
+                        sources.Add($"// Added from {parts[1]}\n{File.ReadAllText(parts[1])}");
+                    break;
+            }
+            toRemove.Append(line).AppendLine();
         }
 
         if (sources.Count > 1)
         {
             sources[0] = sources[0].Replace(toRemove.ToString(), "");
 
-            var usings = new List<string>();
-            var joinedSource = string.Join(Environment.NewLine, sources);
-            var lines = joinedSource.Split('\n').Select(l => l.Trim()).ToList();
-            for (var i = lines.Count - 1; i >= 0; i--)
+            List<string> usings = new List<string>();
+            string joinedSource = string.Join(Environment.NewLine, sources);
+            List<string> lines = joinedSource.Split('\n').Select(l => l.Trim()).ToList();
+            for (int i = lines.Count - 1; i >= 0; i--)
             {
-                if (lines[i].StartsWith("using") && lines[i].Split(' ').Length == 2)
+                if (!lines[i].StartsWith("using") || lines[i].Split(' ').Length != 2)
                 {
-                    usings.Add(lines[i]);
-                    lines.RemoveAt(i);
+                    continue;
                 }
+
+                usings.Add(lines[i]);
+                lines.RemoveAt(i);
             }
 
             lines.Insert(0, $"{string.Join(Environment.NewLine, usings.Distinct())}{Environment.NewLine}#nullable enable{Environment.NewLine}");
@@ -329,13 +333,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager
         FieldInfo? dontPreconfField = t.GetField("DontPreconfigure");
         if (multiOptsField is not null)
         {
-            List<FieldInfo> multiOpts = new();
-            foreach (string optField in (string[])multiOptsField.GetValue(script))
-            {
-                FieldInfo? fi = t.GetField(optField);
-                if (fi is not null)
-                    multiOpts.Add(fi);
-            }
+            List<FieldInfo> multiOpts = (from optField in (string[])multiOptsField.GetValue(script)! select t.GetField(optField)).ToList();
             foreach (FieldInfo opt in multiOpts)
             {
                 List<IOption> parsedOpt = (List<IOption>)opt.GetValue(script)!;

@@ -6,15 +6,15 @@ public class AdvancedSkillCommand
 {
     public Dictionary<int, int> Skills { get; set; } = new();
     public List<UseRule[]> UseRules { get; set; } = new();
-    private int _Index = 0;
+    private int _index = 0;
 
     public (int, int) GetNextSkill()
     {
-        int skill = Skills[_Index];
-        int index = _Index;
-        ++_Index;
-        if (_Index >= Skills.Count)
-            _Index = 0;
+        int skill = Skills[_index];
+        int index = _index;
+        ++_index;
+        if (_index >= Skills.Count)
+            _index = 0;
         return (index, skill);
     }
 
@@ -46,6 +46,9 @@ public class AdvancedSkillCommand
                     if (useRule.ShouldSkip && !canUse)
                         return null;
                     Task.Delay(useRule.Value).Wait();
+                    break;
+
+                case SkillRule.None:
                     break;
             }
 
@@ -79,7 +82,7 @@ public class AdvancedSkillCommand
 
     public void Reset()
     {
-        _Index = 0;
+        _index = 0;
     }
 }
 
@@ -118,7 +121,7 @@ public struct UseRule
 
     /// <summary>
     /// <list type="bullet">
-    /// <item><see langword="true"/> = Great than</item>
+    /// <item><see langword="true"/> = Greater than</item>
     /// <item><see langword="false"/> = Less than</item>
     /// </list>
     /// </summary>

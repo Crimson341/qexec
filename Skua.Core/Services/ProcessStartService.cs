@@ -19,7 +19,7 @@ public class ProcessStartService : IProcessService
 
     public void OpenLink(string link)
     {
-        var ps = new ProcessStartInfo(link)
+        ProcessStartInfo ps = new(link)
         {
             UseShellExecute = true,
             Verb = "open"

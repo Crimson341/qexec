@@ -242,7 +242,7 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
                 try
                 {
                     while ((!Player.Playing || !Flash.IsWorldLoaded) && !waitLogin.IsCancellationRequested)
-                        await Task.Delay(500, token);
+                        await Task.Delay(500, waitLogin.Token);
                 }
                 catch { }
             }

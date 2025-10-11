@@ -42,20 +42,15 @@ public class AuraMonitorService : IAuraMonitorService
     /// <summary>
     /// Gets the number of active event subscribers.
     /// </summary>
-    public int SubscriberCount
-    {
-        get
-        {
-            return (AuraActivated?.GetInvocationList().Length ?? 0) +
-                   (AuraDeactivated?.GetInvocationList().Length ?? 0) +
-                   (AuraStackChanged?.GetInvocationList().Length ?? 0);
-        }
-    }
+    public int SubscriberCount =>
+        (AuraActivated?.GetInvocationList().Length ?? 0) +
+        (AuraDeactivated?.GetInvocationList().Length ?? 0) +
+        (AuraStackChanged?.GetInvocationList().Length ?? 0);
 
     private class AuraState
     {
-        public string Name { get; set; } = string.Empty;
-        public object StackValue { get; set; }
+        public string Name { get; init; } = string.Empty;
+        public object? StackValue { get; set; }
         public DateTime TimeStarted { get; set; }
         public int DurationSeconds { get; set; }
         public bool IsActive { get; set; }
@@ -78,19 +73,20 @@ public class AuraMonitorService : IAuraMonitorService
     {
         lock (_lockObject)
         {
-            // Start monitoring if we have subscribers but aren't monitoring
-            if (!_isMonitoring && SubscriberCount > 0)
+            switch (_isMonitoring)
             {
-                _isMonitoring = true;
-                _pollTimer.Change(0, pollIntervalMs);
-            }
-            // Stop monitoring if no subscribers
-            else if (_isMonitoring && SubscriberCount == 0)
-            {
-                _isMonitoring = false;
-                _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
-                _selfAuraStates.Clear();
-                _targetAuraStates.Clear();
+                // Start monitoring if we have subscribers but aren't monitoring
+                case false when SubscriberCount > 0:
+                    _isMonitoring = true;
+                    _pollTimer.Change(0, pollIntervalMs);
+                    break;
+                // Stop monitoring if no subscribers
+                case true when SubscriberCount == 0:
+                    _isMonitoring = false;
+                    _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
+                    _selfAuraStates.Clear();
+                    _targetAuraStates.Clear();
+                    break;
             }
         }
     }
@@ -153,31 +149,33 @@ public class AuraMonitorService : IAuraMonitorService
     {
         if (currentAuras == null) return;
 
-        var currentAuraNames = new HashSet<string>(currentAuras.Select(a => a.Name ?? string.Empty));
+        HashSet<string> currentAuraNames = new(currentAuras.Select(a => a.Name ?? string.Empty));
 
         // Check for new or changed auras
-        foreach (var aura in currentAuras)
+        foreach (Aura aura in currentAuras)
         {
             if (string.IsNullOrEmpty(aura.Name)) continue;
 
-            var stackValue = aura.Value;
+            object? stackValue = aura.Value;
 
-            if (stateDict.TryGetValue(aura.Name, out var existingState))
+            if (stateDict.TryGetValue(aura.Name, out AuraState? existingState))
             {
                 // Check if stack value changed
-                if (existingState.StackValue != stackValue)
+                if (existingState.StackValue == stackValue)
                 {
-                    var oldValue = existingState.StackValue;
-                    existingState.StackValue = stackValue;
-
-                    // Fire stack changed event
-                    AuraStackChanged?.Invoke(aura.Name, oldValue, stackValue, subject);
+                    continue;
                 }
+
+                object? oldValue = existingState.StackValue;
+                existingState.StackValue = stackValue;
+
+                // Fire stack changed event
+                AuraStackChanged?.Invoke(aura.Name, oldValue, stackValue, subject);
             }
             else
             {
                 // New aura activated
-                var newState = new AuraState
+                AuraState newState = new()
                 {
                     Name = aura.Name,
                     StackValue = stackValue,
@@ -200,18 +198,11 @@ public class AuraMonitorService : IAuraMonitorService
         }
 
         // Check for removed auras
-        var keysToRemove = new List<string>();
-        foreach (var kvp in stateDict)
-        {
-            if (!currentAuraNames.Contains(kvp.Key))
-            {
-                keysToRemove.Add(kvp.Key);
-            }
-        }
+        List<string> keysToRemove = (from kvp in stateDict where !currentAuraNames.Contains(kvp.Key) select kvp.Key).ToList();
 
-        foreach (var key in keysToRemove)
+        foreach (string key in keysToRemove)
         {
-            if (stateDict.TryRemove(key, out var removedState))
+            if (stateDict.TryRemove(key, out AuraState? removedState))
             {
                 // Fire deactivation event
                 AuraDeactivated?.Invoke(removedState.Name, subject);

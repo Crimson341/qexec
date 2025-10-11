@@ -241,14 +241,12 @@ public class ScriptWait : IScriptWait
 
     public bool ForTrue(Func<bool> predicate, Action? loopFunction, int sleepOverride, CancellationToken token)
     {
-        int counter = 0;
         while (!predicate() && !Manager.ShouldExit && !token.IsCancellationRequested)
         {
             loopFunction?.Invoke();
             if (token.IsCancellationRequested)
                 break;
             Thread.Sleep(sleepOverride == -1 ? WAIT_SLEEP : sleepOverride);
-            counter++;
         }
         return true;
     }

@@ -17,8 +17,8 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     public List<AdvancedSkill> LoadedSkills
     {
-        get { return _loadedSkills; }
-        set { SetProperty(ref _loadedSkills, value, true); }
+        get => _loadedSkills;
+        set => SetProperty(ref _loadedSkills, value, true);
     }
 
     public AdvancedSkillContainer()
@@ -26,7 +26,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         _defaultSkillsSetsPath = ClientFileSources.SkuaAdvancedSkillsFile;
         _userSkillsSetsPath = Path.Combine(ClientFileSources.SkuaDIR, "UserAdvancedSkills.txt");
 
-        var rootDefaultSkills = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.txt");
+        string rootDefaultSkills = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.txt");
         if (File.Exists(rootDefaultSkills) && !File.Exists(_defaultSkillsSetsPath))
         {
             File.Copy(rootDefaultSkills, _defaultSkillsSetsPath, true);
@@ -62,7 +62,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     private void _CopyDefaultSkills()
     {
-        var getScripts = Ioc.Default.GetRequiredService<IGetScriptsService>();
+        IGetScriptsService getScripts = Ioc.Default.GetRequiredService<IGetScriptsService>();
         if (!File.Exists(_defaultSkillsSetsPath))
             getScripts.UpdateSkillSetsFile().GetAwaiter().GetResult();
 
@@ -74,16 +74,20 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     public async void SyncSkills()
     {
-        _saveCts?.Cancel();
-        await (_saveTask ?? Task.CompletedTask);
-        _saveCts?.Dispose();
-        _saveCts = new CancellationTokenSource();
-
-        await Task.Factory.StartNew(() =>
+        try
         {
-            _CopyDefaultSkills();
-            LoadSkills();
-        }, _saveCts.Token);
+            _saveCts?.Cancel();
+            await (_saveTask ?? Task.CompletedTask);
+            _saveCts?.Dispose();
+            _saveCts = new CancellationTokenSource();
+
+            await Task.Factory.StartNew(() =>
+            {
+                _CopyDefaultSkills();
+                LoadSkills();
+            }, _saveCts.Token);
+        }
+        catch {/* ignored */}
     }
 
     public void LoadSkills()
@@ -95,12 +99,17 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         foreach (string line in File.ReadAllLines(_userSkillsSetsPath))
         {
             string[] parts = line.Split(new[] { '=' }, 4);
-            if (parts.Length == 3)
-                _loadedSkills.Add(new AdvancedSkill(parts[1].Trim(), parts[2].Trim(), 250, parts[0].Trim(), "WaitForCooldown"));
-            else if (parts.Length == 4)
+            switch (parts.Length)
             {
-                bool waitForCooldown = int.TryParse(parts[3].RemoveLetters(), out int result);
-                _loadedSkills.Add(new AdvancedSkill(parts[1].Trim(), parts[2].Trim(), waitForCooldown ? result : 250, parts[0].Trim(), waitForCooldown ? SkillUseMode.WaitForCooldown : SkillUseMode.UseIfAvailable));
+                case 3:
+                    _loadedSkills.Add(new AdvancedSkill(parts[1].Trim(), parts[2].Trim(), 250, parts[0].Trim(), "WaitForCooldown"));
+                    break;
+                case 4:
+                    {
+                        bool waitForCooldown = int.TryParse(parts[3].RemoveLetters(), out int result);
+                        _loadedSkills.Add(new AdvancedSkill(parts[1].Trim(), parts[2].Trim(), waitForCooldown ? result : 250, parts[0].Trim(), waitForCooldown ? SkillUseMode.WaitForCooldown : SkillUseMode.UseIfAvailable));
+                        break;
+                    }
             }
         }
 
@@ -146,22 +155,24 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (_disposed)
         {
-            if (disposing)
-            {
-                _saveCts?.Cancel();
-                try
-                {
-                    _saveTask?.Wait(1000);
-                }
-                catch { }
-                _saveCts?.Dispose();
-                _loadedSkills.Clear();
-            }
-
-            _disposed = true;
+            return;
         }
+
+        if (disposing)
+        {
+            _saveCts?.Cancel();
+            try
+            {
+                _saveTask?.Wait(1000);
+            }
+            catch { }
+            _saveCts?.Dispose();
+            _loadedSkills.Clear();
+        }
+
+        _disposed = true;
     }
 
     ~AdvancedSkillContainer()

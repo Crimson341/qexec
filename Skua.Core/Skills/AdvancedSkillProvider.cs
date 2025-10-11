@@ -62,7 +62,6 @@ public class AdvancedSkillProvider : ISkillProvider
             if (stringRules[i].Contains('w'))
             {
                 rules[i] = new UseRule(SkillRule.Wait, true, int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
-                continue;
             }
         }
 

@@ -36,10 +36,7 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
         get
         {
             // Only create new collection if it doesn't exist or needs refresh
-            if (_loadedSkills == null)
-            {
-                _loadedSkills = new ObservableCollection<AdvancedSkill>(_advancedSkillContainer.LoadedSkills);
-            }
+            _loadedSkills ??= new ObservableCollection<AdvancedSkill>(_advancedSkillContainer.LoadedSkills);
             return _loadedSkills;
         }
         set

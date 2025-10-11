@@ -188,49 +188,42 @@ public partial class ScriptMap : IScriptMap
         {
             sw.Restart();
             List<MapItem> items = new();
-            List<string> MainTimelineText = new();
-            string[] files = Array.Empty<string>();
+            List<string> MainTimelineText;
 
             try
             {
-                var scriptsPath = $"{_cachePath}\\tmp\\scripts";
-                var flaDirectory = Directory.Exists($"{Path.Combine(scriptsPath, FlaName)}") ? Path.Combine(scriptsPath, FlaName) : Path.Combine(scriptsPath, "town_fla");
+                string scriptsPath = $"{_cachePath}\\tmp\\scripts";
+                string flaDirectory = Directory.Exists($"{Path.Combine(scriptsPath, FlaName)}") ? Path.Combine(scriptsPath, FlaName) : Path.Combine(scriptsPath, "town_fla");
 
                 if (!Directory.Exists(flaDirectory))
                     return null;
-                var mainTimelinePath = Path.Combine(flaDirectory, "MainTimeline.as");
+                string mainTimelinePath = Path.Combine(flaDirectory, "MainTimeline.as");
 
                 if (!File.Exists(mainTimelinePath))
                     return null;
 
                 MainTimelineText = File.ReadAllLines(mainTimelinePath).ToList();
-                files = Directory.GetFiles($"{_cachePath}\\tmp\\scripts", "*APOP*", SearchOption.TopDirectoryOnly) ?? Array.Empty<string>();
+                string[] files = Directory.GetFiles($@"{_cachePath}\tmp\scripts", "*APOP*", SearchOption.TopDirectoryOnly);
 
-                var mapItemLines = MainTimelineText.Select((l, i) => new Tuple<string, int>(l, i)).Where(l => l.Item1.Contains("mapitem", StringComparison.OrdinalIgnoreCase) || l.Item1.Contains("itemdrop", StringComparison.OrdinalIgnoreCase));
+                IEnumerable<Tuple<string, int>> mapItemLines = MainTimelineText.Select((l, i) => new Tuple<string, int>(l, i)).Where(l => l.Item1.Contains("mapItem", StringComparison.OrdinalIgnoreCase) || l.Item1.Contains("itemdrop", StringComparison.OrdinalIgnoreCase));
                 foreach ((string mapItemLine, int index) in mapItemLines)
                 {
-                    var questID = string.Empty;
-                    var mapItem = string.Empty;
+                    string questID = string.Empty;
+                    string mapItem = string.Empty;
                     switch (mapItemLine.Contains("getmapitem"))
                     {
                         case true:
-                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).Where(l => l.Contains("isquestinprogress")).FirstOrDefault()!;
+                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).FirstOrDefault(l => l.Contains("isquestinprogress"))!;
 
-                            if (questID == null)
-                                questID = string.Empty;
-                            else
-                                questID = questID.ToLower().Split("isquestinprogress")[1].Split(')')[0].RemoveLetters() ?? "";
+                            questID = questID.ToLower().Split("isquestinprogress")[1].Split(')')[0].RemoveLetters() ?? "";
 
                             mapItem = mapItemLine.RemoveLetters();
                             break;
 
                         case false:
-                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).Where(l => l.Contains("questnum") || (l.Contains("intquest") && !l.Contains("intquestval"))).FirstOrDefault()!;
+                            questID = MainTimelineText.Skip(index - 5 < 0 ? 0 : index - 5).Take(10).FirstOrDefault(l => l.Contains("questnum") || (l.Contains("intquest") && !l.Contains("intquestval")))!;
 
-                            if (questID == null)
-                                questID = string.Empty;
-                            else
-                                questID = questID.Split('=')[1].RemoveLetters() ?? "";
+                            questID = questID.Split('=')[1].RemoveLetters() ?? "";
 
                             mapItem = mapItemLine.Split('=')[1].RemoveLetters();
                             break;
@@ -240,19 +233,21 @@ public partial class ScriptMap : IScriptMap
                 }
 
                 List<string> linesToParse = new();
-                for (int i = 0; i < files.Length; i++)
+                foreach (string t in files)
                 {
                     bool take = false;
-                    foreach (string line in File.ReadLines(files[i]).Reverse())
+                    foreach (string line in File.ReadLines(t).Reverse())
                     {
-                        if (!take && !line.Contains("getmapitem"))
-                            continue;
-                        if (take && line.Contains("isquestinprogress"))
+                        switch (take)
                         {
-                            linesToParse.Add(line.Trim().ToLower());
-                            take = false;
-                            continue;
+                            case false when !line.Contains("getmapitem"):
+                                continue;
+                            case true when line.Contains("isquestinprogress"):
+                                linesToParse.Add(line.Trim().ToLower());
+                                take = false;
+                                continue;
                         }
+
                         if (line.Contains("getmapitem"))
                         {
                             linesToParse.Add(line.Trim().ToLower());
@@ -264,31 +259,39 @@ public partial class ScriptMap : IScriptMap
 
                 if (linesToParse.Count > 0)
                 {
-                    foreach ((string mapItem, string questID) in linesToParse.PairUp())
+                    foreach ((string mapItem, string questId) in linesToParse.PairUp())
                     {
-                        if (string.IsNullOrEmpty(mapItem) || string.IsNullOrEmpty(questID))
+                        if (string.IsNullOrEmpty(mapItem) || string.IsNullOrEmpty(questId))
                             continue;
-                        AddMapItem(int.Parse(mapItem.RemoveLetters()), int.Parse(questID.Split("isquestinprogress")[1].Split(')')[0].RemoveLetters()), FilePath, LastMap);
+                        AddMapItem(int.Parse(mapItem.RemoveLetters()), int.Parse(questId.Split("isquestinprogress")[1].Split(')')[0].RemoveLetters()), FilePath, LastMap);
                     }
                 }
-                Directory.Delete($"{_cachePath}\\tmp\\", true);
+                Directory.Delete($@"{_cachePath}\tmp\", true);
 
-                void AddMapItem(int mapitem, int questid, string mapfilepath, string mapname)
+                void AddMapItem(int mapItem, int questid, string mapFilePath, string mapName)
                 {
-                    if (!items.Contains(i => i.ID == mapitem))
-                        items.Add(new MapItem(mapitem, questid, mapfilepath, mapname));
+                    if (!items.Contains(i => i.ID == mapItem))
+                        items.Add(new MapItem(mapItem, questid, mapFilePath, mapName));
                 }
             }
             catch (Exception ex)
             {
-                if (ex is FileNotFoundException || ex is DirectoryNotFoundException)
-                    _dialogService.ShowMessageBox("Could not find one or more files to read.", "Get Map Item");
-                else if (ex is PathTooLongException)
-                    _dialogService.ShowMessageBox($"The path for the file is too long.\r\n{_cachePath}\\tmp\\scripts\\*_fla\\MainTimeline.as", "Get Map Item");
-                else if (ex is UnauthorizedAccessException)
-                    _dialogService.ShowMessageBox("The program don't have permission to access the file", "Get Map Item");
-                else
-                    _dialogService.ShowMessageBox($"An error ocurred.\r\nMessage: {ex.Message}\r\nStackTrace:{ex.StackTrace}", "Get Map Item");
+                switch (ex)
+                {
+                    case FileNotFoundException:
+                    case DirectoryNotFoundException:
+                        _dialogService.ShowMessageBox("Could not find one or more files to read.", "Get Map Item");
+                        break;
+                    case PathTooLongException:
+                        _dialogService.ShowMessageBox($"The path for the file is too long.\r\n{_cachePath}\\tmp\\scripts\\*_fla\\MainTimeline.as", "Get Map Item");
+                        break;
+                    case UnauthorizedAccessException:
+                        _dialogService.ShowMessageBox("The program don't have permission to access the file", "Get Map Item");
+                        break;
+                    default:
+                        _dialogService.ShowMessageBox($"An error occurred.\r\nMessage: {ex.Message}\r\nStackTrace:{ex.StackTrace}", "Get Map Item");
+                        break;
+                }
             }
             if (items.Count > 0)
             {

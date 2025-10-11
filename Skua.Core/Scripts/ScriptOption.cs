@@ -55,15 +55,15 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
 
     public bool AcceptACDrops
     {
-        get { return _acceptACDrops; }
-        set { SetProperty(ref _acceptACDrops, value, true); }
+        get => _acceptACDrops;
+        set => SetProperty(ref _acceptACDrops, value, true);
     }
 
     private bool _acceptAllDrops;
 
     public bool AcceptAllDrops
     {
-        get { return _acceptAllDrops; }
+        get => _acceptAllDrops;
         set
         {
             if (SetProperty(ref _acceptAllDrops, value, true) && value)
@@ -75,7 +75,7 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
 
     public bool RejectAllDrops
     {
-        get { return _rejectAllDrops; }
+        get => _rejectAllDrops;
         set
         {
             if (SetProperty(ref _rejectAllDrops, value, true) && value)
@@ -144,8 +144,8 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
 
     public string? ReloginServer
     {
-        get { return _reloginServer; }
-        set { SetProperty(ref _reloginServer, value, true); }
+        get => _reloginServer;
+        set => SetProperty(ref _reloginServer, value, true);
     }
 
     [ObjectBinding("world.myAvatar.objData.strUsername", "world.rootClass.ui.mcPortrait.strName.text", "world.myAvatar.pMC.pname.ti.text", Get = false, HasSetter = true, Default = "string.Empty")]
@@ -206,8 +206,8 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
         {
             if (pi.Name == nameof(OptionDictionary))
                 continue;
-            var key = pi.Name;
-            var value = pi.GetValue(this);
+            string key = pi.Name;
+            object? value = pi.GetValue(this);
             saveOptions.Add($"{key}={value}");
         }
         _settingsService.Set("UserOptions", saveOptions);
@@ -251,7 +251,7 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
 
     private void GetOptions()
     {
-        var userOptions = _settingsService.Get<StringCollection>("UserOptions");
+        StringCollection? userOptions = _settingsService.Get<StringCollection>("UserOptions");
         if (userOptions is null)
             return;
         _userOptions = new();
@@ -272,8 +272,8 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
         {
             if (pi.Name == nameof(OptionDictionary))
                 continue;
-            var methodCall = Expression.Call(Expression.Constant(this), pi.GetGetMethod()!, null);
-            var convertedExpression = Expression.Convert(methodCall, typeof(object));
+            MethodCallExpression methodCall = Expression.Call(Expression.Constant(this), pi.GetGetMethod()!, null);
+            UnaryExpression convertedExpression = Expression.Convert(methodCall, typeof(object));
             Func<object> function = Expression.Lambda<Func<object>>(convertedExpression).Compile();
             dict.Add(pi.Name, function);
         }

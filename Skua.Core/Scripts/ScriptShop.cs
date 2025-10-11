@@ -115,26 +115,28 @@ public partial class ScriptShop : IScriptShop
 
     public void SellItem(string name)
     {
-        if (Inventory.TryGetItem(name, out InventoryItem? item))
-        {
-            if (Options.SafeTimings)
-                Wait.ForActionCooldown(GameActions.SellItem);
-            Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{item!.Quantity}%{item!.CharItemID}%");
-            if (Options.SafeTimings)
-                Wait.ForItemSell();
-        }
+        if (!Inventory.TryGetItem(name, out InventoryItem? item))
+            return;
+
+
+        if (Options.SafeTimings)
+            Wait.ForActionCooldown(GameActions.SellItem);
+        Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{item!.Quantity}%{item!.CharItemID}%");
+        if (Options.SafeTimings)
+            Wait.ForItemSell();
     }
 
     public void SellItem(int id)
     {
-        if (Inventory.TryGetItem(id, out InventoryItem? item))
-        {
-            if (Options.SafeTimings)
-                Wait.ForActionCooldown(GameActions.SellItem);
-            Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{item.Quantity}%{item.CharItemID}%");
-            if (Options.SafeTimings)
-                Wait.ForItemSell();
-        }
+        if (!Inventory.TryGetItem(id, out InventoryItem? item))
+            return;
+
+
+        if (Options.SafeTimings)
+            Wait.ForActionCooldown(GameActions.SellItem);
+        Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{item.Quantity}%{item.CharItemID}%");
+        if (Options.SafeTimings)
+            Wait.ForItemSell();
     }
 
     [MethodCallBinding("world.sendLoadHairShopRequest", RunMethodPre = true, GameFunction = true)]

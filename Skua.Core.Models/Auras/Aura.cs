@@ -9,7 +9,7 @@ public class Aura
     /// The aura's stack value/count.
     /// </summary>
     [JsonProperty("value")]
-    public object? Value { get; set; }
+    public object? Value { get; set; } = 1;
 
     /// <summary>
     /// The icon file name for the aura.
@@ -60,7 +60,7 @@ public class Aura
     public bool? Passive { get; set; }
 
     /// <summary>
-    /// The potion type of an aura if it's a potion.
+    /// The potion type of aura if it's a potion.
     /// </summary>
     [JsonProperty("potionType")]
     public string? PotionType { get; set; }
@@ -77,7 +77,7 @@ public class Aura
     public TimeSpan RemainingTime => ExpiresAt.HasValue ? ExpiresAt.Value - DateTimeOffset.Now : TimeSpan.Zero;
 
     /// <summary>
-    /// The debuff type of aura. eg. stun, stone, disable or etc.
+    /// The debuff type of aura. (e.g. stun, stone, disable)
     /// </summary>
     [JsonProperty("cat")]
     public string? Category { get; set; }
@@ -100,7 +100,7 @@ public class Aura
     }
 
     public int SecondsRemaining()
-        => (this == null || ExpiresAt == null) ? 0 : (int)(((DateTime)ExpiresAt) - DateTime.Now).TotalSeconds;
+        => (ExpiresAt == null) ? 0 : (int)(((DateTime)ExpiresAt) - DateTime.Now).TotalSeconds;
 
     /// <summary>
     /// The expiration time of the aura.

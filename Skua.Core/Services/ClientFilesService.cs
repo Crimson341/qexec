@@ -37,7 +37,7 @@ public class ClientFilesService : IClientFilesService
     {
         if (!File.Exists(ClientFileSources.SkuaAdvancedSkillsFile))
         {
-            var rootAdvancedSkillsFile = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.txt");
+            string rootAdvancedSkillsFile = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.txt");
             if (File.Exists(rootAdvancedSkillsFile))
                 File.Copy(rootAdvancedSkillsFile, ClientFileSources.SkuaAdvancedSkillsFile);
             else
@@ -46,7 +46,7 @@ public class ClientFilesService : IClientFilesService
 
         if (!File.Exists(ClientFileSources.SkuaQuestsFile))
         {
-            var rootQuestsFile = Path.Combine(AppContext.BaseDirectory, "Quests.txt");
+            string rootQuestsFile = Path.Combine(AppContext.BaseDirectory, "Quests.txt");
             if (File.Exists(rootQuestsFile))
                 File.Copy(rootQuestsFile, ClientFileSources.SkuaQuestsFile);
             else

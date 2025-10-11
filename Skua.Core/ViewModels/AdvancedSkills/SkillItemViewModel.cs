@@ -86,7 +86,7 @@ public class SkillItemViewModel : ObservableObject
 
     public SkillRulesViewModel UseRules
     {
-        get { return _useRules; }
+        get => _useRules;
         set
         {
             _useRules = value;
@@ -100,8 +100,8 @@ public class SkillItemViewModel : ObservableObject
 
     public string DisplayString
     {
-        get { return _displayString; }
-        set { SetProperty(ref _displayString, value); }
+        get => _displayString;
+        set => SetProperty(ref _displayString, value);
     }
 
     public override string ToString()

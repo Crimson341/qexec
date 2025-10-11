@@ -24,12 +24,12 @@ public class ClientUpdateService : IClientUpdateService
 
     public async Task GetReleasesAsync()
     {
-        var releaseSearch = await HttpClients.GitHubRaw.GetAsync("auqw/Skua/refs/heads/master/releases.json");
+        HttpResponseMessage releaseSearch = await HttpClients.GitHubRaw.GetAsync("auqw/Skua/refs/heads/master/releases.json");
         if (!releaseSearch.IsSuccessStatusCode)
             return;
 
-        var releases = await releaseSearch.Content.ReadAsStringAsync();
-        var releaseList = JsonConvert.DeserializeObject<List<UpdateInfo>>(releases) ?? null;
+        string releases = await releaseSearch.Content.ReadAsStringAsync();
+        List<UpdateInfo>? releaseList = JsonConvert.DeserializeObject<List<UpdateInfo>>(releases) ?? null;
         if (releaseList is null)
             return;
 
@@ -42,20 +42,11 @@ public class ClientUpdateService : IClientUpdateService
         try
         {
             progress?.Report("Downloading...");
-            string? downloadURL = null;
-            string? fileName = null;
-            if (Environment.Is64BitOperatingSystem)
-            {
-                downloadURL = info.Assets.FirstOrDefault(a => a.BrowserUrl!.Contains("x64"))?.BrowserUrl;
-                fileName = downloadURL!.Split('/').Last();
-            }
-            else
-            {
-                downloadURL = info.Assets.FirstOrDefault(a => a.BrowserUrl!.Contains("x86"))?.BrowserUrl;
-                fileName = downloadURL!.Split('/').Last();
-            }
+            string? downloadUrl = Environment.Is64BitOperatingSystem ? info.Assets.FirstOrDefault(a => a.BrowserUrl!.Contains("x64"))?.BrowserUrl : info.Assets.FirstOrDefault(a => a.BrowserUrl!.Contains("x86"))?.BrowserUrl;
 
-            var file = await HttpClients.Default.GetByteArrayAsync(downloadURL);
+            string? fileName = downloadUrl!.Split('/').Last();
+
+            byte[] file = await HttpClients.Default.GetByteArrayAsync(downloadUrl);
 
             progress?.Report("Writing to folder...");
             string path = _settingsService.Get("ClientDownloadPath", string.Empty);
@@ -65,7 +56,7 @@ public class ClientUpdateService : IClientUpdateService
             string filePath = Path.Combine(path, fileName);
             await File.WriteAllBytesAsync(filePath, file);
             string extension = Path.GetExtension(filePath);
-            if (extension == ".msi" || extension == ".exe")
+            if (extension is ".msi" or ".exe")
             {
                 string winDir = Environment.GetFolderPath(Environment.SpecialFolder.Windows);
                 ProcessStartInfo startInfo = new(Path.Combine(winDir, @"System32\msiexec.exe"),
@@ -75,7 +66,7 @@ public class ClientUpdateService : IClientUpdateService
                     UseShellExecute = true
                 };
                 Process? proc = Process.Start(startInfo);
-                proc!.WaitForExit();
+                await proc!.WaitForExitAsync();
                 if (proc.ExitCode == 0)
                 {
                     _settingsService.Set("ChangeLogActivated", false);
@@ -101,7 +92,7 @@ public class ClientUpdateService : IClientUpdateService
                 if (File.Exists(Path.Combine(updateFolder, "Skua.Manager.exe")))
                 {
                     progress?.Report("Waiting for services shutdown...");
-                    if (await StrongReferenceMessenger.Default.Send<UpdateStartedMessage>() == false)
+                    if (!await StrongReferenceMessenger.Default.Send<UpdateStartedMessage>())
                     {
                         progress?.Report("Something went wrong finishing services");
                         return;

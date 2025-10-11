@@ -1,6 +1,7 @@
 using Newtonsoft.Json;
 using Skua.Core.Flash;
 using Skua.Core.Interfaces;
+using Skua.Core.Models.Auras;
 using Skua.Core.Models.Monsters;
 
 namespace Skua.Core.Scripts;
@@ -35,8 +36,6 @@ public partial class ScriptMonster : IScriptMonster
 
     public Dictionary<string, List<Monster>> GetCellMonsters()
     {
-        if (Map.Cells is null)
-            return new();
         Dictionary<string, List<Monster>> monsters = new();
         foreach (string cell in Map.Cells)
             monsters[cell] = ((IScriptMonster)this).GetMonstersByCell(cell);
@@ -45,16 +44,13 @@ public partial class ScriptMonster : IScriptMonster
 
     public Dictionary<string, int> GetAuraSummary()
     {
-        var auraSummary = new Dictionary<string, int>();
+        Dictionary<string, int> auraSummary = new();
 
-        foreach (var monster in MapMonsters.Where(m => m.Auras?.Any() == true))
+        foreach (Monster? monster in MapMonsters.Where(m => m.Auras?.Any() == true))
         {
-            foreach (var aura in monster.Auras!)
+            foreach (Aura aura in monster.Auras!.Where(aura => !auraSummary.TryAdd(aura.Name, 1)))
             {
-                if (auraSummary.ContainsKey(aura.Name))
-                    auraSummary[aura.Name]++;
-                else
-                    auraSummary[aura.Name] = 1;
+                auraSummary[aura.Name]++;
             }
         }
 

@@ -92,27 +92,29 @@ public class LogService : ObservableRecipient, ILogService, IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!_disposed)
+        if (_disposed)
         {
-            if (disposing)
+            return;
+        }
+
+        if (disposing)
+        {
+            // Remove the trace listener
+            if (_debugListener != null)
             {
-                // Remove the trace listener
-                if (_debugListener != null)
-                {
-                    Trace.Listeners.Remove(_debugListener);
-                }
-
-                // Unregister from messenger
-                Messenger.UnregisterAll(this);
-
-                // Clear log collections
-                _debugLogs.Clear();
-                _scriptLogs.Clear();
-                _flashLogs.Clear();
+                Trace.Listeners.Remove(_debugListener);
             }
 
-            _disposed = true;
+            // Unregister from messenger
+            Messenger.UnregisterAll(this);
+
+            // Clear log collections
+            _debugLogs.Clear();
+            _scriptLogs.Clear();
+            _flashLogs.Clear();
         }
+
+        _disposed = true;
     }
 
     ~LogService()
