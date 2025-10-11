@@ -1,5 +1,15 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods for registering, managing, and removing script handlers that execute actions at specified intervals
+/// or conditions within a scripting environment.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface allow scripts to schedule actions to run periodically or once after
+/// a delay, using a tick-based timing system (where one tick equals 20 milliseconds). Handlers can be uniquely named
+/// for identification and management. This interface is typically used to coordinate timed or recurring script logic,
+/// such as scheduled tasks or event polling.
+/// </remarks>
 public interface IScriptHandlers
 {
     /// <summary>
@@ -39,11 +49,11 @@ public interface IScriptHandlers
     /// <param name="function">Action to be executed once.</param>
     /// <param name="name">Name of this handler (must be unique). Passing null will assign it a unique name.</param>
     /// <returns>The <see cref="IHandler"/> registered.</returns>
-    IHandler RegisterOnce(int ticks, Action<IScriptInterface> funtion, string name = null!)
+    IHandler RegisterOnce(int ticks, Action<IScriptInterface> function, string name = null!)
     {
         return RegisterHandler(ticks, b =>
         {
-            funtion(b);
+            function(b);
             return false;
         }, name);
     }

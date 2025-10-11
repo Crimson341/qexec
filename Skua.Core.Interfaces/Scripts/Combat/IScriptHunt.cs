@@ -3,6 +3,17 @@ using Skua.Core.Models.Monsters;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods for hunting monsters in the current map, including targeting by name, ID, or instance, collecting
+/// items from monsters, and prioritizing hunts based on specified criteria.
+/// </summary>
+/// <remarks>
+/// The IScriptHunt interface provides a set of methods to automate monster hunting and item collection
+/// tasks. Methods support various ways to specify targets (by name, ID, or Monster instance) and allow for item farming
+/// with quantity and temporary item options. Some methods accept a cancellation token to support cooperative
+/// cancellation. Priority-based hunting enables advanced control over which monsters are targeted first, using the
+/// specified HuntPriorities.
+/// </remarks>
 public interface IScriptHunt
 {
     /// <summary>
@@ -15,6 +26,7 @@ public interface IScriptHunt
     /// Looks for the monster with specified id in the current map and kills it. This method disregards ScriptOptions#HuntPriority.
     /// </summary>
     /// <param name="name">The name of the enemy to hunt.</param>
+    /// <param name="token">A cancellation token.</param>
     void Monster(string name, CancellationToken? token);
 
     /// <summary>
@@ -39,6 +51,7 @@ public interface IScriptHunt
     /// Looks for the instance of monster in the current map and kills it. This method disregards ScriptOptions#HuntPriority.
     /// </summary>
     /// <param name="monster">The instance of the monster to hunt.</param>
+    /// /// <param name="token">A cancellation token.</param>
     void Monster(Monster monster, CancellationToken? token);
 
     /// <summary>
@@ -47,7 +60,7 @@ public interface IScriptHunt
     /// <param name="name">The name of the monster to kill.</param>
     /// <param name="item">The item to collect.</param>
     /// <param name="quantity">The quantity of the item that must be collected before stopping the killing of the monster.</param>
-    /// <param name="tempItem">Whether or not the item being collected is a temporary (quest) item.</param>
+    /// <param name="tempItem">Whether the item being collected is a temporary (quest) item.</param>
     void ForItem(string name, string item, int quantity, bool tempItem = false);
 
     /// <summary>
@@ -56,7 +69,7 @@ public interface IScriptHunt
     /// <param name="names">The names of monsters to kill.</param>
     /// <param name="item">The item to collect.</param>
     /// <param name="quantity">The quantity of the item that must be collected before stopping the killing of the monster.</param>
-    /// <param name="tempItem">Whether or not the item being collected is a temporary (quest) item.</param>
+    /// <param name="tempItem">Whether the item being collected is a temporary (quest) item.</param>
     void ForItem(IEnumerable<string> names, string item, int quantity, bool tempItem = false);
 
     /// <summary>
@@ -65,7 +78,7 @@ public interface IScriptHunt
     /// <param name="name">The name of the monster to kill.</param>
     /// <param name="items">The items to collect.</param>
     /// <param name="quantities">The quantities of the items that must be collected before stopping the killing of the monster.</param>
-    /// <param name="tempItems">Whether or not the items being collected are temporary (quest) items.</param>
+    /// <param name="tempItems">Whether the items being collected are temporary (quest) items.</param>
     void ForItems(string name, IEnumerable<string> items, IEnumerable<int> quantities, bool tempItems = false);
 
     /// <summary>
@@ -74,7 +87,7 @@ public interface IScriptHunt
     /// <param name="name">The name of the monster to kill.</param>
     /// <param name="items">The items to collect.</param>
     /// <param name="quantities">The quantities of the items that must be collected before stopping the killing of the monster.</param>
-    /// <param name="tempItems">Whether or not the items being collected are temporary (quest) items.</param>
+    /// <param name="tempItems">Whether the items being collected are temporary (quest) items.</param>
     void ForItems(string name, IEnumerable<string> items, IEnumerable<int> quantities, IEnumerable<bool> tempItems);
 
     /// <summary>
@@ -83,7 +96,7 @@ public interface IScriptHunt
     /// <param name="names">The names of the monsters to kill.</param>
     /// <param name="items">The items to collect.</param>
     /// <param name="quantities">The quantities of the items that must be collected before stopping the killing of the monster.</param>
-    /// <param name="tempItems">Whether or not each item being collected is a temporary (quest) item.</param>
+    /// <param name="tempItems">Whether each item being collected is a temporary (quest) item.</param>
     void ForItems(IEnumerable<string> names, IEnumerable<string> items, IEnumerable<int> quantities, bool tempItems = false);
 
     /// <summary>
@@ -92,7 +105,7 @@ public interface IScriptHunt
     /// <param name="names">The names of the monsters to kill.</param>
     /// <param name="items">The items to collect.</param>
     /// <param name="quantities">The quantities of the items that must be collected before stopping the killing of the monster.</param>
-    /// <param name="tempItems">Whether or not each item being collected is a temporary (quest) item.</param>
+    /// <param name="tempItems">Whether each item being collected is a temporary (quest) item.</param>
     void ForItems(IEnumerable<string> names, IEnumerable<string> items, IEnumerable<int> quantities, IEnumerable<bool> tempItems);
 
     /// <summary>
@@ -113,6 +126,7 @@ public interface IScriptHunt
     /// </summary>
     /// <param name="name">The name of the monster to hunt</param>
     /// <param name="priority">The priority which the hunts will be ordered</param>
+    /// <param name="token">A cancellation token.</param>
     void WithPriority(string name, HuntPriorities priority, CancellationToken? token);
 
     /// <summary>
@@ -133,6 +147,7 @@ public interface IScriptHunt
     /// </summary>
     /// <param name="monster">The instance of the monster to hunt</param>
     /// <param name="priority">The priority which the hunts will be ordered</param>
+    /// <param name="token">A cancellation token.</param>
     void WithPriority(Monster monster, HuntPriorities priority, CancellationToken? token);
 
     /// <summary>
@@ -153,5 +168,6 @@ public interface IScriptHunt
     /// </summary>
     /// <param name="id">The id of the monster to hunt</param>
     /// <param name="priority">The priority which the hunts will be ordered</param>
+    /// <param name="token">A cancellation token.</param>
     void WithPriority(int id, HuntPriorities priority, CancellationToken? token);
 }

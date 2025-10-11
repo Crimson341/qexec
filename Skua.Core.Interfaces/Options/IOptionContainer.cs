@@ -1,5 +1,15 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines a contract for managing a collection of configurable options, including retrieving, setting, loading, and
+/// saving option values, as well as supporting option categories and user configuration interfaces.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide mechanisms for accessing and modifying option values by
+/// name, category, or option definition. The interface supports loading and saving option values to persistent storage,
+/// resetting options to their default values, and presenting a user interface for option configuration. Option values
+/// can be retrieved and set in strongly typed form, with support for multiple categories of options.
+/// </remarks>
 public interface IOptionContainer
 {
     /// <summary>

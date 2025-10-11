@@ -2,6 +2,16 @@ using Skua.Core.Models.Monsters;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Provides methods and properties for accessing and querying monsters present in the current cell and map, including
+/// their locations, availability, and status.
+/// </summary>
+/// <remarks>
+/// The IScriptMonster interface enables scripts to retrieve information about monsters in the current
+/// game context, such as which monsters are present, which can be attacked, and their distribution across map cells. It
+/// also provides methods to check for the existence of monsters by name or ID, obtain summaries of monster auras, and
+/// attempt to retrieve specific monster instances.
+/// </remarks>
 public interface IScriptMonster
 {
     /// <summary>

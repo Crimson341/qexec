@@ -6,8 +6,18 @@ using System.Drawing;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents the player, providing access to player state, inventory, and actions.
+/// </summary>
+/// <remarks>
+/// The IScriptPlayer class exposes properties and methods to interact with and query the current player's
+/// status, such as health, mana, combat state, and inventory.
+/// </remarks>
 public interface IScriptPlayer
 {
+    /// <summary>
+    /// Gets and sets the player's guild name.
+    /// </summary>
     string Guild { get; }
 
     /// <summary>
@@ -186,7 +196,7 @@ public interface IScriptPlayer
     int WalkSpeed { get; set; }
 
     /// <summary>
-    /// Goes to the specified player (equivilent to using the /goto command).
+    /// Goes to the specified player (equivalent to using the /goto command).
     /// </summary>
     /// <param name="name">The name of the player.</param>
     void Goto(string name);
@@ -215,7 +225,7 @@ public interface IScriptPlayer
     void WalkTo(int x, int y, int speed = 8);
 
     /// <summary>
-    /// Rests the player (equivilent to clicking the rest button on the UI).
+    /// Rests the player (equivalent to clicking the rest button on the UI).
     /// </summary>
     /// <param name="full">If <see langword="true"/>, the bot will wait until the player's HP and MP are full.</param>
     void Rest(bool full = false);

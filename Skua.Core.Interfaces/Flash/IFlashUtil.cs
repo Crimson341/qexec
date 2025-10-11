@@ -3,8 +3,22 @@ using System.Xml.Linq;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents the method that handles a call from a Flash object, providing the function name and its arguments.
+/// </summary>
+/// <param name="function">The name of the function being called from the Flash object. Cannot be null.</param>
+/// <param name="args">An array of arguments passed to the function. May be empty if the function requires no arguments.</param>
 public delegate void FlashCallHandler(string function, params object[] args);
 
+/// <summary>
+/// Defines an interface for interacting with Flash-based ActionScript objects, enabling calls to SWF functions, object
+/// manipulation, and data retrieval or conversion between ActionScript and .NET types.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide methods to invoke Flash functions, access or modify
+/// Flash objects by path, and convert data between Flash XML and .NET representations. The interface inherits from <see cref="IDisposable"/>, so implementations may hold
+/// unmanaged resources that should be released when no longer needed.
+/// </remarks>
 public interface IFlashUtil : IDisposable
 {
     event FlashCallHandler? FlashCall;

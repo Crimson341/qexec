@@ -2,6 +2,15 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods and properties for controlling combat actions in a scriptable environment, including targeting,
+/// attacking, and managing combat state.
+/// </summary>
+/// <remarks>
+/// This interface provides a standardized set of combat-related operations for use in scripting
+/// scenarios, such as automating player actions or implementing custom combat logic. Implementations are expected to
+/// handle targeting, attacking monsters or players, and managing the player's combat state.
+/// </remarks>
 public interface IScriptCombat
 {
     /// <summary>
@@ -15,9 +24,9 @@ public interface IScriptCombat
     void ApproachTarget();
 
     /// <summary>
-    /// Attacks the monster with the specified <paramref name="mapId">.
+    /// Attacks the monster with the specified <paramref name="id"/>.
     /// </summary>
-    /// <param name="mapId">The id of the monster to attack.</param>
+    /// <param name="id">The id of the monster to attack.</param>
     /// <remarks>This will not wait until the monster is killed, but simply select it and start attacking it.</remarks>
     bool Attack(int id);
 
@@ -61,7 +70,7 @@ public interface IScriptCombat
     void Exit();
 
     /// <summary>
-    /// Untargets the player if they are currently targeted.
+    /// Un-targets the player if they are currently targeted.
     /// </summary>
     void UntargetSelf();
 }

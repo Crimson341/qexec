@@ -11,28 +11,28 @@ public interface IUltraBossHelper
 {
     #region Counter Attack Methods
     /// <summary>
-    /// Enable counter attack handling. When enabled, the helper will automatically stop attacks
-    /// during counter attack phases and resume attacking the previous target afterwards.
+    /// Enable counter-attack handling. When enabled, the helper will automatically stop attacks
+    /// during counter-attack phases and resume attacking the previous target afterward.
     /// </summary>
     void EnableCounterAttack();
 
     /// <summary>
-    /// Disable counter attack handling.
+    /// Disable counter-attack handling.
     /// </summary>
     void DisableCounterAttack();
 
     /// <summary>
-    /// Gets whether counter attack handling is currently enabled.
+    /// Gets whether counter-attack handling is currently enabled.
     /// </summary>
     bool IsCounterAttackEnabled { get; }
 
     /// <summary>
-    /// Gets whether a counter attack is currently active (attacks should be stopped).
+    /// Gets whether a counter-attack is currently active (attacks should be stopped).
     /// </summary>
     bool IsCounterAttackActive { get; }
 
     /// <summary>
-    /// Manually set whether attacks should be stopped (useful for custom counter attack logic).
+    /// Manually set whether attacks should be stopped (useful for custom counter-attack logic).
     /// </summary>
     /// <param name="shouldStop">Whether attacks should be stopped</param>
     void SetAttacksStopped(bool shouldStop);

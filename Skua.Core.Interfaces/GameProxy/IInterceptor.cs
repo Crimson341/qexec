@@ -16,7 +16,7 @@ public interface IInterceptor
     /// Intercepts/modifies a message.
     /// </summary>
     /// <param name="message">The message being intercepted.</param>
-    /// <param name="outbound">Whether or not this packet is outbound (client -&gt; server).</param>
+    /// <param name="outbound">Whether this packet is outbound (client -&gt; server).</param>
     /// <returns>The (un)modified message.</returns>
     void Intercept(MessageInfo message, bool outbound);
-}
+}s

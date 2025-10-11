@@ -1,5 +1,14 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for a Skua plugin, including metadata, lifecycle methods, and configuration options.
+/// </summary>
+/// <remarks>
+/// Implement this interface to create a plugin that can be loaded and managed by the Skua plugin system.
+/// The interface provides properties for plugin identification and description, as well as methods for handling plugin
+/// initialization and cleanup. Plugins can expose configurable options and specify a unique storage key for their
+/// settings.
+/// </remarks>
 public interface ISkuaPlugin
 {
     /// <summary>

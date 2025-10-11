@@ -2,6 +2,14 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods and properties for querying and retrieving aura effects applied to a subject.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide access to information about active auras, including their
+/// presence, stack counts, durations, and retrieval by name or pattern. This interface is typically used in systems
+/// where entities can have multiple status effects (auras) that may influence behavior or attributes.
+/// </remarks>
 public interface IScriptAuras
 {
     /// <summary>

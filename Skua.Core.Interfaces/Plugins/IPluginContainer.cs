@@ -2,6 +2,9 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines a container that provides access to a plugin and its associated options.
+/// </summary>
 public interface IPluginContainer
 {
     /// <summary>

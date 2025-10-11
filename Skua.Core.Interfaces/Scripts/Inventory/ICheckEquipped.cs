@@ -2,6 +2,14 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines functionality to determine whether specific items are currently equipped.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide methods to check the equipped status of items by name or
+/// identifier. This interface extends <see cref="ICanBank"/>, indicating that types implementing it also support
+/// banking operations.
+/// </remarks>
 public interface ICheckEquipped : ICanBank
 {
     /// <summary>

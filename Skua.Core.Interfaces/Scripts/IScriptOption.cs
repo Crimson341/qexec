@@ -4,6 +4,16 @@ using System.ComponentModel;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents a configurable set of script options and user preferences for automation scripts, providing access to
+/// option values and methods.
+/// </summary>
+/// <remarks>
+/// IScriptOption manages a collection of script-related settings, including user preferences and
+/// automation behaviors. This class is intended
+/// to be used as a central point for script configuration and is designed to integrate with settings services and
+/// messaging systems for state management.
+/// </remarks>
 public interface IScriptOption : INotifyPropertyChanged
 {
     ImmutableDictionary<string, Func<object>> OptionDictionary { get; }

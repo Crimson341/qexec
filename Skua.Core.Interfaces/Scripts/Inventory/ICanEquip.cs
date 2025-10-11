@@ -2,6 +2,15 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods for equipping items from a player's inventory by item ID, name, or inventory item instance.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface allow equipping individual items or multiple items at once,
+/// including items that are usable in a specific slot. Methods do nothing if the specified item is not present in the
+/// player's inventory. This interface extends <see cref="ICheckEquipped"/>, enabling both equipping and checking equipped
+/// status.
+/// </remarks>
 public interface ICanEquip : ICheckEquipped
 {
     /// <summary>
@@ -11,16 +20,6 @@ public interface ICanEquip : ICheckEquipped
     void EquipItem(int id);
 
     /// <summary>
-    /// Equips items that are usable (slot 6) with specified <paramref name="id"/>. This will do nothing if the item is not in the player's inventory.
-    /// </summary>
-    /// <param name="id">ID of the item to equip</param>
-    void EquipUsableItem(int id)
-    {
-        if (TryGetItem(id, out InventoryItem? item))
-            EquipUsableItem(item);
-    }
-
-    /// <summary>
     /// Equips the item with specified <paramref name="name"/>. This will do nothing if the item is not in the player's inventory.
     /// </summary>
     /// <param name="name">Name of the item to equip.</param>
@@ -28,6 +27,16 @@ public interface ICanEquip : ICheckEquipped
     {
         if (TryGetItem(name, out InventoryItem? item))
             EquipItem(item!.ID);
+    }
+
+    /// <summary>
+    /// Equips items that are usable (slot 6) with specified <paramref name="id"/>. This will do nothing if the item is not in the player's inventory.
+    /// </summary>
+    /// <param name="id">ID of the item to equip</param>
+    void EquipUsableItem(int id)
+    {
+        if (TryGetItem(id, out InventoryItem? item))
+            EquipUsableItem(item);
     }
 
     /// <summary>
@@ -44,7 +53,7 @@ public interface ICanEquip : ICheckEquipped
     /// Equips items that are usable (slot 6) with specified <paramref name="item"/>. This will do nothing if the item is not in the player's inventory.
     /// </summary>
     /// <param name="item">InventoryItem</param>
-    void EquipUsableItem(InventoryItem item);
+    void EquipUsableItem(InventoryItem? item);
 
     /// <summary>
     /// Equips the items with specified <paramref name="names"/>. This will do nothing if the item is not in the player's inventory.
@@ -52,9 +61,9 @@ public interface ICanEquip : ICheckEquipped
     /// <param name="names">Names of the items to equip.</param>
     void EquipItems(params string[] names)
     {
-        for (int i = 0; i < names.Length; i++)
+        foreach (string t in names)
         {
-            if (TryGetItem(names[i], out InventoryItem? item))
+            if (TryGetItem(t, out InventoryItem? item))
                 EquipItem(item!.ID);
         }
     }
@@ -65,9 +74,9 @@ public interface ICanEquip : ICheckEquipped
     /// <param name="ids">IDs of the items to equip.</param>
     void EquipItems(params int[] ids)
     {
-        for (int i = 0; i < ids.Length; i++)
+        foreach (int t in ids)
         {
-            EquipItem(ids[i]);
+            EquipItem(t);
         }
     }
 }

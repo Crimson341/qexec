@@ -1,5 +1,14 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods and properties for managing the lifecycle and access of plugins within the application.
+/// </summary>
+/// <remarks>
+/// The IPluginManager interface provides functionality to load, unload, and retrieve information about
+/// plugins at runtime. It enables dynamic management of plugins, allowing for extensibility and modularity in the
+/// application. Implementations are responsible for handling plugin discovery, loading from assemblies, and maintaining
+/// references to plugin containers.
+/// </remarks>
 public interface IPluginManager
 {
     /// <summary>
@@ -26,7 +35,7 @@ public interface IPluginManager
     void Unload(ISkuaPlugin plugin);
 
     /// <summary>
-    /// Unloads the plugin by it's given name.
+    /// Unloads the plugin by its given name.
     /// </summary>
     /// <param name="pluginName">The name o the plugin to unload.</param>
     void Unload(string pluginName);

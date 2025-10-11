@@ -6,9 +6,9 @@ namespace Skua.Core.Interfaces;
 public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
 {
     /// <summary>
-    /// Checks whether the player has the item with specified <paramref name="item"/> in the desired <paramref name="quantity"/>.
+    /// Checks whether the player has the item with specified <paramref name="name"/> in the desired <paramref name="quantity"/>.
     /// </summary>
-    /// <param name="item">Name of the item to check for.</param>
+    /// <param name="name">Name of the item to check for.</param>
     /// <param name="quantity">Desired quantity of the item to check for.</param>
     /// <returns><see langword="true"/> if the player has the specified item stack.</returns>
     bool Contains(string name, int quantity = 1)
@@ -28,23 +28,24 @@ public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
     }
 
     /// <summary>
-    /// Checks whether the player has all or any the items with specified <paramref name="names"/> in the deisred <paramref name="quantity"/>.
+    /// Checks whether the player has all or any the items with specified <paramref name="names"/> in the desired <paramref name="quantity"/>.
     /// </summary>
     /// <param name="names">Names of the items to check for.</param>
     /// <param name="quantity">Quantity of the items to check for.</param>
     /// <param name="needAll">Whether you need all items specified.</param>
-    /// <returns><see langword="true"/> if the <see cref="Items">inventory </see> contains the specified items.</returns>
+    /// <returns><see langword="true"/> if the <see cref="InventoryItem">inventory </see> contains the specified items.</returns>
     bool Contains(bool needAll, int quantity, params string[] names)
     {
-        for (int i = 0; i < names.Length; i++)
+        foreach (string t in names)
         {
-            if (Contains(names[i], quantity) && !needAll)
+            if (Contains(t, quantity) && !needAll)
                 return true;
-            else if (Contains(names[i], quantity) && needAll)
+            if (Contains(t, quantity) && needAll)
                 continue;
-            else if (needAll)
+            if (needAll)
                 return false;
         }
+
         return false;
     }
 
@@ -54,18 +55,19 @@ public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
     /// <param name="ids">IDs of the items to check for.</param>
     /// <param name="quantity">Quantity of the items to check for.</param>
     /// <param name="needAll">Whether you need all items specified.</param>
-    /// <returns><see langword="true"/> if the <see cref="Items">inventory </see> contains the specified items.</returns>
+    /// <returns><see langword="true"/> if the <see cref="InventoryItem">inventory </see> contains the specified items.</returns>
     bool Contains(bool needAll, int quantity, params int[] ids)
     {
-        for (int i = 0; i < ids.Length; i++)
+        foreach (int t in ids)
         {
-            if (Contains(ids[i], quantity) && !needAll)
+            if (Contains(t, quantity) && !needAll)
                 return true;
-            else if (Contains(ids[i], quantity) && needAll)
+            if (Contains(t, quantity) && needAll)
                 continue;
-            else if (needAll)
+            if (needAll)
                 return false;
         }
+
         return false;
     }
 
@@ -73,8 +75,8 @@ public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
     /// Attempts to get the item by the given <paramref name="name"/> and sets the out parameter to its value.
     /// </summary>
     /// <param name="name">Name of the item to get.</param>
-    /// <param name="houseItem">The item object to set.</param>
-    /// <returns><see langword="true"/> if the item with the given <paramref name="name"/> exists in the <see cref="Items">inventory</see>.</returns>
+    /// <param name="item">The item object to set.</param>
+    /// <returns><see langword="true"/> if the item with the given <paramref name="name"/> exists in the <see cref="InventoryItem">inventory</see>.</returns>
     bool TryGetItem(string name, out T? item)
     {
         return (item = GetItem(name)) is not null;
@@ -84,8 +86,8 @@ public interface ICheckInventory<T> : IItemContainer<T> where T : ItemBase
     /// Attempts to get the item by the given <paramref name="id"/> and sets the out parameter to its value.
     /// </summary>
     /// <param name="id">ID of the item to get.</param>
-    /// <param name="houseItem">The item object to set.</param>
-    /// <returns><see langword="true"/> if the item with the given <paramref name="id"/> exists in the <see cref="Items">inventory</see>.</returns>
+    /// <param name="item">The item object to set.</param>
+    /// <returns><see langword="true"/> if the item with the given <paramref name="id"/> exists in the <see cref="InventoryItem">inventory</see>.</returns>
     bool TryGetItem(int id, out T? item)
     {
         return (item = GetItem(id)) is not null;
