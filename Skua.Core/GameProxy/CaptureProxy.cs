@@ -45,14 +45,13 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
             _Listen(_captureProxyCTS.Token);
             _captureProxyCTS.Dispose();
             _captureProxyCTS = null;
-        });
-        _thread.Name = "Capture Proxy";
+        }) { Name = "Capture Proxy" };
         _thread.Start();
     }
 
     public void Stop()
     {
-        _listener?.Stop();
+        _listener.Stop();
         if (_forwarder?.Connected ?? false)
         {
             _forwarder.Close();

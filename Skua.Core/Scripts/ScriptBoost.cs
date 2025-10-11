@@ -103,18 +103,16 @@ public partial class ScriptBoost : ObservableObject, IScriptBoost, IAsyncDisposa
     {
         if (!_lazyPlayer.Value.LoggedIn)
             return 0;
-        int id = (Inventory.Items?
-                   .Where(i => i.Category == ItemCategory.ServerUse)
-                   .Where(i => i.Name.Contains(name))
-                   .FirstOrDefault())?.ID ?? 0;
+        int id = ((Inventory.Items?
+                .Where(i => i.Category == ItemCategory.ServerUse) ?? Array.Empty<InventoryItem>())
+            .FirstOrDefault(i => i.Name.Contains(name)))?.ID ?? 0;
         if (id == 0 && searchBank)
         {
             if (!Bank.Loaded)
                 Bank.Load();
-            id = (Bank.Items?
-                   .Where(i => i.Category == ItemCategory.ServerUse)
-                   .Where(i => i.Name.Contains(name))
-                   .FirstOrDefault())?.ID ?? 0;
+            id = ((Bank.Items?
+                    .Where(i => i.Category == ItemCategory.ServerUse) ?? Array.Empty<InventoryItem>())
+                .FirstOrDefault(i => i.Name.Contains(name)))?.ID ?? 0;
             Bank.EnsureToInventory(id, false);
         }
         return id;

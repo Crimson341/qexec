@@ -339,7 +339,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         Handlers.Remove(rem);
     }
 
-    private void HandleFlashCall(string name, object[] args)
+    private void HandleFlashCall(string name, object[]? args)
     {
         switch (name)
         {
@@ -362,7 +362,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 break;
 
             case "openWebsite":
-                if (args != null && args.Length > 0 && args[0] is string url)
+                if (args is { Length: > 0 } && args[0] is string url)
                 {
                     Process.Start(new ProcessStartInfo
                     {
@@ -419,16 +419,18 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             }
                             if (data.a is not null)
                             {
-                                foreach (var a in data.a)
+                                foreach (dynamic? a in data.a)
                                 {
                                     if (a is null)
                                         continue;
 
-                                    if (a.aura is not null && (string)a.aura["nam"] is "Counter Attack")
+                                    if (a.aura is null || (string)a.aura["nam"] is not "Counter Attack")
                                     {
-                                        Messenger.Send<CounterAttackMessage, int>(new(true), (int)MessageChannels.GameEvents);
-                                        break;
+                                        continue;
                                     }
+
+                                    Messenger.Send<CounterAttackMessage, int>(new(true), (int)MessageChannels.GameEvents);
+                                    break;
                                 }
                             }
                             break;
@@ -452,9 +454,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             string addItems = Convert.ToString(data["items"]);
                             Dictionary<int, dynamic> addedItem = JsonConvert.DeserializeObject<Dictionary<int, dynamic>>(addItems)!;
                             int itemID = addedItem.Keys.First()!;
-                            ItemBase invItem = Inventory.GetItem(itemID)!;
-                            if (invItem is null)
-                                invItem = TempInv.GetItem(itemID)!;
+                            ItemBase invItem = Inventory.GetItem(itemID) ?? TempInv.GetItem(itemID)!;
                             if (invItem is null)
                             {
                                 invItem = Bank.GetItem(itemID)!;
@@ -566,12 +566,12 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
         if (_reloginTask is not null && !_waitForLogin)
         {
-            Log("Relogin task already running.");
+            Log("Re-login task already running.");
             _waitForLogin = true;
             return;
         }
 
-        Log("Autorelogin triggered.");
+        Log("Auto re-login triggered.");
         bool wasRunning = Manager.ScriptRunning;
         Manager.StopScript();
         bool kicked = Player.Kicked;
@@ -584,7 +584,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     private void Relogin(int delay, bool startScript)
     {
         Servers.Logout();
-        Log($"Waiting {delay}ms for relogin.");
+        Log($"Waiting {delay}ms for re-login.");
         _reloginCTS = new CancellationTokenSource();
         _reloginTask = Schedule(delay, async _ =>
         {
@@ -592,7 +592,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
             bool relogged = await Servers.EnsureRelogin(_reloginCTS.Token);
             if (startScript)
                 await Ioc.Default.GetService<IScriptManager>()!.StartScriptAsync();
-            Log($"Relogin was {(relogged ? "successful" : "cancelled or unsuccessful")}.");
+            Log($"Re-login was {(relogged ? "successful" : "cancelled or unsuccessful")}.");
             _reloginCTS.Dispose();
             _reloginCTS = null;
             _reloginTask = null;
@@ -615,26 +615,23 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
             if (disposing)
             {
                 // Unsubscribe from Flash events
-                if (Flash != null)
-                {
-                    Flash.FlashCall -= HandleFlashCall;
-                }
+                Flash.FlashCall -= HandleFlashCall;
 
                 // Cancel and clean up the script interface thread
                 ScriptInterfaceCTS?.Cancel();
-                if (ScriptInterfaceThread != null && ScriptInterfaceThread.IsAlive)
+                if (ScriptInterfaceThread is { IsAlive: true })
                 {
                     // Give the thread time to finish gracefully
                     if (!ScriptInterfaceThread.Join(1000))
                     {
                         // Force abort if it doesn't finish in time
-                        try { ScriptInterfaceThread.Interrupt(); } catch { }
+                        try { ScriptInterfaceThread.Interrupt(); } catch {/* ignored */ }
                     }
                 }
                 ScriptInterfaceCTS?.Dispose();
                 ScriptInterfaceCTS = null;
 
-                // Cancel and clean up relogin task
+                // Cancel and clean up re-login task
                 _reloginCTS?.Cancel();
                 _reloginCTS?.Dispose();
                 _reloginCTS = null;

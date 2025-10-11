@@ -34,20 +34,19 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
         if (Inventory.Contains(name, quantity))
             return true;
 
-        if (Bank.Contains(name))
+        if (!Bank.Contains(name))
         {
-            if (moveToInventory)
-                Bank.ToInventory(name);
-
-            if ((moveToInventory && Inventory.GetQuantity(name) >= quantity) ||
-               (!moveToInventory && Bank.GetQuantity(name) >= quantity))
-                return true;
+            return HouseInv.Contains(name);
         }
 
-        if (HouseInv.Contains(name))
+        if (moveToInventory)
+            Bank.ToInventory(name);
+
+        if ((moveToInventory && Inventory.GetQuantity(name) >= quantity) ||
+            (!moveToInventory && Bank.GetQuantity(name) >= quantity))
             return true;
 
-        return false;
+        return HouseInv.Contains(name);
     }
 
     public bool Check(int id, int quantity = 1, bool moveToInventory = true)
@@ -68,15 +67,13 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
                 return true;
         }
 
-        if (HouseInv.Contains(id))
-            return true;
-
-        return false;
+        return HouseInv.Contains(id);
     }
 
     public bool HasAll(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true)
     {
-        if (itemNames is null || !itemNames.Any())
+        IEnumerable<string> enumerable = itemNames as string[] ?? itemNames.ToArray();
+        if (!enumerable.Any())
             return true;
 
         Bank.Load();
@@ -86,10 +83,9 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
         Dictionary<string, int> tempInv = TempInv.Items.ToDictionary(i => i.Name, i => i.Quantity);
         Dictionary<string, int> houseInv = HouseInv.Items.ToDictionary(i => i.Name, i => i.Quantity);
 
-        int quant = 0;
-        foreach (string name in itemNames)
+        foreach (string name in enumerable)
         {
-            if (tempInv.TryGetValue(name, out quant) && quant >= quantity)
+            if (tempInv.TryGetValue(name, out int quant) && quant >= quantity)
                 continue;
 
             if (inv.TryGetValue(name, out quant) && quant >= quantity)
@@ -113,7 +109,8 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
 
     public bool HasAny(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true)
     {
-        if (itemNames is null || !itemNames.Any())
+        IEnumerable<string> enumerable = itemNames as string[] ?? itemNames.ToArray();
+        if (!enumerable.Any())
             return true;
 
         Bank.Load();
@@ -123,10 +120,9 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
         Dictionary<string, int> tempInv = TempInv.Items.ToDictionary(i => i.Name, i => i.Quantity);
         Dictionary<string, int> houseInv = HouseInv.Items.ToDictionary(i => i.Name, i => i.Quantity);
 
-        int quant = 0;
-        foreach (string name in itemNames)
+        foreach (string name in enumerable)
         {
-            if (tempInv.TryGetValue(name, out quant) && quant >= quantity)
+            if (tempInv.TryGetValue(name, out int quant) && quant >= quantity)
                 return true;
 
             if (inv.TryGetValue(name, out quant) && quant >= quantity)
@@ -148,7 +144,8 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
 
     public bool HasAll(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true)
     {
-        if (itemIds is null || !itemIds.Any())
+        IEnumerable<int> enumerable = itemIds as int[] ?? itemIds.ToArray();
+        if (!enumerable.Any())
             return true;
 
         Bank.Load();
@@ -158,10 +155,9 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
         Dictionary<int, int> tempInv = TempInv.Items.ToDictionary(i => i.ID, i => i.Quantity);
         Dictionary<int, int> houseInv = HouseInv.Items.ToDictionary(i => i.ID, i => i.Quantity);
 
-        int quant = 0;
-        foreach (int id in itemIds)
+        foreach (int id in enumerable)
         {
-            if (tempInv.TryGetValue(id, out quant) && quant >= quantity)
+            if (tempInv.TryGetValue(id, out int quant) && quant >= quantity)
                 continue;
 
             if (inv.TryGetValue(id, out quant) && quant >= quantity)
@@ -185,7 +181,8 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
 
     public bool HasAny(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true)
     {
-        if (itemIds is null || !itemIds.Any())
+        IEnumerable<int> enumerable = itemIds as int[] ?? itemIds.ToArray();
+        if (!enumerable.Any())
             return true;
 
         Bank.Load();
@@ -195,10 +192,9 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
         Dictionary<int, int> tempInv = TempInv.Items.ToDictionary(i => i.ID, i => i.Quantity);
         Dictionary<int, int> houseInv = HouseInv.Items.ToDictionary(i => i.ID, i => i.Quantity);
 
-        int quant = 0;
-        foreach (int id in itemIds)
+        foreach (int id in enumerable)
         {
-            if (tempInv.TryGetValue(id, out quant) && quant >= quantity)
+            if (tempInv.TryGetValue(id, out int quant) && quant >= quantity)
                 return true;
 
             if (inv.TryGetValue(id, out quant) && quant >= quantity)

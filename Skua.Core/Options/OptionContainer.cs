@@ -50,11 +50,9 @@ public class OptionContainer : ObservableObject, IOptionContainer
         if (string.IsNullOrEmpty(value))
             return default;
 
-        if (typeof(T).IsEnum)
-            return (T)Enum.Parse(typeof(T), value.Replace(' ', '_'));
-
-        return (T)Convert.ChangeType(value, typeof(T));
-
+        return typeof(T).IsEnum
+            ? (T)Enum.Parse(typeof(T), value.Replace(' ', '_'))
+            : (T)Convert.ChangeType(value, typeof(T));
     }
 
     public string GetDirect(IOption? option)

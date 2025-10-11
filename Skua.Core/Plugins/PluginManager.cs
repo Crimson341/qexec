@@ -33,7 +33,6 @@ public class PluginManager : IPluginManager
     public Exception? Load(string path)
     {
         ISkuaPlugin? plugin = null;
-        PluginContainer? container = null;
 
         try
         {
@@ -46,7 +45,7 @@ public class PluginManager : IPluginManager
                 return new Exception("Failed to create plugin instance.");
 
             plugin = pluginInstance;
-            container = new PluginContainer(plugin);
+            PluginContainer? container = new(plugin);
 
             // Add to dictionary first to ensure proper tracking
             _plugins.Add(plugin, container);
@@ -80,7 +79,7 @@ public class PluginManager : IPluginManager
         catch (Exception e)
         {
             // Ensure cleanup if we have references but something went wrong
-            if (plugin != null && _plugins.ContainsKey(plugin))
+            if (plugin != null)
             {
                 _plugins.Remove(plugin);
             }
@@ -142,6 +141,6 @@ public class PluginManager : IPluginManager
     /// <returns>The container for the plugin with the given type.</returns>
     public IPluginContainer GetContainer<T>() where T : ISkuaPlugin
     {
-        return _plugins.FirstOrDefault((KeyValuePair<ISkuaPlugin, IPluginContainer> kvp) => kvp.Key is T).Value;
+        return _plugins.FirstOrDefault(kvp => kvp.Key is T).Value;
     }
 }

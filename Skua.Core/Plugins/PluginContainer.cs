@@ -7,7 +7,7 @@ namespace Skua.Core.Plugins;
 public class PluginContainer : IPluginContainer
 {
     public IOptionContainer OptionContainer { get; }
-    public ISkuaPlugin Plugin { get; private set; }
+    public ISkuaPlugin Plugin { get; }
     public string OptionsFile => Path.Combine(ClientFileSources.SkuaPluginsDIR, "options", $"{Plugin.OptionsStorage}.cfg");
 
     public PluginContainer(ISkuaPlugin plugin)

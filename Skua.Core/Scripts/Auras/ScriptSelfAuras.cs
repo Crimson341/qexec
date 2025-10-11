@@ -19,8 +19,11 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
     {
         get
         {
-            var auraData = Flash.Call("getSubjectAuras", SubjectType.Self.ToString());
-            return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
+            string? auraData = Flash.Call("getSubjectAuras", nameof(SubjectType.Self));
+            if (auraData != null)
+            {
+                return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
+            }
         }
     }
 
@@ -47,7 +50,7 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
 
     public int GetAuraValue(string auraName)
     {
-        return Flash.Call<int>("GetAurasValue", SubjectType.Self.ToString(), auraName);
+        return Flash.Call<int>("GetAurasValue", nameof(SubjectType.Self), auraName);
     }
 
     public bool HasAuraWithMinStacks(string auraName, int minStacks)
@@ -57,21 +60,21 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
 
     public int GetAuraSecondsRemaining(string auraName)
     {
-        return Flash.Call<int>("GetAuraSecondsRemaining", SubjectType.Self.ToString(), auraName);
+        return Flash.Call<int>("GetAuraSecondsRemaining", nameof(SubjectType.Self), auraName);
     }
 
     public bool HasAnyActiveAura(params string[] auraNames)
     {
-        return Flash.Call<bool>("HasAnyActiveAura", SubjectType.Self.ToString(), string.Join(",", auraNames));
+        return Flash.Call<bool>("HasAnyActiveAura", nameof(SubjectType.Self), string.Join(",", auraNames));
     }
 
     public bool HasAllActiveAuras(params string[] auraNames)
     {
-        return Flash.Call<bool>("HasAllActiveAuras", SubjectType.Self.ToString(), string.Join(",", auraNames));
+        return Flash.Call<bool>("HasAllActiveAuras", nameof(SubjectType.Self), string.Join(",", auraNames));
     }
 
     public int GetTotalAuraStacks(string auraNamePattern)
     {
-        return Flash.Call<int>("GetTotalAuraStacks", SubjectType.Self.ToString(), auraNamePattern);
+        return Flash.Call<int>("GetTotalAuraStacks", nameof(SubjectType.Self), auraNamePattern);
     }
 }

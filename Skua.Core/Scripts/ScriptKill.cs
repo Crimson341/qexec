@@ -144,7 +144,7 @@ public class ScriptKill : IScriptKill
             {
                 while (!Manager.ShouldExit && !_ctsKill.IsCancellationRequested)
                 {
-                    foreach (var mon in names)
+                    foreach (string mon in names)
                     {
                         if (_ctsKill.IsCancellationRequested)
                             break;

@@ -129,7 +129,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 else
                     await _Attack(_ctsAuto!.Token);
             }
-            catch { }
+            catch { /* ignored */ }
             finally
             {
                 Drops.Stop();
@@ -150,11 +150,11 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         Trace.WriteLine("Auto attack started.");
         Player.SetSpawnPoint();
 
-        var monsters = Monsters.CurrentMonsters;
+        List<Monster> monsters = Monsters.CurrentMonsters;
 
         while (!token.IsCancellationRequested)
         {
-            foreach (var monster in monsters)
+            foreach (Monster monster in monsters)
             {
                 if (token.IsCancellationRequested)
                     return;
@@ -182,7 +182,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             _target = string.Join('|', monsters);
         }
 
-        var names = _target.Split('|');
+        string[] names = _target.Split('|');
         List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
 
         _logger.ScriptLog($"[Auto Hunt] Hunting for {_target}");
@@ -214,10 +214,8 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                         Kill.Monster(mon, token);
                         break;
                     }
-                    else
-                    {
-                        cells.RemoveAt(i);
-                    }
+
+                    cells.RemoveAt(i);
                 }
             }
         }

@@ -61,7 +61,7 @@ public partial class ScriptInventory : IScriptInventory
             Wait.ForItemEquip(id);
     }
 
-    public void EquipUsableItem(InventoryItem item)
+    public void EquipUsableItem(InventoryItem? item)
     {
         if (item is null)
             return;

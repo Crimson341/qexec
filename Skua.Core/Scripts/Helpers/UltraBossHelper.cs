@@ -16,7 +16,6 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
     private readonly IMessenger _messenger;
     private readonly Lazy<IScriptPlayer> _lazyPlayer;
     private readonly Lazy<IScriptCombat> _lazyCombat;
-    private readonly object _lockObject = new();
     private bool _isEnabled;
     private bool _isCounterAttackActive;
     private Monster? _previousTarget;
@@ -65,14 +64,16 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
     public void SetAttacksStopped(bool shouldStop)
     {
         Combat.StopAttacking = shouldStop;
-        if (!shouldStop)
+        if (shouldStop)
         {
-            _isCounterAttackActive = false;
-            _previousTarget = null;
+            return;
         }
+
+        _isCounterAttackActive = false;
+        _previousTarget = null;
     }
 
-    private void OnCounterAttack(UltraBossHelper recipient, CounterAttackMessage message)
+    private static void OnCounterAttack(UltraBossHelper recipient, CounterAttackMessage message)
     {
         if (!recipient._isEnabled)
             return;
@@ -81,11 +82,13 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
         {
             recipient._isCounterAttackActive = false;
             recipient.Combat.StopAttacking = false;
-            if (recipient._previousTarget is not null)
+            if (recipient._previousTarget is null)
             {
-                recipient.Combat.Attack(recipient._previousTarget.MapID);
-                recipient._previousTarget = null;
+                return;
             }
+
+            recipient.Combat.Attack(recipient._previousTarget.MapID);
+            recipient._previousTarget = null;
         }
         else
         {
@@ -136,7 +139,7 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
     {
         if (namePattern.Contains('*'))
         {
-            var regex = new Regex(
+            Regex regex = new Regex(
                 "^" + namePattern.Replace("*", ".*") + "$",
                 RegexOptions.IgnoreCase);
             return auras.Where(a => regex.IsMatch(a.Name)).ToList();
@@ -182,19 +185,13 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
 
     public Dictionary<string, int> GetAuraSummary(IEnumerable<Monster> monsters)
     {
-        var auraSummary = new Dictionary<string, int>();
+        Dictionary<string, int> auraSummary = new();
 
-        foreach (var monster in monsters)
+        foreach (Monster monster in monsters)
         {
-            if (monster.Auras != null)
+            foreach (Aura aura in monster.Auras.Where(aura => !auraSummary.TryAdd(aura.Name, 1)))
             {
-                foreach (var aura in monster.Auras)
-                {
-                    if (auraSummary.ContainsKey(aura.Name))
-                        auraSummary[aura.Name]++;
-                    else
-                        auraSummary[aura.Name] = 1;
-                }
+                auraSummary[aura.Name]++;
             }
         }
 
@@ -203,10 +200,12 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
 
     public void Dispose()
     {
-        if (!_disposed)
+        if (_disposed)
         {
-            DisableCounterAttack();
-            _disposed = true;
+            return;
         }
+
+        DisableCounterAttack();
+        _disposed = true;
     }
 }
