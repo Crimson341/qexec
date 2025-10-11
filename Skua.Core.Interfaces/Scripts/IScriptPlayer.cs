@@ -10,7 +10,7 @@ namespace Skua.Core.Interfaces;
 /// Represents the player, providing access to player state, inventory, and actions.
 /// </summary>
 /// <remarks>
-/// The IScriptPlayer class exposes properties and methods to interact with and query the current player's
+/// The <see cref="IScriptPlayer"/> class exposes properties and methods to interact with and query the current player's
 /// status, such as health, mana, combat state, and inventory.
 /// </remarks>
 public interface IScriptPlayer

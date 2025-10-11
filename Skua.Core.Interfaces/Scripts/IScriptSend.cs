@@ -1,5 +1,16 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines methods for sending packets and chat messages to the server or client, including support for various message
+/// types and packet spamming operations.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide mechanisms to send both server-bound and client-simulated
+/// packets, as well as specialized chat messages with different formatting and colors. Some methods may have side
+/// effects or risks, such as triggering server moderation actions if misused. Asynchronous packet spamming methods
+/// allow repeated sending until cancellation is requested. Use caution when sending non-client-sided messages, as they
+/// may be tracked by the server.
+/// </remarks>
 public interface IScriptSend
 {
     /// <summary>
@@ -53,7 +64,7 @@ public interface IScriptSend
     void ClientWarning(string message, string sentBy = "Skua");
 
     /// <summary>
-    /// Sends a client side packet message with purple color (whiper messages).
+    /// Sends a client side packet message with purple color (whisper messages).
     /// </summary>
     /// <param name="message">Message to be sent.</param>
     /// <param name="sentBy">Name of who sent the message.</param>

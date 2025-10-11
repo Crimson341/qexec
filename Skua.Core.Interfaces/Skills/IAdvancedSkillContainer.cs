@@ -3,6 +3,15 @@ using System.ComponentModel;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Represents a container for managing a collection of advanced skills, providing methods to load, modify, and persist
+/// skill sets.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface notify listeners of property changes via the <see cref="INotifyPropertyChanged"/>
+/// interface. Skill modifications made through this container are not automatically persisted; callers must explicitly
+/// save changes to update the underlying storage.
+/// </remarks>
 public interface IAdvancedSkillContainer : INotifyPropertyChanged
 {
     /// <summary>

@@ -88,7 +88,7 @@ public interface IUltraBossHelper
     List<Monster> GetMonstersWithAnyAura(IEnumerable<Monster> monsters, params string[] auraNames);
 
     /// <summary>
-    /// Gets monsters with all of the specified auras (case-insensitive).
+    /// Gets monsters with all the specified auras (case-insensitive).
     /// </summary>
     /// <param name="monsters">Monsters to search through</param>
     /// <param name="auraNames">Array of aura names that must all be present</param>

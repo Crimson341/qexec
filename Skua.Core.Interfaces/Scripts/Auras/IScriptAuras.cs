@@ -92,7 +92,7 @@ public interface IScriptAuras
     bool HasAnyActiveAura(params string[] auraNames);
 
     /// <summary>
-    /// Checks if the subject has all of the specified auras active.
+    /// Checks if the subject has all the specified auras active.
     /// </summary>
     /// <param name="auraNames">Array of aura names to check.</param>
     /// <returns>

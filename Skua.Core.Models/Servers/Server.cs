@@ -33,7 +33,7 @@ public class Server
     public int Port { get; set; }
 
     /// <summary>
-    /// Indicates whether or not the server is online.
+    /// Indicates whether the server is online.
     /// </summary>
     [JsonProperty("bOnline")]
     [JsonConverter(typeof(StringBoolConverter))]

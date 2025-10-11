@@ -29,7 +29,7 @@ internal static class ISymbolExtensions
     }
 
     /// <summary>
-    /// Checks whether or not a given type symbol has a specified full name.
+    /// Checks whether a given type symbol has a specified full name.
     /// </summary>
     /// <param name="symbol">The input <see cref="ISymbol"/> instance to check.</param>
     /// <param name="name">The full name to check.</param>
@@ -40,7 +40,7 @@ internal static class ISymbolExtensions
     }
 
     /// <summary>
-    /// Checks whether or not a given symbol has an attribute with the specified full name.
+    /// Checks whether a given symbol has an attribute with the specified full name.
     /// </summary>
     /// <param name="symbol">The input <see cref="ISymbol"/> instance to check.</param>
     /// <param name="name">The attribute name to look for.</param>

@@ -1,7 +1,19 @@
 ﻿namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for a skill provider that determines when and how a bot should use skills, and manages
+/// skill-related state in response to game events.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface are responsible for providing logic to select and trigger skills
+/// based on game state, as well as handling events such as target changes and player death. This interface is intended
+/// for use in systems where automated or programmatic skill usage is required.
+/// </remarks>
 public interface ISkillProvider
 {
+    /// <summary>
+    /// Gets or sets a value indicating whether the state should be reset when the target is changed.
+    /// </summary>
     bool ResetOnTarget { get; set; }
 
     /// <summary>
@@ -13,7 +25,6 @@ public interface ISkillProvider
     /// <summary>
     /// This method should return the index of the next skill the bot should try and use. The mode parameter should be set to indicate how the skill should be used.
     /// </summary>
-    /// <param name="mode">The mode that the skill should be used in.</param>
     /// <returns>The index of the skill to be used.</returns>
     (int, int) GetNextSkill();
 

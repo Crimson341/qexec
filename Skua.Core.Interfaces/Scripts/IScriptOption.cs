@@ -9,17 +9,24 @@ namespace Skua.Core.Interfaces;
 /// option values and methods.
 /// </summary>
 /// <remarks>
-/// IScriptOption manages a collection of script-related settings, including user preferences and
+/// <see cref="IScriptOption"/> manages a collection of script-related settings, including user preferences and
 /// automation behaviors. This class is intended
 /// to be used as a central point for script configuration and is designed to integrate with settings services and
 /// messaging systems for state management.
 /// </remarks>
 public interface IScriptOption : INotifyPropertyChanged
 {
+    /// <summary>
+    /// Gets an immutable dictionary that maps option names to factory functions for their values.
+    /// </summary>
+    /// <remarks>
+    /// Each entry associates a string key representing the option name with a delegate that returns
+    /// the option's value when invoked. The dictionary is read-only and cannot be modified after creation.
+    /// </remarks>
     ImmutableDictionary<string, Func<object>> OptionDictionary { get; }
 
     /// <summary>
-    /// Delay between relogin tries using <see cref="IScriptServers.EnsureRelogin"/>.
+    /// Delay between re-login tries using <see cref="IScriptServers.EnsureRelogin(string)"/>.
     /// </summary>
     int ReloginTryDelay { get; set; }
 
@@ -29,12 +36,12 @@ public interface IScriptOption : INotifyPropertyChanged
     int LoginTimeout { get; set; }
 
     /// <summary>
-    /// When enabled will pickup any AC item that drops, even when the drop should be rejected.
+    /// When enabled will pick up any AC item that drops, even when the drop should be rejected.
     /// </summary>
     bool AcceptACDrops { get; set; }
 
     /// <summary>
-    /// When enabled will pickup any item that drops.
+    /// When enabled will pick up any item that drops.
     /// </summary>
     bool AcceptAllDrops { get; set; }
 
@@ -44,13 +51,13 @@ public interface IScriptOption : INotifyPropertyChanged
     bool RejectAllDrops { get; set; }
 
     /// <summary>
-    /// Determines whether all monsters in the MAP should be aggroed (provoked). They will all attack you at the same time.
+    /// Determines whether all monsters in the MAP should be provoked. They will all attack you at the same time.
     /// </summary>
     /// <remarks>Having this option enabled keeps you in combat at all times, sometimes making it impossible to turn in quests.</remarks>
     bool AggroAllMonsters { get; set; }
 
     /// <summary>
-    /// Determines whether all monsters in the room should be aggroed (provoked). They will all attack you at the same time.
+    /// Determines whether all monsters in the room should be provoked. They will all attack you at the same time.
     /// </summary>
     /// <remarks>Having this option enabled could keep you in combat at all times, sometimes making it impossible to turn in quests.</remarks>
     bool AggroMonsters { get; set; }
@@ -61,7 +68,7 @@ public interface IScriptOption : INotifyPropertyChanged
     bool AttackWithoutTarget { get; set; }
 
     /// <summary>
-    /// Enables the auto-relogin feature. If enabled, when the player is logged out of the game, they will automatically be logged back in with the configured username and password, to the configured server.
+    /// Enables the auto re-login feature. If enabled, when the player is logged out of the game, they will automatically be logged back in with the configured username and password, to the configured server.
     /// </summary>
     bool AutoRelogin { get; set; }
 
@@ -71,7 +78,7 @@ public interface IScriptOption : INotifyPropertyChanged
     bool AutoReloginAny { get; set; }
 
     /// <summary>
-    /// Whether it should try certain amount of times (<see cref="ReloginTries"/>) to relogin.
+    /// Whether it should try certain amount of times (<see cref="ReloginTries"/>) to re-login.
     /// </summary>
     bool RetryRelogin { get; set; }
 
@@ -96,7 +103,7 @@ public interface IScriptOption : INotifyPropertyChanged
     bool DisableDeathAds { get; set; }
 
     /// <summary>
-    /// Disables all player combat animations (improves framerate).
+    /// Disables all player combat animations (improves frame-rate).
     /// </summary>
     bool DisableFX { get; set; }
 
@@ -142,12 +149,12 @@ public interface IScriptOption : INotifyPropertyChanged
     bool LagKiller { get; set; }
 
     /// <summary>
-    /// The time in ms that the game is allowed to load before logging the user out (triggering a relogin if enabled).
+    /// The time in ms that the game is allowed to load before logging the user out (triggering a re-login if enabled).
     /// </summary>
     int LoadTimeout { get; set; }
 
     /// <summary>
-    /// The server to relogin to.
+    /// The server to re-login to.
     /// </summary>
     string? ReloginServer { get; set; }
 
@@ -172,14 +179,14 @@ public interface IScriptOption : INotifyPropertyChanged
     bool RestPackets { get; set; }
 
     /// <summary>
-    /// When enabled, there will be a 1 minute 15 second delay before the player is re-logged in.
+    /// When enabled, there will be a 1-minute 15-second delay before the player is re-logged in.
     /// </summary>
     bool SafeRelogin { get; set; }
 
     /// <summary>
     /// When safe timings are enabled, the bot will wait for any action called to be completed with a timeout of (generally) 5 seconds (i.e. picking a drop) before continuing execution. It is strongly recommended that this is turned on.
     /// </summary>
-    /// <remarks>This option does not ensure actions are carried out successfully, as it is quite possible that the 5 second timeout is reached before an action is completed.</remarks>
+    /// <remarks>This option does not ensure actions are carried out successfully, as it is quite possible that the 5-second timeout is reached before an action is completed.</remarks>
     bool SafeTimings { get; set; }
 
     /// <summary>
@@ -193,12 +200,12 @@ public interface IScriptOption : INotifyPropertyChanged
     bool ShowFPS { get; set; }
 
     /// <summary>
-    /// Determines whether cutsenes should be skipped.
+    /// Determines whether cutscenes should be skipped.
     /// </summary>
     bool SkipCutscenes { get; set; }
 
     /// <summary>
-    /// An option to constantly modify the player's walk speed (the ScriptManager's timer thread will update the ingame value).
+    /// An option to constantly modify the player's walk speed (the ScriptManager's timer thread will update the in-game value).
     /// </summary>
     int WalkSpeed { get; set; }
 

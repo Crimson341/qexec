@@ -3,6 +3,16 @@ using System.ComponentModel;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for managing, tracking, and automating quest-related operations for a player, including
+/// accepting, completing, registering, and querying quests.
+/// </summary>
+/// <remarks>
+/// The <see cref="IScriptQuest"/> interface provides methods and properties to interact with quests in a session, such
+/// as loading quest data, checking quest status, and automating quest completion. It supports both individual and batch
+/// operations, and exposes collections for active, completed, and cached quests. Implementations should notify property
+/// changes via <see cref="INotifyPropertyChanged"/>.
+/// </remarks>
 public interface IScriptQuest : INotifyPropertyChanged
 {
     /// <summary>
@@ -47,7 +57,7 @@ public interface IScriptQuest : INotifyPropertyChanged
     void RegisterQuests(params int[] ids);
 
     /// <summary>
-    /// Unegister quests so they are not automatically completed.
+    /// Unregister quests so they are not automatically completed.
     /// </summary>
     /// <param name="ids">Quests to be removed.</param>
     void UnregisterQuests(params int[] ids);
@@ -104,7 +114,11 @@ public interface IScriptQuest : INotifyPropertyChanged
     /// <param name="id">ID of the quest.</param>
     /// <param name="itemId">ID of the item chosen when the quest is turned in.</param>
     /// <param name="special">Whether the quest is marked 'special' or not.</param>
-    /// <remarks>The <paramref name="itemId"/> can be used to acquire a particular item when there is a choice of rewards from the quest. For example, in the Voucher Item: Totem of Nulgath quest, you are given the choice of getting a Totem of Nulgath or 10 Gems of Nulgath.</remarks>
+    /// <remarks>
+    /// The <paramref name="itemId"/> can be used to acquire a particular item when there
+    /// is a choice of rewards from the quest. For example, in the Voucher Item: Totem of Nulgath quest,
+    /// you are given the choice of getting a Totem of Nulgath or 10 Gems of Nulgath.
+    /// </remarks>
     bool Complete(int id, int itemId = -1, bool special = false);
 
     /// <summary>
@@ -204,7 +218,7 @@ public interface IScriptQuest : INotifyPropertyChanged
     /// </summary>
     /// <param name="id">The ID of the quest to get.</param>
     /// <param name="quest">The quest object to set as the result.</param>
-    /// <returns>True if the quest is loaded and quest was set succesfully.</returns>
+    /// <returns>True if the quest is loaded and quest was set successfully.</returns>
     bool TryGetQuest(int id, out Quest? quest);
 
     /// <summary>

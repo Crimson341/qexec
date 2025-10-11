@@ -2,6 +2,17 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for interacting with in-game shops, including loading shops, retrieving shop information, and
+/// buying or selling items.
+/// </summary>
+/// <remarks>
+/// The <see cref="IScriptShop"/> interface provides methods and properties for managing shop sessions, accessing
+/// available items, and performing purchase or sale operations. Implementations should ensure that shop loading and
+/// item transactions are handled according to game rules and constraints. Some methods may trigger shop loading or
+/// bypass standard timing checks; refer to individual member documentation for details and usage
+/// considerations.
+/// </remarks>
 public interface IScriptShop
 {
     /// <summary>
@@ -62,7 +73,7 @@ public interface IScriptShop
     /// </summary>
     /// <param name="shopId">ID of the shop to buy the item from.</param>
     /// <param name="itemId">ID of the item to buy.</param>
-    /// <param name="shopItemId">Shop Id of the item to buy.</param>
+    /// <param name="shopItemId">Shop id of the item to buy.</param>
     /// <param name="quantity">Quantity to buy of the item, if -1 it will buy the default quantity.</param>
     /// <remarks>This loads the shop, waits until it is fully loaded, and then sends the buy item request.</remarks>
     void LoadAndBuyItem(int shopId, int itemId, int shopItemId = -1, int quantity = -1)

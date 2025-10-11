@@ -34,16 +34,12 @@ public partial class MapService : ObservableObject, IMapService
 
     public (string cell, string pad) GetCurrentCell()
     {
-        if (!Player.Playing)
-            return ("Spawn", "Enter");
-        return (Cell, Pad);
+        return !Player.Playing ? ("Spawn", "Enter") : (Cell, Pad);
     }
 
     public (string mapName, string cell, string pad) GetCurrentLocation()
     {
-        if (!Player.Playing)
-            return ("Battleon", "Spawn", "Enter");
-        return (MapName, Cell, Pad);
+        return !Player.Playing ? ("Battleon", "Spawn", "Enter") : (MapName, Cell, Pad);
     }
 
     public void Travel(object? info)

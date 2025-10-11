@@ -4,6 +4,15 @@ using Skua.Core.Utils;
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines members for interacting with and retrieving information about the current map session, including map
+/// loading, navigation, player management, and map item operations.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface provide methods and properties to manage map state, join or reload
+/// maps, access player and cell information, and interact with map items. Members may return null if map data is
+/// unavailable or if the map is not loaded.
+/// </remarks>
 public interface IScriptMap
 {
     /// <summary>
@@ -25,7 +34,6 @@ public interface IScriptMap
     /// The name of the map SWF file.
     /// </summary>
     string FileName { get; }
-
 
     /// <summary>
     /// Gets the name of the currently loaded map.
@@ -53,7 +61,7 @@ public interface IScriptMap
     int PlayerCount { get; }
 
     /// <summary>
-    /// Gets a list of all of the cells in the current map.
+    /// Gets a list of all the cells in the current map.
     /// </summary>
     List<string> Cells { get; }
 
@@ -87,7 +95,7 @@ public interface IScriptMap
     void Join(string map, string cell = "Enter", string pad = "Spawn", bool ignoreCheck = false, bool autoCorrect = true);
 
     /// <summary>
-    /// Joins the specified <paramref name="map"/>, ignoring whether or not you are in that map.
+    /// Joins the specified <paramref name="map"/>, ignoring whether you are in that map.
     /// </summary>
     /// <param name="map">Name of the map.</param>
     void JoinIgnore(string map)
@@ -108,6 +116,7 @@ public interface IScriptMap
     /// </summary>
     /// <param name="cell">Cell to jump to.</param>
     /// <param name="pad">Pad to jump to.</param>
+    /// <param name="autoCorrect">Correct the jump to a valid cell.</param>
     /// <param name="clientOnly">If <see langword="true"/>, the client will not send a moveToCell packet to the server.</param>
     void Jump(string cell, string pad, bool autoCorrect = true, bool clientOnly = false);
 
@@ -135,7 +144,7 @@ public interface IScriptMap
     /// <returns><see langword="true"/> if the player with the specified <paramref name="name"/> is in the current room.</returns>
     bool PlayerExists(string name)
     {
-        return PlayerNames.Contains(x => x == name);
+        return PlayerNames != null && PlayerNames.Contains(x => x == name);
     }
 
     /// <summary>
@@ -160,6 +169,6 @@ public interface IScriptMap
     /// Search for map items in the current map.
     /// </summary>
     /// <returns>A list of the current map items.</returns>
-    /// <remarks>Returns <see langword="null"/> if <see cref="MapFilePath"/> or the file of the map isn't found.</remarks>
+    /// <remarks>Returns <see langword="null"/> if <see cref="FilePath"/> or the file of the map isn't found.</remarks>
     List<MapItem>? FindMapItems();
 }

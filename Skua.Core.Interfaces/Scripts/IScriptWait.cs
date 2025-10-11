@@ -2,6 +2,17 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines an interface for managing and customizing wait operations in scripts, including configurable timeouts and
+/// polling intervals for various in-game actions and conditions.
+/// </summary>
+/// <remarks>
+/// The <see cref="IScriptWait"/> interface provides a standardized way to control how scripts wait for specific game
+/// events or state changes, such as item pickups, quest completions, or cooldowns. It allows fine-grained adjustment of
+/// polling intervals and timeout behavior for different categories of actions, supporting both synchronous and
+/// asynchronous waiting patterns. Implementations may use these settings to optimize script responsiveness and
+/// reliability.
+/// </remarks>
 public interface IScriptWait
 {
     /// <summary>
@@ -10,7 +21,7 @@ public interface IScriptWait
     int WAIT_SLEEP { get; set; }
 
     /// <summary>
-    /// Whether to override all Wait timeouts with each of the defined ActionTimeouts. By default they will not change the behaviour of the bot.
+    /// Whether to override all Wait timeouts with each of the defined ActionTimeouts. By default, they will not change the behaviour of the bot.
     /// Methods mentioned in each ActionTimeout are used when <see cref="IScriptOption.SafeTimings"/> is enabled.
     /// </summary>
     bool OverrideTimeout { get; set; }
@@ -303,7 +314,7 @@ public interface IScriptWait
     /// </summary>
     /// <param name="id">ID of the quest to be completed.</param>
     /// <param name="timeout">Number of times the thread should be slept (for <see cref="WAIT_SLEEP"/> milliseconds) before the wait is cancelled.</param>
-    /// <remarks>This actually waits until the quest is no longer in progress so does not guarentee that the quest has been completed; it could have never been accepted in the first place.</remarks>
+    /// <remarks>This actually waits until the quest is no longer in progress so does not guarantee that the quest has been completed; it could have never been accepted in the first place.</remarks>
     bool ForQuestComplete(int id, int timeout = 10);
 
     /// <summary>
@@ -329,6 +340,7 @@ public interface IScriptWait
     /// <param name="loopFunction">Function to run in between polling the <paramref name="predicate"/> function.</param>
     /// <param name="timeout">Number of times the thread should be slept (for <see cref="WAIT_SLEEP"/> milliseconds) before the wait is cancelled.</param>
     /// <param name="sleepOverride">Time to sleep between polling the <paramref name="predicate"/> function (-1 = <see cref="WAIT_SLEEP"/>).</param>
+    /// <param name="token">Cancellation token.</param>
     ValueTask<bool> ForTrueAsync(Func<bool> predicate, Action? loopFunction, int timeout, int sleepOverride = -1, CancellationToken token = default);
 
     /// <summary>
@@ -351,8 +363,9 @@ public interface IScriptWait
     /// Waits for the specified <paramref name="predicate"/> to return <see langword="true"/>.
     /// </summary>
     /// <param name="predicate">Function to poll.</param>
-    /// <param name="timeout">Number of times the thread should be slept (for <see cref="WAIT_SLEEP"/> milliseconds) before the wait is cancelled.</param>
+    /// <param name="loopFunction"></param>
     /// <param name="sleepOverride">Time to sleep between polling the <paramref name="predicate"/> function (-1 = <see cref="WAIT_SLEEP"/>).</param>
+    /// <param name="token">Cancellation token.</param>
     bool ForTrue(Func<bool> predicate, Action? loopFunction, int sleepOverride, CancellationToken token);
 
     /// <summary>

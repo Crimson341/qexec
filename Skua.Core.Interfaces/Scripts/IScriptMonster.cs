@@ -7,7 +7,7 @@ namespace Skua.Core.Interfaces;
 /// their locations, availability, and status.
 /// </summary>
 /// <remarks>
-/// The IScriptMonster interface enables scripts to retrieve information about monsters in the current
+/// The <see cref="IScriptMonster"/> interface enables scripts to retrieve information about monsters in the current
 /// game context, such as which monsters are present, which can be attacked, and their distribution across map cells. It
 /// also provides methods to check for the existence of monsters by name or ID, obtain summaries of monster auras, and
 /// attempt to retrieve specific monster instances.
@@ -59,7 +59,8 @@ public interface IScriptMonster
     /// </summary>
     Dictionary<string, int> GetAuraSummary();
 
-    /// Gets all of the cells with a living monster of the specified <paramref name="name"/>.
+    /// <summary>
+    /// Gets all the cells with a living monster of the specified <paramref name="name"/>.
     /// </summary>
     List<string> GetLivingMonsterCells(string name)
     {
@@ -69,12 +70,12 @@ public interface IScriptMonster
         }
         catch
         {
-            return new();
+            return new List<string>();
         }
     }
 
     /// <summary>
-    /// Gets all of the cells with a living monster of the specified <paramref name="id"/>.
+    /// Gets all the cells with a living monster of the specified <paramref name="id"/>.
     /// </summary>
     List<string> GetLivingMonsterCells(int id)
     {
@@ -82,12 +83,14 @@ public interface IScriptMonster
         {
             return MapMonsters.Where(m => m.Alive && m.ID == id).Select(m => m.Cell).Distinct().ToList();
         }
-        catch { }
-        return new();
+        catch
+        {
+            return new List<string>();
+        }
     }
 
     /// <summary>
-    /// Gets all of the cells with a living monster of the spacified <paramref name="name"/>
+    /// Gets all the cells with a living monster of the specified <paramref name="name"/>
     /// This uses the dataLeaf of the monster to prevent outdated data.
     /// </summary>
     List<string> GetLivingMonsterDataLeafCells(string name)
@@ -95,20 +98,24 @@ public interface IScriptMonster
         if (name == "*")
             return MapMonsters.Where(m => m.Alive).Select(m => m.Cell).Distinct().ToList();
 
-        if (TryGetMonster(name, out Monster? monster) && monster != null)
+        if (!TryGetMonster(name, out Monster? monster) || monster == null)
         {
-            try
-            {
-                return MapMonsters.Where(m => m.Alive && m.ID == monster.ID).Select(m => m.Cell).Distinct().ToList();
-            }
-            catch { }
+            return new List<string>();
         }
 
-        return new();
+        try
+        {
+            return MapMonsters.Where(m => m.Alive && m.ID == monster.ID).Select(m => m.Cell).Distinct().ToList();
+        }
+        catch
+        {
+            return new List<string>();
+        }
+
     }
 
     /// <summary>
-    /// Gets all of the cells with a living monster of the spacified <paramref name="id"/>
+    /// Gets all the cells with a living monster of the specified <paramref name="id"/>
     /// This uses the dataLeaf of the monster to prevent outdated data.
     /// </summary>
     List<string> GetLivingMonsterDataLeafCells(int id)
@@ -117,12 +124,14 @@ public interface IScriptMonster
         {
             return MapMonsters.Where(m => m.Alive && m.ID == id).Select(m => m.Cell).Distinct().ToList();
         }
-        catch { }
-        return new();
+        catch
+        {
+            return new List<string>();
+        }
     }
 
     /// <summary>
-    /// Gets all of the cells with the desired monster in.
+    /// Gets all the cells with the desired monster in.
     /// </summary>
     /// <param name="name">Name of the monster to get.</param>
     List<string> GetMonsterCells(string name)
@@ -131,12 +140,14 @@ public interface IScriptMonster
         {
             return MapMonsters.Where(m => m.Name.Trim() == name.Trim()).Select(m => m.Cell).Distinct().ToList();
         }
-        catch { }
-        return new();
+        catch
+        {
+            return new List<string>();
+        }
     }
 
     /// <summary>
-    /// Gets all of the cells with the desired monster in.
+    /// Gets all the cells with the desired monster in.
     /// </summary>
     /// <param name="id">ID of the monster to get.</param>
     List<string> GetMonsterCells(int id)
@@ -145,12 +156,14 @@ public interface IScriptMonster
         {
             return MapMonsters.Where(m => m.ID == id).Select(m => m.Cell).Distinct().ToList();
         }
-        catch { }
-        return new();
+        catch
+        {
+            return new List<string>();
+        }
     }
 
     /// <summary>
-    /// Gets all of the monsters in the specified <paramref name="cell"/>.
+    /// Gets all the monsters in the specified <paramref name="cell"/>.
     /// </summary>
     /// <param name="cell">Cell to get the monsters from.</param>
     List<Monster> GetMonstersByCell(string cell)

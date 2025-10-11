@@ -2,6 +2,17 @@
 
 namespace Skua.Core.Interfaces;
 
+/// <summary>
+/// Defines the contract for managing and executing skills using configurable providers, intervals, and usage modes.
+/// Supports loading, starting, and stopping skill execution, as well as customizing skill behavior for different
+/// classes and scenarios.
+/// </summary>
+/// <remarks>
+/// Implementations of this interface allow for flexible skill automation by supporting both default and
+/// override providers, advanced skill loading from configuration, and runtime control over skill execution. Thread
+/// safety and provider management may vary by implementation. The interface is designed to be used in bot frameworks or
+/// automation systems that require dynamic skill usage strategies.
+/// </remarks>
 public interface IScriptSkill
 {
     /// <summary>
@@ -30,7 +41,7 @@ public interface IScriptSkill
     bool TimerRunning { get; }
 
     /// <summary>
-    /// The way the bot will use skils:
+    /// The way the bot will use skills:
     /// <list type="bullet">
     /// <item><see cref="SkillUseMode.WaitForCooldown"/>
     /// <description>If not set to skip, will wait for the skill to be available and then use it.</description>
@@ -63,6 +74,7 @@ public interface IScriptSkill
     /// </summary>
     /// <param name="skills">String of the skills</param>
     /// <param name="skillTimeout">Timeout in multiples of <see cref="SkillInterval"/> milliseconds before skipping the current unavailable skill when using <see cref="SkillUseMode.WaitForCooldown"/>.</param>
+    /// <param name="skillMode">Sets what <see cref="SkillUseMode"/> to use.</param>
     void LoadAdvanced(string skills, int skillTimeout = -1, SkillUseMode skillMode = SkillUseMode.UseIfAvailable);
 
     /// <summary>
@@ -112,6 +124,7 @@ public interface IScriptSkill
     /// </summary>
     /// <param name="skills">String of the skills</param>
     /// <param name="skillTimeout">Timeout in multiples of <see cref="SkillInterval"/> milliseconds before skipping the current unavailable skill when using <see cref="SkillUseMode.WaitForCooldown"/>.</param>
+    /// <param name="skillMode">Sets what <see cref="SkillUseMode"/> to use.</param>
     void StartAdvanced(string skills, int skillTimeout = -1, SkillUseMode skillMode = SkillUseMode.UseIfAvailable)
     {
         LoadAdvanced(skills, skillTimeout, skillMode);
