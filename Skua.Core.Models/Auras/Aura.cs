@@ -1,39 +1,46 @@
 using Newtonsoft.Json;
-using Skua.Core.Utils.CustomJsonConverters;
 
 namespace Skua.Core.Models.Auras;
 
+/// <summary>
+/// Represents an aura effect, including its properties such as name, type, duration, and status information.
+/// </summary>
+/// <remarks>
+/// An aura typically describes a temporary or passive effect applied to an entity, such as a buff,
+/// debuff. This class provides information about the aura's identity, timing, and visual
+/// representation. Some properties, such as TimeStamp and ExpiresAt, are computed for convenience.
+/// </remarks>
 public class Aura
 {
     /// <summary>
     /// The aura's stack value/count.
     /// </summary>
     [JsonProperty("value")]
-    public object? Value { get; set; } = 1;
+    public object Value { get; } = 1;
 
     /// <summary>
     /// The icon file name for the aura.
     /// </summary>
     [JsonProperty("icon")]
-    public string Icon { get; set; } = string.Empty;
+    public string Icon { get; } = string.Empty;
 
     /// <summary>
     /// The name of the aura.
     /// </summary>
     [JsonProperty("name")]
-    public string Name { get; set; } = string.Empty;
+    public string Name { get; } = string.Empty;
 
     /// <summary>
     /// The type of the aura.
     /// </summary>
     [JsonProperty("t")]
-    public string Type { get; set; } = string.Empty;
+    public string Type { get; } = string.Empty;
 
     /// <summary>
     /// The duration of the aura in seconds.
     /// </summary>
     [JsonProperty("duration")]
-    public int Duration { get; set; }
+    public int Duration { get; }
 
     /// <summary>
     /// Whether this is a new aura.
@@ -44,67 +51,66 @@ public class Aura
     /// <summary>
     /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
+    [Obsolete($"This variable is outdated please switch to {nameof(UnixTimeStamp)}")]
     [JsonProperty("timeStamp")]
     public long _timeStamp { get; set; }
 
     /// <summary>
-    /// Internal flag to track if this aura should reset its timestamp.
+    /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
-    [JsonIgnore]
-    private static readonly Dictionary<string, (int stacks, long timestamp)> _auraCache = new();
+    [JsonProperty("timeStamp")]
+    public long UnixTimeStamp { get; set; }
 
     /// <summary>
     /// If the aura is a passive or not.
     /// </summary>
     [JsonProperty("passive")]
-    public bool? Passive { get; set; }
+    public bool Passive { get; set; }
 
     /// <summary>
     /// The potion type of aura if it's a potion.
     /// </summary>
     [JsonProperty("potionType")]
-    public string? PotionType { get; set; }
+    public string PotionType { get; set; } = string.Empty;
 
     /// <summary>
     /// DateTime timestamp (computed from Unix timestamp).
     /// </summary>
     [JsonIgnore]
-    public DateTime? TimeStamp => _timeStamp > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(_timeStamp).DateTime : null;
-
-    /// <summary>
-    /// Gets the remaining time of the aura.
-    /// </summary>
-    public TimeSpan RemainingTime => ExpiresAt.HasValue ? ExpiresAt.Value - DateTimeOffset.Now : TimeSpan.Zero;
-
-    /// <summary>
-    /// The debuff type of aura. (e.g. stun, stone, disable)
-    /// </summary>
-    [JsonProperty("cat")]
-    public string? Category { get; set; }
-
-    [JsonProperty("fx")]
-    public string? Fx { get; set; }
-
-    [JsonProperty("msgOn")]
-    public string? MsgOn { get; set; }
-
-    [JsonProperty("animOn")]
-    public string? AnimationOn { get; set; }
-
-    [JsonProperty("animOff")]
-    public string? AnimationOff { get; set; }
-
-    public override string ToString()
-    {
-        return JsonConvert.SerializeObject(this, Formatting.Indented);
-    }
-
-    public int SecondsRemaining()
-        => (ExpiresAt == null) ? 0 : (int)(((DateTime)ExpiresAt) - DateTime.Now).TotalSeconds;
+    public DateTimeOffset TimeStamp => UnixTimeStamp > 0 ? DateTimeOffset.FromUnixTimeMilliseconds(UnixTimeStamp) : DateTimeOffset.MinValue;
 
     /// <summary>
     /// The expiration time of the aura.
     /// </summary>
     [JsonIgnore]
-    public DateTime? ExpiresAt => TimeStamp?.AddSeconds(Duration);
+    public DateTimeOffset ExpiresAt => TimeStamp.AddSeconds(Duration);
+
+    /// <summary>
+    /// Gets the remaining time of the aura (int).
+    /// </summary>
+    [JsonIgnore]
+    public int RemainingTime => Math.Max(0, (int)(ExpiresAt - DateTimeOffset.Now).TotalSeconds);
+
+    /// <summary>
+    /// The debuff type of aura. (e.g. stun, stone, disable)
+    /// </summary>
+    [JsonProperty("cat")]
+    public string Category { get; } = string.Empty;
+
+    [JsonProperty("fx")]
+    public string Fx { get; } = string.Empty;
+
+    [JsonProperty("msgOn")]
+    public string MsgOn { get; } = string.Empty;
+
+    [JsonProperty("animOn")]
+    public string AnimationOn { get; } = string.Empty;
+
+    [JsonProperty("animOff")]
+    public string AnimationOff { get; } = string.Empty;
+
+    public override string ToString()
+    {
+        return $"{Name}, Stack [{Value}]";
+    }
 }
