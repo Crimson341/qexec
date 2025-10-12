@@ -66,9 +66,11 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (_scripts.Count != 0 && !refresh)
             return _scripts.ToList();
 
-        using HttpResponseMessage response = await HttpClients.GitHubRaw.GetAsync(_rawScriptsJsonUrl, token);
-        string content = await response.Content.ReadAsStringAsync(token);
-        return JsonConvert.DeserializeObject<List<ScriptInfo>>(content)!;
+        using (HttpResponseMessage response = await HttpClients.GitHubRaw.GetAsync(_rawScriptsJsonUrl, token))
+        {
+            string content = await response.Content.ReadAsStringAsync(token);
+            return JsonConvert.DeserializeObject<List<ScriptInfo>>(content)!;
+        }
     }
 
     public async Task DownloadScriptAsync(ScriptInfo info)
@@ -77,9 +79,11 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (!parent.Exists)
             parent.Create();
 
-        using HttpResponseMessage response = await HttpClients.Default.GetAsync(info.DownloadUrl);
-        string script = await response.Content.ReadAsStringAsync();
-        await File.WriteAllTextAsync(info.LocalFile, script);
+        using (HttpResponseMessage response = await HttpClients.Default.GetAsync(info.DownloadUrl))
+        {
+            string script = await response.Content.ReadAsStringAsync();
+            await File.WriteAllTextAsync(info.LocalFile, script);
+        }
     }
 
     public async Task ManagerDownloadScriptAsync(ScriptInfo info)
@@ -88,14 +92,16 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (!parent.Exists)
             parent.Create();
 
-        using HttpResponseMessage response = await HttpClients.Default.GetAsync(info.DownloadUrl);
-        string script = await response.Content.ReadAsStringAsync();
-        await File.WriteAllTextAsync(info.ManagerLocalFile, script);
+        using (HttpResponseMessage response = await HttpClients.Default.GetAsync(info.DownloadUrl))
+        {
+            string script = await response.Content.ReadAsStringAsync();
+            await File.WriteAllTextAsync(info.ManagerLocalFile, script);
+        }
     }
 
     public async Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred)
     {
-        IEnumerable<ScriptInfo> toUpdate = _scripts.Where(pred) as ScriptInfo[] ?? _scripts.ToArray();
+        IEnumerable<ScriptInfo> toUpdate = _scripts.Where(pred);
         int count = toUpdate.Count();
         await Task.WhenAll(toUpdate.Select(s => DownloadScriptAsync(s)));
         return count;
@@ -103,7 +109,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public async Task<int> ManagerDownloadAllWhereAsync(Func<ScriptInfo, bool> pred)
     {
-        IEnumerable<ScriptInfo> toUpdate = _scripts.Where(pred) as ScriptInfo[] ?? _scripts.ToArray();
+        IEnumerable<ScriptInfo> toUpdate = _scripts.Where(pred);
         int count = toUpdate.Count();
         await Task.WhenAll(toUpdate.Select(s => ManagerDownloadScriptAsync(s)));
         return count;
