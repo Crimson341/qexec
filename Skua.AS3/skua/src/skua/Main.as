@@ -30,7 +30,7 @@ public class Main extends MovieClip {
     public static var instance:Main;
 
     private static var _gameClass:Class;
-    private static var _fxStore:* = new Object();
+    private static var _fxStore:Object = {};
     private static var _fxLastOpt:Boolean = false;
     private static var _handler:*;
 
@@ -57,8 +57,9 @@ public class Main extends MovieClip {
     private var lastLoginVisible:Boolean = false;
 
     public function Main() {
-        String.prototype.trim = function ():String {
-            return this.replace(/^\s+|\s+$/g, '');
+        String.prototype.trim = function():String {
+            var s:String = String(this);
+            return s.replace(/^\s+|\s+$/g, "");
         };
 
         Main.instance = this;
@@ -166,13 +167,12 @@ public class Main extends MovieClip {
         }
     }
 
-    private function monitorLoginScreen():void {
+    private function monitorLoginScreen(event:Event):void {
         if (this.customBGReady && this.game && this.game.mcLogin) {
 
             var currentlyVisible:Boolean = this.game.mcLogin.visible;
             if (currentlyVisible != this.lastLoginVisible) {
                 if (currentlyVisible) {
-                    this.external.debug('Login screen became visible - applying background immediately');
                     this.tryApplyCustomBG();
                 }
                 this.lastLoginVisible = currentlyVisible;
@@ -183,7 +183,6 @@ public class Main extends MovieClip {
                 var currentChildCount:int = this.game.mcLogin.mcTitle.numChildren;
 
                 if (currentChildCount != this.lastLoginChildCount) {
-                    this.external.debug('Login screen child count changed: ' + this.lastLoginChildCount + ' -> ' + currentChildCount + ' - applying background immediately');
                     this.lastLoginChildCount = currentChildCount;
                     this.tryApplyCustomBG();
                 }
@@ -207,7 +206,6 @@ public class Main extends MovieClip {
 
     private function initCustomBackground():void {
         if (!this.customBackgroundURL) {
-            this.external.debug('No custom background URL provided');
             return;
         }
 
@@ -279,7 +277,6 @@ public class Main extends MovieClip {
             }
 
             if (!configPath) {
-                this.external.debug('No background config path available, using default background');
                 this.setDefaultBackground();
                 return;
             }
@@ -347,7 +344,6 @@ public class Main extends MovieClip {
         var prevCell:String = instance.game.world.strFrame;
         if (!autoCorrect) {
             instance.game.world.moveToCell(cell, pad, clientOnly);
-            return;
         } else {
             var users:Array = instance.game.world.areaUsers;
             users.splice(users.indexOf(instance.game.sfc.myUserName), 1);
@@ -394,7 +390,7 @@ public class Main extends MovieClip {
     }
 
     public static function getCellPads():Array {
-        var cellPads:Array = new Array();
+        var cellPads:Array = [];
         var padNames:RegExp = /(Spawn|Center|Left|Right|Up|Down|Top|Bottom)/;
         var cellPadsCnt:int = instance.game.world.map.numChildren;
         for (var i:int = 0; i < cellPadsCnt; ++i) {
@@ -482,11 +478,11 @@ public class Main extends MovieClip {
             return '';
         }
         var array:Array = obj as Array;
-        var narray:Array = new Array();
+        var nArray:Array = [];
         for (var j:int = 0; j < array.length; j++) {
-            narray.push(_getObjectS(array[j], selector));
+            nArray.push(_getObjectS(array[j], selector));
         }
-        return JSON.stringify(narray);
+        return JSON.stringify(nArray);
     }
 
     public static function _getObjectS(root:*, path:String):* {
@@ -638,12 +634,12 @@ public class Main extends MovieClip {
             return '[]';
         }
 
-        var auraArray:Array = new Array();
+        var auraArray:Array = [];
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
             auraArray.push({
                 'name': aura.nam,
-                'value': aura.val == undefined ? 0 : aura.val,
+                'value': aura.val == undefined ? 1 : aura.val,
                 'passive': aura.passive,
                 'timeStamp': aura.ts,
                 'duration': parseInt(aura.dur),
@@ -828,17 +824,6 @@ public class Main extends MovieClip {
         var player:* = instance.game.world.getAvatarByUserName(name.toLowerCase());
         return attackTarget(player);
     }
-
-    public static function getMonster(name:String):* {
-        for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame)) {
-            var monName:String = monster.objData.strMonName.toLowerCase();
-            if ((monName.indexOf(name.toLowerCase()) > -1 || name == '*') && monster.pMC != null) {
-                return monster;
-            }
-        }
-        return null;
-    }
-
     public static function getBestMonsterTarget(name:String):* {
         var targetCandidates:Array = [];
 
@@ -912,7 +897,7 @@ public class Main extends MovieClip {
         var retMonsters:Array = [];
         for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame)) {
             if (monster.pMC != null) {
-                var monsterData:Object = new Object();
+                var monsterData:Object = {};
                 for (var prop:String in monster.objData) {
                     monsterData[prop] = monster.objData[prop];
                 }
@@ -930,7 +915,7 @@ public class Main extends MovieClip {
 
     public static function getTargetMonster():String {
         var monster:* = instance.game.world.myAvatar.target
-        var monsterData:Object = new Object();
+        var monsterData:Object = {};
         for (var prop:String in monster.objData) {
             monsterData[prop] = monster.objData[prop];
         }
@@ -945,7 +930,7 @@ public class Main extends MovieClip {
     public static function getMonsters():String {
         var retMonsters:Array = [];
         for each (var monster:* in instance.game.world.monsters) {
-            var monsterData:Object = new Object();
+            var monsterData:Object = {};
             for (var prop:String in monster.objData) {
                 monsterData[prop] = monster.objData[prop];
             }
@@ -1009,7 +994,7 @@ public class Main extends MovieClip {
 
     public static function disableFX(enabled:Boolean):void {
         if (!_fxLastOpt && enabled) {
-            _fxStore = new Object();
+            _fxStore = {};
         }
         _fxLastOpt = enabled;
         for each (var avatar:* in instance.game.world.avatars) {
@@ -1042,7 +1027,7 @@ public class Main extends MovieClip {
             if (quantity == -1)
                 instance.game.world.sendBuyItemRequest(item);
             else {
-                var buyItem:* = new Object();
+                var buyItem:* = {};
                 buyItem.iSel = item;
                 buyItem.iQty = quantity;
                 buyItem.accept = 1;
@@ -1057,7 +1042,7 @@ public class Main extends MovieClip {
             if (quantity == -1)
                 instance.game.world.sendBuyItemRequest(item);
             else {
-                var buyItem:* = new Object();
+                var buyItem:* = {};
                 buyItem.iSel = item;
                 buyItem.iQty = quantity;
                 buyItem.accept = 1;
@@ -1085,7 +1070,7 @@ public class Main extends MovieClip {
     }
 
     private static function parseDrop(name:*):* {
-        var ret:* = new Object();
+        var ret:* = {};
         ret.name = name.toLowerCase().trim();
         ret.count = 1;
         var regex:RegExp = /(.*)\s+x\s*(\d*)/g;
