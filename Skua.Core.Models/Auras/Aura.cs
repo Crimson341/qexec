@@ -46,10 +46,10 @@ public class Aura
     /// Whether this is a new aura.
     /// </summary>
     [JsonProperty("isNew")]
-    public bool IsNew { get; set; }
+    public bool IsNew { get; set; } = true;
 
     /// <summary>
-    /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
+    /// (Deprecated use <see cref="UnixTimeStamp"/>) The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
     [Obsolete($"This variable is outdated please switch to {nameof(UnixTimeStamp)}")]
     [JsonProperty("timeStamp")]
