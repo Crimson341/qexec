@@ -176,7 +176,7 @@ public partial class ScriptSkill : IScriptSkill
 
             // if the player has target or bot attack without target option is on
             // then activate the skills
-            if (Options.AttackWithoutTarget && Player is { Loaded: true, Playing: true } or { HasTarget: true, Loaded: true, Playing: true })
+            if ((Options.AttackWithoutTarget && Player is { Loaded: true, Playing: true }) || Player is { HasTarget: true, Loaded: true, Playing: true })
             {
                 _Poll(token);
             }
