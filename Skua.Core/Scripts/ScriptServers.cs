@@ -226,7 +226,7 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
         int tries = 0;
         try
         {
-            while (!token.IsCancellationRequested && !Manager.ShouldExit && !IsConnected && !Player.Playing && ++tries < Options.ReloginTries)
+            while (!token.IsCancellationRequested && !Manager.ShouldExit && !IsConnected && Player is {Playing: false, Loaded: false} && ++tries < Options.ReloginTries)
             {
                 if (!IsConnected && tries % 10 == 0 && tries > 0)
                 {
@@ -241,8 +241,8 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
                 using CancellationTokenSource waitLogin = new(Options.LoginTimeout);
                 try
                 {
-                    while ((!Player.Playing || !Flash.IsWorldLoaded) && !waitLogin.IsCancellationRequested)
-                        await Task.Delay(500, waitLogin.Token);
+                    while ((Player is { Playing: false, Loaded: false } || !Flash.IsWorldLoaded) && !waitLogin.IsCancellationRequested)
+                        await Task.Delay(750, waitLogin.Token);
                 }
                 catch { }
             }
