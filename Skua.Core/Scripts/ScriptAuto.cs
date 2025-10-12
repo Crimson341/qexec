@@ -108,7 +108,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
     private void _DoActionAuto(bool hunt, string? className = null, ClassUseMode classUseMode = ClassUseMode.Base)
     {
-        if (_autoTask != null && !_autoTask.IsCompleted)
+        if (_autoTask is { IsCompleted: false })
             return;
 
         if (!Player.LoggedIn)
