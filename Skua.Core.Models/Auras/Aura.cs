@@ -16,7 +16,7 @@ public class Aura
     /// The aura's stack value/count.
     /// </summary>
     [JsonProperty("value")]
-    public object Value { get; set; } = 1;
+    public object? Value { get; set; } = 1;
 
     /// <summary>
     /// The icon file name for the aura.
@@ -71,7 +71,7 @@ public class Aura
     /// The potion type of aura if it's a potion.
     /// </summary>
     [JsonProperty("potionType")]
-    public string PotionType { get; set; } = string.Empty;
+    public string? PotionType { get; set; } = string.Empty;
 
     /// <summary>
     /// DateTime timestamp (computed from Unix timestamp).
