@@ -2,7 +2,7 @@
 
 public static class ClientFileSources
 {
-    public static string SkuaDIR { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Skua");
+    public static string SkuaDIR { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua");
     public static string SkuaScriptsDIR { get; } = Path.Combine(SkuaDIR, "Scripts");
     public static string SkuaThemesDIR { get; } = Path.Combine(SkuaDIR, "themes");
     public static string SkuaOptionsDIR { get; } = Path.Combine(SkuaDIR, "options");

@@ -1,7 +1,7 @@
 ﻿<WixLocalization Culture="en-us" xmlns="http://wixtoolset.org/schemas/v4/wxl">
 
     <String Id="Company" Value="Skua" />
-    <String Id="ProductNameFolder" Value="Skua AQW Bot" />
+    <String Id="ProductNameFolder" Value="Skua" />
     <String Id="ProductName_x86" Value="Skua x86" />
     <String Id="ProductName_x64" Value="Skua" />
     <String Id="Description" Value="Scriptable C# bot for AdventureQuest Worlds" />
