@@ -58,8 +58,7 @@ public class Aura
     /// <summary>
     /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
-    [JsonProperty("timeStamp")]
-    public long UnixTimeStamp { get; set; }
+    public long UnixTimeStamp => _timeStamp;
 
     /// <summary>
     /// If the aura is a passive or not.
@@ -111,6 +110,6 @@ public class Aura
 
     public override string ToString()
     {
-        return $"{Name}, Stack [{Value}]";
+        return JsonConvert.SerializeObject(this, Formatting.Indented);
     }
 }
