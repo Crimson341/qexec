@@ -21,7 +21,7 @@ public class ManagerOptionsViewModel : ObservableObject
             if (Directory.Exists(initialDirectory))
                 _settingsService.Set("ClientDownloadPath", initialDirectory);
             else
-                _settingsService.Set("ClientDownloadPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+                _settingsService.Set("ClientDownloadPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)));
         }
 
         _downloadPath = _settingsService.Get("ClientDownloadPath", string.Empty);
@@ -57,7 +57,7 @@ public class ManagerOptionsViewModel : ObservableObject
             if (Directory.Exists(initialDirectory))
                 _settingsService.Set("ClientDownloadPath", initialDirectory);
             else
-                _settingsService.Set("ClientDownloadPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments)));
+                _settingsService.Set("ClientDownloadPath", Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData)));
         }
 
         string? folderPath = _fileService.OpenFolder(initialDirectory);

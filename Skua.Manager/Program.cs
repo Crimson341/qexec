@@ -1,4 +1,3 @@
-using Skua.Manager.Properties;
 using System;
 using System.IO;
 using System.Linq;
@@ -27,7 +26,8 @@ public class Program
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         Exception ex = (Exception)e.ExceptionObject;
-        MessageBox.Show($"Manager Crash.\r\nVersion: {Settings.Default.ApplicationVersion}\r\nMessage: {ex.Message}\r\nInner Exception Message: {ex.InnerException?.Message}\r\nStackTrace: {ex.StackTrace}", "Application");
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.3.0.0";
+        MessageBox.Show($"Manager Crash.\r\nVersion: {version}\r\nMessage: {ex.Message}\r\nInner Exception Message: {ex.InnerException?.Message}\r\nStackTrace: {ex.StackTrace}", "Application");
     }
 
     private static Assembly? ResolveAssemblies(object? sender, ResolveEventArgs args)

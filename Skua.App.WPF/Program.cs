@@ -1,4 +1,3 @@
-using Skua.App.WPF.Properties;
 using System;
 using System.IO;
 using System.Linq;
@@ -27,7 +26,7 @@ public static class Program
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         Exception ex = (Exception)e.ExceptionObject;
-        MessageBox.Show($"Application Crash.\r\nVersion: {Settings.Default.ApplicationVersion}\r\nMessage: {ex.Message}\r\nStackTrace: {ex.StackTrace}", "Application");
+        MessageBox.Show($"Application Crash.\r\nMessage: {ex.Message}\r\nStackTrace: {ex.StackTrace}", "Application");
     }
 
     private static Assembly? ResolveAssemblies(object? sender, ResolveEventArgs args)

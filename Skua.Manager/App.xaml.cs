@@ -1,14 +1,15 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Skua.Core.AppStartup;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
+using Skua.Core.Services;
 using Skua.Core.ViewModels;
 using Skua.Core.ViewModels.Manager;
-using Skua.Manager.Properties;
 using Skua.WPF.Services;
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
@@ -28,11 +29,12 @@ public partial class App : Application
         InitializeComponent();
         SingleInstanceWatcher();
 
-        if (Settings.Default.UpgradeRequired)
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string targetPath = Path.Combine(appData, "Skua");
+        if (!Directory.Exists(targetPath) || !File.Exists(Path.Combine(targetPath, "ManagerSettings.json")))
         {
-            Settings.Default.Upgrade();
-            Settings.Default.UpgradeRequired = false;
-            Settings.Default.Save();
+            SettingsMigrationService.MigrateSettings("Skua.Manager", localAppData);
         }
 
         Services = ConfigureServices();
@@ -40,15 +42,16 @@ public partial class App : Application
         Services.GetRequiredService<IClientFilesService>().CreateFiles();
 
         _ = Services.GetRequiredService<IThemeService>();
-        var settings = Services.GetRequiredService<ISettingsService>();
+        ISettingsService settings = Services.GetRequiredService<ISettingsService>();
 
         Dispatcher.ShutdownStarted += Dispatcher_ShutdownStarted;
         StrongReferenceMessenger.Default.Register<App, UpdateFinishedMessage>(this, CloseManager);
-        if (Settings.Default.CheckClientUpdates)
+
+        if (settings.Get<bool>("CheckClientUpdates"))
         {
             Task.Run(async () =>
             {
-                var updateVM = Ioc.Default.GetRequiredService<ClientUpdatesViewModel>();
+                ClientUpdatesViewModel updateVM = Ioc.Default.GetRequiredService<ClientUpdatesViewModel>();
                 await updateVM.Refresh();
 
                 if (updateVM.UpdateVisible && Ioc.Default.GetRequiredService<IDialogService>().ShowMessageBox("New update available, download?", "Update Available", true) == true)

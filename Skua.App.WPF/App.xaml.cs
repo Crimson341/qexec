@@ -1,10 +1,10 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.Extensions.DependencyInjection;
-using Skua.App.WPF.Properties;
 using Skua.App.WPF.Services;
 using Skua.Core.AppStartup;
 using Skua.Core.Interfaces;
+using Skua.Core.Services;
 using Skua.WPF;
 using Skua.WPF.Services;
 using System;
@@ -33,12 +33,14 @@ public sealed partial class App : Application
     {
         InitializeComponent();
 
-        if (Settings.Default.UpgradeRequired)
+        string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        string targetPath = Path.Combine(appData, "Skua");
+        if (!Directory.Exists(targetPath) || !File.Exists(Path.Combine(targetPath, "ClientSettings.json")))
         {
-            Settings.Default.Upgrade();
-            Settings.Default.UpgradeRequired = false;
-            Settings.Default.Save();
+            SettingsMigrationService.MigrateSettings("Skua.App.WPF", Path.Combine(localAppData, "Skua"));
         }
+
 
         Services = ConfigureServices();
         Services.GetRequiredService<IClientFilesService>().CreateDirectories();
@@ -81,22 +83,23 @@ public sealed partial class App : Application
     private void Application_Startup(object sender, StartupEventArgs e)
     {
         if (!Directory.Exists(Path.Combine(AppContext.BaseDirectory, "VSCode")))
-            Settings.Default.UseLocalVSC = false;
+        {
+            Services.GetRequiredService<ISettingsService>().Set("UseLocalVSC", false);
+        }
 
-        MainWindow main = new();
-        main.WindowStartupLocation = WindowStartupLocation.CenterScreen;
+        MainWindow main = new() { WindowStartupLocation = WindowStartupLocation.CenterScreen };
         Application.Current.MainWindow = main;
         main.Show();
 
         IDialogService dialogService = Services.GetRequiredService<IDialogService>();
-        var getScripts = Services.GetRequiredService<IGetScriptsService>();
-        if (Settings.Default.CheckBotScriptsUpdates)
+        IGetScriptsService getScripts = Services.GetRequiredService<IGetScriptsService>();
+        if (Services.GetRequiredService<ISettingsService>().Get<bool>("CheckBotScriptsUpdates"))
         {
             Task.Factory.StartNew(async () =>
             {
                 await getScripts.GetScriptsAsync(null, default);
                 if ((getScripts.Missing > 0 || getScripts.Outdated > 0)
-                    && (Settings.Default.AutoUpdateBotScripts || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your scripts?", "Script Update", true) == true))
+                    && (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateBotScripts") || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your scripts?", "Script Update", true) == true))
                 {
                     int count = await getScripts.DownloadAllWhereAsync(s => !s.Downloaded || s.Outdated);
                     Services.GetRequiredService<IDialogService>().ShowMessageBox($"Downloaded {count} scripts.\r\nYou can disable auto script updates in Options > Application.", "Script Update");
@@ -104,18 +107,18 @@ public sealed partial class App : Application
             });
         }
 
-        if (Settings.Default.CheckAdvanceSkillSetsUpdates)
+        if (Services.GetRequiredService<ISettingsService>().Get<bool>("CheckAdvanceSkillSetsUpdates", true))
         {
-            var skillsFileSize = getScripts.GetSkillsSetsTextFileSize();
-            var advanceSkillSets = Services.GetRequiredService<IAdvancedSkillContainer>();
+            long skillsFileSize = getScripts.GetSkillsSetsTextFileSize();
+            IAdvancedSkillContainer advanceSkillSets = Services.GetRequiredService<IAdvancedSkillContainer>();
             Task.Factory.StartNew(async () =>
             {
                 if ((skillsFileSize < await getScripts.CheckAdvanceSkillSetsUpdates())
-                    && (Settings.Default.AutoUpdateAdvanceSkillSetsUpdates || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your AdvanceSkill Sets?", "AdvanceSkill Sets Update", true) == true))
+                    && (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateAdvanceSkillSetsUpdates", true) || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your AdvanceSkill Sets?", "AdvanceSkill Sets Update", true) == true))
                 {
                     if (await getScripts.UpdateSkillSetsFile())
                     {
-                        if (Settings.Default.AutoUpdateAdvanceSkillSetsUpdates)
+                        if (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateAdvanceSkillSetsUpdates", true))
                             Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets has been updated.\r\nYou can disable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
                         else
                             Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets has been updated.\r\nYou can enable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
@@ -132,7 +135,6 @@ public sealed partial class App : Application
 
         Services.GetRequiredService<IPluginManager>().Initialize();
 
-        // Initialize hotkeys after main window is shown
         Services.GetRequiredService<IHotKeyService>().Reload();
     }
 
