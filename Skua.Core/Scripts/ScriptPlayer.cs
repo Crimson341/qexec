@@ -1,6 +1,7 @@
 using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
+using Skua.Core.Models.Auras;
 using Skua.Core.Models.Items;
 using Skua.Core.Models.Monsters;
 using Skua.Core.Models.Players;
@@ -133,6 +134,9 @@ public partial class ScriptPlayer : IScriptPlayer
 
     [ObjectBinding("world.myAvatar.dataLeaf.sta")]
     private PlayerStats? _stats;
+
+    [ObjectBinding("world.myAvatar.dataLeaf.auras")]
+    private Aura _auras;
 
     public InventoryItem? CurrentClass => Playing ? Inventory.Items?.Find(i => i is { Equipped: true, Category: ItemCategory.Class }) : null;
 

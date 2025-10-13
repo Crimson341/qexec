@@ -1,4 +1,5 @@
-﻿using Skua.Core.Models.Items;
+﻿using Skua.Core.Models.Auras;
+using Skua.Core.Models.Items;
 using Skua.Core.Models.Monsters;
 using Skua.Core.Models.Players;
 using Skua.Core.Models.Skills;
@@ -161,9 +162,14 @@ public interface IScriptPlayer
     SkillInfo[]? Skills { get; }
 
     /// <summary>
-    /// The player stats.
+    /// The player's stats.
     /// </summary>
     PlayerStats? Stats { get; }
+
+    /// <summary>
+    /// The player's auras
+    /// </summary>
+    Aura Auras { get; }
 
     /// <summary>
     /// Checks whether the player is marked as AFK.
