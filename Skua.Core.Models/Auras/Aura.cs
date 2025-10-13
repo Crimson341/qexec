@@ -16,31 +16,31 @@ public class Aura
     /// The aura's stack value/count.
     /// </summary>
     [JsonProperty("value")]
-    public object Value { get; } = 1;
+    public object Value { get; set; } = 1;
 
     /// <summary>
     /// The icon file name for the aura.
     /// </summary>
     [JsonProperty("icon")]
-    public string Icon { get; } = string.Empty;
+    public string Icon { get; set; } = string.Empty;
 
     /// <summary>
     /// The name of the aura.
     /// </summary>
     [JsonProperty("name")]
-    public string Name { get; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 
     /// <summary>
     /// The type of the aura.
     /// </summary>
     [JsonProperty("t")]
-    public string Type { get; } = string.Empty;
+    public string Type { get; set; } = string.Empty;
 
     /// <summary>
     /// The duration of the aura in seconds.
     /// </summary>
     [JsonProperty("duration")]
-    public int Duration { get; }
+    public int Duration { get; set; }
 
     /// <summary>
     /// Whether this is a new aura.
@@ -95,19 +95,19 @@ public class Aura
     /// The debuff type of aura. (e.g. stun, stone, disable)
     /// </summary>
     [JsonProperty("cat")]
-    public string Category { get; } = string.Empty;
+    public string Category { get; set; } = string.Empty;
 
     [JsonProperty("fx")]
-    public string Fx { get; } = string.Empty;
+    public string Fx { get; set; } = string.Empty;
 
     [JsonProperty("msgOn")]
-    public string MsgOn { get; } = string.Empty;
+    public string MsgOn { get; set; } = string.Empty;
 
     [JsonProperty("animOn")]
-    public string AnimationOn { get; } = string.Empty;
+    public string AnimationOn { get; set; } = string.Empty;
 
     [JsonProperty("animOff")]
-    public string AnimationOff { get; } = string.Empty;
+    public string AnimationOff { get; set; } = string.Empty;
 
     public override string ToString()
     {
