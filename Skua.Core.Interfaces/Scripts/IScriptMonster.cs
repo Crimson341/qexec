@@ -98,19 +98,19 @@ public interface IScriptMonster
         if (name == "*")
             return MapMonsters.Where(m => m.Alive).Select(m => m.Cell).Distinct().ToList();
 
-        if (!TryGetMonster(name, out Monster? monster) || monster == null)
+        if (TryGetMonster(name, out Monster? monster) && monster != null)
         {
-            return new List<string>();
+            try
+            {
+                return MapMonsters.Where(m => m.Alive && m.ID == monster.ID).Select(m => m.Cell).Distinct().ToList();
+            }
+            catch
+            {
+                return new List<string>();
+            }
         }
 
-        try
-        {
-            return MapMonsters.Where(m => m.Alive && m.ID == monster.ID).Select(m => m.Cell).Distinct().ToList();
-        }
-        catch
-        {
-            return new List<string>();
-        }
+        return new List<string>();
 
     }
 

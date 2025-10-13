@@ -108,16 +108,14 @@ public class ScriptHunt : IScriptHunt
                 {
                     if (token?.IsCancellationRequested ?? false)
                         break;
-                    if (!Monsters.Exists(mon) || (!(!token?.IsCancellationRequested ?? true)))
+                    if (Monsters.Exists(mon) && (!token?.IsCancellationRequested ?? true))
                     {
-                        continue;
+                        if (!Combat.Attack(mon))
+                            continue;
+                        Thread.Sleep(Options.ActionDelay);
+                        Kill.Monster(mon, token);
+                        return;
                     }
-
-                    if (!Combat.Attack(mon))
-                        continue;
-                    Thread.Sleep(Options.ActionDelay);
-                    Kill.Monster(mon, token);
-                    return;
                 }
                 Thread.Sleep(200);
             }
@@ -180,18 +178,18 @@ public class ScriptHunt : IScriptHunt
                 if (token?.IsCancellationRequested ?? false)
                     break;
                 bool sameCell = Monsters.Exists(target.Name);
-                switch (sameCell)
+                if (sameCell || CanJumpForHunt())
                 {
-                    case false when !CanJumpForHunt():
-                        continue;
-                    case false when (!token?.IsCancellationRequested ?? true):
-                        {
-                            if (Player.Cell == target.Cell)
-                                continue;
-                            Map.Jump(target.Cell, "Left");
-                            _lastHuntTick = Environment.TickCount;
-                            break;
-                        }
+                    if (!sameCell && (!token?.IsCancellationRequested ?? true))
+                    {
+                        if (Player.Cell == target.Cell)
+                            continue;
+                        Map.Jump(target.Cell, "Left");
+                        _lastHuntTick = Environment.TickCount;
+                    }
+
+                    Kill.Monster(target.ID, token);
+                    return;
                 }
 
                 Kill.Monster(target.MapID, token);
@@ -223,18 +221,18 @@ public class ScriptHunt : IScriptHunt
                 if (token?.IsCancellationRequested ?? false)
                     break;
                 bool sameCell = Monsters.Exists(target.Name);
-                switch (sameCell)
+                if (sameCell || CanJumpForHunt())
                 {
-                    case false when !CanJumpForHunt():
-                        continue;
-                    case false when (!token?.IsCancellationRequested ?? true):
-                        {
-                            if (Player.Cell == target.Cell)
-                                continue;
-                            Map.Jump(target.Cell, "Left");
-                            _lastHuntTick = Environment.TickCount;
-                            break;
-                        }
+                    if (!sameCell && (!token?.IsCancellationRequested ?? true))
+                    {
+                        if (Player.Cell == target.Cell)
+                            continue;
+                        Map.Jump(target.Cell, "Left");
+                        _lastHuntTick = Environment.TickCount;
+                    }
+
+                    Kill.Monster(target.ID, token);
+                    return;
                 }
 
                 Kill.Monster(target.ID, token);

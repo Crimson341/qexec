@@ -36,6 +36,8 @@ public partial class ScriptMonster : IScriptMonster
 
     public Dictionary<string, List<Monster>> GetCellMonsters()
     {
+        if (Map.Cells is null)
+            return new();
         Dictionary<string, List<Monster>> monsters = new();
         foreach (string cell in Map.Cells)
             monsters[cell] = ((IScriptMonster)this).GetMonstersByCell(cell);

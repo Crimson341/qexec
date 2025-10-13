@@ -42,17 +42,17 @@ public class OptionContainer : ObservableObject, IOptionContainer
         if (option is null)
             return default;
 
-        if (!OptionValues.TryGetValue(option, out string? value))
+        if (OptionValues.TryGetValue(option, out string? value))
         {
-            return default;
+            if (string.IsNullOrEmpty(value))
+                return default;
+
+            return typeof(T).IsEnum
+                ? (T)Enum.Parse(typeof(T), value.Replace(' ', '_'))
+                : (T)Convert.ChangeType(value, typeof(T));
         }
 
-        if (string.IsNullOrEmpty(value))
-            return default;
-
-        return typeof(T).IsEnum
-            ? (T)Enum.Parse(typeof(T), value.Replace(' ', '_'))
-            : (T)Convert.ChangeType(value, typeof(T));
+        return default;
     }
 
     public string GetDirect(IOption? option)
