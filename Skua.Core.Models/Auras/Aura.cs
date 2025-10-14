@@ -58,6 +58,7 @@ public class Aura
     /// <summary>
     /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
+    [JsonIgnore]
     public long UnixTimeStamp => _timeStamp;
 
     /// <summary>
