@@ -30,12 +30,7 @@ public partial class App : Application
         SingleInstanceWatcher();
 
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         string targetPath = Path.Combine(appData, "Skua");
-        if (!Directory.Exists(targetPath) || !File.Exists(Path.Combine(targetPath, "ManagerSettings.json")))
-        {
-            SettingsMigrationService.MigrateSettings("Skua.Manager", localAppData);
-        }
 
         Services = ConfigureServices();
         Services.GetRequiredService<IClientFilesService>().CreateDirectories();
@@ -64,8 +59,6 @@ public partial class App : Application
     {
         base.OnStartup(e);
 
-        // Don't register managed windows immediately - let them be registered lazily when needed
-        // This prevents early activation of ViewModels like ScriptRepoManagerViewModel
 
         bool isChangeLogActivated = Services.GetRequiredService<ISettingsService>().Get<bool>("ChangeLogActivated");
         if (!isChangeLogActivated)

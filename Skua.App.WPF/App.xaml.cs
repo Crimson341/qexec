@@ -34,13 +34,7 @@ public sealed partial class App : Application
         InitializeComponent();
 
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-        string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
         string targetPath = Path.Combine(appData, "Skua");
-        if (!Directory.Exists(targetPath) || !File.Exists(Path.Combine(targetPath, "ClientSettings.json")))
-        {
-            SettingsMigrationService.MigrateSettings("Skua.App.WPF", Path.Combine(localAppData, "Skua"));
-        }
-
 
         Services = ConfigureServices();
         Services.GetRequiredService<IClientFilesService>().CreateDirectories();
@@ -50,8 +44,8 @@ public sealed partial class App : Application
         _bot = Services.GetRequiredService<IScriptInterface>();
         _ = Services.GetRequiredService<ILogService>();
 
-        var args = Environment.GetCommandLineArgs();
-        var startup = new SkuaStartupHandler(args, _bot, Services.GetRequiredService<ISettingsService>(), Services.GetRequiredService<IThemeService>());
+        string[] args = Environment.GetCommandLineArgs();
+        SkuaStartupHandler startup = new(args, _bot, Services.GetRequiredService<ISettingsService>(), Services.GetRequiredService<IThemeService>());
         startup.Execute();
 
         RoslynLifetimeManager.WarmupRoslyn();
