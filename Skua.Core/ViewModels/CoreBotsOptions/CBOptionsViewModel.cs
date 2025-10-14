@@ -25,9 +25,14 @@ public class CBOptionsViewModel : ObservableObject, IManageCBOptions
     {
         foreach (DisplayOptionItemViewModelBase option in Options)
         {
-            if (option.Tag == "PrivateRooms" && (bool)option.Value == false && _dialogService.ShowMessageBox("Whilst we do offer the option, we highly recommend staying in private rooms while botting. Bot in public at your own risk.\r\n Confirm the use of Public Rooms?", "Public Room Warning", true) == false)
+            if (option.Tag == "PrivateRooms" && !(bool)option.Value && _dialogService.ShowMessageBox("Whilst we do offer the option, we highly recommend staying in private rooms while botting. Bot in public at your own risk.\r\n Confirm the use of Public Rooms?", "Public Room Warning", true) == false)
             {
                 builder.AppendLine($"{option.Tag}: {true}");
+                continue;
+            }
+
+            if (option.Tag == "PrivateRoomNr" && long.TryParse(option.Value?.ToString(), out long room) && room > int.MaxValue && _dialogService.ShowMessageBox($"Private room number cannot be greater than {int.MaxValue}", "Room Number Warning", true) == false)
+            {
                 continue;
             }
             builder.AppendLine($"{option.Tag}: {option.Value}");
@@ -42,8 +47,29 @@ public class CBOptionsViewModel : ObservableObject, IManageCBOptions
         {
             if (values.TryGetValue(option.Tag, out string? value) && !string.IsNullOrWhiteSpace(value))
             {
-                option.Value = Convert.ChangeType(value, option.DisplayType);
-                continue;
+                try
+                {
+                    if (option.DisplayType == typeof(int))
+                    {
+                        if (long.TryParse(value, out long longValue))
+                        {
+                            option.Value = (int)Math.Clamp(longValue, int.MinValue, int.MaxValue);
+                        }
+                        else
+                        {
+                            option.Value = 100000;
+                        }
+                    }
+                    else
+                    {
+                        option.Value = Convert.ChangeType(value, option.DisplayType);
+                        continue;
+                    }
+                }
+                catch (Exception)
+                {
+                    option.Value = DefaultValues[option.Tag];
+                }
             }
             option.Value = DefaultValues[option.Tag];
         }
