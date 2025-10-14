@@ -58,6 +58,7 @@ public class Aura
     /// <summary>
     /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
+    [JsonIgnore]
     public long UnixTimeStamp => _timeStamp;
 
     /// <summary>
@@ -107,9 +108,4 @@ public class Aura
 
     [JsonProperty("animOff")]
     public string AnimationOff { get; set; } = string.Empty;
-
-    public override string ToString()
-    {
-        return JsonConvert.SerializeObject(this, Formatting.Indented);
-    }
 }
