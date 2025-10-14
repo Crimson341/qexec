@@ -108,4 +108,9 @@ public class Aura
 
     [JsonProperty("animOff")]
     public string AnimationOff { get; set; } = string.Empty;
+
+    public override string ToString()
+    {
+        return JsonConvert.SerializeObject(this, Formatting.Indented);
+    }
 }
