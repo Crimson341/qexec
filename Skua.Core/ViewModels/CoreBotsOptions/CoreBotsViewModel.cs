@@ -22,6 +22,16 @@ public partial class CoreBotsViewModel : BotControlViewModelBase
         Load();
     }
 
+    protected override void OnDeactivated()
+    {
+        // Auto-save when closing the window
+        if (!string.IsNullOrEmpty(_player.Username))
+        {
+            SaveInternal(showDialog: false);
+        }
+        base.OnDeactivated();
+    }
+
     private readonly IScriptPlayer _player;
     private readonly IDialogService _dialogService;
     private Dictionary<string, Dictionary<string, string>> _readValues = new();
@@ -37,10 +47,18 @@ public partial class CoreBotsViewModel : BotControlViewModelBase
     [RelayCommand]
     private void Save()
     {
+        SaveInternal(showDialog: true);
+    }
+
+    private void SaveInternal(bool showDialog)
+    {
         if (string.IsNullOrEmpty(_player.Username))
         {
-            _dialogService.ShowMessageBox("Login first so that we can fetch your username for the save file", "Save");
-            CurrentPlayer = string.Empty;
+            if (showDialog)
+            {
+                _dialogService.ShowMessageBox("Login first so that we can fetch your username for the save file", "Save");
+                CurrentPlayer = string.Empty;
+            }
             return;
         }
 
@@ -51,7 +69,10 @@ public partial class CoreBotsViewModel : BotControlViewModelBase
                 cbo.Save(bob);
         }
         File.WriteAllText(ClientFileSources.SkuaOptionsDIR + $@"\CBO_Storage({_player.Username}).txt", bob.ToString());
-        _dialogService.ShowMessageBox($@"Saved to \options\CBO_Storage({_player.Username}).txt", "Save Successful!");
+        if (showDialog)
+        {
+            _dialogService.ShowMessageBox($@"Saved to \options\CBO_Storage({_player.Username}).txt", "Save Successful!");
+        }
         _readValues[_player.Username] = ReadValues(File.ReadAllLines(ClientFileSources.SkuaOptionsDIR + $@"\CBO_Storage({_player.Username}).txt"));
     }
 
