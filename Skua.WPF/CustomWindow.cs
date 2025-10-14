@@ -1,5 +1,6 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using System;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
@@ -85,8 +86,38 @@ public partial class CustomWindow : Window
         _handle = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
         _hook = new HwndSourceHook(WindowChromePatch.WindowProc);
         _handle.AddHook(_hook);
+        
+        ApplyRoundedCorners(_handle.Handle);
+        
         SourceInitialized -= CustomWindow_SourceInitialized;
     }
+    
+    private static void ApplyRoundedCorners(IntPtr hwnd)
+    {
+        try
+        {
+            var attribute = DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE;
+            var preference = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
+            DwmSetWindowAttribute(hwnd, attribute, ref preference, sizeof(uint));
+        }
+        catch {  }
+    }
+    
+    private enum DWMWINDOWATTRIBUTE
+    {
+        DWMWA_WINDOW_CORNER_PREFERENCE = 33
+    }
+    
+    private enum DWM_WINDOW_CORNER_PREFERENCE
+    {
+        DWMWCP_DEFAULT = 0,
+        DWMWCP_DONOTROUND = 1,
+        DWMWCP_ROUND = 2,
+        DWMWCP_ROUNDSMALL = 3
+    }
+    
+    [DllImport("dwmapi.dll", PreserveSig = true)]
+    private static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attribute, ref DWM_WINDOW_CORNER_PREFERENCE pvAttribute, int cbAttribute);
 
     public override void OnApplyTemplate()
     {

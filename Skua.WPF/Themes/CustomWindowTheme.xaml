@@ -13,18 +13,23 @@
                     CaptionHeight="28"
                     CornerRadius="0"
                     GlassFrameThickness="0"
-                    ResizeBorderThickness="4" />
+                    ResizeBorderThickness="8" />
             </Setter.Value>
         </Setter>
         <Setter Property="WindowStyle" Value="None" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="local:CustomWindow">
-                    <Border BorderBrush="DimGray" BorderThickness="1">
-                        <materialdesign:Card UniformCornerRadius="0">
+                    <Border BorderBrush="DimGray" BorderThickness="1" CornerRadius="10" Background="{DynamicResource MaterialDesignBackground}">
+                        <Grid>
+                            <Grid.Clip>
+                                <RectangleGeometry RadiusX="9" RadiusY="9" Rect="0,0,10000,10000" />
+                            </Grid.Clip>
+                        <materialdesign:Card UniformCornerRadius="9">
                             <DockPanel>
                                 <!--  Title bar  -->
-                                <materialdesign:ColorZone Height="32" DockPanel.Dock="Top">
+                                <Border DockPanel.Dock="Top" CornerRadius="9,9,0,0" ClipToBounds="True">
+                                <materialdesign:ColorZone Height="32">
                                     <Grid>
                                         <Grid.ColumnDefinitions>
                                             <ColumnDefinition Width="auto" />
@@ -89,10 +94,17 @@
                                         </StackPanel>
                                     </Grid>
                                 </materialdesign:ColorZone>
+                                </Border>
                                 <!--  Content Presenter  -->
-                                <ContentPresenter Content="{TemplateBinding Content}" />
+                                <Border CornerRadius="0,0,9,9" ClipToBounds="True">
+                                    <Border.Clip>
+                                        <RectangleGeometry RadiusX="9" RadiusY="9" Rect="0,0,10000,10000" />
+                                    </Border.Clip>
+                                    <ContentPresenter Content="{TemplateBinding Content}" ClipToBounds="True" />
+                                </Border>
                             </DockPanel>
                         </materialdesign:Card>
+                        </Grid>
                     </Border>
                 </ControlTemplate>
             </Setter.Value>
