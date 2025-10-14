@@ -6,8 +6,18 @@ namespace Skua.Core.Scripts;
 
 public partial class ScriptBotStats : ObservableObject, IScriptBotStats, IAsyncDisposable
 {
-    public ScriptBotStats()
+
+    private readonly Lazy<IScriptInventory> _lazyInventory;
+    private readonly Lazy<IScriptBank> _lazyBank;
+
+    private IScriptInventory Inventory => _lazyInventory.Value;
+    private IScriptBank Bank => _lazyBank.Value;
+
+    public ScriptBotStats(Lazy<IScriptInventory> inventory, Lazy<IScriptBank> bank)
     {
+        _lazyInventory = inventory;
+        _lazyBank = bank;
+
         _sw = Stopwatch.StartNew();
         _ctsTimer = new();
         _timer = new(TimeSpan.FromMilliseconds(1000));
@@ -38,6 +48,24 @@ public partial class ScriptBotStats : ObservableObject, IScriptBotStats, IAsyncD
     private int _drops;
 
     [ObservableProperty]
+    private int _inventorySpace;
+
+    [ObservableProperty]
+    private int _inventoryFilledSpace;
+
+    [ObservableProperty]
+    private int _inventoryFreeSpace;
+
+    [ObservableProperty]
+    private int _bankSpace;
+
+    [ObservableProperty]
+    private int _bankFilledSpace;
+
+    [ObservableProperty]
+    private int _bankFreeSpace;
+
+    [ObservableProperty]
     private TimeSpan _time;
 
     public void Reset()
@@ -49,6 +77,16 @@ public partial class ScriptBotStats : ObservableObject, IScriptBotStats, IAsyncD
         Relogins = 0;
         Drops = 0;
         _sw.Restart();
+    }
+
+    public void GetSpace()
+    {
+        InventoryFreeSpace = Inventory.FreeSlots;
+        InventoryFilledSpace = Inventory.UsedSlots;
+        InventorySpace = Inventory.Slots;
+        BankFreeSpace = Bank.FreeSlots;
+        BankFilledSpace = Bank.UsedSlots;
+        BankSpace = Bank.Slots;
     }
 
     private async Task HandleTimerAsync(PeriodicTimer timer, CancellationToken token)

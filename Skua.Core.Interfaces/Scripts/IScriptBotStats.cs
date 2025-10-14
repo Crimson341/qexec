@@ -45,7 +45,43 @@ public interface IScriptBotStats : INotifyPropertyChanged
     int Relogins { get; set; }
 
     /// <summary>
+    /// The max inventory space.
+    /// </summary>
+    int InventorySpace { get; }
+
+    /// <summary>
+    /// The filled inventory space.
+    /// </summary>
+    int InventoryFilledSpace { get; }
+
+    /// <summary>
+    /// The free inventory space.
+    /// </summary>
+    int InventoryFreeSpace { get; }
+
+    /// <summary>
+    /// The max bank space.
+    /// </summary>
+    int BankSpace { get; }
+
+    /// <summary>
+    /// The filled bank space.
+    /// </summary>
+    int BankFilledSpace { get; }
+
+    /// <summary>
+    /// The free bank space.
+    /// </summary>
+    int BankFreeSpace { get; }
+
+
+    /// <summary>
     /// Resets all values.
     /// </summary>
     void Reset();
+
+    /// <summary>
+    /// Gets Inventory & bank space
+    /// </summary>
+    void GetSpace();
 }

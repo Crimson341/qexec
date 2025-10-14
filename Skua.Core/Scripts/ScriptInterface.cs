@@ -392,6 +392,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "moveToArea":
+                            Stats.GetSpace();
                             Options.CustomName = !string.IsNullOrWhiteSpace(Options.CustomName) ? Options.CustomName : Player.Username;
                             Options.CustomGuild = !string.IsNullOrWhiteSpace(Options.CustomGuild) ? Options.CustomGuild : Player.Guild;
                             Messenger.Send<MapChangedMessage, int>(new(Convert.ToString(data.strMapName)), (int)MessageChannels.GameEvents);
@@ -436,12 +437,16 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "sellItem":
+                            Stats.GetSpace();
                             Messenger.Send<ItemSoldMessage, int>(new(data.CharItemID, data.iQty, data.iQtyNow, data.intAmount, data.bCoins == 1), (int)MessageChannels.GameEvents);
                             break;
 
                         case "buyItem":
                             if (data.bitSuccess == 1)
+                            {
                                 Messenger.Send<ItemBoughtMessage, int>(new(Convert.ToInt32(data.CharItemID)), (int)MessageChannels.GameEvents);
+                                Stats.GetSpace();
+                            }
                             break;
 
                         case "dropItem":
@@ -455,6 +460,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             Dictionary<int, dynamic> addedItem = JsonConvert.DeserializeObject<Dictionary<int, dynamic>>(addItems)!;
                             int itemID = addedItem.Keys.First()!;
                             ItemBase invItem = Inventory.GetItem(itemID) ?? TempInv.GetItem(itemID)!;
+                            Stats.GetSpace();
                             if (invItem is null)
                             {
                                 invItem = Bank.GetItem(itemID)!;
@@ -469,7 +475,10 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                         case "getDrop":
                             bool toBank = Convert.ToBoolean(data.bBank);
                             if (data.bSuccess == 1)
+                            {
                                 Stats.Drops += (int)data.iQty;
+                                Stats.GetSpace();
+                            }
                             if (toBank)
                             {
                                 ItemBase bankItem = Bank.GetItem(Convert.ToInt32(data.ItemID))!;
@@ -494,10 +503,12 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "loadBank":
+                            Stats.GetSpace();
                             Messenger.Send<BankLoadedMessage, int>((int)MessageChannels.GameEvents);
                             break;
 
                         case "loadShop":
+                            Stats.GetSpace();
                             Messenger.Send<ShopLoadedMessage, int>(new(new(Shops.ID, Shops.Name, Shops.Items)), (int)MessageChannels.GameEvents);
                             break;
                     }
@@ -518,6 +529,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "loginResponse":
+                            Stats.GetSpace();
                             Messenger.Send<LoginMessage, int>(new(Convert.ToString(data[4])), (int)MessageChannels.GameEvents);
                             break;
                     }
@@ -534,6 +546,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                         break;
 
                     case "buyItem":
+                        Stats.GetSpace();
                         Messenger.Send<TryBuyItemMessage, int>(new(int.Parse(parts[5]), int.Parse(parts[4]), int.Parse(parts[6])), (int)MessageChannels.GameEvents);
                         break;
 
