@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 17
-VisualStudioVersion = 17.1.32407.343
+# Visual Studio Version 18
+VisualStudioVersion = 18.0.11109.219 d18.0-oob
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Skua.Core", "Skua.Core\Skua.Core.csproj", "{6C5FB35E-68B8-4C18-B86B-80D566DA0C24}"
 EndProject
@@ -187,8 +187,8 @@ Global
 		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Debug|x64.ActiveCfg = Debug|x64
 		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Debug|x86.ActiveCfg = Debug|x86
 		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Debug|x86.Build.0 = Debug|x86
-		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Release|Any CPU.ActiveCfg = Release|ARM64
-		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Release|Any CPU.Build.0 = Release|ARM64
+		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Release|Any CPU.ActiveCfg = Release|x64
+		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Release|Any CPU.Build.0 = Release|x64
 		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Release|x64.ActiveCfg = Release|x64
 		{83AB2857-FE3F-477D-A0F7-F0F4BDBB30CA}.Release|x86.ActiveCfg = Release|x86
 	EndGlobalSection
