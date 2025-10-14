@@ -27,14 +27,16 @@ This document provides instructions for building the Skua project from source, i
    - Or install Build Tools for Visual Studio separately
 
 3. **WiX CLI v6.0+** (for installer)
-   - Install using: `dotnet tool install --global wix`
-   - Verify installation: `wix --version`
+   - Install using: https://github.com/wixtoolset/wix/releases/tag/v6.0.2
+   - Install both: `wix-cli-x64.msi` and `WixAdditionalTools.exe`
+   - and the Visual Studio extension https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17
    - Documentation: https://wixtoolset.org/docs/tools/
-   - The installer build is optional
 
-4. **PowerShell 5.1 or later**
-   - Pre-installed on Windows 10+
-   - For PowerShell Core: https://github.com/PowerShell/PowerShell
+4. **PowerShell 7 or later**
+   - For PowerShell: https://github.com/PowerShell/PowerShell/releases
+
+5. **FlashDevelop (for building skua.swf)**
+   - For FlashDevelop: https://github.com/fdorg/flashdevelop/raw/refs/heads/development/Releases/FlashDevelop-5.3.3.exe
 
 ### Optional Software
 
@@ -47,15 +49,15 @@ This document provides instructions for building the Skua project from source, i
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/BrenoHenrike/Skua.git
+   git clone https://github.com/auqw/Skua.git
    cd Skua
    ```
 
 2. Right-click `Build-Skua.ps1` and select "Run with PowerShell"
-   - This builds Release configuration for both x64 and x86
+   - This builds the Release configuration for both x64 and x86
    - Includes WiX installer creation
-   - Output is placed in `build` folder
-   - **The window stays open after completion** showing build results
+   - Output is placed in the `build` folder
+   - **The window stays open after completion**, showing build results
 
 ### Alternative: Run from Terminal
 
@@ -67,13 +69,13 @@ This document provides instructions for building the Skua project from source, i
 .\Build-Skua.ps1 -Configuration Debug
 
 # Skip cleaning
-.\Build-Skua.ps1 -Clean:$false
+.\Build-Skua.ps1 -Clean false
 
 # Skip installer
-.\Build-Skua.ps1 -BuildInstaller:$false
+.\Build-Skua.ps1 -SkipInstaller
 
 # Combine options
-.\Build-Skua.ps1 -Configuration Debug -BuildInstaller:$false
+.\Build-Skua.ps1 -Configuration Debug -SkipInstaller
 ```
 
 ## Build Scripts
@@ -92,14 +94,14 @@ The main build automation script with full control over the build process.
 .\Build-Skua.ps1 -Configuration Debug
 
 # Build specific platforms
-.\Build-Skua.ps1 -Platforms @("x64")
-.\Build-Skua.ps1 -Platforms @("x86")
+.\Build-Skua.ps1 -Platforms "x64"
+.\Build-Skua.ps1 -Platforms "x86"
 
 # Skip installer
-.\Build-Skua.ps1 -BuildInstaller:$false
+.\Build-Skua.ps1 -SkipInstaller
 
 # Skip cleaning
-.\Build-Skua.ps1 -Clean:$false
+.\Build-Skua.ps1 -Clean false
 
 # Custom output path
 .\Build-Skua.ps1 -OutputPath "C:\MyBuilds"
@@ -190,7 +192,7 @@ msbuild Skua.Installer\Skua.Installer.wixproj /p:Configuration=Release /p:Platfo
 
 The project includes a GitHub Actions workflow (`.github/workflows/build.yml`) that automatically:
 
-1. Builds on every push to main/master/develop branches
+1. Builds on every push to the main/master/develop branches
 2. Builds on pull requests
 3. Creates releases when tags starting with 'v' are pushed
 4. Supports manual workflow dispatch
@@ -206,7 +208,7 @@ git push origin v1.0.0
 # 1. Build for all platforms
 # 2. Create installers
 # 3. Generate release artifacts
-# 4. Create GitHub release with downloads
+# 4. Create a GitHub release with downloads
 ```
 
 #### GitHub Secrets (Optional)
@@ -233,7 +235,7 @@ Test the build process locally before pushing:
 
 #### WiX CLI Not Found
 - **Error**: "WiX CLI v6+ not found"
-- **Solution**: Install WiX CLI using: `dotnet tool install --global wix`
+- **Solution**: Install WiX CLI using: `dotnet tool install --global wix` or https://github.com/wixtoolset/wix/releases/tag/v6.0.2
 - **Verify**: Run `wix --version` to confirm installation
 - **Documentation**: https://wixtoolset.org/docs/tools/
 
@@ -269,9 +271,9 @@ dotnet build -p:Platform=x86 -p:PlatformTarget=x86
 
 Speed up builds with these tips:
 
-1. **Incremental builds**: Use `-Clean:$false` when testing
+1. **Incremental builds**: Use `-Clean false` when testing
 2. **Single platform**: Build only what you need
-3. **Skip installer**: Use `-BuildInstaller:$false` during development
+3. **Skip installer**: Use `-SkipInstaller` during development
 4. **Parallel builds**: MSBuild uses parallel builds by default
 
 ### Validation
@@ -327,7 +329,7 @@ When contributing build system changes:
 
 1. Test all platforms (x64, x86)
 2. Test both Debug and Release configurations
-3. Verify installer builds correctly
+3. Verify the installer builds correctly
 4. Update this documentation if needed
 5. Test GitHub Actions workflow locally if possible
 
