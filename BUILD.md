@@ -36,7 +36,7 @@ This document provides instructions for building the Skua project from source, i
    - For PowerShell: https://github.com/PowerShell/PowerShell/releases
 
 5. **FlashDevelop (for building skua.swf)**
-   - For FlashDevelop: https://github.com/fdorg/flashdevelop/raw/refs/heads/development/Releases/Builds/FlashDevelop-development.exe
+   - For FlashDevelop: https://github.com/fdorg/flashdevelop/raw/refs/heads/development/Releases/FlashDevelop-5.3.3.exe
 
 ### Optional Software
 
