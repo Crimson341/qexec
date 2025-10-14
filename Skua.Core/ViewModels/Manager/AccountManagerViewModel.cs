@@ -96,6 +96,12 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
             return;
         }
 
+        if (string.IsNullOrEmpty(DisplayNameInput) && !UseNameAsDisplay)
+        {
+            _dialogService.ShowMessageBox("Display name must not be empty when \"Username as Display\" is no checked", "Missing Input");
+            return;
+        }
+
         Accounts.Add(new AccountItemViewModel()
         {
             Username = UsernameInput,
