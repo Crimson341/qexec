@@ -70,8 +70,8 @@ public class FlashUtil : IFlashUtil
         }
         catch
         {
-            if (MessageBox.Show($"Please, reinstall Clean Flash using the link https://auqw.tk/ under Download Client > Issues\r\nDo you want to open the site?", "Clean Flash missing", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
-                Ioc.Default.GetRequiredService<IProcessService>().OpenLink("https://auqw.tk/");
+            if (MessageBox.Show($"Please, uninstall and then reinstall CleanFlash via the Gif provided \r\nDo you want view the instructional Gif?", "Clean Flash missing/installed incorrectly", MessageBoxButtons.YesNo, MessageBoxIcon.Exclamation) == DialogResult.Yes)
+                Ioc.Default.GetRequiredService<IProcessService>().OpenLink("https://imgur.com/ztsLYZ1");
             Environment.Exit(0);
         }
         finally
