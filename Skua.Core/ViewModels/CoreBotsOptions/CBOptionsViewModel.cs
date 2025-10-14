@@ -31,9 +31,13 @@ public class CBOptionsViewModel : ObservableObject, IManageCBOptions
                 continue;
             }
 
-            if (option.Tag == "PrivateRoomNr" && long.TryParse(option.Value?.ToString(), out long room) && room > int.MaxValue && _dialogService.ShowMessageBox($"Private room number cannot be greater than {int.MaxValue}", "Room Number Warning", true) == false)
+            if (option.Tag == "PrivateRoomNr" && long.TryParse(option.Value?.ToString(), out long room) && room > int.MaxValue)
             {
-                continue;
+                if (_dialogService.ShowMessageBox($"Private room number cannot be greater than {int.MaxValue}. It will be reset to 100000.", "Room Number Warning", true) == false)
+                {
+                    continue;
+                }
+                option.Value = 100000;
             }
             builder.AppendLine($"{option.Tag}: {option.Value}");
         }
@@ -53,7 +57,14 @@ public class CBOptionsViewModel : ObservableObject, IManageCBOptions
                     {
                         if (long.TryParse(value, out long longValue))
                         {
-                            option.Value = (int)Math.Clamp(longValue, int.MinValue, int.MaxValue);
+                            if (longValue > int.MaxValue || longValue < int.MinValue)
+                            {
+                                option.Value = 100000;
+                            }
+                            else
+                            {
+                                option.Value = (int)longValue;
+                            }
                         }
                         else
                         {
@@ -63,7 +74,6 @@ public class CBOptionsViewModel : ObservableObject, IManageCBOptions
                     else
                     {
                         option.Value = Convert.ChangeType(value, option.DisplayType);
-                        continue;
                     }
                 }
                 catch (Exception)
@@ -71,7 +81,10 @@ public class CBOptionsViewModel : ObservableObject, IManageCBOptions
                     option.Value = DefaultValues[option.Tag];
                 }
             }
-            option.Value = DefaultValues[option.Tag];
+            else
+            {
+                option.Value = DefaultValues[option.Tag];
+            }
         }
     }
 }
