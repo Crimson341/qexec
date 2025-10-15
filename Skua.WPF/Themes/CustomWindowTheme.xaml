@@ -96,10 +96,7 @@
                                 </materialdesign:ColorZone>
                                 </Border>
                                 <!--  Content Presenter  -->
-                                <Border CornerRadius="0,0,9,9" ClipToBounds="True">
-                                    <Border.Clip>
-                                        <RectangleGeometry RadiusX="9" RadiusY="9" Rect="0,0,10000,10000" />
-                                    </Border.Clip>
+                                <Border CornerRadius="0" ClipToBounds="True">
                                     <ContentPresenter Content="{TemplateBinding Content}" ClipToBounds="True" />
                                 </Border>
                             </DockPanel>

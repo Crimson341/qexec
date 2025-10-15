@@ -26,10 +26,15 @@
             DockPanel.Dock="Right"
             Style="{StaticResource MaterialDesignFlatButton}" />
         <Popup
-            DockPanel.Dock="Right"
+            HorizontalOffset="-185"
             IsOpen="{Binding ElementName=JumpToggle, Path=IsChecked}"
+            Placement="Bottom"
+            PlacementTarget="{Binding ElementName=JumpToggle}"
             StaysOpen="False">
-            <StackPanel Width="300" Background="{DynamicResource MaterialDesignPaper}">
+            <StackPanel
+                Width="300"
+                HorizontalAlignment="Right"
+                Background="{DynamicResource MaterialDesignPaper}">
                 <local:JumpUserControl DataContext="{Binding JumpViewModel}" />
             </StackPanel>
         </Popup>
@@ -47,10 +52,15 @@
             </ToggleButton.Content>
         </ToggleButton>
         <Popup
-            DockPanel.Dock="Right"
+            HorizontalOffset="-220"
             IsOpen="{Binding ElementName=AutoToggle, Path=IsChecked}"
+            Placement="Bottom"
+            PlacementTarget="{Binding ElementName=AutoToggle}"
             StaysOpen="False">
-            <StackPanel Width="400" Background="{DynamicResource MaterialDesignPaper}">
+            <StackPanel
+                Width="400"
+                HorizontalAlignment="Right"
+                Background="{DynamicResource MaterialDesignPaper}">
                 <local:AutoUserControl DataContext="{Binding AutoViewModel}" />
             </StackPanel>
         </Popup>
