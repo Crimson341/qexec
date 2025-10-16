@@ -154,7 +154,7 @@ public partial class ScriptMap : IScriptMap
     private readonly string _cachePath = Path.Combine(ClientFileSources.SkuaDIR, "cache");
     private readonly string _savedCacheFilePath = Path.Combine(ClientFileSources.SkuaDIR, "cache", "0SavedMaps.json");
 
-    public List<MapItem>? FindMapItems()
+    public List<MapItem>? FindMapItems(bool forceRefresh = false)
     {
         if (string.IsNullOrEmpty(FilePath))
             return null;
@@ -168,19 +168,25 @@ public partial class ScriptMap : IScriptMap
             return null;
         }
 
-        if (_savedMapItems.ContainsKey(FileName))
+        // Return cached data if available and not forcing refresh
+        if (!forceRefresh && _savedMapItems.ContainsKey(FileName))
             return _savedMapItems[FileName];
 
         List<string> files = new();
         files = Directory.GetFiles(_cachePath).ToList();
         var sw = Stopwatch.StartNew();
+        
+        // Always decompile when forcing refresh, even if SWF exists
         if (files.Count > 0 && files.Contains(Path.Combine(_cachePath, FileName)))
             return !DecompileSWF(FileName) ? null : ParseMapSWFData();
         return !DownloadMapSWF(FileName) ? null : !DecompileSWF(FileName) ? null : ParseMapSWFData();
 
         void SaveMapItemInfo(List<MapItem> info)
         {
-            _savedMapItems.Add(FileName, info);
+            if (_savedMapItems.ContainsKey(FileName))
+                _savedMapItems[FileName] = info;
+            else
+                _savedMapItems.Add(FileName, info);
             File.WriteAllText(_savedCacheFilePath, JsonConvert.SerializeObject(_savedMapItems, Formatting.Indented));
         }
 
@@ -325,16 +331,9 @@ public partial class ScriptMap : IScriptMap
                     CreateNoWindow = true,
                     UseShellExecute = false,
                     RedirectStandardError = true,
-                    FileName = "powershell.exe",
+                    FileName = "cmd.exe",
                     WorkingDirectory = Path.Combine(AppContext.BaseDirectory, "FFDec"),
-                    ArgumentList = {
-                        "/c",
-                        "./ffdec.bat",
-                        "-export",
-                        "script",
-                        @$"""""""{_cachePath}\tmp""""""",
-                        @$"""""""{_cachePath}\{fileName}"""""""
-                    }
+                    Arguments = $"/c ffdec.bat -export script \"{_cachePath}\\tmp\" \"{_cachePath}\\{fileName}\""
                 }
             };
             decompile.Start();
@@ -349,6 +348,24 @@ public partial class ScriptMap : IScriptMap
             else
                 Trace.WriteLine($"Decompilation of \"{fileName}\" took {sw.Elapsed:s\\.ff}s");
             return Directory.Exists($"{_cachePath}\\tmp");
+        }
+    }
+
+    public void ClearMapItemsCache(string? specificMap = null)
+    {
+        if (specificMap is not null)
+        {
+            if (_savedMapItems.ContainsKey(specificMap))
+            {
+                _savedMapItems.Remove(specificMap);
+                File.WriteAllText(_savedCacheFilePath, JsonConvert.SerializeObject(_savedMapItems, Formatting.Indented));
+            }
+        }
+        else
+        {
+            _savedMapItems.Clear();
+            if (File.Exists(_savedCacheFilePath))
+                File.Delete(_savedCacheFilePath);
         }
     }
 }

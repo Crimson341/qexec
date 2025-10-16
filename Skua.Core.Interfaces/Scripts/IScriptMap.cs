@@ -168,7 +168,14 @@ public interface IScriptMap
     /// <summary>
     /// Search for map items in the current map.
     /// </summary>
+    /// <param name="forceRefresh">If true, bypasses cache and re-parses the map file.</param>
     /// <returns>A list of the current map items.</returns>
     /// <remarks>Returns <see langword="null"/> if <see cref="FilePath"/> or the file of the map isn't found.</remarks>
-    List<MapItem>? FindMapItems();
+    List<MapItem>? FindMapItems(bool forceRefresh = false);
+
+    /// <summary>
+    /// Clears the cached map items data.
+    /// </summary>
+    /// <param name="specificMap">Optional: Clear only a specific map file. If null, clears all cached map items.</param>
+    void ClearMapItemsCache(string? specificMap = null);
 }
