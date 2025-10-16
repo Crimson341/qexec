@@ -22,4 +22,4 @@ set MEMORY_PARAM=
 if not "%FFDEC_STACK_SIZE%"=="" set STACK_SIZE_PARAM="-Xss%FFDEC_STACK_SIZE%" 
 if not "%FFDEC_MEMORY%"=="" set MEMORY_PARAM="-Xmx%FFDEC_MEMORY%" 
 
-java %MEMORY_PARAM% %STACK_SIZE_PARAM% -Djava.net.preferIPv4Stack=true -Djna.nosys=true -Djava.util.Arrays.useLegacyMergeSort=true -jar "%~dp0\ffdec.jar" %*
+java %MEMORY_PARAM% %STACK_SIZE_PARAM% --enable-native-access=ALL-UNNAMED --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.io=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/sun.nio.fs=ALL-UNNAMED --add-opens=java.desktop/sun.awt=ALL-UNNAMED --add-opens=java.desktop/sun.java2d=ALL-UNNAMED -Djava.net.preferIPv4Stack=true -Djna.nosys=true -Djava.util.Arrays.useLegacyMergeSort=true -jar "%~dp0\ffdec.jar" %*
