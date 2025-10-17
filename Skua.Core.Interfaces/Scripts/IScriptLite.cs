@@ -28,6 +28,11 @@ public interface IScriptLite
     bool Debugger { get; set; }
 
     /// <summary>
+    /// Gets or sets a value indicating whether debug packet information is enabled.
+    /// </summary>
+    bool DebugPacket { get; set; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the damage strobe visual effect is disabled.
     /// </summary>
     bool DisableDamageStrobe { get; set; }

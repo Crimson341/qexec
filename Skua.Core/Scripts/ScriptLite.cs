@@ -16,6 +16,9 @@ public partial class ScriptLite : IScriptLite
     [ObjectBinding("litePreference.data.bDebugger", HasSetter = true)]
     private bool _debugger;
 
+    [ObjectBinding("litePreference.data.dOptions[\"debugPacket\"]", HasSetter = true)]
+    private bool _debugPacket;
+
     [ObjectBinding("litePreference.data.bHideUI", HasSetter = true)]
     private bool _hideUI;
 
