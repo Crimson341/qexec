@@ -20,6 +20,20 @@ public partial class JumpViewModel : BotControlViewModelBase
     [ObservableProperty]
     private string _selectedCell = string.Empty;
 
+    partial void OnSelectedCellChanged(string value)
+    {
+        if (!string.IsNullOrEmpty(value))
+        {
+            // Set default pad to Left if not already set
+            if (string.IsNullOrEmpty(SelectedPad))
+            {
+                SelectedPad = "Left";
+            }
+            // Auto-jump when cell is selected
+            JumpTo();
+        }
+    }
+
     [ObservableProperty]
     private string _selectedPad = string.Empty;
 

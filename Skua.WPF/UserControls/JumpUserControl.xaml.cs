@@ -9,9 +9,15 @@ namespace Skua.WPF.UserControls;
 /// </summary>
 public partial class JumpUserControl : UserControl
 {
+    private readonly JumpViewModel _viewModel;
+
     public JumpUserControl()
     {
         InitializeComponent();
-        DataContext = Ioc.Default.GetRequiredService<JumpViewModel>();
+        _viewModel = Ioc.Default.GetRequiredService<JumpViewModel>();
+        DataContext = _viewModel;
+        
+        // Refresh cells when dropdown is opened
+        Cells.DropDownOpened += (s, e) => _viewModel.UpdateCellsCommand.Execute(null);
     }
 }
