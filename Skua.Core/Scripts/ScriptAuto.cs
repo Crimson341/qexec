@@ -150,20 +150,13 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         Trace.WriteLine("Auto attack started.");
         Player.SetSpawnPoint();
 
-        List<Monster> monsters = Monsters.CurrentMonsters;
-
-        while (!token.IsCancellationRequested)
+        while (!token.IsCancellationRequested && Player.LoggedIn)
         {
-            foreach (Monster monster in monsters)
+            if (Monsters.CurrentMonsters.Any(m => m.HP > 0 && m.State != 2))
             {
-                if (token.IsCancellationRequested)
-                    return;
-
-                if (!Combat.Attack(monster.MapID))
-                    continue;
-
-                Kill.Monster(monster.MapID, token);
+                Combat.Attack("*");
             }
+            Thread.Sleep(200);
         }
         Trace.WriteLine("Auto attack stopped.");
     }
@@ -183,39 +176,35 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         }
 
         string[] names = _target.Split('|');
-        List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
 
         _logger.ScriptLog($"[Auto Hunt] Hunting for {_target}");
-        while (!token.IsCancellationRequested)
+        while (!token.IsCancellationRequested && Player.LoggedIn)
         {
-            for (int i = cells.Count - 1; i >= 0; i--)
+            List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
+
+            foreach (string cell in cells)
             {
-                if (Player.Cell != cells[i] && !token.IsCancellationRequested)
+                if (token.IsCancellationRequested)
+                    return;
+
+                if (Player.Cell != cell)
                 {
                     if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
                         Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
-                    Map.Jump(cells[i], "Left");
+                    Map.Jump(cell, "Left");
                     _lastHuntTick = Environment.TickCount;
                 }
 
-                foreach (string mon in names)
+                // Keep attacking monsters in this cell until none are found
+                while (!token.IsCancellationRequested && Player.LoggedIn)
                 {
-                    if (token.IsCancellationRequested)
+                    var monsters = Monsters.CurrentMonsters.Where(m => m.HP > 0 && m.State != 2 && names.Contains(m.Name)).ToList();
+                    
+                    if (!monsters.Any())
                         break;
 
-                    if (Monsters.Exists(mon) && !token.IsCancellationRequested)
-                    {
-                        if (!Combat.Attack(mon))
-                        {
-                            cells.RemoveAt(i);
-                            continue;
-                        }
-                        Thread.Sleep(Options.ActionDelay);
-                        Kill.Monster(mon, token);
-                        break;
-                    }
-
-                    cells.RemoveAt(i);
+                    Combat.Attack("*");
+                    Thread.Sleep(200);
                 }
             }
         }
