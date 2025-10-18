@@ -37,26 +37,32 @@
             Header="Solo Class Equipment">
             <StackPanel>
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Helm"
                     ItemsSource="{Binding Helms}"
                     SelectedItem="{Binding SelectedSoloHelm}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Armor"
                     ItemsSource="{Binding Armors}"
                     SelectedItem="{Binding SelectedSoloArmor}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Cape"
                     ItemsSource="{Binding Capes}"
                     SelectedItem="{Binding SelectedSoloCape}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Weapon"
                     ItemsSource="{Binding Weapons}"
                     SelectedItem="{Binding SelectedSoloWeapon}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Pet"
                     ItemsSource="{Binding Pets}"
                     SelectedItem="{Binding SelectedSoloPet}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Ground Item"
                     ItemsSource="{Binding GroundItems}"
                     SelectedItem="{Binding SelectedSoloGroundItem}" />
@@ -69,26 +75,32 @@
             Header="Farm Class Equipment">
             <StackPanel>
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Helm"
                     ItemsSource="{Binding Helms}"
                     SelectedItem="{Binding SelectedFarmHelm}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Armor"
                     ItemsSource="{Binding Armors}"
                     SelectedItem="{Binding SelectedFarmArmor}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Cape"
                     ItemsSource="{Binding Capes}"
                     SelectedItem="{Binding SelectedFarmCape}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Weapon"
                     ItemsSource="{Binding Weapons}"
                     SelectedItem="{Binding SelectedFarmWeapon}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Pet"
                     ItemsSource="{Binding Pets}"
                     SelectedItem="{Binding SelectedFarmPet}" />
                 <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
                     materialDesign:HintAssist.Hint="Ground Item"
                     ItemsSource="{Binding GroundItems}"
                     SelectedItem="{Binding SelectedFarmGroundItem}" />

@@ -81,7 +81,7 @@ public class ItemBase
     /// <br> 32: Hearty </br>
     /// </summary>
     [JsonProperty("EnhPatternID")]
-    public int EnhancementPatternID { get; set; }
+    public virtual int EnhancementPatternID { get; set; }
 
     /// <summary>
     /// The ProcID of the item. This identifies the current special enhancement (E.G. Forge and AWE enhancements).
@@ -101,7 +101,7 @@ public class ItemBase
     /// <br> 15: Ravenous </br>
     /// </summary>
     [JsonProperty("ProcID")]
-    public int ProcID { get; set; }
+    public virtual int ProcID { get; set; }
 
     private ItemCategory? _category = null;
 

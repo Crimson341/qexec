@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+using Skua.Core.ViewModels;
+using System.Windows.Controls;
 
 namespace Skua.WPF.UserControls;
 
@@ -10,5 +11,13 @@ public partial class AutoUserControl : UserControl
     public AutoUserControl()
     {
         InitializeComponent();
+    }
+
+    private void ComboBox_DropDownOpened(object sender, System.EventArgs e)
+    {
+        if (DataContext is AutoViewModel vm)
+        {
+            vm.ReloadClassesCommand.Execute(null);
+        }
     }
 }
