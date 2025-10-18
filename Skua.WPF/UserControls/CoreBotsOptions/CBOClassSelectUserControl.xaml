@@ -34,7 +34,9 @@
                         Content="{materialDesign:PackIcon Kind=Reload}"
                         DockPanel.Dock="Right" />
                     <ComboBox
+                        x:Name="SoloClassComboBox"
                         Margin="0,0,6,0"
+                        DropDownOpened="ClassComboBox_DropDownOpened"
                         materialDesign:HintAssist.Hint="Class"
                         ItemsSource="{Binding PlayerClasses}"
                         SelectedItem="{Binding SelectedSoloClass}" />
@@ -71,7 +73,9 @@
                         Content="{materialDesign:PackIcon Kind=Reload}"
                         DockPanel.Dock="Right" />
                     <ComboBox
+                        x:Name="FarmClassComboBox"
                         Margin="0,0,6,0"
+                        DropDownOpened="ClassComboBox_DropDownOpened"
                         materialDesign:HintAssist.Hint="Class"
                         ItemsSource="{Binding PlayerClasses}"
                         SelectedItem="{Binding SelectedFarmClass}" />

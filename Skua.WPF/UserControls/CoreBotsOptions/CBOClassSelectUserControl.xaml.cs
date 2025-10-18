@@ -1,4 +1,6 @@
-﻿using System.Windows.Controls;
+using Skua.Core.ViewModels;
+using System;
+using System.Windows.Controls;
 
 namespace Skua.WPF.UserControls;
 
@@ -10,5 +12,17 @@ public partial class CBOClassSelectUserControl : UserControl
     public CBOClassSelectUserControl()
     {
         InitializeComponent();
+    }
+
+    private void ClassComboBox_DropDownOpened(object sender, EventArgs e)
+    {
+        if (DataContext is CBOClassSelectViewModel vm)
+        {
+            var soloClass = vm.SelectedSoloClass;
+            var farmClass = vm.SelectedFarmClass;
+            vm.ReloadClassesCommand.Execute(null);
+            vm.SelectedSoloClass = soloClass;
+            vm.SelectedFarmClass = farmClass;
+        }
     }
 }

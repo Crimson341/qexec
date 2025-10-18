@@ -29,6 +29,8 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                 SoloUseModes = new();
                 SoloUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedSoloClass).Select(s => s.ClassUseMode));
                 OnPropertyChanged(nameof(SoloUseModes));
+                if (SelectedSoloUseMode is null)
+                    SelectedSoloUseMode = SoloUseModes.FirstOrDefault();
             }
         }
     }
@@ -53,6 +55,8 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                 FarmUseModes = new();
                 FarmUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedFarmClass).Select(s => s.ClassUseMode));
                 OnPropertyChanged(nameof(FarmUseModes));
+                if (SelectedFarmUseMode is null)
+                    SelectedFarmUseMode = FarmUseModes.FirstOrDefault();
             }
         }
     }
@@ -100,10 +104,15 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     public void SetValues(Dictionary<string, string> values)
     {
+        ReloadClasses();
+        
         if (values.ContainsKey("SoloClassSelect"))
         {
-            PlayerClasses.Add(values["SoloClassSelect"]);
-            OnPropertyChanged(nameof(PlayerClasses));
+            if (!PlayerClasses.Contains(values["SoloClassSelect"]))
+            {
+                PlayerClasses.Add(values["SoloClassSelect"]);
+                OnPropertyChanged(nameof(PlayerClasses));
+            }
             SelectedSoloClass = values["SoloClassSelect"];
             if (values.TryGetValue("SoloEquipCheck", out string? check))
             {
@@ -127,8 +136,11 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
         if (values.ContainsKey("FarmClassSelect"))
         {
-            PlayerClasses.Add(values["FarmClassSelect"]);
-            OnPropertyChanged(nameof(PlayerClasses));
+            if (!PlayerClasses.Contains(values["FarmClassSelect"]))
+            {
+                PlayerClasses.Add(values["FarmClassSelect"]);
+                OnPropertyChanged(nameof(PlayerClasses));
+            }
             SelectedFarmClass = values["FarmClassSelect"];
             UseFarmEquipment = values.TryGetValue("FarmEquipCheck", out string? check) && Convert.ToBoolean(check);
             SelectedFarmUseMode = values.TryGetValue("FarmModeSelect", out string? mode) && !string.IsNullOrWhiteSpace(mode)
