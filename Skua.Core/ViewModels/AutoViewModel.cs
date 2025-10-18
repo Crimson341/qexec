@@ -50,6 +50,12 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
                 CurrentClassModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedClass).Select(s => s.ClassUseMode));
                 OnPropertyChanged(nameof(CurrentClassModes));
                 
+                // Auto-select first mode if available
+                if (CurrentClassModes.Any())
+                {
+                    SelectedClassMode = CurrentClassModes.First();
+                }
+                
                 // Auto-equip the selected class
                 _inventory.EquipItem(value);
             }
