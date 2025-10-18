@@ -16,13 +16,14 @@ public partial class JumpViewModel : BotControlViewModelBase
     }
 
     private readonly IMapService _mapService;
+    private bool _suppressAutoJump = false;
 
     [ObservableProperty]
     private string _selectedCell = string.Empty;
 
     partial void OnSelectedCellChanged(string value)
     {
-        if (!string.IsNullOrEmpty(value))
+        if (!string.IsNullOrEmpty(value) && !_suppressAutoJump)
         {
             // Set default pad to Left if not already set
             if (string.IsNullOrEmpty(SelectedPad))
@@ -45,7 +46,9 @@ public partial class JumpViewModel : BotControlViewModelBase
     [RelayCommand]
     private void GetCurrent()
     {
+        _suppressAutoJump = true;
         (SelectedCell, SelectedPad) = _mapService.GetCurrentCell();
+        _suppressAutoJump = false;
     }
 
     [RelayCommand]
