@@ -113,7 +113,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
         UsernameInput = string.Empty;
         DisplayNameInput = string.Empty;
-        Messenger.Send<ClearPasswordBoxMessage>();
+        StrongReferenceMessenger.Default.Send<ClearPasswordBoxMessage>();
 
         _SaveAccounts();
     }

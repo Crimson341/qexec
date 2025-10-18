@@ -16,12 +16,19 @@ public sealed partial class AccountManagerView : UserControl
     {
         InitializeComponent();
         DataContext = Ioc.Default.GetRequiredService<AccountManagerViewModel>();
-        WeakReferenceMessenger.Default.Register<AccountManagerView, ClearPasswordBoxMessage>(this, ClearPasswordBox);
+        StrongReferenceMessenger.Default.Register<AccountManagerView, ClearPasswordBoxMessage>(this, ClearPasswordBox);
+        Unloaded += OnUnloaded;
+    }
+
+    private void OnUnloaded(object sender, RoutedEventArgs e)
+    {
+        StrongReferenceMessenger.Default.UnregisterAll(this);
+        Unloaded -= OnUnloaded;
     }
 
     private void ClearPasswordBox(AccountManagerView recipient, ClearPasswordBoxMessage message)
     {
-        PswBox.Clear();
+        PswBox?.Clear();
     }
 
     private void PasswordBox_PasswordChanged(object sender, RoutedEventArgs e)
