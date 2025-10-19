@@ -1,4 +1,4 @@
-﻿using Newtonsoft.Json;
+using Newtonsoft.Json;
 using Skua.Core.Models.Converters;
 
 namespace Skua.Core.Models.Items;
@@ -101,6 +101,7 @@ public class ItemBase
     /// <br> 15: Ravenous </br>
     /// </summary>
     [JsonProperty("ProcID")]
+    [JsonConverter(typeof(IntConverter))] // Workaround for UI elements not being visible.
     public virtual int ProcID { get; set; }
 
     private ItemCategory? _category = null;
