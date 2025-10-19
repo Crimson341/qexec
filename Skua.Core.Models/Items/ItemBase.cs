@@ -67,10 +67,10 @@ public class ItemBase
     /// <br> 7: Healer </br>
     /// <br> 8: Spellbreaker </br>
     /// <br> 9: Lucky </br>
-    /// <br> 23: Depths </br>
     /// <br> 10: Forge </br>
     /// <br> 11: Absolution </br>
     /// <br> 12: Avarice </br>
+    /// <br> 23: Depths </br>
     /// <br> 24: Vainglory </br>
     /// <br> 25: Vim </br>
     /// <br> 26: Examen </br>
