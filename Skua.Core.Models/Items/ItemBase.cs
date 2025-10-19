@@ -110,10 +110,9 @@ public class ItemBase
     {
         get
         {
-            if (_category is not null)
-                return (ItemCategory)_category;
-
-            return (ItemCategory)(_category = Enum.TryParse(CategoryString, true, out ItemCategory result) ? result : ItemCategory.Unknown);
+            return _category is not null
+                ? (ItemCategory)_category
+                : (ItemCategory)(_category = Enum.TryParse(CategoryString, true, out ItemCategory result) ? result : ItemCategory.Unknown);
         }
     }
 
