@@ -1,9 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Newtonsoft.Json;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.Services;
 
@@ -66,10 +67,17 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (_scripts.Count != 0 && !refresh)
             return _scripts.ToList();
 
-        using (HttpResponseMessage response = await HttpClients.GitHubRaw.GetAsync(_rawScriptsJsonUrl, token))
+        using (HttpResponseMessage response = await ValidatedHttpExtensions.GetAsync(HttpClients.GitHubRaw, _rawScriptsJsonUrl, token))
         {
             string content = await response.Content.ReadAsStringAsync(token);
-            return JsonConvert.DeserializeObject<List<ScriptInfo>>(content)!;
+            if (string.IsNullOrWhiteSpace(content))
+                throw new InvalidDataException("scripts.json is empty or null");
+                
+            var scripts = JsonConvert.DeserializeObject<List<ScriptInfo>>(content);
+            if (scripts == null || !scripts.Any())
+                throw new InvalidDataException("scripts.json contains no valid scripts");
+                
+            return scripts;
         }
     }
 
@@ -79,11 +87,8 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (!parent.Exists)
             parent.Create();
 
-        using (HttpResponseMessage response = await HttpClients.Default.GetAsync(info.DownloadUrl))
-        {
-            string script = await response.Content.ReadAsStringAsync();
-            await File.WriteAllTextAsync(info.LocalFile, script);
-        }
+        string script = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, info.DownloadUrl);
+        await File.WriteAllTextAsync(info.LocalFile, script);
     }
 
     public async Task ManagerDownloadScriptAsync(ScriptInfo info)
@@ -92,11 +97,8 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (!parent.Exists)
             parent.Create();
 
-        using (HttpResponseMessage response = await HttpClients.Default.GetAsync(info.DownloadUrl))
-        {
-            string script = await response.Content.ReadAsStringAsync();
-            await File.WriteAllTextAsync(info.ManagerLocalFile, script);
-        }
+        string script = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, info.DownloadUrl);
+        await File.WriteAllTextAsync(info.ManagerLocalFile, script);
     }
 
     public async Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred)
@@ -147,17 +149,22 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public async Task<long> CheckAdvanceSkillSetsUpdates()
     {
-        HttpResponseMessage response = await HttpClients.GitHubRaw.GetAsync(_skillsSetsRawUrl);
-        string content = await response.Content.ReadAsStringAsync();
-        return content.Length;
+        try
+        {
+            string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _skillsSetsRawUrl);
+            return content.Length;
+        }
+        catch
+        {
+            return -1;
+        }
     }
 
     public async Task<bool> UpdateSkillSetsFile()
     {
-        HttpResponseMessage response = await HttpClients.GitHubRaw.GetAsync(_skillsSetsRawUrl);
-        string content = await response.Content.ReadAsStringAsync();
         try
         {
+            string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _skillsSetsRawUrl);
             await File.WriteAllTextAsync(ClientFileSources.SkuaAdvancedSkillsFile, content);
             return true;
         }

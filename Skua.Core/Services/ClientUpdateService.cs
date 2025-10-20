@@ -1,9 +1,10 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 using System.Diagnostics;
 using System.IO.Compression;
 
@@ -24,17 +25,20 @@ public class ClientUpdateService : IClientUpdateService
 
     public async Task GetReleasesAsync()
     {
-        HttpResponseMessage releaseSearch = await HttpClients.GitHubRaw.GetAsync("auqw/Skua/refs/heads/master/releases.json");
-        if (!releaseSearch.IsSuccessStatusCode)
-            return;
+        try
+        {
+            string releases = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, "auqw/Skua/refs/heads/master/releases.json");
+            List<UpdateInfo>? releaseList = JsonConvert.DeserializeObject<List<UpdateInfo>>(releases);
+            if (releaseList is null || !releaseList.Any())
+                return;
 
-        string releases = await releaseSearch.Content.ReadAsStringAsync();
-        List<UpdateInfo>? releaseList = JsonConvert.DeserializeObject<List<UpdateInfo>>(releases) ?? null;
-        if (releaseList is null)
-            return;
-
-        Releases.Clear();
-        Releases = releaseList.OrderByDescending(r => r.ParsedVersion).ToList();
+            Releases.Clear();
+            Releases = releaseList.OrderByDescending(r => r.ParsedVersion).ToList();
+        }
+        catch
+        {
+            // Silently fail - UI will show no releases available
+        }
     }
 
     public async Task DownloadUpdateAsync(IProgress<string>? progress, UpdateInfo info)

@@ -1,9 +1,10 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using Newtonsoft.Json;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.ViewModels.Manager;
 
@@ -27,22 +28,23 @@ public class GoalsViewModel : BotControlViewModelBase
 
     private async Task GetGoals()
     {
-        var response = await HttpClients.GitHubRaw.GetAsync("auqw/Skua/refs/heads/master/goals");
-        if (!response.IsSuccessStatusCode)
+        try
+        {
+            string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, "auqw/Skua/refs/heads/master/goals");
+            List<GoalObject>? goals = JsonConvert.DeserializeObject<List<GoalObject>>(content);
+
+            if (goals is null || goals.Count == 0)
+            {
+                Status = "Failed to parse data.";
+                return;
+            }
+
+            Goals.AddRange(goals);
+        }
+        catch
         {
             Status = "Failed to fetch data.";
-            return;
         }
-         
-        List<GoalObject>? goals = JsonConvert.DeserializeObject<List<GoalObject>>(await response.Content.ReadAsStringAsync());
-
-        if (goals is null || goals.Count == 0)
-        {
-            Status = "Failed to parse data.";
-            return;
-        }
-
-        Goals.AddRange(goals);
     }
 
     private string _status = "Loading...";

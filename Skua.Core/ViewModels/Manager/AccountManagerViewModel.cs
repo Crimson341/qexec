@@ -9,6 +9,7 @@ using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Servers;
 using Skua.Core.Utils;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 using System.Collections.Specialized;
 using System.Diagnostics;
 
@@ -252,15 +253,23 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
     private async Task _GetServers()
     {
-        string? response = await HttpClients.GetGHClient()
-            .GetStringAsync($"http://content.aq.com/game/api/data/servers");
+        try
+        {
+            string response = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GetGHClient()
+, $"http://content.aq.com/game/api/data/servers");
 
-        if (response is null)
-            return;
+            var servers = JsonConvert.DeserializeObject<List<Server>>(response);
+            if (servers == null || !servers.Any())
+                return;
 
-        _cachedServers = JsonConvert.DeserializeObject<List<Server>>(response)!;
-        ServerList.AddRange(_cachedServers);
-        SelectedServer = ServerList[0];
+            _cachedServers = servers;
+            ServerList.AddRange(_cachedServers);
+            SelectedServer = ServerList[0];
+        }
+        catch
+        {
+            // Silently fail - UI will show no servers
+        }
     }
 
     private void AccountSelected(AccountManagerViewModel recipient, AccountSelectedMessage message)

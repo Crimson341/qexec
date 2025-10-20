@@ -4,6 +4,7 @@ using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.Servers;
 using Skua.Core.Utils;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.Scripts;
 
@@ -100,16 +101,23 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
         if (CachedServers.Count > 0 && !forceUpdate)
             return CachedServers;
 
-        string? response = await HttpClients.GetGHClient()
-            .GetStringAsync($"http://content.aq.com/game/api/data/servers")
-            .ConfigureAwait(false);
+        try
+        {
+            string response = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GetGHClient()
+, $"http://content.aq.com/game/api/data/servers")
+                .ConfigureAwait(false);
 
-        if (response is null)
+            var servers = JsonConvert.DeserializeObject<List<Server>>(response);
+            if (servers == null || !servers.Any())
+                return new();
+
+            CachedServers = servers;
+            return CachedServers;
+        }
+        catch
+        {
             return new();
-
-        CachedServers = JsonConvert.DeserializeObject<List<Server>>(response)!;
-
-        return CachedServers;
+        }
     }
 
     public void SetLoginInfo(string username, string password)

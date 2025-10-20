@@ -45,9 +45,9 @@ public class WebClient : HttpClient
 /// </summary>
 public static class HttpClients
 {
-    private static readonly SemaphoreSlim _githubApiSemaphore = new(5, 5); // Limit concurrent GitHub API requests
+    private static readonly SemaphoreSlim _githubApiSemaphore = new(5, 5);
     private static DateTime _lastGitHubApiCall = DateTime.MinValue;
-    private static readonly TimeSpan _minDelayBetweenCalls = TimeSpan.FromMilliseconds(100); // 100ms between calls
+    private static readonly TimeSpan _minDelayBetweenCalls = TimeSpan.FromMilliseconds(100);
 
     static HttpClients()
     {
@@ -67,12 +67,12 @@ public static class HttpClients
     /// <summary>
     /// Gets the Map Client
     /// </summary>
-    public static WebClient GetMapClient { get; set; } = new(false);
+    public static WebClient GetAQContent { get; set; } = new(false);
 
     /// <summary>
-    /// Default HttpClient - Improved with connection pooling
+    /// Default HttpClient
     /// </summary>
-    public static HttpClient Default { get; private set; } = CreateImprovedHttpClient("Skua/1.0", TimeSpan.FromSeconds(30));
+    public static HttpClient Default { get; private set; } = CreateHttpClient("Skua/1.0", TimeSpan.FromSeconds(30));
 
     /// <summary>
     /// GitHub Raw Content Client - for raw.githubusercontent.com requests
@@ -85,11 +85,11 @@ public static class HttpClients
     /// <returns>A properly configured HttpClient</returns>
     public static HttpClient CreateSafeHttpClient()
     {
-        return CreateImprovedHttpClient("Skua/1.0", TimeSpan.FromSeconds(30));
+        return CreateHttpClient("Skua/1.0", TimeSpan.FromSeconds(30));
     }
 
     /// <summary>
-    /// Makes a GitHub API request with automatic rate limiting
+    /// Makes a GitHub API request with automatic rate limiting and validation
     /// </summary>
     public static async Task<HttpResponseMessage> MakeGitHubApiRequestAsync(string url)
     {
@@ -104,6 +104,9 @@ public static class HttpClients
             _lastGitHubApiCall = DateTime.UtcNow;
             var client = GetGHClient();
             var response = await client.GetAsync(url);
+
+            response.EnsureSuccessStatusCode();
+
             if (response.Headers.TryGetValues("X-RateLimit-Remaining", out var remainingValues))
             {
                 if (int.TryParse(remainingValues.FirstOrDefault(), out var remaining) && remaining < 10)
@@ -119,7 +122,7 @@ public static class HttpClients
         }
     }
 
-    private static HttpClient CreateImprovedHttpClient(string userAgent, TimeSpan timeout)
+    private static HttpClient CreateHttpClient(string userAgent, TimeSpan timeout)
     {
         var handler = new HttpClientHandler()
         {
@@ -157,5 +160,41 @@ public static class HttpClients
     public static HttpClient GetGHClient()
     {
         return UserGitHubClient is not null ? UserGitHubClient : (HttpClient)GitHubClient;
+    }
+}
+
+/// <summary>
+/// Extension methods for validated HTTP requests
+/// </summary>
+public static class ValidatedHttpExtensions
+{
+    /// <summary>
+    /// Makes a validated GET request that throws on failure
+    /// </summary>
+    public static async Task<HttpResponseMessage> GetAsync(this HttpClient client, string requestUri)
+    {
+        var response = await client.GetAsync(requestUri);
+        response.EnsureSuccessStatusCode();
+        return response;
+    }
+
+    /// <summary>
+    /// Makes a validated GET request with cancellation token that throws on failure
+    /// </summary>
+    public static async Task<HttpResponseMessage> GetAsync(this HttpClient client, string requestUri, CancellationToken cancellationToken)
+    {
+        var response = await client.GetAsync(requestUri, cancellationToken);
+        response.EnsureSuccessStatusCode();
+        return response;
+    }
+
+    /// <summary>
+    /// Gets string content with validation
+    /// </summary>
+    public static async Task<string> GetStringAsync(this HttpClient client, string requestUri)
+    {
+        using var response = await GetAsync(client, requestUri);
+        var content = await response.Content.ReadAsStringAsync();
+        return string.IsNullOrWhiteSpace(content) ? throw new InvalidDataException("Response content is empty or null") : content;
     }
 }

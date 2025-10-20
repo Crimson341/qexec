@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Utils;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 using System.Diagnostics;
 
 namespace Skua.Core.ViewModels;
@@ -27,10 +28,13 @@ public class AboutViewModel : BotControlViewModelBase
 
     private async Task GetAboutContent()
     {
-        var response = await HttpClients.GitHubRaw.GetAsync("auqw/Skua/refs/heads/master/readme.md");
-        if (!response.IsSuccessStatusCode)
+        try
+        {
+            MarkdownDoc = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, "auqw/Skua/refs/heads/master/readme.md").ConfigureAwait(false);
+        }
+        catch
+        {
             MarkdownDoc = "### No content found. Please check your internet connection.";
-
-        MarkdownDoc = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+        }
     }
 }
