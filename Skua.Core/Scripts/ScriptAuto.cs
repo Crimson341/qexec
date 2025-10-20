@@ -115,6 +115,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             return;
 
         CheckDropsandBoosts();
+        Options.InfiniteRange = true;
         if (className is not null)
             Skills.StartAdvanced(className, true, classUseMode);
         else
@@ -135,6 +136,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 Drops.Stop();
                 Skills.Stop();
                 Boosts.Stop();
+                Options.InfiniteRange = false;
                 _ctsAuto?.Dispose();
                 _ctsAuto = null;
                 IsRunning = false;
@@ -150,11 +152,28 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         Trace.WriteLine("Auto attack started.");
         Player.SetSpawnPoint();
 
+        if (Player.HasTarget)
+            _target = Player.Target?.Name ?? "*";
+        else
+            _target = "*";
+
+        _logger.ScriptLog($"[Auto Attack] Attacking {_target}");
+
         while (!token.IsCancellationRequested && Player.LoggedIn)
         {
-            if (Monsters.CurrentMonsters.Any(m => m.HP > 0 && m.State != 2))
+            if (_target == "*")
             {
-                Combat.Attack("*");
+                if (Monsters.CurrentMonsters.Any(m => m.HP > 0 && m.State != 2))
+                {
+                    Combat.Attack("*");
+                }
+            }
+            else
+            {
+                if (Monsters.CurrentMonsters.Any(m => m.HP > 0 && m.State != 2 && m.Name == _target))
+                {
+                    Combat.Attack(_target);
+                }
             }
             Thread.Sleep(200);
         }
@@ -180,7 +199,11 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         _logger.ScriptLog($"[Auto Hunt] Hunting for {_target}");
         while (!token.IsCancellationRequested && Player.LoggedIn)
         {
-            List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
+            List<string> validCells = Map.Cells;
+            List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n))
+                                      .Distinct()
+                                      .Where(c => !string.IsNullOrWhiteSpace(c) && validCells.Contains(c))
+                                      .ToList();
 
             foreach (string cell in cells)
             {
@@ -192,6 +215,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                     if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
                         Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
                     Map.Jump(cell, "Left");
+                    Wait.ForCellChange(cell);
                     _lastHuntTick = Environment.TickCount;
                 }
 
@@ -203,7 +227,16 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                     if (!monsters.Any())
                         break;
 
-                    Combat.Attack("*");
+                    if (_target == "*")
+                    {
+                        Combat.Attack("*");
+                    }
+                    else
+                    {
+                        var targetMonster = monsters.FirstOrDefault(m => m.Name == _target);
+                        if (targetMonster != null)
+                            Combat.Attack(_target);
+                    }
                     Thread.Sleep(200);
                 }
             }
