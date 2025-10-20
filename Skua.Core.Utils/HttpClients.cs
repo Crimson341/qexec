@@ -72,12 +72,12 @@ public static class HttpClients
     /// <summary>
     /// Default HttpClient
     /// </summary>
-    public static HttpClient Default { get; private set; } = CreateHttpClient("Skua/1.0", TimeSpan.FromSeconds(30));
+    public static HttpClient Default { get; private set; } = CreateSafeHttpClient();
 
     /// <summary>
     /// GitHub Raw Content Client - for raw.githubusercontent.com requests
     /// </summary>
-    public static HttpClient GitHubRaw { get; private set; } = CreateGitHubRawClient();
+    public static HttpClient GitHubRaw { get; private set; } = CreateSafeGitHubRawClient();
 
     /// <summary>
     /// Creates a new HttpClient that won't cause socket exhaustion - use this instead of 'new HttpClient()'
@@ -86,6 +86,15 @@ public static class HttpClients
     public static HttpClient CreateSafeHttpClient()
     {
         return CreateHttpClient("Skua/1.0", TimeSpan.FromSeconds(30));
+    }
+
+    /// <summary>
+    /// Creates a new HttpClient for raw.githubusercontent.com that won't cause socket exhaustion - use this instead of 'new HttpClient()' for github raw requests only.
+    /// </summary>
+    /// <returns>A properly configured HttpClient</returns>
+    public static HttpClient CreateSafeGitHubRawClient()
+    {
+        return CreateHttpClient("Skua/1.0", TimeSpan.FromSeconds(30), true);
     }
 
     /// <summary>
@@ -122,34 +131,24 @@ public static class HttpClients
         }
     }
 
-    private static HttpClient CreateHttpClient(string userAgent, TimeSpan timeout)
+    private static HttpClient CreateHttpClient(string userAgent, TimeSpan timeout, bool githubraw = false)
     {
-        var handler = new HttpClientHandler()
+        HttpClientHandler handler = new()
         {
             MaxConnectionsPerServer = 10,
             UseCookies = false
         };
-        var client = new HttpClient(handler)
+        HttpClient client = new(handler);
+        if (githubraw)
         {
-            Timeout = timeout
-        };
+            client.BaseAddress = new Uri("https://raw.githubusercontent.com/");
+            client.Timeout = timeout;
+        }
+        else
+        {
+            client.Timeout = timeout;
+        }
         client.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
-        return client;
-    }
-
-    private static HttpClient CreateGitHubRawClient()
-    {
-        var handler = new HttpClientHandler()
-        {
-            MaxConnectionsPerServer = 10,
-            UseCookies = false
-        };
-        var client = new HttpClient(handler)
-        {
-            BaseAddress = new Uri("https://raw.githubusercontent.com/"),
-            Timeout = TimeSpan.FromSeconds(30)
-        };
-        client.DefaultRequestHeaders.UserAgent.ParseAdd("Skua/1.0");
         return client;
     }
 
@@ -159,7 +158,7 @@ public static class HttpClients
     /// <returns>Client Type</returns>
     public static HttpClient GetGHClient()
     {
-        return UserGitHubClient is not null ? UserGitHubClient : (HttpClient)GitHubClient;
+        return UserGitHubClient is not null ? UserGitHubClient : GitHubClient;
     }
 }
 
