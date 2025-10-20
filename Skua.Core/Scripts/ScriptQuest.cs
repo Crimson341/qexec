@@ -201,9 +201,14 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         if (CanComplete(id))
             return true;
 
-        _quests.TryGetValue(id, out Quest? quest);
+        Quest? quest = EnsureLoad(id);
         if (quest is null)
             return false;
+        
+        // Check if quest data is fully loaded (Requirements should not be null)
+        if (quest.Requirements is null || quest.AcceptRequirements is null)
+            return false;
+            
         List<ItemBase> requirements = new();
         requirements.AddRange(quest.Requirements);
         requirements.AddRange(quest.AcceptRequirements);
@@ -321,6 +326,14 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     {
         foreach (int quest in registered)
         {
+            // Ensure quest data is loaded before processing
+            Quest? questData = EnsureLoad(quest);
+            if (questData is null)
+            {
+                await Task.Delay(Options.ActionDelay, token);
+                continue;
+            }
+            
             if (!IsInProgress(quest))
                 Accept(quest);
             await Task.Delay(Options.ActionDelay, token);
