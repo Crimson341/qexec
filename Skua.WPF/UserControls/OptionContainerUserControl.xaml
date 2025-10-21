@@ -9,6 +9,8 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vms="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
     xmlns:wpf="clr-namespace:Skua.WPF"
+    Width="Auto"
+    Height="Auto"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
@@ -19,10 +21,10 @@
             </CollectionViewSource.GroupDescriptions>
         </CollectionViewSource>
     </UserControl.Resources>
-    <Grid Grid.IsSharedSizeScope="True">
+    <Grid Grid.IsSharedSizeScope="True" Width="Auto" Height="Auto">
         <Grid.RowDefinitions>
-            <RowDefinition />
-            <RowDefinition Height="auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
         </Grid.RowDefinitions>
         <Border
             Margin="6,6,6,3"
@@ -32,8 +34,9 @@
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
                 <DataGrid
-                    Width="Auto"
                     x:Name="OptionsDataGrid"
+                    Width="Auto"
+                    Height="Auto"
                     AutoGenerateColumns="False"
                     CanUserReorderColumns="False"
                     CanUserResizeColumns="True"
@@ -78,11 +81,11 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn
-                            Width="Auto"
+                            Width="*"
                             Binding="{Binding Option.DisplayName}"
                             Header="Name"
                             IsReadOnly="True" />
-                        <DataGridTemplateColumn Width="Auto" Header="Value">
+                        <DataGridTemplateColumn Width="*" Header="Value">
                             <DataGridTemplateColumn.CellTemplateSelector>
                                 <wpf:OptionContainerDataTemplateSelector
                                     BoolTemplate="{StaticResource BoolTemplate}"
