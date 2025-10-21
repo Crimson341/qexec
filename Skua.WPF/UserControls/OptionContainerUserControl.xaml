@@ -81,7 +81,7 @@
                             Binding="{Binding Option.DisplayName}"
                             Header="Name"
                             IsReadOnly="True" />
-                        <DataGridTemplateColumn Width="190" Header="Value">
+                        <DataGridTemplateColumn Width="500" Header="Value">
                             <DataGridTemplateColumn.CellTemplateSelector>
                                 <wpf:OptionContainerDataTemplateSelector
                                     BoolTemplate="{StaticResource BoolTemplate}"
