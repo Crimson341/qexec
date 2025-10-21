@@ -78,10 +78,12 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn
+                            Width="1*"
+                            MinWidth="200"
                             Binding="{Binding Option.DisplayName}"
                             Header="Name"
                             IsReadOnly="True" />
-                        <DataGridTemplateColumn Header="Value">
+                        <DataGridTemplateColumn Width="0.8*" MinWidth="190" Header="Value">
                             <DataGridTemplateColumn.CellTemplateSelector>
                                 <wpf:OptionContainerDataTemplateSelector
                                     BoolTemplate="{StaticResource BoolTemplate}"
