@@ -29,8 +29,7 @@
             BorderBrush="{DynamicResource PrimaryHueMidBrush}"
             BorderThickness="1">
             <ScrollViewer
-                MaxHeight="700"
-                HorizontalScrollBarVisibility="Auto"
+                HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
                 <DataGrid
                     x:Name="OptionsDataGrid"
@@ -78,12 +77,11 @@
                     </DataGrid.Resources>
                     <DataGrid.Columns>
                         <DataGridTextColumn
-                            Width="1*"
-                            MinWidth="200"
+                            Width="Auto"
                             Binding="{Binding Option.DisplayName}"
                             Header="Name"
                             IsReadOnly="True" />
-                        <DataGridTemplateColumn Width="0.8*" MinWidth="190" Header="Value">
+                        <DataGridTemplateColumn Width="Auto" Header="Value">
                             <DataGridTemplateColumn.CellTemplateSelector>
                                 <wpf:OptionContainerDataTemplateSelector
                                     BoolTemplate="{StaticResource BoolTemplate}"
