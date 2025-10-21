@@ -32,6 +32,7 @@ internal class CoreBots
             new DisplayOptionItemViewModel<bool>("Disable AutoEnhance", "DisableAutoEnhance"),
             new DisplayOptionItemViewModel<bool>("Disable BestGear", "DisableBestGear"),
             new DisplayOptionItemViewModel<bool>("Anti Lag", "AntiLag", true),
+            new DisplayOptionItemViewModel<bool>("Incognito Mode", "IncognitoMode", false),
 
             new DisplayOptionItemViewModel<int>("Room Number", "PrivateRoomNr", 100000),
             new DisplayOptionItemViewModel<int>("Action Delay", "ActionDelayNr", 700),
@@ -61,7 +62,8 @@ internal class CoreBots
             new("Nation Farms", new List<DisplayOptionItemViewModelBase>()
             {
                 new CBOBoolOptionItemViewModel("Sell Voucher of Nulgath if not needed", "Nation_SellMemVoucher", true),
-                new CBOBoolOptionItemViewModel("Do Swindles Return during Supplies", "Nation_ReturnPolicyDuringSupplies", true)
+                new CBOBoolOptionItemViewModel("Do Swindles Return during Supplies", "Nation_ReturnPolicyDuringSupplies", true),
+                new CBOBoolOptionItemViewModel("Ultra Alteon for Supplies", "Use Ultra Alteon when farming Supplies instead of Escherion", "UltraAlteonForSupplies")
             }),
 
             new("Bludrut Brawl (PvP)", new CBOBoolOptionItemViewModel("Kill ads before boss", "Whether to kill brawlers and restorers in the PvP before the boss.", "PvP_SoloPvPBoss")),
