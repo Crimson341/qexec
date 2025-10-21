@@ -32,6 +32,7 @@
                 HorizontalScrollBarVisibility="Disabled"
                 VerticalScrollBarVisibility="Auto">
                 <DataGrid
+                    Width="Auto"
                     x:Name="OptionsDataGrid"
                     AutoGenerateColumns="False"
                     CanUserReorderColumns="False"
@@ -39,7 +40,7 @@
                     CanUserResizeRows="False"
                     FrozenColumnCount="1"
                     HeadersVisibility="None"
-                    HorizontalScrollBarVisibility="Auto"
+                    HorizontalScrollBarVisibility="Disabled"
                     ItemsSource="{Binding Source={StaticResource OptionsSource}}"
                     MouseLeftButtonUp="DataGrid_MouseLeftButtonUp"
                     SelectedItem="{Binding SelectedOption}"
