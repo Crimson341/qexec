@@ -6,7 +6,7 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wpf="clr-namespace:Skua.WPF"
     Title="{Binding Title}"
-    Width="Auto"
+    Width="400"
     FixedSize="True"
     SizeToContent="WidthAndHeight"
     Style="{StaticResource CustomWindow}"
