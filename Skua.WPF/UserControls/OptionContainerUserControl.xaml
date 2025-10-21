@@ -30,7 +30,7 @@
             BorderThickness="1">
             <ScrollViewer
                 MaxHeight="700"
-                HorizontalScrollBarVisibility="Disabled"
+                HorizontalScrollBarVisibility="Auto"
                 VerticalScrollBarVisibility="Auto">
                 <DataGrid
                     x:Name="OptionsDataGrid"
@@ -40,7 +40,7 @@
                     CanUserResizeRows="False"
                     FrozenColumnCount="1"
                     HeadersVisibility="None"
-                    HorizontalScrollBarVisibility="Disabled"
+                    HorizontalScrollBarVisibility="Auto"
                     ItemsSource="{Binding Source={StaticResource OptionsSource}}"
                     MouseLeftButtonUp="DataGrid_MouseLeftButtonUp"
                     SelectedItem="{Binding SelectedOption}"
