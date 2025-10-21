@@ -63,7 +63,7 @@ internal class CoreBots
             {
                 new CBOBoolOptionItemViewModel("Sell Voucher of Nulgath if not needed", "Nation_SellMemVoucher", true),
                 new CBOBoolOptionItemViewModel("Do Swindles Return during Supplies", "Nation_ReturnPolicyDuringSupplies", true),
-                new CBOBoolOptionItemViewModel("Ultra Alteon for Supplies", "Use Ultra Alteon when farming Supplies instead of Escherion", "UltraAlteonForSupplies")
+                new CBOBoolOptionItemViewModel("Ultra Alteon for Supplies", "Use Ultra Alteon when farming Supplies instead of Escherion", "UltraAlteonForSupplies", false)
             }),
 
             new("Bludrut Brawl (PvP)", new CBOBoolOptionItemViewModel("Kill ads before boss", "Whether to kill brawlers and restorers in the PvP before the boss.", "PvP_SoloPvPBoss")),
