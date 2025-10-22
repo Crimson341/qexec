@@ -56,22 +56,28 @@ public sealed partial class App : Application
 
     private async void App_Exit(object? sender, EventArgs e)
     {
-        Services.GetRequiredService<ICaptureProxy>().Stop();
+        try
+        {
+            Services.GetRequiredService<ICaptureProxy>().Stop();
 
-        await ((IAsyncDisposable)Services.GetRequiredService<IScriptBoost>()).DisposeAsync();
-        await ((IAsyncDisposable)Services.GetRequiredService<IScriptBotStats>()).DisposeAsync();
-        await ((IAsyncDisposable)Services.GetRequiredService<IScriptDrop>()).DisposeAsync();
-        await Ioc.Default.GetRequiredService<IScriptManager>().StopScriptAsync();
-        await ((IScriptInterfaceManager)_bot).StopTimerAsync();
+            await ((IAsyncDisposable)Services.GetRequiredService<IScriptBoost>()).DisposeAsync();
+            await ((IAsyncDisposable)Services.GetRequiredService<IScriptBotStats>()).DisposeAsync();
+            await ((IAsyncDisposable)Services.GetRequiredService<IScriptDrop>()).DisposeAsync();
+            await Ioc.Default.GetRequiredService<IScriptManager>().StopScriptAsync();
+            await ((IScriptInterfaceManager)_bot).StopTimerAsync();
 
-        Services.GetRequiredService<IFlashUtil>().Dispose();
+            Services.GetRequiredService<IFlashUtil>().Dispose();
 
-        WeakReferenceMessenger.Default.Cleanup();
-        WeakReferenceMessenger.Default.Reset();
-        StrongReferenceMessenger.Default.Reset();
+            WeakReferenceMessenger.Default.Cleanup();
+            WeakReferenceMessenger.Default.Reset();
+            StrongReferenceMessenger.Default.Reset();
 
-        RoslynLifetimeManager.ShutdownRoslyn();
-        Application.Current.Exit -= App_Exit;
+            RoslynLifetimeManager.ShutdownRoslyn();
+            Application.Current.Exit -= App_Exit;
+        }
+        catch
+        {
+        }
     }
 
     private void Application_Startup(object sender, StartupEventArgs e)
