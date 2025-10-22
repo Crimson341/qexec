@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.Items;
@@ -9,10 +9,13 @@ namespace Skua.Core.ViewModels;
 
 public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOptions
 {
-    public CBOClassSelectViewModel(IScriptInventory inventory, IAdvancedSkillContainer advancedSkills)
+    private const string CurrentClassOption = "[Current]";
+
+    public CBOClassSelectViewModel(IScriptInventory inventory, IAdvancedSkillContainer advancedSkills, IScriptPlayer player)
     {
         _inventory = inventory;
         _advancedSkills = advancedSkills;
+        _player = player;
     }
 
     public List<string> PlayerClasses { get; private set; } = new();
@@ -27,7 +30,34 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (SetProperty(ref _selectedSoloClass, value) && value is not null)
             {
                 SoloUseModes = new();
-                SoloUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedSoloClass).Select(s => s.ClassUseMode));
+                string classToUse = value;
+
+                if (value == CurrentClassOption)
+                {
+                    classToUse = _player.CurrentClass?.Name ?? string.Empty;
+                    if (string.IsNullOrEmpty(classToUse))
+                    {
+                        SoloUseModes.Add(ClassUseMode.Base);
+                    }
+                    else
+                    {
+                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        if (skillModes.Count > 0)
+                        {
+                            SoloUseModes.AddRange(skillModes);
+                        }
+                        else
+                        {
+                            SoloUseModes.Add(ClassUseMode.Base);
+                            EnsureSkillEntryExists(classToUse);
+                        }
+                    }
+                }
+                else
+                {
+                    SoloUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                }
+
                 OnPropertyChanged(nameof(SoloUseModes));
                 if (SelectedSoloUseMode is null)
                     SelectedSoloUseMode = SoloUseModes.FirstOrDefault();
@@ -53,7 +83,34 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (SetProperty(ref _selectedFarmClass, value) && value is not null)
             {
                 FarmUseModes = new();
-                FarmUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedFarmClass).Select(s => s.ClassUseMode));
+                string classToUse = value;
+
+                if (value == CurrentClassOption)
+                {
+                    classToUse = _player.CurrentClass?.Name ?? string.Empty;
+                    if (string.IsNullOrEmpty(classToUse))
+                    {
+                        FarmUseModes.Add(ClassUseMode.Base);
+                    }
+                    else
+                    {
+                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        if (skillModes.Count > 0)
+                        {
+                            FarmUseModes.AddRange(skillModes);
+                        }
+                        else
+                        {
+                            FarmUseModes.Add(ClassUseMode.Base);
+                            EnsureSkillEntryExists(classToUse);
+                        }
+                    }
+                }
+                else
+                {
+                    FarmUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                }
+
                 OnPropertyChanged(nameof(FarmUseModes));
                 if (SelectedFarmUseMode is null)
                     SelectedFarmUseMode = FarmUseModes.FirstOrDefault();
@@ -71,13 +128,24 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     private readonly IScriptInventory _inventory;
     private readonly IAdvancedSkillContainer _advancedSkills;
+    private readonly IScriptPlayer _player;
+
+    private void EnsureSkillEntryExists(string className)
+    {
+        if (!_advancedSkills.LoadedSkills.Any(s => s.ClassName == className))
+        {
+            var newSkill = new AdvancedSkill(className, "1 | 2 | 3 | 4", 100, ClassUseMode.Base, SkillUseMode.UseIfAvailable);
+            _advancedSkills.Add(newSkill);
+        }
+    }
 
     [RelayCommand]
     private void ReloadClasses()
     {
-        PlayerClasses = _inventory.Items?.Where(i =>
+        PlayerClasses = new List<string> { CurrentClassOption };
+        PlayerClasses.AddRange(_inventory.Items?.Where(i =>
             (i.Category == ItemCategory.Class) && (i.EnhancementLevel > 0)
-        ).Select(i => i.Name).ToList() ?? new();
+        ).Select(i => i.Name) ?? Enumerable.Empty<string>());
 
         OnPropertyChanged(nameof(PlayerClasses));
 
@@ -92,10 +160,13 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     public StringBuilder Save(StringBuilder builder)
     {
-        builder.AppendLine($"SoloClassSelect: {SelectedSoloClass}");
+        string soloClass = SelectedSoloClass == CurrentClassOption ? CurrentClassOption : SelectedSoloClass;
+        string farmClass = SelectedFarmClass == CurrentClassOption ? CurrentClassOption : SelectedFarmClass;
+        
+        builder.AppendLine($"SoloClassSelect: {soloClass}");
         builder.AppendLine($"SoloEquipCheck: {UseSoloEquipment}");
         builder.AppendLine($"SoloModeSelect: {SelectedSoloUseMode}");
-        builder.AppendLine($"FarmClassSelect: {SelectedFarmClass}");
+        builder.AppendLine($"FarmClassSelect: {farmClass}");
         builder.AppendLine($"FarmEquipCheck: {UseFarmEquipment}");
         builder.AppendLine($"FarmModeSelect: {SelectedFarmUseMode}");
 
@@ -108,12 +179,13 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
         
         if (values.ContainsKey("SoloClassSelect"))
         {
-            if (!PlayerClasses.Contains(values["SoloClassSelect"]))
+            string soloClassValue = values["SoloClassSelect"];
+            if (soloClassValue != CurrentClassOption && !PlayerClasses.Contains(soloClassValue))
             {
-                PlayerClasses.Add(values["SoloClassSelect"]);
+                PlayerClasses.Add(soloClassValue);
                 OnPropertyChanged(nameof(PlayerClasses));
             }
-            SelectedSoloClass = values["SoloClassSelect"];
+            SelectedSoloClass = soloClassValue;
             if (values.TryGetValue("SoloEquipCheck", out string? check))
             {
                 UseSoloEquipment = Convert.ToBoolean(check);
@@ -136,12 +208,13 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
         if (values.ContainsKey("FarmClassSelect"))
         {
-            if (!PlayerClasses.Contains(values["FarmClassSelect"]))
+            string farmClassValue = values["FarmClassSelect"];
+            if (farmClassValue != CurrentClassOption && !PlayerClasses.Contains(farmClassValue))
             {
-                PlayerClasses.Add(values["FarmClassSelect"]);
+                PlayerClasses.Add(farmClassValue);
                 OnPropertyChanged(nameof(PlayerClasses));
             }
-            SelectedFarmClass = values["FarmClassSelect"];
+            SelectedFarmClass = farmClassValue;
             UseFarmEquipment = values.TryGetValue("FarmEquipCheck", out string? check) && Convert.ToBoolean(check);
             SelectedFarmUseMode = values.TryGetValue("FarmModeSelect", out string? mode) && !string.IsNullOrWhiteSpace(mode)
                 ? Enum.TryParse(typeof(ClassUseMode), mode, true, out object? result) ? (ClassUseMode)result! : ClassUseMode.Base
