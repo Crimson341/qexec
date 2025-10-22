@@ -915,6 +915,10 @@ public class Main extends MovieClip {
 
     public static function getTargetMonster():String {
         var monster:* = instance.game.world.myAvatar.target
+        if (!monster || (monster.dataLeaf && monster.dataLeaf.intHP <= 0)) {
+            instance.game.world.cancelTarget();
+            return JSON.stringify({});
+        }
         var monsterData:Object = {};
         for (var prop:String in monster.objData) {
             monsterData[prop] = monster.objData[prop];

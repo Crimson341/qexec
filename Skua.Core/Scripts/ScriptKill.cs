@@ -225,7 +225,7 @@ public class ScriptKill : IScriptKill
 
     private void WaitMonsterDeathOrCancellation(CancellationToken token)
     {
-        Wait.ForTrue(() => !_player.Playing || !_player.HasTarget, () => Combat.UntargetSelf(), -1, token);
+        Wait.ForTrue(() => !_player.Playing || !_player.HasTarget, null, -1, token);
         Combat.CancelAutoAttack();
         Combat.CancelTarget();
     }

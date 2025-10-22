@@ -52,8 +52,6 @@ public partial class ScriptCombat : IScriptCombat
     [MethodCallBinding("world.cancelTarget", RunMethodPost = true, GameFunction = true)]
     private void _cancelTarget()
     {
-        if (Options.SafeTimings)
-            Wait.ForMonsterDeath();
     }
 
     [MethodCallBinding("world.cancelAutoAttack", GameFunction = true)]

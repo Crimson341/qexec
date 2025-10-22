@@ -38,6 +38,7 @@
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\Skua.App.WPF\Skua.App.WPF.csproj" />
       <ProjectReference Include="..\Skua.Core.Interfaces\Skua.Core.Interfaces.csproj" />
       <ProjectReference Include="..\Skua.Core.Models\Skua.Core.Models.csproj" />
       <ProjectReference Include="..\Skua.Core.Utils\Skua.Core.Utils.csproj" />

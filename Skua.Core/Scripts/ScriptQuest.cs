@@ -349,8 +349,6 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
             if (Options.SafeTimings)
                 Wait.ForActionCooldown(GameActions.TryQuestComplete);
             Flash.CallGameFunction("world.tryQuestComplete", quest, -1, false);
-            if (Options.SafeTimings)
-                Wait.ForQuestComplete(quest);
             EnsureAccept(quest);
             _lastComplete = Environment.TickCount;
             await Task.Delay(Options.ActionDelay, token);
