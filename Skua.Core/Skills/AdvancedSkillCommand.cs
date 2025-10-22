@@ -40,6 +40,7 @@ public class AdvancedSkillCommand
                     break;
 
                 case SkillRule.Aura:
+                    shouldUse = AuraUseRule(player, useRule.AuraTarget, useRule.ComparisonMode, useRule.Value, useRule.AuraName);
                     break;
 
                 case SkillRule.Wait:
@@ -74,9 +75,53 @@ public class AdvancedSkillCommand
         return greater ? player.Mana >= mana : player.Mana <= mana;
     }
 
-    // TODO: Implement auras into player
-    private bool AuraUseRule(IScriptPlayer player, bool greater, int count)
+    private bool AuraUseRule(IScriptPlayer player, string auraTarget, int comparisonMode, int count, string auraName = "")
     {
+        if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
+        {
+            if (player.Auras == null || player.Auras.Length == 0)
+                return false;
+            
+            int totalStacks;
+            if (string.IsNullOrEmpty(auraName))
+                totalStacks = player.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1));
+            else
+                totalStacks = player.Auras
+                    .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
+                    .Sum(a => Convert.ToInt32(a.Value ?? 1));
+            
+            return comparisonMode switch
+            {
+                0 => totalStacks > count,
+                1 => totalStacks < count,
+                2 => totalStacks >= count,
+                3 => totalStacks <= count,
+                _ => false
+            };
+        }
+        else if (auraTarget.Equals("mob", StringComparison.OrdinalIgnoreCase))
+        {
+            if (!player.HasTarget || player.Target?.Auras == null || player.Target.Auras.Count == 0)
+                return false;
+            
+            int totalStacks;
+            if (string.IsNullOrEmpty(auraName))
+                totalStacks = player.Target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1));
+            else
+                totalStacks = player.Target.Auras
+                    .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
+                    .Sum(a => Convert.ToInt32(a.Value ?? 1));
+            
+            return comparisonMode switch
+            {
+                0 => totalStacks > count,
+                1 => totalStacks < count,
+                2 => totalStacks >= count,
+                3 => totalStacks <= count,
+                _ => false
+            };
+        }
+        
         return false;
     }
 
@@ -110,6 +155,17 @@ public struct UseRule
         ShouldSkip = shouldSkip;
     }
 
+    public UseRule(SkillRule rule, bool greater, int value, bool shouldSkip, string auraTarget, string auraName = "", int comparisonMode = 0)
+    {
+        Rule = rule;
+        Greater = greater;
+        Value = value;
+        ShouldSkip = shouldSkip;
+        AuraTarget = auraTarget;
+        AuraName = auraName;
+        ComparisonMode = comparisonMode;
+    }
+
     /// <summary>
     /// <list type="bullet">
     /// <item><see langword="null"/> = Wait</item>
@@ -129,4 +185,7 @@ public struct UseRule
 
     public readonly int Value = default;
     public readonly bool ShouldSkip = default;
+    public readonly string AuraTarget = "self";
+    public readonly string AuraName = "";
+    public readonly int ComparisonMode = 0;
 }

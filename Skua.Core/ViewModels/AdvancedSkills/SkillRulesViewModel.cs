@@ -16,6 +16,10 @@ public partial class SkillRulesViewModel : ObservableRecipient
         _healthUseValue = rules.HealthUseValue;
         _manaGreaterThanBool = rules.ManaGreaterThanBool;
         _manaUseValue = rules.ManaUseValue;
+        _auraComparisonMode = rules.AuraComparisonMode;
+        _auraUseValue = rules.AuraUseValue;
+        _auraTargetIndex = rules.AuraTargetIndex;
+        _auraName = rules.AuraName;
         _skipUseBool = rules.SkipUseBool;
     }
 
@@ -60,6 +64,49 @@ public partial class SkillRulesViewModel : ObservableRecipient
     [ObservableProperty]
     private bool _skipUseBool;
 
+    [ObservableProperty]
+    private int _auraComparisonMode = 0; // 0: >, 1: <, 2: >=, 3: <=
+    
+    public bool AuraGreaterThanBool => _auraComparisonMode == 0 || _auraComparisonMode == 2;
+    public bool AuraStrictComparison => _auraComparisonMode == 0 || _auraComparisonMode == 1;
+    
+    public string AuraComparisonSymbol => _auraComparisonMode switch
+    {
+        0 => ">",
+        1 => "<",
+        2 => ">=",
+        3 => "<=",
+        _ => ">"
+    };
+
+    private int _auraUseValue;
+
+    public int AuraUseValue
+    {
+        get { return _auraUseValue; }
+        set
+        {
+            if (value < 0)
+                return;
+            SetProperty(ref _auraUseValue, value);
+        }
+    }
+
+    [ObservableProperty]
+    private int _auraTargetIndex = 0;
+
+    [ObservableProperty]
+    private string _auraName = string.Empty;
+
+    [RelayCommand]
+    private void CycleAuraComparison()
+    {
+        AuraComparisonMode = (AuraComparisonMode + 1) % 4;
+        OnPropertyChanged(nameof(AuraComparisonSymbol));
+        OnPropertyChanged(nameof(AuraGreaterThanBool));
+        OnPropertyChanged(nameof(AuraStrictComparison));
+    }
+
     [RelayCommand]
     private void ResetUseRules()
     {
@@ -69,6 +116,10 @@ public partial class SkillRulesViewModel : ObservableRecipient
         ManaGreaterThanBool = true;
         ManaUseValue = 0;
         WaitUseValue = 0;
+        AuraComparisonMode = 0;
+        AuraUseValue = 0;
+        AuraTargetIndex = 0;
+        AuraName = string.Empty;
         SkipUseBool = false;
     }
 }
