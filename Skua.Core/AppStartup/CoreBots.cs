@@ -32,7 +32,7 @@ internal class CoreBots
             new DisplayOptionItemViewModel<bool>("Disable AutoEnhance", "DisableAutoEnhance"),
             new DisplayOptionItemViewModel<bool>("Disable BestGear", "DisableBestGear"),
             new DisplayOptionItemViewModel<bool>("Anti Lag", "AntiLag", true),
-            new DisplayOptionItemViewModel<bool>("Incognito Mode", "IncognitoMode", false),
+            new DisplayOptionItemViewModel<bool>("Incognito Mode", "IncognitoMode", true),
 
             new DisplayOptionItemViewModel<int>("Room Number", "PrivateRoomNr", 100000),
             new DisplayOptionItemViewModel<int>("Action Delay", "ActionDelayNr", 700),
