@@ -65,7 +65,7 @@ public partial class ScriptSkill : IScriptSkill
     {
         if (BaseProvider is null)
         {
-            BaseProvider = new AdvancedSkillProvider(Player, Combat);
+            BaseProvider = new AdvancedSkillProvider(Player, Combat, Flash);
             BaseProvider.Load(genericSkills);
             _provider = BaseProvider;
         }
@@ -114,7 +114,7 @@ public partial class ScriptSkill : IScriptSkill
 
     public void LoadAdvanced(string className, bool autoEquip, ClassUseMode useMode = ClassUseMode.Base)
     {
-        OverrideProvider = new AdvancedSkillProvider(Player, Combat);
+        OverrideProvider = new AdvancedSkillProvider(Player, Combat, Flash);
 
         if (className == "generic")
         {
@@ -144,7 +144,7 @@ public partial class ScriptSkill : IScriptSkill
 
     public void LoadAdvanced(string skills, int skillTimeout = -1, SkillUseMode skillMode = SkillUseMode.UseIfAvailable)
     {
-        OverrideProvider = new AdvancedSkillProvider(Player, Combat);
+        OverrideProvider = new AdvancedSkillProvider(Player, Combat, Flash);
         SkillTimeout = skillTimeout;
         SkillUseMode = skillMode;
         OverrideProvider.Load(skills);

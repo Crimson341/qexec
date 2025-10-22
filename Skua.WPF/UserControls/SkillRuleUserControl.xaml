@@ -30,6 +30,7 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <CheckBox
             Grid.Row="0"
@@ -62,16 +63,41 @@
                 </Style>
             </ToggleButton.Style>
         </ToggleButton>
-        <TextBox
+        <Grid
             Grid.Row="1"
             Grid.Column="1"
-            Margin="0,3"
-            materialDesign:HintAssist.Hint="Health (%)"
-            Text="{Binding HealthUseValue, UpdateSourceTrigger=PropertyChanged}">
-            <b:Interaction.Behaviors>
-                <wpf:TextBoxOnlyNumbersBehavior />
-            </b:Interaction.Behaviors>
-        </TextBox>
+            Margin="0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Grid.Column="0"
+                Margin="0,0,3,0"
+                materialDesign:HintAssist.Hint="Health"
+                Text="{Binding HealthUseValue, UpdateSourceTrigger=PropertyChanged}">
+                <b:Interaction.Behaviors>
+                    <wpf:TextBoxOnlyNumbersBehavior />
+                </b:Interaction.Behaviors>
+            </TextBox>
+            <ToggleButton
+                Grid.Column="1"
+                Width="50"
+                Height="40"
+                Margin="3,0"
+                IsChecked="{Binding HealthIsPercentage, UpdateSourceTrigger=PropertyChanged}">
+                <ToggleButton.Style>
+                    <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
+                        <Setter Property="Content" Value="%" />
+                        <Style.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter Property="Content" Value="#" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ToggleButton.Style>
+            </ToggleButton>
+        </Grid>
 
         <ToggleButton
             Grid.Row="2"
@@ -90,16 +116,41 @@
                 </Style>
             </ToggleButton.Style>
         </ToggleButton>
-        <TextBox
+        <Grid
             Grid.Row="2"
             Grid.Column="1"
-            Margin="0,3"
-            materialDesign:HintAssist.Hint="Mana"
-            Text="{Binding ManaUseValue, UpdateSourceTrigger=PropertyChanged}">
-            <b:Interaction.Behaviors>
-                <wpf:TextBoxOnlyNumbersBehavior />
-            </b:Interaction.Behaviors>
-        </TextBox>
+            Margin="0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Grid.Column="0"
+                Margin="0,0,3,0"
+                materialDesign:HintAssist.Hint="Mana"
+                Text="{Binding ManaUseValue, UpdateSourceTrigger=PropertyChanged}">
+                <b:Interaction.Behaviors>
+                    <wpf:TextBoxOnlyNumbersBehavior />
+                </b:Interaction.Behaviors>
+            </TextBox>
+            <ToggleButton
+                Grid.Column="1"
+                Width="50"
+                Height="40"
+                Margin="3,0"
+                IsChecked="{Binding ManaIsPercentage, UpdateSourceTrigger=PropertyChanged}">
+                <ToggleButton.Style>
+                    <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
+                        <Setter Property="Content" Value="%" />
+                        <Style.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter Property="Content" Value="#" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ToggleButton.Style>
+            </ToggleButton>
+        </Grid>
 
         <TextBox
             Grid.Row="3"
@@ -109,8 +160,61 @@
             materialDesign:HintAssist.Hint="Wait (ms)"
             Text="{Binding WaitUseValue, UpdateSourceTrigger=PropertyChanged}" />
 
-        <Button
+        <ToggleButton
             Grid.Row="4"
+            Grid.Column="0"
+            Height="auto"
+            Margin="0,3"
+            IsChecked="{Binding PartyMemberHealthGreaterThanBool, UpdateSourceTrigger=PropertyChanged}">
+            <ToggleButton.Style>
+                <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
+                    <Setter Property="Content" Value="{materialDesign:PackIcon Kind=GreaterThanOrEqual}" />
+                    <Style.Triggers>
+                        <Trigger Property="IsChecked" Value="False">
+                            <Setter Property="Content" Value="{materialDesign:PackIcon Kind=LessThanOrEqual}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ToggleButton.Style>
+        </ToggleButton>
+        <Grid
+            Grid.Row="4"
+            Grid.Column="1"
+            Margin="0,3">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Grid.Column="0"
+                Margin="0,0,3,0"
+                materialDesign:HintAssist.Hint="Party Member HP (any player)"
+                Text="{Binding PartyMemberHealthUseValue, UpdateSourceTrigger=PropertyChanged}">
+                <b:Interaction.Behaviors>
+                    <wpf:TextBoxOnlyNumbersBehavior />
+                </b:Interaction.Behaviors>
+            </TextBox>
+            <ToggleButton
+                Grid.Column="1"
+                Width="50"
+                Height="40"
+                Margin="3,0"
+                IsChecked="{Binding PartyMemberHealthIsPercentage, UpdateSourceTrigger=PropertyChanged}">
+                <ToggleButton.Style>
+                    <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
+                        <Setter Property="Content" Value="%" />
+                        <Style.Triggers>
+                            <Trigger Property="IsChecked" Value="False">
+                                <Setter Property="Content" Value="#" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </ToggleButton.Style>
+            </ToggleButton>
+        </Grid>
+
+        <Button
+            Grid.Row="5"
             Grid.Column="0"
             Height="auto"
             Margin="0,3"
@@ -124,7 +228,7 @@
             </Button.ToolTip>
         </Button>
         <Grid
-            Grid.Row="4"
+            Grid.Row="5"
             Grid.Column="1"
             Margin="0,8">
             <Grid.ColumnDefinitions>
@@ -155,7 +259,7 @@
         </Grid>
 
         <CheckBox
-            Grid.Row="7"
+            Grid.Row="8"
             Grid.Column="0"
             Grid.ColumnSpan="2"
             Margin="10"

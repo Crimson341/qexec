@@ -14,13 +14,18 @@ public partial class SkillRulesViewModel : ObservableRecipient
         _waitUseValue = rules.WaitUseValue;
         _healthGreaterThanBool = rules.HealthGreaterThanBool;
         _healthUseValue = rules.HealthUseValue;
+        _healthIsPercentage = rules.HealthIsPercentage;
         _manaGreaterThanBool = rules.ManaGreaterThanBool;
         _manaUseValue = rules.ManaUseValue;
+        _manaIsPercentage = rules.ManaIsPercentage;
         _auraComparisonMode = rules.AuraComparisonMode;
         _auraUseValue = rules.AuraUseValue;
         _auraTargetIndex = rules.AuraTargetIndex;
         _auraName = rules.AuraName;
         _skipUseBool = rules.SkipUseBool;
+        _partyMemberHealthGreaterThanBool = rules.PartyMemberHealthGreaterThanBool;
+        _partyMemberHealthUseValue = rules.PartyMemberHealthUseValue;
+        _partyMemberHealthIsPercentage = rules.PartyMemberHealthIsPercentage;
     }
 
     [ObservableProperty]
@@ -36,11 +41,14 @@ public partial class SkillRulesViewModel : ObservableRecipient
         get { return _healthUseValue; }
         set
         {
-            if (value is < 0 or > 100)
+            if (value < 0)
                 return;
             SetProperty(ref _healthUseValue, value);
         }
     }
+
+    [ObservableProperty]
+    private bool _healthIsPercentage = true;
 
     [ObservableProperty]
     private bool _manaGreaterThanBool = true;
@@ -52,11 +60,14 @@ public partial class SkillRulesViewModel : ObservableRecipient
         get { return _manaUseValue; }
         set
         {
-            if (value is < 0 or > 100)
+            if (value < 0)
                 return;
             SetProperty(ref _manaUseValue, value);
         }
     }
+
+    [ObservableProperty]
+    private bool _manaIsPercentage = true;
 
     [ObservableProperty]
     private int _waitUseValue;
@@ -98,6 +109,25 @@ public partial class SkillRulesViewModel : ObservableRecipient
     [ObservableProperty]
     private string _auraName = string.Empty;
 
+    [ObservableProperty]
+    private bool _partyMemberHealthGreaterThanBool = true;
+
+    private int _partyMemberHealthUseValue;
+
+    public int PartyMemberHealthUseValue
+    {
+        get { return _partyMemberHealthUseValue; }
+        set
+        {
+            if (value < 0)
+                return;
+            SetProperty(ref _partyMemberHealthUseValue, value);
+        }
+    }
+
+    [ObservableProperty]
+    private bool _partyMemberHealthIsPercentage = true;
+
     [RelayCommand]
     private void CycleAuraComparison()
     {
@@ -113,13 +143,18 @@ public partial class SkillRulesViewModel : ObservableRecipient
         UseRuleBool = false;
         HealthGreaterThanBool = true;
         HealthUseValue = 0;
+        HealthIsPercentage = true;
         ManaGreaterThanBool = true;
         ManaUseValue = 0;
+        ManaIsPercentage = true;
         WaitUseValue = 0;
         AuraComparisonMode = 0;
         AuraUseValue = 0;
         AuraTargetIndex = 0;
         AuraName = string.Empty;
         SkipUseBool = false;
+        PartyMemberHealthGreaterThanBool = true;
+        PartyMemberHealthUseValue = 0;
+        PartyMemberHealthIsPercentage = true;
     }
 }

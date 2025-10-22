@@ -4,6 +4,15 @@ namespace Skua.Core.Skills;
 
 public class AdvancedSkillCommand
 {
+    private readonly IFlashUtil? _flash;
+
+    public AdvancedSkillCommand() { }
+
+    public AdvancedSkillCommand(IFlashUtil flash)
+    {
+        _flash = flash;
+    }
+
     public Dictionary<int, int> Skills { get; set; } = new();
     public List<UseRule[]> UseRules { get; set; } = new();
     private int _index = 0;
@@ -32,11 +41,11 @@ public class AdvancedSkillCommand
             switch (useRule.Rule)
             {
                 case SkillRule.Health:
-                    shouldUse = HealthUseRule(player, useRule.Greater, useRule.Value);
+                    shouldUse = HealthUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
                     break;
 
                 case SkillRule.Mana:
-                    shouldUse = ManaUseRule(player, useRule.Greater, useRule.Value);
+                    shouldUse = ManaUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
                     break;
 
                 case SkillRule.Aura:
@@ -47,6 +56,10 @@ public class AdvancedSkillCommand
                     if (useRule.ShouldSkip && !canUse)
                         return null;
                     Task.Delay(useRule.Value).Wait();
+                    break;
+
+                case SkillRule.PartyHealth:
+                    shouldUse = PartyHealthUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
                     break;
 
                 case SkillRule.None:
@@ -62,17 +75,80 @@ public class AdvancedSkillCommand
         return shouldUse;
     }
 
-    private bool HealthUseRule(IScriptPlayer player, bool greater, int health)
+    private bool HealthUseRule(IScriptPlayer player, bool greater, int health, bool isPercentage = true)
     {
-        if (player.Health == 0 || player.MaxHealth == 0)
+        if (player.Health == 0)
             return false;
-        int ratio = (int)(player.Health / (double)player.MaxHealth * 100.0);
-        return greater ? ratio >= health : ratio <= health;
+        
+        if (isPercentage)
+        {
+            if (player.MaxHealth == 0)
+                return false;
+            int ratio = (int)(player.Health / (double)player.MaxHealth * 100.0);
+            return greater ? ratio >= health : ratio <= health;
+        }
+        else
+        {
+            return greater ? player.Health >= health : player.Health <= health;
+        }
     }
 
-    private bool ManaUseRule(IScriptPlayer player, bool greater, int mana)
+    private bool ManaUseRule(IScriptPlayer player, bool greater, int mana, bool isPercentage = true)
     {
-        return greater ? player.Mana >= mana : player.Mana <= mana;
+        if (isPercentage)
+        {
+            if (player.MaxMana == 0)
+                return false;
+            int ratio = (int)(player.Mana / (double)player.MaxMana * 100.0);
+            return greater ? ratio >= mana : ratio <= mana;
+        }
+        else
+        {
+            return greater ? player.Mana >= mana : player.Mana <= mana;
+        }
+    }
+
+    private bool PartyHealthUseRule(IScriptPlayer player, bool greater, int health, bool isPercentage = true)
+    {
+        if (_flash == null)
+            return false;
+        
+        try
+        {
+            dynamic[]? players = _flash.GetGameObject<dynamic[]>("world.players");
+            if (players == null || players.Length == 0)
+                return false;
+            
+            foreach (dynamic targetPlayer in players)
+            {
+                string? targetCell = targetPlayer.strFrame;
+                if (string.IsNullOrEmpty(targetCell) || targetCell != player.Cell)
+                    continue;
+                
+                int targetHealth = targetPlayer.dataLeaf.intHP;
+                int targetMaxHealth = targetPlayer.dataLeaf.intHPMax;
+                
+                if (targetHealth == 0 || (isPercentage && targetMaxHealth == 0))
+                    continue;
+                
+                if (isPercentage)
+                {
+                    int ratio = (int)(targetHealth / (double)targetMaxHealth * 100.0);
+                    if (greater ? ratio >= health : ratio <= health)
+                        return true;
+                }
+                else
+                {
+                    if (greater ? targetHealth >= health : targetHealth <= health)
+                        return true;
+                }
+            }
+        }
+        catch
+        {
+        }
+        
+        return false;
     }
 
     private bool AuraUseRule(IScriptPlayer player, string auraTarget, int comparisonMode, int count, string auraName = "")
@@ -137,7 +213,8 @@ public enum SkillRule
     Health,
     Mana,
     Aura,
-    Wait
+    Wait,
+    PartyHealth
 }
 
 public struct UseRule
@@ -155,7 +232,7 @@ public struct UseRule
         ShouldSkip = shouldSkip;
     }
 
-    public UseRule(SkillRule rule, bool greater, int value, bool shouldSkip, string auraTarget, string auraName = "", int comparisonMode = 0)
+    public UseRule(SkillRule rule, bool greater, int value, bool shouldSkip, string auraTarget, string auraName = "", int comparisonMode = 0, int partyMemberIndex = -1, bool isPercentage = true)
     {
         Rule = rule;
         Greater = greater;
@@ -164,6 +241,8 @@ public struct UseRule
         AuraTarget = auraTarget;
         AuraName = auraName;
         ComparisonMode = comparisonMode;
+        PartyMemberIndex = partyMemberIndex;
+        IsPercentage = isPercentage;
     }
 
     /// <summary>
@@ -188,4 +267,6 @@ public struct UseRule
     public readonly string AuraTarget = "self";
     public readonly string AuraName = "";
     public readonly int ComparisonMode = 0;
+    public readonly int PartyMemberIndex = -1;
+    public readonly bool IsPercentage = true;
 }

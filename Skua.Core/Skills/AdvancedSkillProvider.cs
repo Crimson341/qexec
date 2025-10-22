@@ -9,14 +9,18 @@ public class AdvancedSkillProvider : ISkillProvider
 {
     private readonly IScriptPlayer _player;
     private readonly IScriptCombat _combat;
-    private readonly AdvancedSkillCommand _currentCommand = new();
-    private readonly UseRule[] _none = new[] { new UseRule(SkillRule.None) };
+    private readonly IFlashUtil _flash;
+    private readonly AdvancedSkillCommand _currentCommand;
 
-    public AdvancedSkillProvider(IScriptPlayer player, IScriptCombat combat)
+    public AdvancedSkillProvider(IScriptPlayer player, IScriptCombat combat, IFlashUtil flash)
     {
         _player = player;
         _combat = combat;
+        _flash = flash;
+        _currentCommand = new AdvancedSkillCommand(flash);
     }
+
+    private readonly UseRule[] _none = new[] { new UseRule(SkillRule.None) };
 
     public bool ResetOnTarget { get; set; } = false;
 
@@ -47,9 +51,16 @@ public class AdvancedSkillProvider : ISkillProvider
         bool shouldSkip = useRule.Last() == 's';
         for (int i = 0; i < stringRules.Length; i++)
         {
-            if (stringRules[i].Contains('h'))
+            if (stringRules[i].Contains('h') || (stringRules[i].Contains('p') && stringRules[i].Contains("any")))
             {
-                rules[i] = new UseRule(SkillRule.Health, stringRules[i].Contains('>'), int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
+                if (stringRules[i].Contains("pany"))
+                {
+                    rules[i] = new UseRule(SkillRule.PartyHealth, stringRules[i].Contains('>'), int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
+                }
+                else
+                {
+                    rules[i] = new UseRule(SkillRule.Health, stringRules[i].Contains('>'), int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
+                }
                 continue;
             }
 
