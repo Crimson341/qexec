@@ -88,8 +88,8 @@ public class AdvancedSkillProvider : ISkillProvider
                 int auraValue = int.Parse(auraRule.Substring(firstDigitIndex, lastDigitIndex - firstDigitIndex + 1));
 
                 string remainder = auraRule[(lastDigitIndex + 1)..] ?? string.Empty;
-                string auraTarget = remainder.Contains("target", StringComparison.OrdinalIgnoreCase) ? "target" : "self";
-                string auraName = remainder.Replace("target", "", StringComparison.OrdinalIgnoreCase).Replace("S", "", StringComparison.OrdinalIgnoreCase).Trim();
+                string auraTarget = remainder.Contains("TARGET", StringComparison.OrdinalIgnoreCase) ? "target" : "self";
+                string auraName = remainder.Replace("TARGET", "", StringComparison.OrdinalIgnoreCase).Replace("S", "", StringComparison.OrdinalIgnoreCase).Trim();
 
                 int comparisonMode = auraRule.Contains('>') ? 0 : (auraRule.Contains('<') ? 1 : (auraRule.Contains(">=") ? 2 : 3));
                 rules[i] = new UseRule(SkillRule.Aura, auraRule.Contains('>'), auraValue, shouldSkip, auraTarget, auraName, comparisonMode);

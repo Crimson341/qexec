@@ -101,7 +101,7 @@ public class SkillItemViewModel : ObservableObject
                     string remainder = skillRules[i].Substring(lastDigitIndex + 1);
 
                     auraName = nameAndComparator;
-                    if (remainder.Contains("target", StringComparison.OrdinalIgnoreCase))
+                    if (remainder.Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTargetIndex = 1;
                     auraComparisonMode = remainder.Contains(">=") ? 2 : 3;
                 }
