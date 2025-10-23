@@ -16,7 +16,7 @@ public class Aura
     /// <summary>
     /// The aura's stack value/count.
     /// </summary>
-    [JsonProperty("value")]
+    [JsonProperty("val")]
     [JsonConverter(typeof(IntConverter))]
     public object? Value { get; set; } = 1;
 
@@ -29,7 +29,7 @@ public class Aura
     /// <summary>
     /// The name of the aura.
     /// </summary>
-    [JsonProperty("name")]
+    [JsonProperty("nam")]
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
@@ -41,7 +41,7 @@ public class Aura
     /// <summary>
     /// The duration of the aura in seconds.
     /// </summary>
-    [JsonProperty("duration")]
+    [JsonProperty("dur")]
     public int Duration { get; set; }
 
     /// <summary>
@@ -53,7 +53,7 @@ public class Aura
     /// <summary>
     /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
-    [JsonProperty("timeStamp")]
+    [JsonProperty("ts")]
     public long UnixTimeStamp { get; set; }
 
     /// <summary>

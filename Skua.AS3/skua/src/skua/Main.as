@@ -638,11 +638,11 @@ public class Main extends MovieClip {
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
             auraArray.push({
-                'name': aura.nam,
-                'value': aura.val == undefined ? 1 : aura.val,
+                'nam': aura.nam,
+                'val': aura.val == undefined ? 1 : aura.val,
                 'passive': aura.passive,
-                'timeStamp': aura.ts,
-                'duration': parseInt(aura.dur),
+                'ts': aura.ts,
+                'dur': parseInt(aura.dur),
                 'potionType': aura.potionType,
                 'cat': aura.cat,
                 't': aura.t,
