@@ -159,23 +159,20 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
         _logger.ScriptLog($"[Auto Attack] Attacking {_target}");
 
-        while (!token.IsCancellationRequested && Player.LoggedIn)
+        List<Monster> monsters = Monsters.CurrentMonsters;
+
+        while (!token.IsCancellationRequested)
         {
-            if (_target == "*")
+            foreach (Monster monster in monsters)
             {
-                if (Monsters.CurrentMonsters.Any(m => m.HP > 0 && m.State != 2))
-                {
-                    Combat.Attack("*");
-                }
+                if (token.IsCancellationRequested)
+                    return;
+
+                if (!Combat.Attack(monster.MapID))
+                    continue;
+
+                Kill.Monster(monster.MapID, token);
             }
-            else
-            {
-                if (Monsters.CurrentMonsters.Any(m => m.HP > 0 && m.State != 2 && m.Name == _target))
-                {
-                    Combat.Attack(_target);
-                }
-            }
-            Thread.Sleep(200);
         }
         Trace.WriteLine("Auto attack stopped.");
     }
@@ -195,49 +192,39 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         }
 
         string[] names = _target.Split('|');
+        List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
 
         _logger.ScriptLog($"[Auto Hunt] Hunting for {_target}");
-        while (!token.IsCancellationRequested && Player.LoggedIn)
+        while (!token.IsCancellationRequested)
         {
-            List<string> validCells = Map.Cells;
-            List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n))
-                                      .Distinct()
-                                      .Where(c => !string.IsNullOrWhiteSpace(c) && validCells.Contains(c))
-                                      .ToList();
-
-            foreach (string cell in cells)
+            for (int i = cells.Count - 1; i >= 0; i--)
             {
-                if (token.IsCancellationRequested)
-                    return;
-
-                if (Player.Cell != cell)
+                if (Player.Cell != cells[i] && !token.IsCancellationRequested)
                 {
                     if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
                         Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
-                    Map.Jump(cell, "Left");
-                    Wait.ForCellChange(cell);
+                    Map.Jump(cells[i], "Left");
                     _lastHuntTick = Environment.TickCount;
                 }
 
-                // Keep attacking monsters in this cell until none are found
-                while (!token.IsCancellationRequested && Player.LoggedIn)
+                foreach (string mon in names)
                 {
-                    var monsters = Monsters.CurrentMonsters.Where(m => m.HP > 0 && m.State != 2 && names.Contains(m.Name)).ToList();
-                    
-                    if (!monsters.Any())
+                    if (token.IsCancellationRequested)
                         break;
 
-                    if (_target == "*")
+                    if (Monsters.Exists(mon) && !token.IsCancellationRequested)
                     {
-                        Combat.Attack("*");
+                        if (!Combat.Attack(mon))
+                        {
+                            cells.RemoveAt(i);
+                            continue;
+                        }
+                        Thread.Sleep(Options.ActionDelay);
+                        Kill.Monster(mon, token);
+                        break;
                     }
-                    else
-                    {
-                        var targetMonster = monsters.FirstOrDefault(m => m.Name == _target);
-                        if (targetMonster != null)
-                            Combat.Attack(_target);
-                    }
-                    Thread.Sleep(200);
+
+                    cells.RemoveAt(i);
                 }
             }
         }
