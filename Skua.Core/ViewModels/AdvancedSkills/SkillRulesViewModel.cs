@@ -77,10 +77,10 @@ public partial class SkillRulesViewModel : ObservableRecipient
 
     [ObservableProperty]
     private int _auraComparisonMode = 0; // 0: >, 1: <, 2: >=, 3: <=
-    
+
     public bool AuraGreaterThanBool => _auraComparisonMode == 0 || _auraComparisonMode == 2;
     public bool AuraStrictComparison => _auraComparisonMode == 0 || _auraComparisonMode == 1;
-    
+
     public string AuraComparisonSymbol => _auraComparisonMode switch
     {
         0 => ">",
