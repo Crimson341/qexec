@@ -30,7 +30,6 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <CheckBox
             Grid.Row="0"
@@ -82,9 +81,7 @@
             </TextBox>
             <ToggleButton
                 Grid.Column="1"
-                Width="50"
-                Height="40"
-                Margin="3,0"
+                Margin="0,0,3,0"
                 IsChecked="{Binding HealthIsPercentage, UpdateSourceTrigger=PropertyChanged}">
                 <ToggleButton.Style>
                     <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
@@ -135,9 +132,7 @@
             </TextBox>
             <ToggleButton
                 Grid.Column="1"
-                Width="50"
-                Height="40"
-                Margin="3,0"
+                Margin="0,0,3,0"
                 IsChecked="{Binding ManaIsPercentage, UpdateSourceTrigger=PropertyChanged}">
                 <ToggleButton.Style>
                     <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
@@ -152,16 +147,8 @@
             </ToggleButton>
         </Grid>
 
-        <TextBox
-            Grid.Row="3"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Margin="0,3"
-            materialDesign:HintAssist.Hint="Wait (ms)"
-            Text="{Binding WaitUseValue, UpdateSourceTrigger=PropertyChanged}" />
-
         <ToggleButton
-            Grid.Row="4"
+            Grid.Row="3"
             Grid.Column="0"
             Height="auto"
             Margin="0,3"
@@ -178,11 +165,11 @@
             </ToggleButton.Style>
         </ToggleButton>
         <Grid
-            Grid.Row="4"
+            Grid.Row="3"
             Grid.Column="1"
             Margin="0,3">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition/>
                 <ColumnDefinition Width="auto" />
             </Grid.ColumnDefinitions>
             <TextBox
@@ -196,9 +183,7 @@
             </TextBox>
             <ToggleButton
                 Grid.Column="1"
-                Width="50"
-                Height="40"
-                Margin="3,0"
+                Margin="0,0,3,0"
                 IsChecked="{Binding PartyMemberHealthIsPercentage, UpdateSourceTrigger=PropertyChanged}">
                 <ToggleButton.Style>
                     <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
@@ -214,9 +199,8 @@
         </Grid>
 
         <Button
-            Grid.Row="5"
+            Grid.Row="4"
             Grid.Column="0"
-            Height="auto"
             Margin="0,3"
             Content="{Binding AuraComparisonSymbol}"
             Command="{Binding CycleAuraComparisonCommand}">
@@ -228,47 +212,58 @@
             </Button.ToolTip>
         </Button>
         <Grid
-            Grid.Row="5"
-            Margin="0,6,0,21" Grid.Column="1" Grid.RowSpan="4">
+            Grid.Row="4"
+            Margin="0,0,3,0" Grid.Column="1">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="261" />
+                <ColumnDefinition Width="150" />
                 <ColumnDefinition />
                 <ColumnDefinition />
             </Grid.ColumnDefinitions>
             <TextBox
+                Grid.Column="0"
+                materialDesign:HintAssist.Hint="Name"
+                Text="{Binding AuraName, UpdateSourceTrigger=PropertyChanged}" />
+            <TextBox
+                Grid.Column="1"
                 materialDesign:HintAssist.Hint="Aura Stacks"
-                Text="{Binding AuraUseValue, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" Width="76">
+                Margin="3,0,3,0"
+                Text="{Binding AuraUseValue, UpdateSourceTrigger=PropertyChanged}">
                 <b:Interaction.Behaviors>
                     <wpf:TextBoxOnlyNumbersBehavior />
                 </b:Interaction.Behaviors>
             </TextBox>
-            <TextBox
-                Margin="0,2,259,-2"
-                materialDesign:HintAssist.Hint="Name"
-                Text="{Binding AuraName, UpdateSourceTrigger=PropertyChanged}" />
             <ComboBox
-                SelectedIndex="{Binding AuraTargetIndex, UpdateSourceTrigger=PropertyChanged}" Height="44" Margin="168,8,33,0" VerticalAlignment="Top">
+                Grid.Column="2"
+                SelectedIndex="{Binding AuraTargetIndex, UpdateSourceTrigger=PropertyChanged}" Height="38">
                 <ComboBoxItem Content="Self" />
-                <ComboBoxItem Content="Mob" />
+                <ComboBoxItem Content="Target" />
             </ComboBox>
-            <TextBox
-                Margin="1,2,168,0"
-                materialDesign:HintAssist.Hint="Name"
-                Text="{Binding AuraName, UpdateSourceTrigger=PropertyChanged}" />
         </Grid>
+        <Grid
+            Grid.Column="1"
+            Grid.Row="5">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="150"/>
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Grid.Row="0"
+                Grid.Column="1"
+                Margin="0,3"
+                materialDesign:HintAssist.Hint="Wait (ms)"
+                Text="{Binding WaitUseValue, UpdateSourceTrigger=PropertyChanged}" />
 
-        <CheckBox
-            Grid.Row="8"
-            Grid.Column="0"
-            Grid.ColumnSpan="2"
-            Margin="0,53,20,-31"
-            Content="Skip if not available."
-            IsChecked="{Binding SkipUseBool, UpdateSourceTrigger=PropertyChanged}">
-            <CheckBox.ToolTip>
-                <TextBlock>
-                    Will skip skill if it is not available.<LineBreak />
-                    Note: If the skill has a Wait Use Rule, it will wait for the specified time and then check if it should be skipped.</TextBlock>
-            </CheckBox.ToolTip>
-        </CheckBox>
+            <CheckBox
+                Grid.Row="0"
+                Grid.Column="0"
+                Content="Skip if not available."
+                IsChecked="{Binding SkipUseBool, UpdateSourceTrigger=PropertyChanged}">
+                <CheckBox.ToolTip>
+                    <TextBlock>
+                        Will skip skill if it is not available.<LineBreak />
+                        Note: If the skill has a Wait Use Rule, it will wait for the specified time and then check if it should be skipped.</TextBlock>
+                </CheckBox.ToolTip>
+            </CheckBox>
+        </Grid>
     </Grid>
 </UserControl>
