@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
@@ -135,8 +136,14 @@ public partial class ScriptPlayer : IScriptPlayer
     [ObjectBinding("world.myAvatar.dataLeaf.sta")]
     private PlayerStats? _stats;
 
-    [ObjectBinding("world.myAvatar.dataLeaf.auras")]
-    private List<Aura>? _auras;
+    public List<Aura>? Auras
+    {
+        get
+        {
+            string? auraData = Flash.GetGameObject("world.myAvatar.dataLeaf.auras");
+            return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
+        }
+    }
 
     public InventoryItem? CurrentClass => Playing ? Inventory.Items?.Find(i => i is { Equipped: true, Category: ItemCategory.Class }) : null;
 
