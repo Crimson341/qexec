@@ -65,6 +65,7 @@ public class Monster
     /// <summary>
     /// List of auras currently active on this monster.
     /// </summary>
+    [JsonProperty("auras")]
     public List<Aura> Auras { get; set; } = new();
 
     /// <summary>
