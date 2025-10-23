@@ -18,7 +18,7 @@ public class Aura
     /// </summary>
     [JsonProperty("val")]
     [JsonConverter(typeof(IntConverter))]
-    public object? Value { get; set; } = 1;
+    public object Value { get; set; } = 1;
 
     /// <summary>
     /// The icon file name for the aura.
