@@ -135,7 +135,7 @@ public partial class ScriptPlayer : IScriptPlayer
     [ObjectBinding("world.myAvatar.dataLeaf.sta")]
     private PlayerStats? _stats;
 
-    [ObjectBinding("world.myAvatar.dataLeaf.auras")]
+    [ObjectBinding("world.myAvatar.dataLeaf.auras", Default = "Array.Empty<Skua.Core.Models.Auras.Aura>()")]
     private Aura[]? _auras;
 
     public InventoryItem? CurrentClass => Playing ? Inventory.Items?.Find(i => i is { Equipped: true, Category: ItemCategory.Class }) : null;
