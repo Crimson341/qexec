@@ -157,7 +157,7 @@ public class AdvancedSkillCommand
 
         if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
         {
-            if (player.Auras == null || player.Auras.Length == 0)
+            if (player.Auras == null || player.Auras.Count == 0)
                 return false;
 
             totalStacks = string.IsNullOrEmpty(auraName)
@@ -169,7 +169,7 @@ public class AdvancedSkillCommand
 
         if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
         {
-            if (!player.HasTarget || player.Target?.Auras == null || player.Target.Auras.Length == 0)
+            if (!player.HasTarget || player.Target?.Auras == null || player.Target.Auras.Count == 0)
                 return false;
 
             totalStacks = string.IsNullOrEmpty(auraName)
