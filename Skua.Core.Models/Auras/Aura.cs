@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Skua.Core.Models.Converters;
 
 namespace Skua.Core.Models.Auras;
 
@@ -16,6 +17,7 @@ public class Aura
     /// The aura's stack value/count.
     /// </summary>
     [JsonProperty("value")]
+    [JsonConverter(typeof(IntConverter))]
     public object? Value { get; set; } = 1;
 
     /// <summary>
@@ -49,17 +51,10 @@ public class Aura
     public bool IsNew { get; set; } = true;
 
     /// <summary>
-    /// (Deprecated use <see cref="UnixTimeStamp"/>) The timestamp when the aura was applied - Unix timestamp in milliseconds.
-    /// </summary>
-    [Obsolete($"This variable is outdated please switch to {nameof(UnixTimeStamp)}")]
-    [JsonProperty("timeStamp")]
-    public long _timeStamp { get; set; }
-
-    /// <summary>
     /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
-    [JsonIgnore]
-    public long UnixTimeStamp => _timeStamp;
+    [JsonProperty("timeStamp")]
+    public long UnixTimeStamp { get; set; }
 
     /// <summary>
     /// If the aura is a passive or not.
