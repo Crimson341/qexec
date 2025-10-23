@@ -42,7 +42,7 @@ public class Aura
     /// The duration of the aura in seconds.
     /// </summary>
     [JsonProperty("dur")]
-    public int Duration { get; set; }
+    public int Duration { get; set; } = 0;
 
     /// <summary>
     /// Whether this is a new aura.
@@ -54,13 +54,13 @@ public class Aura
     /// The timestamp when the aura was applied - Unix timestamp in milliseconds.
     /// </summary>
     [JsonProperty("ts")]
-    public long UnixTimeStamp { get; set; }
+    public long UnixTimeStamp { get; set; } = 0;
 
     /// <summary>
     /// If the aura is a passive or not.
     /// </summary>
     [JsonProperty("passive")]
-    public bool Passive { get; set; }
+    public bool Passive { get; set; } = false;
 
     /// <summary>
     /// The potion type of aura if it's a potion.
