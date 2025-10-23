@@ -6,7 +6,8 @@ public class AdvancedSkillCommand
 {
     private readonly IFlashUtil? _flash;
 
-    public AdvancedSkillCommand() { }
+    public AdvancedSkillCommand()
+    { }
 
     public AdvancedSkillCommand(IFlashUtil flash)
     {
@@ -52,14 +53,14 @@ public class AdvancedSkillCommand
                     shouldUse = AuraUseRule(player, useRule.AuraTarget, useRule.ComparisonMode, useRule.Value, useRule.AuraName);
                     break;
 
+                case SkillRule.PartyHealth:
+                    shouldUse = PartyHealthUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
+                    break;
+
                 case SkillRule.Wait:
                     if (useRule.ShouldSkip && !canUse)
                         return null;
                     Task.Delay(useRule.Value).Wait();
-                    break;
-
-                case SkillRule.PartyHealth:
-                    shouldUse = PartyHealthUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
                     break;
 
                 case SkillRule.None:
@@ -79,7 +80,7 @@ public class AdvancedSkillCommand
     {
         if (player.Health == 0)
             return false;
-        
+
         if (isPercentage)
         {
             if (player.MaxHealth == 0)
@@ -112,25 +113,24 @@ public class AdvancedSkillCommand
     {
         if (_flash == null)
             return false;
-        
         try
         {
             dynamic[]? players = _flash.GetGameObject<dynamic[]>("world.players");
             if (players == null || players.Length == 0)
                 return false;
-            
+
             foreach (dynamic targetPlayer in players)
             {
                 string? targetCell = targetPlayer.strFrame;
                 if (string.IsNullOrEmpty(targetCell) || targetCell != player.Cell)
                     continue;
-                
+
                 int targetHealth = targetPlayer.dataLeaf.intHP;
                 int targetMaxHealth = targetPlayer.dataLeaf.intHPMax;
-                
+
                 if (targetHealth == 0 || (isPercentage && targetMaxHealth == 0))
                     continue;
-                
+
                 if (isPercentage)
                 {
                     int ratio = (int)(targetHealth / (double)targetMaxHealth * 100.0);
@@ -147,58 +147,46 @@ public class AdvancedSkillCommand
         catch
         {
         }
-        
+
         return false;
     }
 
     private bool AuraUseRule(IScriptPlayer player, string auraTarget, int comparisonMode, int count, string auraName = "")
     {
+        int totalStacks = 0;
+
         if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
         {
             if (player.Auras == null || player.Auras.Length == 0)
                 return false;
-            
-            int totalStacks;
-            if (string.IsNullOrEmpty(auraName))
-                totalStacks = player.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1));
-            else
-                totalStacks = player.Auras
+
+            totalStacks = string.IsNullOrEmpty(auraName)
+                ? player.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
+                : player.Auras
                     .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
                     .Sum(a => Convert.ToInt32(a.Value ?? 1));
-            
-            return comparisonMode switch
-            {
-                0 => totalStacks > count,
-                1 => totalStacks < count,
-                2 => totalStacks >= count,
-                3 => totalStacks <= count,
-                _ => false
-            };
         }
-        else if (auraTarget.Equals("mob", StringComparison.OrdinalIgnoreCase))
+
+        if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
         {
             if (!player.HasTarget || player.Target?.Auras == null || player.Target.Auras.Count == 0)
                 return false;
-            
-            int totalStacks;
-            if (string.IsNullOrEmpty(auraName))
-                totalStacks = player.Target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1));
-            else
-                totalStacks = player.Target.Auras
+
+            totalStacks = string.IsNullOrEmpty(auraName)
+                ? player.Target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
+                : player.Target.Auras
                     .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
                     .Sum(a => Convert.ToInt32(a.Value ?? 1));
-            
-            return comparisonMode switch
-            {
-                0 => totalStacks > count,
-                1 => totalStacks < count,
-                2 => totalStacks >= count,
-                3 => totalStacks <= count,
-                _ => false
-            };
         }
-        
-        return false;
+
+        return comparisonMode switch
+        {
+            0 => totalStacks > count,
+            1 => totalStacks < count,
+            2 => totalStacks >= count,
+            3 => totalStacks <= count,
+            _ => false
+        };
     }
 
     public void Reset()
@@ -213,8 +201,8 @@ public enum SkillRule
     Health,
     Mana,
     Aura,
-    Wait,
-    PartyHealth
+    PartyHealth,
+    Wait
 }
 
 public struct UseRule

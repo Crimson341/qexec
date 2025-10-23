@@ -64,7 +64,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 continue;
             }
 
-            if (stringRules[i].Contains('m') && !stringRules[i].Contains('a'))
+            if (stringRules[i].Contains('m'))
             {
                 rules[i] = new UseRule(SkillRule.Mana, stringRules[i].Contains('>'), int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
                 continue;
@@ -73,24 +73,24 @@ public class AdvancedSkillProvider : ISkillProvider
             if (stringRules[i].Contains('a'))
             {
                 string auraRule = stringRules[i];
-                
+
                 int firstDigitIndex = 0;
                 while (firstDigitIndex < auraRule.Length && !char.IsDigit(auraRule[firstDigitIndex]))
                     firstDigitIndex++;
-                
+
                 int lastDigitIndex = auraRule.Length - 1;
                 while (lastDigitIndex >= 0 && !char.IsDigit(auraRule[lastDigitIndex]))
                     lastDigitIndex--;
-                
+
                 if (firstDigitIndex >= auraRule.Length || lastDigitIndex < 0 || firstDigitIndex > lastDigitIndex)
                     continue;
-                
+
                 int auraValue = int.Parse(auraRule.Substring(firstDigitIndex, lastDigitIndex - firstDigitIndex + 1));
-                
+
                 string remainder = auraRule[(lastDigitIndex + 1)..] ?? string.Empty;
-                string auraTarget = remainder.Contains("MOB", StringComparison.OrdinalIgnoreCase) ? "mob" : "self";
-                string auraName = remainder.Replace("MOB", "", StringComparison.OrdinalIgnoreCase).Replace("S", "", StringComparison.OrdinalIgnoreCase).Trim();
-                
+                string auraTarget = remainder.Contains("target", StringComparison.OrdinalIgnoreCase) ? "target" : "self";
+                string auraName = remainder.Replace("target", "", StringComparison.OrdinalIgnoreCase).Replace("S", "", StringComparison.OrdinalIgnoreCase).Trim();
+
                 int comparisonMode = auraRule.Contains('>') ? 0 : (auraRule.Contains('<') ? 1 : (auraRule.Contains(">=") ? 2 : 3));
                 rules[i] = new UseRule(SkillRule.Aura, auraRule.Contains('>'), auraValue, shouldSkip, auraTarget, auraName, comparisonMode);
                 continue;

@@ -64,7 +64,7 @@ public class SkillItemViewModel : ObservableObject
                     healthGreater = true;
                 healthVal = int.Parse(skillRules[i].RemoveLetters());
             }
-            else if (skillRules[i].Contains('M') && !skillRules[i].Contains('A'))
+            else if (skillRules[i].Contains('M'))
             {
                 useRule = true;
                 if (skillRules[i].Contains('>'))
@@ -79,32 +79,31 @@ public class SkillItemViewModel : ObservableObject
                     auraComparisonMode = 0;
                 else if (skillRules[i].Contains('<'))
                     auraComparisonMode = 1;
-                else if (skillRules[i].Contains('E'))
+                else if (skillRules[i].Contains(">="))
                     auraComparisonMode = 2;
-                else if (skillRules[i].Contains('L'))
+                else if (skillRules[i].Contains("<="))
                     auraComparisonMode = 3;
-                
+
                 int firstDigitIndex = 0;
                 while (firstDigitIndex < skillRules[i].Length && !char.IsDigit(skillRules[i][firstDigitIndex]))
                     firstDigitIndex++;
-                
+
                 int lastDigitIndex = skillRules[i].Length - 1;
                 while (lastDigitIndex >= 0 && !char.IsDigit(skillRules[i][lastDigitIndex]))
                     lastDigitIndex--;
-                
+
                 if (firstDigitIndex < skillRules[i].Length && lastDigitIndex >= 0 && firstDigitIndex <= lastDigitIndex)
                 {
-                    string beforeNumber = skillRules[i].Substring(0, firstDigitIndex);
-                    string nameAndComparator = beforeNumber.Substring(1);
-                    
+                    string beforeNumber = skillRules[i][..firstDigitIndex];
+                    string nameAndComparator = beforeNumber[1..];
+
                     auraVal = int.Parse(skillRules[i].Substring(firstDigitIndex, lastDigitIndex - firstDigitIndex + 1));
                     string remainder = skillRules[i].Substring(lastDigitIndex + 1);
-                    
+
                     auraName = nameAndComparator;
-                    if (remainder.Contains("MOB", StringComparison.OrdinalIgnoreCase))
+                    if (remainder.Contains("target", StringComparison.OrdinalIgnoreCase))
                         auraTargetIndex = 1;
-                    if (remainder.Contains("E") || remainder.Contains("L"))
-                        auraComparisonMode = remainder.Contains("E") ? 2 : 3;
+                    auraComparisonMode = remainder.Contains(">=") ? 2 : 3;
                 }
             }
 
@@ -179,13 +178,13 @@ public class SkillItemViewModel : ObservableObject
 
         if (UseRules.AuraUseValue != 0 || !string.IsNullOrEmpty(UseRules.AuraName))
         {
-            string target = UseRules.AuraTargetIndex == 1 ? "Mob" : "Self";
+            string target = UseRules.AuraTargetIndex == 1 ? "Target" : "Self";
             bob.Append($" - [Aura ({target})");
             if (!string.IsNullOrEmpty(UseRules.AuraName))
                 bob.Append($" '{UseRules.AuraName}'");
             bob.Append($" {UseRules.AuraComparisonSymbol} ");
             bob.Append(UseRules.AuraUseValue);
-            bob.Append("]");
+            bob.Append(']');
         }
 
         if (UseRules.SkipUseBool)
@@ -208,15 +207,15 @@ public class SkillItemViewModel : ObservableObject
             bob.Append($" M{(UseRules.ManaGreaterThanBool ? ">" : "<")}{UseRules.ManaUseValue}");
         if (UseRules.AuraUseValue != 0 || !string.IsNullOrEmpty(UseRules.AuraName))
         {
-            string target = UseRules.AuraTargetIndex == 1 ? "MOB" : string.Empty;
+            string target = UseRules.AuraTargetIndex == 1 ? "TARGET" : string.Empty;
             string name = string.IsNullOrEmpty(UseRules.AuraName) ? string.Empty : UseRules.AuraName;
-            char compareChar = UseRules.AuraComparisonMode switch
+            string compareChar = UseRules.AuraComparisonMode switch
             {
-                0 => '>',
-                1 => '<',
-                2 => 'E',
-                3 => 'L',
-                _ => '>'
+                0 => ">",
+                1 => "<",
+                2 => ">=",
+                3 => "<=",
+                _ => ">"
             };
             bob.Append($" A{compareChar}{name}{UseRules.AuraUseValue}{target}");
         }
