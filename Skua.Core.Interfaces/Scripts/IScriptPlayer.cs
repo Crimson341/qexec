@@ -169,7 +169,7 @@ public interface IScriptPlayer
     /// <summary>
     /// The player's auras
     /// </summary>
-    List<Aura>? Auras { get; }
+    Aura[]? Auras { get; }
 
     /// <summary>
     /// Checks whether the player is marked as AFK.
