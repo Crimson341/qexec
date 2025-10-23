@@ -68,6 +68,8 @@ public class Monster
     [JsonProperty("auras")]
     private Aura[]? _auras { get; set; }
 
+
+    [JsonIgnore]
     public List<Aura>? Auras
     {
         get
