@@ -1,5 +1,4 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
-using Skua.Core.Utils;
 using System.Text;
 
 namespace Skua.Core.ViewModels;
@@ -128,7 +127,7 @@ public class SkillItemViewModel : ObservableObject
                 {
                     pos++;
                 }
-                
+
                 int nameEnd = pos;
                 int lastNonSpaceIdx = pos;
                 while (nameEnd < rest.Length && !char.IsDigit(rest[nameEnd]))
@@ -137,20 +136,20 @@ public class SkillItemViewModel : ObservableObject
                         lastNonSpaceIdx = nameEnd;
                     nameEnd++;
                 }
-                
+
                 if (lastNonSpaceIdx >= pos)
                     auraName = rest.Substring(pos, lastNonSpaceIdx - pos + 1).Trim();
                 pos = nameEnd;
-                
+
                 int numStart = pos;
                 while (pos < rest.Length && char.IsDigit(rest[pos]))
                     pos++;
                 if (pos > numStart)
                     auraVal = int.Parse(rest.Substring(numStart, pos - numStart));
-                
+
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
-                
+
                 if (pos < rest.Length && char.IsLetter(rest[pos]))
                 {
                     int targetEnd = pos;
@@ -160,7 +159,7 @@ public class SkillItemViewModel : ObservableObject
                         auraTargetIndex = 1;
                     pos = targetEnd;
                 }
-                
+
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
             }
