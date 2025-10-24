@@ -79,25 +79,51 @@ public class AdvancedSkillProvider : ISkillProvider
             {
                 string auraRule = stringRules[i];
 
-                int firstDigitIndex = 0;
-                while (firstDigitIndex < auraRule.Length && !char.IsDigit(auraRule[firstDigitIndex]))
-                    firstDigitIndex++;
+                int pos = 1;
+                if (pos < auraRule.Length && auraRule[pos] == '>')
+                {
+                    pos++;
+                }
+                else if (pos < auraRule.Length && auraRule[pos] == '<')
+                {
+                    pos++;
+                }
 
-                int lastDigitIndex = auraRule.Length - 1;
-                while (lastDigitIndex >= 0 && !char.IsDigit(auraRule[lastDigitIndex]))
-                    lastDigitIndex--;
+                int nameEnd = pos;
+                int lastNonSpaceIdx = pos;
+                while (nameEnd < auraRule.Length && !char.IsDigit(auraRule[nameEnd]))
+                {
+                    if (auraRule[nameEnd] != ' ')
+                        lastNonSpaceIdx = nameEnd;
+                    nameEnd++;
+                }
 
-                if (firstDigitIndex >= auraRule.Length || lastDigitIndex < 0 || firstDigitIndex > lastDigitIndex)
+                string auraName = auraRule.Substring(pos, lastNonSpaceIdx - pos + 1).Trim();
+                pos = nameEnd;
+
+                int numStart = pos;
+                while (pos < auraRule.Length && char.IsDigit(auraRule[pos]))
+                    pos++;
+
+                if (pos <= numStart)
                     continue;
 
-                int auraValue = int.Parse(auraRule.Substring(firstDigitIndex, lastDigitIndex - firstDigitIndex + 1));
+                int auraValue = int.Parse(auraRule.Substring(numStart, pos - numStart));
 
-                string remainder = auraRule[(lastDigitIndex + 1)..] ?? string.Empty;
-                string auraTarget = remainder.Contains("TARGET", StringComparison.OrdinalIgnoreCase) ? "target" : "self";
-                string auraName = remainder.Replace("TARGET", "", StringComparison.OrdinalIgnoreCase).Replace("S", "", StringComparison.OrdinalIgnoreCase).Trim();
+                while (pos < auraRule.Length && auraRule[pos] == ' ')
+                    pos++;
 
-                int comparisonMode = auraRule.Contains('>') ? 0 : (auraRule.Contains('<') ? 1 : (auraRule.Contains(">=") ? 2 : 3));
-                rules[i] = new UseRule(SkillRule.Aura, auraRule.Contains('>'), auraValue, shouldSkip, auraTarget, auraName, comparisonMode);
+                string auraTarget = "self";
+                if (pos < auraRule.Length && char.IsLetter(auraRule[pos]))
+                {
+                    int targetEnd = pos;
+                    while (targetEnd < auraRule.Length && char.IsLetter(auraRule[targetEnd]))
+                        targetEnd++;
+                    if (auraRule.Substring(pos, targetEnd - pos).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                        auraTarget = "target";
+                }
+
+                rules[i] = new UseRule(SkillRule.Aura, auraRule.Contains('>'), auraValue, shouldSkip, auraTarget, auraName);
                 continue;
             }
 
