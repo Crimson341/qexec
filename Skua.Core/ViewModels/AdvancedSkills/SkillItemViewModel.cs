@@ -201,7 +201,7 @@ public class SkillItemViewModel : ObservableObject
         {
             string target = UseRules.AuraTargetIndex == 1 ? "TARGET" : string.Empty;
             string name = string.IsNullOrEmpty(UseRules.AuraName) ? string.Empty : UseRules.AuraName;
-            bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")}{name} {UseRules.AuraUseValue}{(string.IsNullOrEmpty(target) ? string.Empty : " ")}{target}");
+            bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")} {name} {UseRules.AuraUseValue}{(string.IsNullOrEmpty(target) ? string.Empty : " ")}{target}");
         }
         if (UseRules.SkipUseBool)
             bob.Append('S');
