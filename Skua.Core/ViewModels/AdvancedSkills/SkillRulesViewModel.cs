@@ -18,7 +18,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
         _manaGreaterThanBool = rules.ManaGreaterThanBool;
         _manaUseValue = rules.ManaUseValue;
         _manaIsPercentage = rules.ManaIsPercentage;
-        _auraComparisonMode = rules.AuraComparisonMode;
+        _auraGreaterThanBool = rules.AuraGreaterThanBool;
         _auraUseValue = rules.AuraUseValue;
         _auraTargetIndex = rules.AuraTargetIndex;
         _auraName = rules.AuraName;
@@ -76,19 +76,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
     private bool _skipUseBool;
 
     [ObservableProperty]
-    private int _auraComparisonMode = 0; // 0: >, 1: <, 2: >=, 3: <=
-
-    public bool AuraGreaterThanBool => _auraComparisonMode == 0 || _auraComparisonMode == 2;
-    public bool AuraStrictComparison => _auraComparisonMode == 0 || _auraComparisonMode == 1;
-
-    public string AuraComparisonSymbol => _auraComparisonMode switch
-    {
-        0 => ">",
-        1 => "<",
-        2 => ">=",
-        3 => "<=",
-        _ => ">"
-    };
+    private bool _auraGreaterThanBool = true;
 
     private int _auraUseValue;
 
@@ -129,15 +117,6 @@ public partial class SkillRulesViewModel : ObservableRecipient
     private bool _partyMemberHealthIsPercentage = true;
 
     [RelayCommand]
-    private void CycleAuraComparison()
-    {
-        AuraComparisonMode = (AuraComparisonMode + 1) % 4;
-        OnPropertyChanged(nameof(AuraComparisonSymbol));
-        OnPropertyChanged(nameof(AuraGreaterThanBool));
-        OnPropertyChanged(nameof(AuraStrictComparison));
-    }
-
-    [RelayCommand]
     private void ResetUseRules()
     {
         UseRuleBool = false;
@@ -148,7 +127,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
         ManaUseValue = 0;
         ManaIsPercentage = true;
         WaitUseValue = 0;
-        AuraComparisonMode = 0;
+        AuraGreaterThanBool = true;
         AuraUseValue = 0;
         AuraTargetIndex = 0;
         AuraName = string.Empty;

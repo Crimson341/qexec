@@ -198,19 +198,22 @@
             </ToggleButton>
         </Grid>
 
-        <Button
+        <ToggleButton
             Grid.Row="4"
             Grid.Column="0"
             Margin="0,3"
-            Content="{Binding AuraComparisonSymbol}"
-            Command="{Binding CycleAuraComparisonCommand}">
-            <Button.Style>
-                <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="Button" />
-            </Button.Style>
-            <Button.ToolTip>
-                <TextBlock>Click to cycle: > &lt; >= &lt;=</TextBlock>
-            </Button.ToolTip>
-        </Button>
+            IsChecked="{Binding AuraGreaterThanBool, UpdateSourceTrigger=PropertyChanged}">
+            <ToggleButton.Style>
+                <Style BasedOn="{StaticResource MaterialDesignFlatButton}" TargetType="ToggleButton">
+                    <Setter Property="Content" Value="{materialDesign:PackIcon Kind=GreaterThanOrEqual}" />
+                    <Style.Triggers>
+                        <Trigger Property="IsChecked" Value="False">
+                            <Setter Property="Content" Value="{materialDesign:PackIcon Kind=LessThanOrEqual}" />
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </ToggleButton.Style>
+        </ToggleButton>
         <Grid
             Grid.Row="4"
             Margin="0,0,3,0" Grid.Column="1">

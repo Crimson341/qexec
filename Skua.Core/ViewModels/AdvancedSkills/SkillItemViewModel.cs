@@ -6,7 +6,7 @@ namespace Skua.Core.ViewModels;
 
 public class SkillItemViewModel : ObservableObject
 {
-    public SkillItemViewModel(int skill, bool useRule, int waitValue, bool healthGreaterThanBool, int healthValue, bool manaGreaterThanBool, int manaValue, bool skipBool)
+    public SkillItemViewModel(int skill, bool useRule, int waitValue, bool healthGreaterThanBool, int healthValue, bool manaGreaterThanBool, bool auraGreaterThanBool, int manaValue, bool skipBool)
     {
         Skill = skill;
         _useRules = new SkillRulesViewModel()
@@ -18,7 +18,7 @@ public class SkillItemViewModel : ObservableObject
             ManaGreaterThanBool = manaGreaterThanBool,
             ManaUseValue = manaValue,
             SkipUseBool = skipBool,
-            AuraComparisonMode = 0
+            AuraGreaterThanBool = auraGreaterThanBool
         };
         _displayString = ToString();
     }
@@ -34,7 +34,7 @@ public class SkillItemViewModel : ObservableObject
             HealthUseValue = useRules.HealthUseValue,
             ManaGreaterThanBool = useRules.ManaGreaterThanBool,
             ManaUseValue = useRules.ManaUseValue,
-            AuraComparisonMode = useRules.AuraComparisonMode,
+            AuraGreaterThanBool = useRules.AuraGreaterThanBool,
             AuraUseValue = useRules.AuraUseValue,
             AuraTargetIndex = useRules.AuraTargetIndex,
             AuraName = useRules.AuraName,
@@ -47,8 +47,8 @@ public class SkillItemViewModel : ObservableObject
     {
         string[] skillRules = skill[1..].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         Skill = int.Parse(skill.AsSpan(0, 1));
-        bool useRule = false, healthGreater = false, manaGreater = false, skip = false;
-        int waitVal = 0, healthVal = 0, manaVal = 0, auraVal = 0, auraTargetIndex = 0, auraComparisonMode = 0;
+        bool useRule = false, healthGreater = false, manaGreater = false, auraGreater = false, skip = false;
+        int waitVal = 0, healthVal = 0, manaVal = 0, auraVal = 0, auraTargetIndex = 0;
         string auraName = string.Empty;
         for (int i = 0; i < skillRules.Length; i++)
         {
@@ -74,15 +74,8 @@ public class SkillItemViewModel : ObservableObject
             else if (skillRules[i].Contains('A'))
             {
                 useRule = true;
-                auraComparisonMode = 0;
                 if (skillRules[i].Contains('>'))
-                    auraComparisonMode = 0;
-                else if (skillRules[i].Contains('<'))
-                    auraComparisonMode = 1;
-                else if (skillRules[i].Contains(">="))
-                    auraComparisonMode = 2;
-                else if (skillRules[i].Contains("<="))
-                    auraComparisonMode = 3;
+                    auraGreater = true;
 
                 int firstDigitIndex = 0;
                 while (firstDigitIndex < skillRules[i].Length && !char.IsDigit(skillRules[i][firstDigitIndex]))
@@ -98,12 +91,11 @@ public class SkillItemViewModel : ObservableObject
                     string nameAndComparator = beforeNumber[1..];
 
                     auraVal = int.Parse(skillRules[i].Substring(firstDigitIndex, lastDigitIndex - firstDigitIndex + 1));
-                    string remainder = skillRules[i].Substring(lastDigitIndex + 1);
+                    string remainder = skillRules[i][(lastDigitIndex + 1)..];
 
                     auraName = nameAndComparator;
                     if (remainder.Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTargetIndex = 1;
-                    auraComparisonMode = remainder.Contains(">=") ? 2 : 3;
                 }
             }
 
@@ -118,7 +110,7 @@ public class SkillItemViewModel : ObservableObject
             HealthUseValue = healthVal,
             ManaGreaterThanBool = manaGreater,
             ManaUseValue = manaVal,
-            AuraComparisonMode = auraComparisonMode,
+            AuraGreaterThanBool = auraGreater,
             AuraUseValue = auraVal,
             AuraTargetIndex = auraTargetIndex,
             AuraName = auraName,
@@ -182,7 +174,7 @@ public class SkillItemViewModel : ObservableObject
             bob.Append($" - [Aura ({target})");
             if (!string.IsNullOrEmpty(UseRules.AuraName))
                 bob.Append($" '{UseRules.AuraName}'");
-            bob.Append($" {UseRules.AuraComparisonSymbol} ");
+            _ = UseRules.AuraGreaterThanBool ? bob.Append(" > ") : bob.Append(" < ");
             bob.Append(UseRules.AuraUseValue);
             bob.Append(']');
         }
@@ -209,15 +201,7 @@ public class SkillItemViewModel : ObservableObject
         {
             string target = UseRules.AuraTargetIndex == 1 ? "TARGET" : string.Empty;
             string name = string.IsNullOrEmpty(UseRules.AuraName) ? string.Empty : UseRules.AuraName;
-            string compareChar = UseRules.AuraComparisonMode switch
-            {
-                0 => ">",
-                1 => "<",
-                2 => ">=",
-                3 => "<=",
-                _ => ">"
-            };
-            bob.Append($" A{compareChar}{name}{UseRules.AuraUseValue}{target}");
+            bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")}{name}{UseRules.AuraUseValue}{target}");
         }
         if (UseRules.SkipUseBool)
             bob.Append('S');

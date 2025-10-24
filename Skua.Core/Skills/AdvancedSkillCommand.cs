@@ -1,4 +1,5 @@
 ﻿using Skua.Core.Interfaces;
+using Skua.Core.Interfaces.Auras;
 
 namespace Skua.Core.Skills;
 
@@ -28,7 +29,7 @@ public class AdvancedSkillCommand
         return (index, skill);
     }
 
-    public bool? ShouldUse(IScriptPlayer player, int skillIndex, bool canUse)
+    public bool? ShouldUse(IScriptPlayer player, IScriptSelfAuras self , IScriptTargetAuras target, int skillIndex, bool canUse)
     {
         if (UseRules.Count == 0 || UseRules[skillIndex].First().Rule == SkillRule.None)
             return true;
@@ -50,7 +51,7 @@ public class AdvancedSkillCommand
                     break;
 
                 case SkillRule.Aura:
-                    shouldUse = AuraUseRule(player, useRule.AuraTarget, useRule.ComparisonMode, useRule.Value, useRule.AuraName);
+                    shouldUse = AuraUseRule(player, self, target, useRule.AuraTarget, useRule.Greater, useRule.Value, useRule.AuraName);
                     break;
 
                 case SkillRule.PartyHealth:
@@ -151,42 +152,35 @@ public class AdvancedSkillCommand
         return false;
     }
 
-    private bool AuraUseRule(IScriptPlayer player, string auraTarget, int comparisonMode, int count, string auraName = "")
+    private bool AuraUseRule(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, string auraTarget, bool greater, int count, string auraName = "")
     {
         int totalStacks = 0;
 
         if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
         {
-            if (player.Auras == null || player.Auras.Count == 0)
+            if (self.Auras == null || self.Auras.Count == 0)
                 return false;
 
             totalStacks = string.IsNullOrEmpty(auraName)
-                ? player.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
-                : player.Auras
+                ? self.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
+                : self.Auras
                     .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
                     .Sum(a => Convert.ToInt32(a.Value ?? 1));
         }
 
         if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
         {
-            if (!player.HasTarget || player.Target?.Auras == null || player.Target.Auras.Count == 0)
+            if (!player.HasTarget || target.Auras == null || target.Auras.Count == 0)
                 return false;
 
             totalStacks = string.IsNullOrEmpty(auraName)
-                ? player.Target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
-                : player.Target.Auras
+                ? target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
+                : target.Auras
                     .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
                     .Sum(a => Convert.ToInt32(a.Value ?? 1));
         }
 
-        return comparisonMode switch
-        {
-            0 => totalStacks > count,
-            1 => totalStacks < count,
-            2 => totalStacks >= count,
-            3 => totalStacks <= count,
-            _ => false
-        };
+        return greater ? totalStacks >= count : totalStacks <= count;
     }
 
     public void Reset()
@@ -220,7 +214,7 @@ public struct UseRule
         ShouldSkip = shouldSkip;
     }
 
-    public UseRule(SkillRule rule, bool greater, int value, bool shouldSkip, string auraTarget, string auraName = "", int comparisonMode = 0, int partyMemberIndex = -1, bool isPercentage = true)
+    public UseRule(SkillRule rule, bool greater, int value, bool shouldSkip, string auraTarget, string auraName = "", int partyMemberIndex = -1, bool isPercentage = true)
     {
         Rule = rule;
         Greater = greater;
@@ -228,7 +222,6 @@ public struct UseRule
         ShouldSkip = shouldSkip;
         AuraTarget = auraTarget;
         AuraName = auraName;
-        ComparisonMode = comparisonMode;
         PartyMemberIndex = partyMemberIndex;
         IsPercentage = isPercentage;
     }
@@ -254,7 +247,6 @@ public struct UseRule
     public readonly bool ShouldSkip = default;
     public readonly string AuraTarget = "self";
     public readonly string AuraName = "";
-    public readonly int ComparisonMode = 0;
     public readonly int PartyMemberIndex = -1;
     public readonly bool IsPercentage = true;
 }

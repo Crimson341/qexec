@@ -1,5 +1,6 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
+using Skua.Core.Interfaces.Auras;
 using Skua.Core.Messaging;
 using Skua.Core.Utils;
 
@@ -8,13 +9,17 @@ namespace Skua.Core.Skills;
 public class AdvancedSkillProvider : ISkillProvider
 {
     private readonly IScriptPlayer _player;
+    private readonly IScriptSelfAuras _self;
+    private readonly IScriptTargetAuras _target;
     private readonly IScriptCombat _combat;
     private readonly IFlashUtil _flash;
     private readonly AdvancedSkillCommand _currentCommand;
 
-    public AdvancedSkillProvider(IScriptPlayer player, IScriptCombat combat, IFlashUtil flash)
+    public AdvancedSkillProvider(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, IScriptCombat combat, IFlashUtil flash)
     {
         _player = player;
+        _self = self;
+        _target = target;
         _combat = combat;
         _flash = flash;
         _currentCommand = new AdvancedSkillCommand(flash);
@@ -117,7 +122,7 @@ public class AdvancedSkillProvider : ISkillProvider
 
     public bool? ShouldUseSkill(int skillIndex, bool canUse)
     {
-        return _currentCommand.ShouldUse(_player, skillIndex, canUse);
+        return _currentCommand.ShouldUse(_player, _self, _target, skillIndex, canUse);
     }
 
     public void Stop()
