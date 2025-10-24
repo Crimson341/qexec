@@ -45,67 +45,107 @@ public class SkillItemViewModel : ObservableObject
 
     public SkillItemViewModel(string skill)
     {
-        string[] skillRules = skill[1..].Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
         Skill = int.Parse(skill.AsSpan(0, 1));
+        string rest = skill[1..].Trim();
         bool useRule = false, healthGreater = false, manaGreater = false, auraGreater = false, skip = false;
         int waitVal = 0, healthVal = 0, manaVal = 0, auraVal = 0, auraTargetIndex = 0;
         string auraName = string.Empty;
-        for (int i = 0; i < skillRules.Length; i++)
+
+        int idx = 0;
+        while (idx < rest.Length)
         {
-            if (skillRules[i].Contains('W'))
+            if (rest[idx] == 'W' && idx + 1 < rest.Length && rest[idx + 1] == 'W')
             {
                 useRule = true;
-                waitVal = int.Parse(skillRules[i].RemoveLetters());
+                idx += 2;
+                int numStart = idx;
+                while (idx < rest.Length && char.IsDigit(rest[idx]))
+                    idx++;
+                waitVal = int.Parse(rest.Substring(numStart, idx - numStart));
+                while (idx < rest.Length && rest[idx] == ' ')
+                    idx++;
             }
-            else if (skillRules[i].Contains('H'))
+            else if (rest[idx] == 'H')
             {
                 useRule = true;
-                if (skillRules[i].Contains('>'))
-                    healthGreater = true;
-                healthVal = int.Parse(skillRules[i].RemoveLetters());
-            }
-            else if (skillRules[i].Contains('M'))
-            {
-                useRule = true;
-                if (skillRules[i].Contains('>'))
-                    manaGreater = true;
-                manaVal = int.Parse(skillRules[i].RemoveLetters());
-            }
-            else if (skillRules[i].Contains('A'))
-            {
-                useRule = true;
-                if (skillRules[i].Contains('>'))
-                    auraGreater = true;
-
-                int firstDigitIndex = 0;
-                while (firstDigitIndex < skillRules[i].Length && !char.IsDigit(skillRules[i][firstDigitIndex]))
-                    firstDigitIndex++;
-
-                int lastDigitIndex = skillRules[i].Length - 1;
-                while (lastDigitIndex >= 0 && !char.IsDigit(skillRules[i][lastDigitIndex]))
-                    lastDigitIndex--;
-
-                if (firstDigitIndex < skillRules[i].Length && lastDigitIndex >= 0 && firstDigitIndex <= lastDigitIndex)
+                idx++;
+                if (idx < rest.Length && rest[idx] == '>')
                 {
-                    string beforeNumber = skillRules[i][..firstDigitIndex];
-                    string nameAndComparator = beforeNumber[1..];
-
-                    if (nameAndComparator.StartsWith(">"))
-                        nameAndComparator = nameAndComparator[1..];
-                    else if (nameAndComparator.StartsWith("<"))
-                        nameAndComparator = nameAndComparator[1..];
-
-                    auraVal = int.Parse(skillRules[i].Substring(firstDigitIndex, lastDigitIndex - firstDigitIndex + 1));
-                    string remainder = skillRules[i][(lastDigitIndex + 1)..];
-
-                    auraName = nameAndComparator;
-                    if (remainder.Contains("TARGET", StringComparison.OrdinalIgnoreCase))
-                        auraTargetIndex = 1;
+                    healthGreater = true;
+                    idx++;
                 }
+                else if (idx < rest.Length && rest[idx] == '<')
+                {
+                    idx++;
+                }
+                int numStart = idx;
+                while (idx < rest.Length && char.IsDigit(rest[idx]))
+                    idx++;
+                healthVal = int.Parse(rest.Substring(numStart, idx - numStart));
+                while (idx < rest.Length && rest[idx] == ' ')
+                    idx++;
             }
-
-            if (skillRules[i].Contains('S'))
+            else if (rest[idx] == 'M')
+            {
+                useRule = true;
+                idx++;
+                if (idx < rest.Length && rest[idx] == '>')
+                {
+                    manaGreater = true;
+                    idx++;
+                }
+                else if (idx < rest.Length && rest[idx] == '<')
+                {
+                    idx++;
+                }
+                int numStart = idx;
+                while (idx < rest.Length && char.IsDigit(rest[idx]))
+                    idx++;
+                manaVal = int.Parse(rest.Substring(numStart, idx - numStart));
+                while (idx < rest.Length && rest[idx] == ' ')
+                    idx++;
+            }
+            else if (rest[idx] == 'A')
+            {
+                useRule = true;
+                idx++;
+                if (idx < rest.Length && rest[idx] == '>')
+                {
+                    auraGreater = true;
+                    idx++;
+                }
+                else if (idx < rest.Length && rest[idx] == '<')
+                {
+                    idx++;
+                }
+                int nameStart = idx;
+                while (idx < rest.Length && !char.IsDigit(rest[idx]))
+                    idx++;
+                auraName = rest.Substring(nameStart, idx - nameStart).Trim();
+                int numStart = idx;
+                while (idx < rest.Length && char.IsDigit(rest[idx]))
+                    idx++;
+                auraVal = int.Parse(rest.Substring(numStart, idx - numStart));
+                int targetStart = idx;
+                while (idx < rest.Length && char.IsLetter(rest[idx]))
+                    idx++;
+                string targetPart = rest.Substring(targetStart, idx - targetStart);
+                if (targetPart.Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                    auraTargetIndex = 1;
+                while (idx < rest.Length && rest[idx] == ' ')
+                    idx++;
+            }
+            else if (rest[idx] == 'S')
+            {
                 useRule = skip = true;
+                idx++;
+                while (idx < rest.Length && rest[idx] == ' ')
+                    idx++;
+            }
+            else
+            {
+                idx++;
+            }
         }
         _useRules = new SkillRulesViewModel()
         {
@@ -206,7 +246,7 @@ public class SkillItemViewModel : ObservableObject
         {
             string target = UseRules.AuraTargetIndex == 1 ? "TARGET" : string.Empty;
             string name = string.IsNullOrEmpty(UseRules.AuraName) ? string.Empty : UseRules.AuraName;
-            bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")}{name}{UseRules.AuraUseValue}{(string.IsNullOrEmpty(target) ? string.Empty : " ")}{target}");
+            bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")}{name}{UseRules.AuraUseValue}{target}");
         }
         if (UseRules.SkipUseBool)
             bob.Append('S');
