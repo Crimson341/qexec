@@ -56,6 +56,9 @@
     <DataTemplate DataType="{x:Type vms:ScriptRepoViewModel}">
         <views:ScriptRepoView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type vms:ScriptLoaderViewModel}">
+        <views:ScriptLoaderView />
+    </DataTemplate>
     <DataTemplate DataType="{x:Type vms:PacketInterceptorViewModel}">
         <views:PacketInterceptorView />
     </DataTemplate>
