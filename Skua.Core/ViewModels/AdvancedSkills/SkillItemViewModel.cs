@@ -178,6 +178,7 @@ public class SkillItemViewModel : ObservableObject
         }
         _useRules = new SkillRulesViewModel()
         {
+            UseRuleBool = useRule,
             WaitUseValue = waitVal,
             HealthGreaterThanBool = healthGreater,
             HealthUseValue = healthVal,
