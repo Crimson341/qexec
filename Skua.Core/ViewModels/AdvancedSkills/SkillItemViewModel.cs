@@ -124,10 +124,14 @@ public class SkillItemViewModel : ObservableObject
                 }
                 
                 int nameEnd = pos;
-                while (nameEnd < rest.Length && !char.IsDigit(rest[nameEnd]))
+                while (nameEnd < rest.Length && !char.IsDigit(rest[nameEnd]) && rest[nameEnd] != ' ')
+                    nameEnd++;
+                while (nameEnd < rest.Length && rest[nameEnd] == ' ' && nameEnd + 1 < rest.Length && !char.IsDigit(rest[nameEnd + 1]))
                     nameEnd++;
                 auraName = rest.Substring(pos, nameEnd - pos).Trim();
                 pos = nameEnd;
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
                 
                 int numStart = pos;
                 while (pos < rest.Length && char.IsDigit(rest[pos]))
