@@ -66,17 +66,7 @@ public class Monster
     /// List of auras currently active on this monster.
     /// </summary>
     [JsonProperty("auras")]
-    private Aura[]? _auras { get; set; }
-
-
-    [JsonIgnore]
-    public List<Aura>? Auras
-    {
-        get
-        {
-            return JsonConvert.DeserializeObject<List<Aura>>(_auras.ToString()) ?? new List<Aura>();
-        }
-    }
+    public List<Aura> Auras { get; }
 
     /// <summary>
     /// Indicates if this monster is alive.
