@@ -70,6 +70,8 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 if (pos > numStart)
                     waitVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
             }
             else if (rest[pos] == 'H')
             {
@@ -89,6 +91,8 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 if (pos > numStart)
                     healthVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
             }
             else if (rest[pos] == 'M')
             {
@@ -108,6 +112,8 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 if (pos > numStart)
                     manaVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
             }
             else if (rest[pos] == 'A')
             {
@@ -123,46 +129,57 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 }
                 
+                int ruleEnd = pos;
+                while (ruleEnd < rest.Length && rest[ruleEnd] != ' ' && rest[ruleEnd] != 'W' && rest[ruleEnd] != 'H' && rest[ruleEnd] != 'M' && rest[ruleEnd] != 'A' && rest[ruleEnd] != 'S')
+                    ruleEnd++;
+                
                 int nameEnd = pos;
                 int lastNonSpaceIdx = pos;
-                while (nameEnd < rest.Length && !char.IsDigit(rest[nameEnd]))
+                while (nameEnd < ruleEnd && !char.IsDigit(rest[nameEnd]))
                 {
                     if (rest[nameEnd] != ' ')
                         lastNonSpaceIdx = nameEnd;
                     nameEnd++;
                 }
-                auraName = rest.Substring(pos, lastNonSpaceIdx - pos + 1).Trim();
+                
+                if (lastNonSpaceIdx >= pos)
+                    auraName = rest.Substring(pos, lastNonSpaceIdx - pos + 1).Trim();
                 pos = nameEnd;
                 
                 int numStart = pos;
-                while (pos < rest.Length && char.IsDigit(rest[pos]))
+                while (pos < ruleEnd && char.IsDigit(rest[pos]))
                     pos++;
                 if (pos > numStart)
                     auraVal = int.Parse(rest.Substring(numStart, pos - numStart));
                 
-                if (pos < rest.Length && char.IsLetter(rest[pos]))
+                while (pos < ruleEnd && rest[pos] == ' ')
+                    pos++;
+                
+                if (pos < ruleEnd && char.IsLetter(rest[pos]))
                 {
                     int targetEnd = pos;
-                    while (targetEnd < rest.Length && char.IsLetter(rest[targetEnd]))
+                    while (targetEnd < ruleEnd && char.IsLetter(rest[targetEnd]))
                         targetEnd++;
                     if (rest.Substring(pos, targetEnd - pos).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTargetIndex = 1;
                     pos = targetEnd;
                 }
+                
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
             }
             else if (rest[pos] == 'S')
             {
                 useRule = skip = true;
                 pos++;
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
             }
             else
             {
                 pos++;
             }
         }
-        _useRules = new SkillRulesViewModel()
-        {
-            UseRuleBool = useRule,
             WaitUseValue = waitVal,
             HealthGreaterThanBool = healthGreater,
             HealthUseValue = healthVal,
