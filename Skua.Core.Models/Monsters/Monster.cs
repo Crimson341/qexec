@@ -66,7 +66,7 @@ public class Monster
     /// List of auras currently active on this monster.
     /// </summary>
     [JsonProperty("auras")]
-    public List<Aura> Auras { get; }
+    public List<Aura> Auras { get; } = new();
 
     /// <summary>
     /// Indicates if this monster is alive.
