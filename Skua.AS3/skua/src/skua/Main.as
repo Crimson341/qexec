@@ -657,6 +657,17 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
+    public static function getPlayerAuras():Object {
+        var auras:Object = null;
+        try {
+            auras = instance.game.world.myAvatar.dataLeaf.auras
+        } catch (e:Error) {
+            return '[]';
+        }
+
+        return auras;
+    }
+
     public static function GetAurasValue(subject:String, auraName:String):String {
         var aura:Object = null;
         var auras:Object = null;

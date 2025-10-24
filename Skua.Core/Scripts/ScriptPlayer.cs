@@ -136,14 +136,8 @@ public partial class ScriptPlayer : IScriptPlayer
     [ObjectBinding("world.myAvatar.dataLeaf.sta")]
     private PlayerStats? _stats;
 
-    public List<Aura>? Auras
-    {
-        get
-        {
-            string? auraData = Flash.GetGameObjectStatic("world.myAvatar.dataLeaf.auras");
-            return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
-        }
-    }
+    [ObjectBinding("world.myAvatar.auras", Default = "Array.Empty<Skua.Core.Models.Auras.Aura>()")]
+    public Aura[] _auras;
 
     public InventoryItem? CurrentClass => Playing ? Inventory.Items?.Find(i => i is { Equipped: true, Category: ItemCategory.Class }) : null;
 

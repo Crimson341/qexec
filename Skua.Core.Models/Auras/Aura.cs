@@ -106,6 +106,6 @@ public class Aura
 
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(this, Formatting.Indented);
+        return $"{Name} (x{Value})";
     }
 }
