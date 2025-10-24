@@ -72,7 +72,6 @@ public class Externalizer {
         this.addCallback("HasAllActiveAuras", Main.HasAllActiveAuras);
         this.addCallback("GetTotalAuraStacks", Main.GetTotalAuraStacks);
         this.addCallback("getAvatar", Main.getAvatar);
-        this.addCallback("getPlayerAuras", Main.getPlayerAuras)
 
         this.addCallback("injectScript", Main.injectScript);
 

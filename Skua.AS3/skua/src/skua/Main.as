@@ -657,15 +657,36 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
-    public static function getPlayerAuras():String {
+    public static function getTAura(monster:Object):String {
+        var aura:Object = null;
         var auras:Object = null;
         try {
-            auras = instance.game.world.myAvatar.dataLeaf.auras
+            auras = monster.dataLeaf.auras;
         } catch (e:Error) {
             return '[]';
         }
 
-        return JSON.stringify(auras);
+        var auraArray:Array = [];
+        for (var i:int = 0; i < auras.length; i++) {
+            aura = auras[i];
+            auraArray.push({
+                'nam': aura.nam,
+                'val': aura.val == undefined ? 1 : aura.val,
+                'passive': aura.passive,
+                'ts': aura.ts,
+                'dur': parseInt(aura.dur),
+                'potionType': aura.potionType,
+                'cat': aura.cat,
+                't': aura.t,
+                's': aura.s,
+                'fx': aura.fx,
+                'animOn': aura.animOn,
+                'animOff': aura.animOff,
+                'msgOn': aura.msgOn,
+                'isNew': aura.isNew
+            });
+        }
+        return JSON.stringify(auraArray);
     }
 
     public static function GetAurasValue(subject:String, auraName:String):String {
@@ -938,7 +959,7 @@ public class Main extends MovieClip {
             monsterData.intHP = monster.dataLeaf.intHP;
             monsterData.intHPMax = monster.dataLeaf.intHPMax;
             monsterData.intState = monster.dataLeaf.intState;
-            monsterData.auras = monster.dataLeaf.auras;
+            monsterData.auras = getTAura(monster);
         }
         return JSON.stringify(monsterData);
     }
