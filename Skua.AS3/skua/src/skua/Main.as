@@ -927,6 +927,7 @@ public class Main extends MovieClip {
             monsterData.intHP = monster.dataLeaf.intHP;
             monsterData.intHPMax = monster.dataLeaf.intHPMax;
             monsterData.intState = monster.dataLeaf.intState;
+            monsterData.auras = monster.dataLeaf.auras;
         }
         return JSON.stringify(monsterData);
     }
