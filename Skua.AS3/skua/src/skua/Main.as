@@ -674,7 +674,7 @@ public class Main extends MovieClip {
         try {
             auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
         } catch (e:Error) {
-            return '0';
+            return '1';
         }
 
         for (var i:int = 0; i < auras.length; i++) {
@@ -683,7 +683,7 @@ public class Main extends MovieClip {
                 return (aura.val == undefined || aura.val == null ? 1 : aura.val).toString();
             }
         }
-        return '0';
+        return '1';
     }
 
     public static function HasAnyActiveAura(subject:String, auraNames:String):String {
