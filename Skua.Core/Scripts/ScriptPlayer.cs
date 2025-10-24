@@ -140,8 +140,8 @@ public partial class ScriptPlayer : IScriptPlayer
     {
         get
         {
-            var auras = Flash.GetGameObject<List<Aura>>("world.myAvatar.dataLeaf.auras");
-            return auras?.ToArray() ?? Array.Empty<Aura>();
+            string? auraJson = Flash.Call("JSON.stringify", Flash.GetGameObject("world.myAvatar.dataLeaf.auras"));
+            return string.IsNullOrEmpty(auraJson) ? Array.Empty<Aura>() : JsonConvert.DeserializeObject<Aura[]>(auraJson) ?? Array.Empty<Aura>();
         }
     }
 
