@@ -167,11 +167,6 @@ public interface IScriptPlayer
     PlayerStats? Stats { get; }
 
     /// <summary>
-    /// The player's auras
-    /// </summary>
-    List<Aura> Auras { get; }
-
-    /// <summary>
     /// Checks whether the player is marked as AFK.
     /// </summary>
     bool AFK { get; }

@@ -72,30 +72,6 @@ public interface IUltraBossHelper
     List<Aura> GetAurasMatchingPattern(List<Aura> auras, string namePattern);
 
     /// <summary>
-    /// Gets monsters with specific aura from a list of monsters (case-insensitive).
-    /// </summary>
-    /// <param name="monsters">Monsters to search through</param>
-    /// <param name="auraName">Name of aura to search for</param>
-    /// <returns>List of monsters that have the specified aura</returns>
-    List<Monster> GetMonstersWithAura(IEnumerable<Monster> monsters, string auraName);
-
-    /// <summary>
-    /// Gets monsters with any of the specified auras (case-insensitive).
-    /// </summary>
-    /// <param name="monsters">Monsters to search through</param>
-    /// <param name="auraNames">Array of aura names to search for</param>
-    /// <returns>List of monsters that have any of the specified auras</returns>
-    List<Monster> GetMonstersWithAnyAura(IEnumerable<Monster> monsters, params string[] auraNames);
-
-    /// <summary>
-    /// Gets monsters with all the specified auras (case-insensitive).
-    /// </summary>
-    /// <param name="monsters">Monsters to search through</param>
-    /// <param name="auraNames">Array of aura names that must all be present</param>
-    /// <returns>List of monsters that have all specified auras</returns>
-    List<Monster> GetMonstersWithAllAuras(IEnumerable<Monster> monsters, params string[] auraNames);
-
-    /// <summary>
     /// Checks if all aura conditions are met for skill usage (case-insensitive).
     /// </summary>
     /// <param name="selfAuras">Self auras interface to check</param>
@@ -110,13 +86,6 @@ public interface IUltraBossHelper
     /// <param name="conditions">Dictionary of aura names and their required conditions</param>
     /// <returns>True if all conditions are met</returns>
     bool ShouldUseSkill(IScriptTargetAuras targetAuras, Dictionary<string, Func<int, bool>> conditions);
-
-    /// <summary>
-    /// Gets a summary of all auras present on a list of monsters.
-    /// </summary>
-    /// <param name="monsters">Monsters to analyze</param>
-    /// <returns>Dictionary with aura names as keys and count of monsters with that aura as values</returns>
-    Dictionary<string, int> GetAuraSummary(IEnumerable<Monster> monsters);
     #endregion
 
 }

@@ -150,21 +150,6 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
         }
     }
 
-    public List<Monster> GetMonstersWithAura(IEnumerable<Monster> monsters, string auraName)
-    {
-        return monsters.Where(m => m.HasAura(auraName)).ToList();
-    }
-
-    public List<Monster> GetMonstersWithAnyAura(IEnumerable<Monster> monsters, params string[] auraNames)
-    {
-        return monsters.Where(m => auraNames.Any(aura => m.HasAura(aura))).ToList();
-    }
-
-    public List<Monster> GetMonstersWithAllAuras(IEnumerable<Monster> monsters, params string[] auraNames)
-    {
-        return monsters.Where(m => auraNames.All(aura => m.HasAura(aura))).ToList();
-    }
-
     public bool ShouldUseSkill(IScriptSelfAuras selfAuras, Dictionary<string, Func<int, bool>> conditions)
     {
         return conditions.All(condition =>
@@ -181,21 +166,6 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
             int auraValue = targetAuras.GetAuraValue(condition.Key);
             return condition.Value(auraValue);
         });
-    }
-
-    public Dictionary<string, int> GetAuraSummary(IEnumerable<Monster> monsters)
-    {
-        Dictionary<string, int> auraSummary = new();
-
-        foreach (Monster monster in monsters)
-        {
-            foreach (Aura aura in monster.Auras.Where(aura => !auraSummary.TryAdd(aura.Name, 1)))
-            {
-                auraSummary[aura.Name]++;
-            }
-        }
-
-        return auraSummary;
     }
 
     public void Dispose()
