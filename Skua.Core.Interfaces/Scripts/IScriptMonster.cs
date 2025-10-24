@@ -55,11 +55,6 @@ public interface IScriptMonster
     Dictionary<string, List<Monster>> GetCellMonsters();
 
     /// <summary>
-    /// Gets a summary of auras present on all monsters in the current map.
-    /// </summary>
-    Dictionary<string, int> GetAuraSummary();
-
-    /// <summary>
     /// Gets all the cells with a living monster of the specified <paramref name="name"/>.
     /// </summary>
     List<string> GetLivingMonsterCells(string name)

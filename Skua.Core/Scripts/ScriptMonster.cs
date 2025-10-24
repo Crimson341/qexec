@@ -43,19 +43,4 @@ public partial class ScriptMonster : IScriptMonster
             monsters[cell] = ((IScriptMonster)this).GetMonstersByCell(cell);
         return monsters;
     }
-
-    public Dictionary<string, int> GetAuraSummary()
-    {
-        Dictionary<string, int> auraSummary = new();
-
-        foreach (Monster? monster in MapMonsters.Where(m => m.Auras?.Any() == true))
-        {
-            foreach (Aura aura in monster.Auras!.Where(aura => !auraSummary.TryAdd(aura.Name, 1)))
-            {
-                auraSummary[aura.Name]++;
-            }
-        }
-
-        return auraSummary;
-    }
 }
