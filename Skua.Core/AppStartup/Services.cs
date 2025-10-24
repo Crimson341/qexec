@@ -111,7 +111,6 @@ public static class Services
         {
             s.GetRequiredService<ScriptLoaderViewModel>(),
             s.GetRequiredService<ScriptRepoViewModel>(),
-            s.GetRequiredService<ScriptCreatorViewModel>(),
             s.GetRequiredService<LogsViewModel>(),
             s.GetRequiredService<AutoViewModel>(),
             s.GetRequiredService<JumpViewModel>(),
@@ -186,7 +185,6 @@ public static class Services
         services.AddSingleton<CBOClassSelectViewModel>();
         services.AddSingleton<CBOLoadoutViewModel>();
 
-        services.AddSingleton<ScriptCreatorViewModel>();
 
         return services;
     }

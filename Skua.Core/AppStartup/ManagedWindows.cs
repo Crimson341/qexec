@@ -14,7 +14,6 @@ public class ManagedWindows
         //windowService.RegisterManagedWindow("About", s.GetRequiredService<AboutViewModel>());
         windowService.RegisterManagedWindow("Scripts", s.GetRequiredService<ScriptLoaderViewModel>());
         windowService.RegisterManagedWindow("Script Repo", s.GetRequiredService<ScriptRepoViewModel>());
-        windowService.RegisterManagedWindow("Script Creator", s.GetRequiredService<ScriptCreatorViewModel>());
 
         windowService.RegisterManagedWindow("Game", s.GetRequiredService<GameOptionsViewModel>());
         windowService.RegisterManagedWindow("Application", s.GetRequiredService<ApplicationOptionsViewModel>());

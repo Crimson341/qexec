@@ -15,7 +15,6 @@ internal class MainMenu
         List<MainMenuItemViewModel> menuItems = new()
         {
             new("Scripts"),
-            new("Script Creator"),
             new("Options", new List<MainMenuItemViewModel>()
             {
                 new("Game"),
