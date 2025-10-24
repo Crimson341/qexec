@@ -129,13 +129,9 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 }
                 
-                int ruleEnd = pos;
-                while (ruleEnd < rest.Length && rest[ruleEnd] != ' ' && rest[ruleEnd] != 'W' && rest[ruleEnd] != 'H' && rest[ruleEnd] != 'M' && rest[ruleEnd] != 'A' && rest[ruleEnd] != 'S')
-                    ruleEnd++;
-                
                 int nameEnd = pos;
                 int lastNonSpaceIdx = pos;
-                while (nameEnd < ruleEnd && !char.IsDigit(rest[nameEnd]))
+                while (nameEnd < rest.Length && !char.IsDigit(rest[nameEnd]))
                 {
                     if (rest[nameEnd] != ' ')
                         lastNonSpaceIdx = nameEnd;
@@ -147,18 +143,18 @@ public class SkillItemViewModel : ObservableObject
                 pos = nameEnd;
                 
                 int numStart = pos;
-                while (pos < ruleEnd && char.IsDigit(rest[pos]))
+                while (pos < rest.Length && char.IsDigit(rest[pos]))
                     pos++;
                 if (pos > numStart)
                     auraVal = int.Parse(rest.Substring(numStart, pos - numStart));
                 
-                while (pos < ruleEnd && rest[pos] == ' ')
+                while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
                 
-                if (pos < ruleEnd && char.IsLetter(rest[pos]))
+                if (pos < rest.Length && char.IsLetter(rest[pos]))
                 {
                     int targetEnd = pos;
-                    while (targetEnd < ruleEnd && char.IsLetter(rest[targetEnd]))
+                    while (targetEnd < rest.Length && char.IsLetter(rest[targetEnd]))
                         targetEnd++;
                     if (rest.Substring(pos, targetEnd - pos).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTargetIndex = 1;
