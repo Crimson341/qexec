@@ -128,24 +128,37 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 }
 
-                int nameEnd = pos;
-                int lastNonSpaceIdx = pos;
-                while (nameEnd < rest.Length && !char.IsDigit(rest[nameEnd]))
+                int ruleStart = pos;
+                int ruleEnd = pos;
+                while (ruleEnd < rest.Length && rest[ruleEnd] != ' ' && (ruleEnd == pos || !char.IsLetter(rest[ruleEnd]) || ruleEnd + 1 < rest.Length && !char.IsLetter(rest[ruleEnd + 1])))
+                    ruleEnd++;
+                
+                int lastDigitStart = -1;
+                int lastDigitEnd = -1;
+                for (int i = ruleStart; i < ruleEnd; i++)
                 {
-                    if (rest[nameEnd] != ' ')
-                        lastNonSpaceIdx = nameEnd;
-                    nameEnd++;
+                    if (char.IsDigit(rest[i]))
+                    {
+                        if (lastDigitStart == -1)
+                            lastDigitStart = i;
+                        lastDigitEnd = i + 1;
+                    }
+                    else if (lastDigitStart != -1 && lastDigitEnd == i)
+                    {
+                        lastDigitStart = -1;
+                    }
                 }
-
-                if (lastNonSpaceIdx >= pos)
-                    auraName = rest.Substring(pos, lastNonSpaceIdx - pos + 1).Trim();
-                pos = nameEnd;
-
-                int numStart = pos;
-                while (pos < rest.Length && char.IsDigit(rest[pos]))
-                    pos++;
-                if (pos > numStart)
-                    auraVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                
+                if (lastDigitStart >= 0 && lastDigitEnd > lastDigitStart)
+                {
+                    auraName = rest.Substring(ruleStart, lastDigitStart - ruleStart).Trim();
+                    auraVal = int.Parse(rest.Substring(lastDigitStart, lastDigitEnd - lastDigitStart));
+                    pos = lastDigitEnd;
+                }
+                else
+                {
+                    pos = ruleEnd;
+                }
 
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
