@@ -47,7 +47,9 @@ public partial class JumpViewModel : BotControlViewModelBase
     private void GetCurrent()
     {
         _suppressAutoJump = true;
-        (SelectedCell, SelectedPad) = _mapService.GetCurrentCell();
+        var (cell, pad) = _mapService.GetCurrentCell();
+        SelectedCell = cell;
+        SelectedPad = pad;
         _suppressAutoJump = false;
     }
 

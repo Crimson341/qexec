@@ -159,6 +159,36 @@ public partial class ScriptSkill : IScriptSkill
         OverrideProvider.Load(skills);
     }
 
+    public void LoadAdvanced(string className, string mode, bool autoEquip = true)
+    {
+        if (Enum.TryParse<ClassUseMode>(mode, ignoreCase: true, out var classMode))
+        {
+            LoadAdvanced(className, autoEquip, classMode);
+        }
+        else
+        {
+            var skill = AdvancedSkillContainer.GetClassModeSkills(className, mode);
+            if (skill != null)
+            {
+                if (autoEquip)
+                {
+                    Inventory.EquipItem(className);
+                    Wait.ForItemEquip(className);
+                }
+                OverrideProvider = new AdvancedSkillProvider(Player, Self, Target, Combat, Flash);
+                OverrideProvider.Load(skill.Skills);
+                SkillTimeout = skill.SkillTimeout;
+                SkillUseMode = skill.SkillUseMode;
+            }
+            else
+            {
+                OverrideProvider = new AdvancedSkillProvider(Player, Self, Target, Combat, Flash);
+                OverrideProvider.Load(genericSkills);
+                SkillUseMode = SkillUseMode.UseIfAvailable;
+            }
+        }
+    }
+
     private int _lastRank = -1;
     private SkillInfo[] _playerSkills = null!;
 

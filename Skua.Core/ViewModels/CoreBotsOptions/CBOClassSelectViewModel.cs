@@ -30,6 +30,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (SetProperty(ref _selectedSoloClass, value) && value is not null)
             {
                 SoloUseModes = new();
+                SoloModeStrings = new();
                 string classToUse = value;
 
                 if (value == CurrentClassOption)
@@ -58,17 +59,31 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     SoloUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
                 }
 
+                var classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out var modes))
+                {
+                    SoloModeStrings.AddRange(modes.OrderBy(x => x));
+                }
+
                 OnPropertyChanged(nameof(SoloUseModes));
+                OnPropertyChanged(nameof(SoloModeStrings));
                 if (SelectedSoloUseMode is null)
                     SelectedSoloUseMode = SoloUseModes.FirstOrDefault();
+                if (SelectedSoloModeString is null && SoloModeStrings.Count > 0)
+                    SelectedSoloModeString = SoloModeStrings.FirstOrDefault();
             }
         }
     }
 
     public List<ClassUseMode> SoloUseModes { get; private set; } = new();
 
+    public List<string> SoloModeStrings { get; private set; } = new();
+
     [ObservableProperty]
     private ClassUseMode? _selectedSoloUseMode;
+
+    [ObservableProperty]
+    private string? _selectedSoloModeString;
 
     [ObservableProperty]
     private bool _useSoloEquipment;
@@ -83,6 +98,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (SetProperty(ref _selectedFarmClass, value) && value is not null)
             {
                 FarmUseModes = new();
+                FarmModeStrings = new();
                 string classToUse = value;
 
                 if (value == CurrentClassOption)
@@ -111,17 +127,31 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     FarmUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
                 }
 
+                var classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out var modes))
+                {
+                    FarmModeStrings.AddRange(modes.OrderBy(x => x));
+                }
+
                 OnPropertyChanged(nameof(FarmUseModes));
+                OnPropertyChanged(nameof(FarmModeStrings));
                 if (SelectedFarmUseMode is null)
                     SelectedFarmUseMode = FarmUseModes.FirstOrDefault();
+                if (SelectedFarmModeString is null && FarmModeStrings.Count > 0)
+                    SelectedFarmModeString = FarmModeStrings.FirstOrDefault();
             }
         }
     }
 
     public List<ClassUseMode> FarmUseModes { get; private set; } = new();
 
+    public List<string> FarmModeStrings { get; private set; } = new();
+
     [ObservableProperty]
     private ClassUseMode? _selectedFarmUseMode;
+
+    [ObservableProperty]
+    private string? _selectedFarmModeString;
 
     [ObservableProperty]
     private bool _useFarmEquipment;

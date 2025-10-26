@@ -50,90 +50,151 @@ public class AdvancedSkillProvider : ISkillProvider
 
     private UseRule[] ParseUseRule(string useRule)
     {
-        string[] stringRules = useRule.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(s => s.Trim()).ToArray();
-        UseRule[] rules = new UseRule[stringRules.Length];
-
+        List<UseRule> rules = new();
         bool shouldSkip = useRule.Last() == 's';
-        for (int i = 0; i < stringRules.Length; i++)
+        
+        int pos = 0;
+        while (pos < useRule.Length)
         {
-            if (stringRules[i].Contains('h') || (stringRules[i].Contains('p') && stringRules[i].Contains("any")))
+            if (char.IsWhiteSpace(useRule[pos]))
             {
-                if (stringRules[i].Contains("pany"))
+                pos++;
+                continue;
+            }
+
+            if (useRule[pos] == 'h' || useRule[pos] == 'H')
+            {
+                pos++;
+                bool isGreater = pos < useRule.Length && useRule[pos] == '>';
+                if (isGreater || (pos < useRule.Length && useRule[pos] == '<'))
+                    pos++;
+                int numStart = pos;
+                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                    pos++;
+                if (pos > numStart)
+                    rules.Add(new UseRule(SkillRule.Health, isGreater, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
+                continue;
+            }
+
+            if (useRule[pos] == 'm' || useRule[pos] == 'M')
+            {
+                pos++;
+                bool isGreater = pos < useRule.Length && useRule[pos] == '>';
+                if (isGreater || (pos < useRule.Length && useRule[pos] == '<'))
+                    pos++;
+                int numStart = pos;
+                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                    pos++;
+                if (pos > numStart)
+                    rules.Add(new UseRule(SkillRule.Mana, isGreater, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
+                continue;
+            }
+
+            if (useRule[pos] == 'p' || useRule[pos] == 'P')
+            {
+                pos++;
+                bool isGreater = pos < useRule.Length && useRule[pos] == '>';
+                if (isGreater || (pos < useRule.Length && useRule[pos] == '<'))
+                    pos++;
+                int numStart = pos;
+                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                    pos++;
+                if (pos > numStart)
+                    rules.Add(new UseRule(SkillRule.PartyHealth, isGreater, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
+                continue;
+            }
+
+            if (useRule[pos] == 'a' || useRule[pos] == 'A')
+            {
+                pos++;
+                bool isGreater = false;
+                if (pos < useRule.Length && useRule[pos] == '>')
                 {
-                    rules[i] = new UseRule(SkillRule.PartyHealth, stringRules[i].Contains('>'), int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
+                    isGreater = true;
+                    pos++;
+                }
+                else if (pos < useRule.Length && useRule[pos] == '<')
+                {
+                    pos++;
+                }
+
+                string auraName = "";
+                int auraValue = 0;
+
+                if (pos < useRule.Length && useRule[pos] == '"')
+                {
+                    pos++;
+                    int nameStart = pos;
+                    while (pos < useRule.Length && useRule[pos] != '"')
+                    {
+                        if (useRule[pos] == '\\' && pos + 1 < useRule.Length && useRule[pos + 1] == '"')
+                            pos += 2;
+                        else
+                            pos++;
+                    }
+                    string rawName = useRule.Substring(nameStart, pos - nameStart);
+                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    if (pos < useRule.Length && useRule[pos] == '"')
+                        pos++;
                 }
                 else
                 {
-                    rules[i] = new UseRule(SkillRule.Health, stringRules[i].Contains('>'), int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
+                    int nameStart = pos;
+                    while (pos < useRule.Length && useRule[pos] != ' ' && !char.IsDigit(useRule[pos]))
+                        pos++;
+                    auraName = useRule.Substring(nameStart, pos - nameStart);
                 }
-                continue;
-            }
 
-            if (stringRules[i].Contains('m'))
-            {
-                rules[i] = new UseRule(SkillRule.Mana, stringRules[i].Contains('>'), int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
-                continue;
-            }
-
-            if (stringRules[i].Contains('a'))
-            {
-                string auraRule = stringRules[i];
-
-                int pos = 1;
-                if (pos < auraRule.Length && auraRule[pos] == '>')
-                {
+                while (pos < useRule.Length && useRule[pos] == ' ')
                     pos++;
-                }
-                else if (pos < auraRule.Length && auraRule[pos] == '<')
-                {
-                    pos++;
-                }
-
-                int nameEnd = pos;
-                int lastNonSpaceIdx = pos;
-                while (nameEnd < auraRule.Length && !char.IsDigit(auraRule[nameEnd]))
-                {
-                    if (auraRule[nameEnd] != ' ')
-                        lastNonSpaceIdx = nameEnd;
-                    nameEnd++;
-                }
-
-                string auraName = auraRule.Substring(pos, lastNonSpaceIdx - pos + 1).Trim();
-                pos = nameEnd;
 
                 int numStart = pos;
-                while (pos < auraRule.Length && char.IsDigit(auraRule[pos]))
+                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
                     pos++;
+                if (pos > numStart)
+                    auraValue = int.Parse(useRule.Substring(numStart, pos - numStart));
 
-                if (pos <= numStart)
-                    continue;
-
-                int auraValue = int.Parse(auraRule.Substring(numStart, pos - numStart));
-
-                while (pos < auraRule.Length && auraRule[pos] == ' ')
+                while (pos < useRule.Length && useRule[pos] == ' ')
                     pos++;
 
                 string auraTarget = "self";
-                if (pos < auraRule.Length && char.IsLetter(auraRule[pos]))
+                if (pos < useRule.Length && char.IsLetter(useRule[pos]))
                 {
-                    int targetEnd = pos;
-                    while (targetEnd < auraRule.Length && char.IsLetter(auraRule[targetEnd]))
-                        targetEnd++;
-                    if (auraRule.Substring(pos, targetEnd - pos).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                    int targetStart = pos;
+                    while (pos < useRule.Length && char.IsLetter(useRule[pos]))
+                        pos++;
+                    if (useRule.Substring(targetStart, pos - targetStart).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTarget = "target";
                 }
 
-                rules[i] = new UseRule(SkillRule.Aura, auraRule.Contains('>'), auraValue, shouldSkip, auraTarget, auraName);
+                if (!string.IsNullOrEmpty(auraName))
+                    rules.Add(new UseRule(SkillRule.Aura, isGreater, auraValue, shouldSkip, auraTarget, auraName));
                 continue;
             }
 
-            if (stringRules[i].Contains('w'))
+            if (useRule[pos] == 'w' || useRule[pos] == 'W')
             {
-                rules[i] = new UseRule(SkillRule.Wait, true, int.Parse(stringRules[i].RemoveLetters()), shouldSkip);
+                pos++;
+                if (pos < useRule.Length && useRule[pos] == 'w')
+                    pos++;
+                int numStart = pos;
+                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                    pos++;
+                if (pos > numStart)
+                    rules.Add(new UseRule(SkillRule.Wait, true, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
+                continue;
             }
+
+            if (useRule[pos] == 's' || useRule[pos] == 'S')
+            {
+                pos++;
+                continue;
+            }
+
+            pos++;
         }
 
-        return rules;
+        return rules.Count == 0 ? new[] { new UseRule(SkillRule.None) } : rules.ToArray();
     }
 
     public void Save(string file)

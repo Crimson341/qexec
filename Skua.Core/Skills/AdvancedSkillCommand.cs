@@ -158,29 +158,32 @@ public class AdvancedSkillCommand
 
         if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
         {
-            if (self.Auras == null || self.Auras.Count == 0)
-                return false;
-
-            totalStacks = string.IsNullOrEmpty(auraName)
-                ? self.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
-                : self.Auras
-                    .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
-                    .Sum(a => Convert.ToInt32(a.Value ?? 1));
+            if (self.Auras != null && self.Auras.Count > 0)
+            {
+                totalStacks = string.IsNullOrEmpty(auraName)
+                    ? self.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
+                    : self.Auras
+                        .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
+                        .Sum(a => Convert.ToInt32(a.Value ?? 1));
+            }
         }
 
         if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
         {
-            if (!player.HasTarget || target.Auras == null || target.Auras.Count == 0)
+            if (!player.HasTarget)
                 return false;
 
-            totalStacks = string.IsNullOrEmpty(auraName)
-                ? target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
-                : target.Auras
-                    .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
-                    .Sum(a => Convert.ToInt32(a.Value ?? 1));
+            if (target.Auras != null && target.Auras.Count > 0)
+            {
+                totalStacks = string.IsNullOrEmpty(auraName)
+                    ? target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
+                    : target.Auras
+                        .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
+                        .Sum(a => Convert.ToInt32(a.Value ?? 1));
+            }
         }
 
-        return greater ? totalStacks >= count : totalStacks <= count;
+        return greater ? totalStacks > count : totalStacks < count;
     }
 
     public void Reset()

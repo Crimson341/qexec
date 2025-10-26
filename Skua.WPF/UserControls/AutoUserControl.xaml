@@ -50,8 +50,7 @@
             Grid.ColumnSpan="2"
             Margin="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="3*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="2*" />
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
             <DockPanel Grid.Column="0" Margin="0,0,3,0">
@@ -70,16 +69,10 @@
             <ComboBox
                 Grid.Column="1"
                 Height="32"
-                Margin="6,0"
+                Margin="3,0,0,0"
                 materialDesign:HintAssist.Hint="Mode"
-                ItemsSource="{Binding CurrentClassModes}"
-                SelectedItem="{Binding SelectedClassMode}" />
-            <CheckBox
-                Grid.Column="2"
-                HorizontalAlignment="Stretch"
-                Content="Use Selected"
-                IsChecked="{Binding UseSelectedClass}"
-                Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}" />
+                ItemsSource="{Binding CurrentClassModeStrings}"
+                SelectedItem="{Binding SelectedClassModeString}" />
         </Grid>
         <!--#endregion-->
     </Grid>

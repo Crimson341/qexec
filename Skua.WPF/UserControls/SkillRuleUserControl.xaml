@@ -9,12 +9,14 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:vms="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
     xmlns:wpf="clr-namespace:Skua.WPF"
+    xmlns:conv="clr-namespace:Skua.WPF.Converters"
     d:DataContext="{d:DesignInstance vms:SkillRulesViewModel}"
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
     <UserControl.Resources>
         <Style BasedOn="{StaticResource MaterialDesignFloatingHintTextBox}" TargetType="TextBox" />
+        <conv:StringToIntConverter x:Key="StringToIntConverter" />
     </UserControl.Resources>
     <Grid>
         <Grid.ColumnDefinitions>
@@ -224,13 +226,13 @@
             </Grid.ColumnDefinitions>
             <TextBox
                 Grid.Column="0"
-                materialDesign:HintAssist.Hint="Name"
+                materialDesign:HintAssist.Hint="Aura Name"
                 Text="{Binding AuraName, UpdateSourceTrigger=PropertyChanged}" />
             <TextBox
                 Grid.Column="1"
                 materialDesign:HintAssist.Hint="Aura Stacks"
                 Margin="3,0,3,0"
-                Text="{Binding AuraUseValue, UpdateSourceTrigger=PropertyChanged}">
+                Text="{Binding AuraUseValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToIntConverter}}">
                 <b:Interaction.Behaviors>
                     <wpf:TextBoxOnlyNumbersBehavior />
                 </b:Interaction.Behaviors>

@@ -58,4 +58,14 @@ public interface IAdvancedSkillContainer : INotifyPropertyChanged
     /// Saves all modifications to the skills file.
     /// </summary>
     void Save();
+
+    /// <summary>
+    /// Gets available class and mode combinations.
+    /// </summary>
+    Dictionary<string, List<string>> GetAvailableClassModes();
+
+    /// <summary>
+    /// Gets skills for a specific class and mode combination.
+    /// </summary>
+    AdvancedSkill? GetClassModeSkills(string className, string mode);
 }

@@ -72,7 +72,8 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
     private void SaveSkills()
     {
         string skills = string.Join(" | ", _currentSkillsList.Select(s => s.Convert()));
-        AdvancedSkill advSkill = new(CurrentClassName, skills, CurrentSkillTimeout, SelectedClassUseMode, UseWaitModeBool ? SkillUseMode.WaitForCooldown : SkillUseMode.UseIfAvailable);
+        string modeString = SelectedClassUseMode >= 0 && SelectedClassUseMode < ClassUseModes.Length ? ClassUseModes[SelectedClassUseMode] : "Base";
+        AdvancedSkill advSkill = new(CurrentClassName, skills, CurrentSkillTimeout, modeString, UseWaitModeBool ? SkillUseMode.WaitForCooldown : SkillUseMode.UseIfAvailable);
         OnPropertyChanged(nameof(CurrentSkillsList));
         Messenger.Send<SaveAdvancedSkillMessage>(new(advSkill));
     }

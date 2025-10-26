@@ -46,8 +46,8 @@
                     Height="32"
                     Margin="0,3"
                     materialDesign:HintAssist.Hint="Mode"
-                    ItemsSource="{Binding SoloUseModes}"
-                    SelectedItem="{Binding SelectedSoloUseMode}" />
+                    ItemsSource="{Binding SoloModeStrings}"
+                    SelectedItem="{Binding SelectedSoloModeString}" />
                 <CheckBox
                     Grid.Row="2"
                     HorizontalAlignment="Stretch"
@@ -85,8 +85,8 @@
                     Height="32"
                     Margin="0,3"
                     materialDesign:HintAssist.Hint="Mode"
-                    ItemsSource="{Binding FarmUseModes}"
-                    SelectedItem="{Binding SelectedFarmUseMode}" />
+                    ItemsSource="{Binding FarmModeStrings}"
+                    SelectedItem="{Binding SelectedFarmModeString}" />
                 <CheckBox
                     Grid.Row="2"
                     HorizontalAlignment="Stretch"

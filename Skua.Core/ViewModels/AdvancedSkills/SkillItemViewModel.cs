@@ -128,36 +128,69 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 }
 
-                int ruleStart = pos;
-                int ruleEnd = pos;
-                while (ruleEnd < rest.Length && rest[ruleEnd] != ' ' && (ruleEnd == pos || !char.IsLetter(rest[ruleEnd]) || ruleEnd + 1 < rest.Length && !char.IsLetter(rest[ruleEnd + 1])))
-                    ruleEnd++;
-                
-                int lastDigitStart = -1;
-                int lastDigitEnd = -1;
-                for (int i = ruleStart; i < ruleEnd; i++)
+                if (pos < rest.Length && rest[pos] == '"')
                 {
-                    if (char.IsDigit(rest[i]))
+                    pos++;
+                    int nameStart = pos;
+                    while (pos < rest.Length && rest[pos] != '"')
                     {
-                        if (lastDigitStart == -1)
-                            lastDigitStart = i;
-                        lastDigitEnd = i + 1;
+                        if (rest[pos] == '\\' && pos + 1 < rest.Length && rest[pos + 1] == '"')
+                            pos += 2;
+                        else
+                            pos++;
                     }
-                    else if (lastDigitStart != -1 && lastDigitEnd == i)
-                    {
-                        lastDigitStart = -1;
-                    }
-                }
-                
-                if (lastDigitStart >= 0 && lastDigitEnd > lastDigitStart)
-                {
-                    auraName = rest.Substring(ruleStart, lastDigitStart - ruleStart).Trim();
-                    auraVal = int.Parse(rest.Substring(lastDigitStart, lastDigitEnd - lastDigitStart));
-                    pos = lastDigitEnd;
+                    string rawName = rest.Substring(nameStart, pos - nameStart);
+                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    if (pos < rest.Length && rest[pos] == '"')
+                        pos++;
+
+                    while (pos < rest.Length && rest[pos] == ' ')
+                        pos++;
+
+                    int valueStart = pos;
+                    while (pos < rest.Length && char.IsDigit(rest[pos]))
+                        pos++;
+                    if (valueStart < pos)
+                        auraVal = int.Parse(rest.Substring(valueStart, pos - valueStart));
                 }
                 else
                 {
-                    pos = ruleEnd;
+                    int nameStart = pos;
+                    int lastDigitStart = -1;
+                    int lastDigitEnd = -1;
+
+                    while (pos < rest.Length && rest[pos] != ' ')
+                    {
+                        if (char.IsDigit(rest[pos]))
+                        {
+                            if (lastDigitStart == -1)
+                                lastDigitStart = pos;
+                            lastDigitEnd = pos + 1;
+                        }
+                        else if (lastDigitStart != -1 && lastDigitEnd == pos)
+                        {
+                            lastDigitStart = -1;
+                        }
+                        pos++;
+                    }
+
+                    while (pos < rest.Length && rest[pos] == ' ')
+                        pos++;
+
+                    int valueStart = pos;
+                    while (pos < rest.Length && char.IsDigit(rest[pos]))
+                        pos++;
+
+                    if (lastDigitStart >= 0 && lastDigitEnd > lastDigitStart)
+                    {
+                        auraName = rest.Substring(nameStart, lastDigitStart - nameStart).Trim();
+                        auraVal = int.Parse(rest.Substring(lastDigitStart, lastDigitEnd - lastDigitStart));
+                    }
+                    else if (valueStart < pos)
+                    {
+                        auraName = rest.Substring(nameStart, valueStart - nameStart).Trim();
+                        auraVal = int.Parse(rest.Substring(valueStart, pos - valueStart));
+                    }
                 }
 
                 while (pos < rest.Length && rest[pos] == ' ')
@@ -283,11 +316,10 @@ public class SkillItemViewModel : ObservableObject
             bob.Append($" H{(UseRules.HealthGreaterThanBool ? ">" : "<")}{UseRules.HealthUseValue}");
         if (UseRules.ManaUseValue != 0)
             bob.Append($" M{(UseRules.ManaGreaterThanBool ? ">" : "<")}{UseRules.ManaUseValue}");
-        if (UseRules.AuraUseValue != 0 || !string.IsNullOrEmpty(UseRules.AuraName))
+        if (!string.IsNullOrEmpty(UseRules.AuraName))
         {
-            string target = UseRules.AuraTargetIndex == 1 ? "TARGET" : string.Empty;
-            string name = string.IsNullOrEmpty(UseRules.AuraName) ? string.Empty : UseRules.AuraName;
-            bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")}{name}{UseRules.AuraUseValue}{target}");
+            string target = UseRules.AuraTargetIndex == 1 ? " TARGET" : string.Empty;
+            bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")}\"{UseRules.AuraName}\" {UseRules.AuraUseValue}{target}");
         }
         if (UseRules.SkipUseBool)
             bob.Append('S');

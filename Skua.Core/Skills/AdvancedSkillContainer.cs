@@ -1,9 +1,10 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using Skua.Core.Models.Skills;
 using Skua.Core.Utils;
+using System.Text.Json;
 
 namespace Skua.Core.Skills;
 
@@ -14,6 +15,8 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     private readonly string _userSkillsSetsPath;
     private CancellationTokenSource? _saveCts;
     private Task? _saveTask;
+    private AdvancedSkillsConfigJson? _jsonConfig;
+    private string? _loadedFilePath;
 
     public List<AdvancedSkill> LoadedSkills
     {
@@ -92,12 +95,47 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     public void LoadSkills()
     {
-        if (!File.Exists(_userSkillsSetsPath))
-            _CopyDefaultSkills();
-
         LoadedSkills.Clear();
-        foreach (string line in File.ReadAllLines(_userSkillsSetsPath))
+        
+        string jsonPath = Path.ChangeExtension(_userSkillsSetsPath, ".json");
+        _loadedFilePath = jsonPath;
+        
+        if (File.Exists(jsonPath))
         {
+            string fileContent = File.ReadAllText(jsonPath);
+            LoadFromJson(fileContent);
+        }
+        else if (File.Exists(_userSkillsSetsPath))
+        {
+            string fileContent = File.ReadAllText(_userSkillsSetsPath);
+            LoadFromText(fileContent);
+        }
+        else
+        {
+            _CopyDefaultSkills();
+            if (File.Exists(jsonPath))
+            {
+                string fileContent = File.ReadAllText(jsonPath);
+                LoadFromJson(fileContent);
+            }
+            else if (File.Exists(_userSkillsSetsPath))
+            {
+                string fileContent = File.ReadAllText(_userSkillsSetsPath);
+                LoadFromText(fileContent);
+            }
+        }
+
+        OnPropertyChanged(nameof(LoadedSkills));
+        Broadcast(new(), _loadedSkills, nameof(LoadedSkills));
+    }
+
+    private void LoadFromText(string textContent)
+    {
+        foreach (string line in textContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
+        {
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+
             string[] parts = line.Split(new[] { '=' }, 4);
             switch (parts.Length)
             {
@@ -112,9 +150,110 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                     }
             }
         }
+    }
 
-        OnPropertyChanged(nameof(LoadedSkills));
-        Broadcast(new(), _loadedSkills, nameof(LoadedSkills));
+    private void LoadFromJson(string jsonContent)
+    {
+        try
+        {
+            _jsonConfig = JsonSerializer.Deserialize<AdvancedSkillsConfigJson>(jsonContent);
+            if (_jsonConfig == null)
+                return;
+
+            foreach (var classEntry in _jsonConfig)
+            {
+                string className = classEntry.Key;
+                foreach (var modeEntry in classEntry.Value)
+                {
+                    string classUseMode = modeEntry.Key;
+                    var skillMode = modeEntry.Value;
+                    
+                    string skillsStr = ConvertSkillsToString(skillMode.Skills);
+                    
+                    _loadedSkills.Add(new AdvancedSkill(
+                        className,
+                        skillsStr,
+                        skillMode.SkillTimeout,
+                        classUseMode,
+                        skillMode.SkillUseMode == "UseIfAvailable" ? SkillUseMode.UseIfAvailable : SkillUseMode.WaitForCooldown
+                    ));
+                }
+            }
+        }
+        catch
+        {
+            LoadFromText(jsonContent);
+        }
+    }
+
+    private string ConvertSkillsToString(List<AdvancedSkillJson> skills)
+    {
+        var parts = new List<string>();
+        foreach (var skill in skills)
+        {
+            var skillStr = skill.SkillId.ToString();
+            if (skill.Rules?.Count > 0)
+            {
+                skillStr += ConvertRulesToString(skill.Rules);
+            }
+            parts.Add(skillStr);
+        }
+        return string.Join(" | ", parts);
+    }
+
+    private string ConvertRulesToString(List<SkillRuleJson> rules)
+    {
+        var ruleParts = new List<string>();
+        foreach (var rule in rules)
+        {
+            switch (rule.Type)
+            {
+                case "Health":
+                    ruleParts.Add($"H{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}");
+                    break;
+                case "Mana":
+                    ruleParts.Add($"M{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}");
+                    break;
+                case "Aura":
+                    ruleParts.Add($"A{(rule.Comparison == "greater" ? ">" : "<")}\" {rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}");
+                    break;
+                case "Wait":
+                    ruleParts.Add($"WW{rule.Timeout}");
+                    break;
+                case "Skip":
+                    ruleParts.Add("S");
+                    break;
+            }
+        }
+        return string.Join(" ", ruleParts);
+    }
+
+    public Dictionary<string, List<string>> GetAvailableClassModes()
+    {
+        if (_jsonConfig == null)
+        {
+            string jsonPath = Path.ChangeExtension(_userSkillsSetsPath, ".json");
+            if (File.Exists(jsonPath))
+            {
+                string fileContent = File.ReadAllText(jsonPath);
+                _jsonConfig = JsonSerializer.Deserialize<AdvancedSkillsConfigJson>(fileContent);
+            }
+        }
+
+        var result = new Dictionary<string, List<string>>();
+        if (_jsonConfig != null)
+        {
+            foreach (var classEntry in _jsonConfig)
+            {
+                result[classEntry.Key] = classEntry.Value.Keys.ToList();
+            }
+        }
+        return result;
+    }
+
+    public AdvancedSkill? GetClassModeSkills(string className, string mode)
+    {
+        return _loadedSkills.FirstOrDefault(s => s.ClassName == className && s.ClassUseMode.ToString() == mode);
     }
 
     public void ResetSkillsSets()
@@ -132,7 +271,11 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         {
             try
             {
-                File.WriteAllLines(_userSkillsSetsPath, _loadedSkills.OrderBy(s => s.ClassName).Select(s => s.SaveString));
+                string jsonPath = _loadedFilePath ?? Path.ChangeExtension(_userSkillsSetsPath, ".json");
+                if (!jsonPath.EndsWith(".json"))
+                    jsonPath = Path.ChangeExtension(jsonPath, ".json");
+                SaveToJson(jsonPath);
+                
                 if (!_saveCts.Token.IsCancellationRequested)
                 {
                     LoadSkills();
@@ -140,9 +283,43 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             }
             catch
             {
-                // Handle save errors gracefully
             }
         }, _saveCts.Token);
+    }
+
+    private void SaveToJson(string filePath)
+    {
+        var config = new AdvancedSkillsConfigJson();
+
+        if (File.Exists(filePath))
+        {
+            string existingContent = File.ReadAllText(filePath);
+            config = JsonSerializer.Deserialize<AdvancedSkillsConfigJson>(existingContent) ?? new AdvancedSkillsConfigJson();
+        }
+
+        foreach (var skill in _loadedSkills)
+        {
+            if (!config.ContainsKey(skill.ClassName))
+                config[skill.ClassName] = new Dictionary<string, SkillModeJson>();
+
+            var skillMode = new SkillModeJson
+            {
+                SkillUseMode = skill.SkillUseMode == SkillUseMode.UseIfAvailable ? "UseIfAvailable" : "WaitForCooldown",
+                SkillTimeout = skill.SkillTimeout,
+                Skills = AdvancedSkillsParser.ParseSkillString(skill.Skills)
+            };
+
+            config[skill.ClassName][skill.ClassUseMode.ToString()] = skillMode;
+        }
+
+        var options = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        };
+
+        string json = JsonSerializer.Serialize(config, options);
+        File.WriteAllText(filePath, json);
     }
 
     private bool _disposed = false;

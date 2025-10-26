@@ -1,5 +1,8 @@
-﻿using Skua.Core.Models.Skills;
+using Skua.Core.Models.Skills;
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
@@ -15,6 +18,14 @@ public partial class SavedAdvancedSkillsUserControl : UserControl
         InitializeComponent();
     }
 
+    private void UserControl_Loaded(object sender, System.Windows.RoutedEventArgs e)
+    {
+        if (DataContext is Core.ViewModels.SavedAdvancedSkillsViewModel vm)
+        {
+            vm.LoadAvailableClassesCommand.Execute(null);
+        }
+    }
+
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         var view = CollectionViewSource.GetDefaultView(SkillsList.ItemsSource);
@@ -26,5 +37,51 @@ public partial class SavedAdvancedSkillsUserControl : UserControl
             }
             return false;
         };
+    }
+
+    private void UserControl_PreviewKeyDown(object sender, System.Windows.Input.KeyEventArgs e)
+    {
+        if (e.Key == System.Windows.Input.Key.C && (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) == System.Windows.Input.ModifierKeys.Control)
+        {
+            CopySelected();
+            e.Handled = true;
+        }
+        else if (e.Key == System.Windows.Input.Key.V && (System.Windows.Input.Keyboard.Modifiers & System.Windows.Input.ModifierKeys.Control) == System.Windows.Input.ModifierKeys.Control)
+        {
+            PasteSelected();
+            e.Handled = true;
+        }
+    }
+
+    private List<AdvancedSkill> _clipboard = new();
+
+    private void CopySelected()
+    {
+        _clipboard.Clear();
+        foreach (var item in SkillsList.SelectedItems)
+        {
+            if (item is AdvancedSkill skill)
+            {
+                _clipboard.Add(new AdvancedSkill
+                {
+                    ClassName = skill.ClassName,
+                    Skills = skill.Skills,
+                    SkillTimeout = skill.SkillTimeout,
+                    ClassUseMode = skill.ClassUseMode,
+                    SkillUseMode = skill.SkillUseMode
+                });
+            }
+        }
+    }
+
+    private void PasteSelected()
+    {
+        if (DataContext is Core.ViewModels.SavedAdvancedSkillsViewModel vm)
+        {
+            foreach (var skill in _clipboard)
+            {
+                vm.LoadedSkills.Add(skill);
+            }
+        }
     }
 }

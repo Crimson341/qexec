@@ -114,6 +114,26 @@ public interface IScriptSkill
     void LoadAdvanced(string className, bool autoEquip, ClassUseMode useMode = ClassUseMode.Base);
 
     /// <summary>
+    /// Loads the skills of the specified <paramref name="className"/> and <paramref name="mode"/> from AdvancedSkills configuration.
+    /// </summary>
+    /// <param name="className">Name of the class to use</param>
+    /// <param name="mode">The mode as a string (e.g., "Base", "Solo", "Farm", "Atk", "Def", "Supp")</param>
+    /// <param name="autoEquip">Whether to equip the class</param>
+    void LoadAdvanced(string className, string mode, bool autoEquip = true);
+
+    /// <summary>
+    /// Loads the skills of the specified <paramref name="className"/> and <paramref name="mode"/> and starts the skill thread.
+    /// </summary>
+    /// <param name="className">Name of the class to use</param>
+    /// <param name="mode">The mode as a string (e.g., "Base", "Solo", "Farm", "Atk", "Def", "Supp")</param>
+    /// <param name="autoEquip">Whether to equip the class</param>
+    void StartAdvanced(string className, string mode, bool autoEquip = true)
+    {
+        LoadAdvanced(className, mode, autoEquip);
+        Start();
+    }
+
+    /// <summary>
     /// Sets the current skill provider (<see cref="OverrideProvider"/>).
     /// </summary>
     /// <param name="provider">Desired provider that implements <see cref="ISkillProvider"/></param>

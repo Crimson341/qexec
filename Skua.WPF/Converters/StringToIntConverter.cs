@@ -14,6 +14,13 @@ public class StringToIntConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value.ToString() ?? string.Empty;
+        if (value is string strValue)
+        {
+            if (string.IsNullOrWhiteSpace(strValue))
+                return 0;
+            if (int.TryParse(strValue, out int result))
+                return result;
+        }
+        return 0;
     }
 }

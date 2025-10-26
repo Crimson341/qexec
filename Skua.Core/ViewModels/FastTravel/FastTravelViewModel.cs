@@ -27,6 +27,7 @@ public partial class FastTravelViewModel : BotControlViewModelBase
             DefaultFastTravels.Add(new FastTravelItemViewModel(values[0], values[1], values[2], values[3], _travelCommand));
         }
         FastTravelItems = new(DefaultFastTravels);
+        FastTravelItems.CollectionChanged += (s, e) => SaveFastTravelsCommand.Execute(null);
     }
 
     protected override void OnActivated()
