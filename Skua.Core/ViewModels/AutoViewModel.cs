@@ -80,11 +80,12 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
                 {
                     SelectedClassModeString = CurrentClassModeStrings.First();
                 }
-                
+
                 OnSelectedClassStringChanged(_selectedClassString);
             }
         }
     }
+
     private async Task EquipSelectedClassAsync()
     {
         try
