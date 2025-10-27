@@ -1,5 +1,7 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using System.Collections.ObjectModel;
+using Skua.Core.Skills;
 
 namespace Skua.Core.ViewModels;
 
@@ -26,6 +28,17 @@ public partial class SkillRulesViewModel : ObservableRecipient
         _partyMemberHealthGreaterThanBool = rules.PartyMemberHealthGreaterThanBool;
         _partyMemberHealthUseValue = rules.PartyMemberHealthUseValue;
         _partyMemberHealthIsPercentage = rules.PartyMemberHealthIsPercentage;
+        _multiAuraOperatorIndex = rules.MultiAuraOperatorIndex;
+        foreach (var check in rules.MultiAuraChecks)
+        {
+            MultiAuraChecks.Add(new AuraCheckViewModel
+            {
+                AuraName = check.AuraName,
+                StackCount = check.StackCount,
+                IsGreater = check.IsGreater,
+                AuraTargetIndex = check.AuraTargetIndex
+            });
+        }
     }
 
     [ObservableProperty]
@@ -116,6 +129,60 @@ public partial class SkillRulesViewModel : ObservableRecipient
     [ObservableProperty]
     private bool _partyMemberHealthIsPercentage = true;
 
+    [ObservableProperty]
+    private ObservableCollection<AuraCheckViewModel> _multiAuraChecks = new();
+
+    [ObservableProperty]
+    private int _multiAuraOperatorIndex = 0;
+
+    [RelayCommand]
+    private void AddAuraCheck()
+    {
+        MultiAuraChecks.Add(new AuraCheckViewModel());
+    }
+
+    [RelayCommand]
+    private void RemoveAuraCheck(AuraCheckViewModel check)
+    {
+        MultiAuraChecks.Remove(check);
+    }
+
+    public UseRule[] ToUseRules()
+    {
+        List<UseRule> rules = new();
+
+        if (MultiAuraChecks.Count > 0)
+        {
+            List<AuraCheck> auraChecks = new();
+            foreach (var check in MultiAuraChecks)
+            {
+                auraChecks.Add(check.ToAuraCheck());
+            }
+            MultiAuraOperator op = MultiAuraOperatorIndex switch
+            {
+                1 => MultiAuraOperator.Or,
+                2 => MultiAuraOperator.Sum,
+                _ => MultiAuraOperator.And
+            };
+            rules.Add(new UseRule(SkillRule.Aura, SkipUseBool, auraChecks, op));
+        }
+        else if (!string.IsNullOrEmpty(AuraName) || AuraUseValue != 0)
+        {
+            rules.Add(new UseRule(SkillRule.Aura, AuraGreaterThanBool, AuraUseValue, SkipUseBool, AuraTargetIndex == 1 ? "target" : "self", AuraName));
+        }
+
+        if (HealthUseValue != 0)
+            rules.Add(new UseRule(SkillRule.Health, HealthGreaterThanBool, HealthUseValue, SkipUseBool));
+
+        if (ManaUseValue != 0)
+            rules.Add(new UseRule(SkillRule.Mana, ManaGreaterThanBool, ManaUseValue, SkipUseBool));
+
+        if (WaitUseValue != 0)
+            rules.Add(new UseRule(SkillRule.Wait, true, WaitUseValue, SkipUseBool));
+
+        return rules.Count > 0 ? rules.ToArray() : new[] { new UseRule(SkillRule.None) };
+    }
+
     [RelayCommand]
     private void ResetUseRules()
     {
@@ -135,5 +202,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
         PartyMemberHealthGreaterThanBool = true;
         PartyMemberHealthUseValue = 0;
         PartyMemberHealthIsPercentage = true;
+        MultiAuraChecks.Clear();
+        MultiAuraOperatorIndex = 0;
     }
 }

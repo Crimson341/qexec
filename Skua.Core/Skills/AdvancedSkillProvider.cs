@@ -51,6 +51,8 @@ public class AdvancedSkillProvider : ISkillProvider
     private UseRule[] ParseUseRule(string useRule)
     {
         List<UseRule> rules = new();
+        List<AuraCheck> multiAuraChecks = new();
+        int multiAuraOp = 0;
         bool shouldSkip = useRule.Last() == 's';
         
         int pos = 0;
@@ -59,6 +61,89 @@ public class AdvancedSkillProvider : ISkillProvider
             if (char.IsWhiteSpace(useRule[pos]))
             {
                 pos++;
+                continue;
+            }
+
+            if (pos + 1 < useRule.Length && useRule[pos] == 'm' && useRule[pos + 1] == 'a')
+            {
+                pos += 2;
+                bool isGreater = false;
+                if (pos < useRule.Length && useRule[pos] == '>')
+                {
+                    isGreater = true;
+                    pos++;
+                }
+                else if (pos < useRule.Length && useRule[pos] == '<')
+                {
+                    pos++;
+                }
+
+                string auraName = "";
+                int auraValue = 0;
+
+                if (pos < useRule.Length && useRule[pos] == '"')
+                {
+                    pos++;
+                    int nameStart = pos;
+                    while (pos < useRule.Length && useRule[pos] != '"')
+                    {
+                        if (useRule[pos] == '\\' && pos + 1 < useRule.Length && useRule[pos + 1] == '"')
+                            pos += 2;
+                        else
+                            pos++;
+                    }
+                    string rawName = useRule.Substring(nameStart, pos - nameStart);
+                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    if (pos < useRule.Length && useRule[pos] == '"')
+                        pos++;
+                }
+
+                while (pos < useRule.Length && useRule[pos] == ' ')
+                    pos++;
+
+                int numStart = pos;
+                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                    pos++;
+                if (pos > numStart)
+                    auraValue = int.Parse(useRule.Substring(numStart, pos - numStart));
+
+                while (pos < useRule.Length && useRule[pos] == ' ')
+                    pos++;
+
+                string auraTarget = "self";
+                if (pos < useRule.Length && char.IsLetter(useRule[pos]))
+                {
+                    int targetStart = pos;
+                    while (pos < useRule.Length && char.IsLetter(useRule[pos]))
+                        pos++;
+                    if (useRule.Substring(targetStart, pos - targetStart).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                        auraTarget = "target";
+                }
+
+                while (pos < useRule.Length && useRule[pos] == ' ')
+                    pos++;
+
+                if (pos < useRule.Length && (useRule[pos] == '&' || useRule[pos] == '|' || useRule[pos] == '+'))
+                {
+                    multiAuraOp = useRule[pos] switch
+                    {
+                        '|' => 1,
+                        '+' => 2,
+                        _ => 0
+                    };
+                    pos++;
+                }
+
+                if (!string.IsNullOrEmpty(auraName))
+                {
+                    multiAuraChecks.Add(new AuraCheck
+                    {
+                        AuraName = auraName,
+                        StackCount = auraValue,
+                        Greater = isGreater,
+                        AuraTarget = auraTarget
+                    });
+                }
                 continue;
             }
 
@@ -192,6 +277,17 @@ public class AdvancedSkillProvider : ISkillProvider
             }
 
             pos++;
+        }
+
+        if (multiAuraChecks.Count > 0)
+        {
+            MultiAuraOperator op = multiAuraOp switch
+            {
+                1 => MultiAuraOperator.Or,
+                2 => MultiAuraOperator.Sum,
+                _ => MultiAuraOperator.And
+            };
+            rules.Add(new UseRule(SkillRule.Aura, shouldSkip, multiAuraChecks, op));
         }
 
         return rules.Count == 0 ? new[] { new UseRule(SkillRule.None) } : rules.ToArray();

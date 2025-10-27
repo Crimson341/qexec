@@ -37,8 +37,19 @@ public class SkillItemViewModel : ObservableObject
             AuraUseValue = useRules.AuraUseValue,
             AuraTargetIndex = useRules.AuraTargetIndex,
             AuraName = useRules.AuraName,
-            SkipUseBool = useRules.SkipUseBool
+            SkipUseBool = useRules.SkipUseBool,
+            MultiAuraOperatorIndex = useRules.MultiAuraOperatorIndex
         };
+        foreach (var check in useRules.MultiAuraChecks)
+        {
+            _useRules.MultiAuraChecks.Add(new()
+            {
+                AuraName = check.AuraName,
+                StackCount = check.StackCount,
+                IsGreater = check.IsGreater,
+                AuraTargetIndex = check.AuraTargetIndex
+            });
+        }
         _displayString = ToString();
     }
 
@@ -49,6 +60,8 @@ public class SkillItemViewModel : ObservableObject
         bool useRule = false, healthGreater = false, manaGreater = false, auraGreater = false, skip = false;
         int waitVal = 0, healthVal = 0, manaVal = 0, auraVal = 0, auraTargetIndex = 0;
         string auraName = string.Empty;
+        List<AuraCheckViewModel> multiAuraChecks = new();
+        int multiAuraOp = 0;
 
         if (string.IsNullOrEmpty(rest))
         {
@@ -90,6 +103,95 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 if (pos > numStart)
                     healthVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
+            }
+            else if (pos + 1 < rest.Length && rest[pos] == 'M' && rest[pos + 1] == 'A')
+            {
+                useRule = true;
+                pos += 2;
+                if (pos < rest.Length && rest[pos] == '>')
+                {
+                    auraGreater = true;
+                    pos++;
+                }
+                else if (pos < rest.Length && rest[pos] == '<')
+                {
+                    pos++;
+                }
+
+                string mauraName = "";
+                int mauraVal = 0;
+                bool mauraGreater = auraGreater;
+                int mauraTargetIndex = 0;
+
+                if (pos < rest.Length && rest[pos] == '"')
+                {
+                    pos++;
+                    int nameStart = pos;
+                    while (pos < rest.Length && rest[pos] != '"')
+                    {
+                        if (rest[pos] == '\\' && pos + 1 < rest.Length && rest[pos + 1] == '"')
+                            pos += 2;
+                        else
+                            pos++;
+                    }
+                    string rawName = rest.Substring(nameStart, pos - nameStart);
+                    mauraName = rawName.Replace("\\\"" , "\"").Trim();
+                    if (pos < rest.Length && rest[pos] == '"')
+                        pos++;
+                }
+
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
+
+                int valueStart = pos;
+                while (pos < rest.Length && char.IsDigit(rest[pos]))
+                    pos++;
+                if (valueStart < pos)
+                    mauraVal = int.Parse(rest.Substring(valueStart, pos - valueStart));
+
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
+
+                if (pos < rest.Length && char.IsLetter(rest[pos]))
+                {
+                    int targetEnd = pos;
+                    while (targetEnd < rest.Length && char.IsLetter(rest[targetEnd]))
+                        targetEnd++;
+                    if (rest.Substring(pos, targetEnd - pos).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                        mauraTargetIndex = 1;
+                    pos = targetEnd;
+                }
+
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
+
+                if (pos < rest.Length && (rest[pos] == '&' || rest[pos] == '|' || rest[pos] == '+'))
+                {
+                    if (multiAuraChecks.Count == 0)
+                    {
+                        multiAuraOp = rest[pos] switch
+                        {
+                            '|' => 1,
+                            '+' => 2,
+                            _ => 0
+                        };
+                    }
+                    pos++;
+                }
+
+                if (!string.IsNullOrEmpty(mauraName))
+                {
+                    multiAuraChecks.Add(new()
+                    {
+                        AuraName = mauraName,
+                        StackCount = mauraVal,
+                        IsGreater = mauraGreater,
+                        AuraTargetIndex = mauraTargetIndex
+                    });
+                }
+
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
             }
@@ -230,11 +332,16 @@ public class SkillItemViewModel : ObservableObject
             ManaGreaterThanBool = manaGreater,
             ManaUseValue = manaVal,
             AuraGreaterThanBool = auraGreater,
-            AuraUseValue = auraVal,
+            AuraUseValue = multiAuraChecks.Count > 0 ? 0 : auraVal,
             AuraTargetIndex = auraTargetIndex,
-            AuraName = auraName,
-            SkipUseBool = skip
+            AuraName = multiAuraChecks.Count > 0 ? string.Empty : auraName,
+            SkipUseBool = skip,
+            MultiAuraOperatorIndex = multiAuraOp
         };
+        foreach (var check in multiAuraChecks)
+        {
+            _useRules.MultiAuraChecks.Add(check);
+        }
         _displayString = ToString();
     }
 
@@ -287,7 +394,23 @@ public class SkillItemViewModel : ObservableObject
             bob.Append("%]");
         }
 
-        if (UseRules.AuraUseValue != 0 || !string.IsNullOrEmpty(UseRules.AuraName))
+        if (UseRules.MultiAuraChecks.Count > 0)
+        {
+            string opStr = UseRules.MultiAuraOperatorIndex switch
+            {
+                1 => "OR",
+                2 => "SUM",
+                _ => "AND"
+            };
+            bob.Append($" - [Multi-Aura ({opStr})");
+            foreach (var check in UseRules.MultiAuraChecks)
+            {
+                string target = check.AuraTargetIndex == 1 ? "Tgt" : "Self";
+                bob.Append($" '{check.AuraName}'{(check.IsGreater ? ">" : "<")}{check.StackCount}");
+            }
+            bob.Append(']');
+        }
+        else if (UseRules.AuraUseValue != 0 || !string.IsNullOrEmpty(UseRules.AuraName))
         {
             string target = UseRules.AuraTargetIndex == 1 ? "Target" : "Self";
             bob.Append($" - [Aura ({target})");
@@ -316,7 +439,22 @@ public class SkillItemViewModel : ObservableObject
             bob.Append($" H{(UseRules.HealthGreaterThanBool ? ">" : "<")}{UseRules.HealthUseValue}");
         if (UseRules.ManaUseValue != 0)
             bob.Append($" M{(UseRules.ManaGreaterThanBool ? ">" : "<")}{UseRules.ManaUseValue}");
-        if (!string.IsNullOrEmpty(UseRules.AuraName))
+        
+        if (UseRules.MultiAuraChecks.Count > 0)
+        {
+            string opChar = UseRules.MultiAuraOperatorIndex switch
+            {
+                1 => "|",
+                2 => "+",
+                _ => "&"
+            };
+            foreach (var check in UseRules.MultiAuraChecks)
+            {
+                string target = check.AuraTargetIndex == 1 ? " TARGET" : string.Empty;
+                bob.Append($" MA{(check.IsGreater ? ">" : "<")}\"{check.AuraName}\" {check.StackCount}{target}{opChar}");
+            }
+        }
+        else if (!string.IsNullOrEmpty(UseRules.AuraName))
         {
             string target = UseRules.AuraTargetIndex == 1 ? " TARGET" : string.Empty;
             bob.Append($" A{(UseRules.AuraGreaterThanBool ? ">" : "<")}\"{UseRules.AuraName}\" {UseRules.AuraUseValue}{target}");

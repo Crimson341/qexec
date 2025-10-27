@@ -102,6 +102,8 @@ public static class AdvancedSkillsParser
         bool skipOnMatch = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
         
         int pos = 0;
+        var singleAuraRules = new List<SkillRuleJson>();
+        var multiAuraRules = new List<SkillRuleJson>();
         while (pos < rulesPart.Length)
         {
             if (char.ToUpper(rulesPart[pos]) == 'W' && pos + 1 < rulesPart.Length && char.ToUpper(rulesPart[pos + 1]) == 'W')
@@ -290,7 +292,7 @@ public static class AdvancedSkillsParser
 
                 if (!string.IsNullOrEmpty(auraName))
                 {
-                    rules.Add(new SkillRuleJson
+                    singleAuraRules.Add(new SkillRuleJson
                     {
                         Type = "Aura",
                         AuraName = auraName,
@@ -298,6 +300,93 @@ public static class AdvancedSkillsParser
                         Value = auraValue,
                         Comparison = comparison,
                         SkipOnMatch = skipOnMatch
+                    });
+                }
+
+                while (pos < rulesPart.Length && rulesPart[pos] == ' ')
+                    pos++;
+            }
+            else if (pos + 1 < rulesPart.Length && char.ToUpper(rulesPart[pos]) == 'M' && char.ToUpper(rulesPart[pos + 1]) == 'A')
+            {
+                pos += 2;
+                string comparison = "less";
+                if (pos < rulesPart.Length && rulesPart[pos] == '>')
+                {
+                    comparison = "greater";
+                    pos++;
+                }
+                else if (pos < rulesPart.Length && rulesPart[pos] == '<')
+                {
+                    pos++;
+                }
+
+                string auraName = "";
+                int auraValue = 0;
+
+                if (pos < rulesPart.Length && rulesPart[pos] == '"')
+                {
+                    pos++;
+                    int nameStart = pos;
+                    while (pos < rulesPart.Length && rulesPart[pos] != '"')
+                    {
+                        if (rulesPart[pos] == '\\' && pos + 1 < rulesPart.Length && rulesPart[pos + 1] == '"')
+                            pos += 2;
+                        else
+                            pos++;
+                    }
+                    string rawName = rulesPart.Substring(nameStart, pos - nameStart);
+                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    if (pos < rulesPart.Length && rulesPart[pos] == '"')
+                        pos++;
+                }
+
+                while (pos < rulesPart.Length && rulesPart[pos] == ' ')
+                    pos++;
+
+                int valueStart = pos;
+                while (pos < rulesPart.Length && char.IsDigit(rulesPart[pos]))
+                    pos++;
+                if (valueStart < pos)
+                    auraValue = int.Parse(rulesPart.Substring(valueStart, pos - valueStart));
+
+                while (pos < rulesPart.Length && rulesPart[pos] == ' ')
+                    pos++;
+
+                string auraTarget = "self";
+                if (pos < rulesPart.Length && char.IsLetter(rulesPart[pos]))
+                {
+                    int targetStart = pos;
+                    while (pos < rulesPart.Length && char.IsLetter(rulesPart[pos]))
+                        pos++;
+
+                    string targetStr = rulesPart.Substring(targetStart, pos - targetStart);
+                    if (targetStr.Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                        auraTarget = "target";
+                }
+
+                int operatorIndex = 0;
+                if (pos < rulesPart.Length && (rulesPart[pos] == '&' || rulesPart[pos] == '|' || rulesPart[pos] == '+'))
+                {
+                    operatorIndex = rulesPart[pos] switch
+                    {
+                        '|' => 1,
+                        '+' => 2,
+                        _ => 0
+                    };
+                    pos++;
+                }
+
+                if (!string.IsNullOrEmpty(auraName))
+                {
+                    multiAuraRules.Add(new SkillRuleJson
+                    {
+                        Type = "MultiAura",
+                        AuraName = auraName,
+                        AuraTarget = auraTarget,
+                        Value = auraValue,
+                        Comparison = comparison,
+                        SkipOnMatch = skipOnMatch,
+                        Timeout = operatorIndex
                     });
                 }
 
@@ -321,6 +410,9 @@ public static class AdvancedSkillsParser
                 pos++;
             }
         }
+
+        rules.AddRange(singleAuraRules);
+        rules.AddRange(multiAuraRules);
 
         if (rules.Count == 0)
         {

@@ -6,12 +6,13 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     xmlns:wpf="clr-namespace:Skua.WPF"
     Title="{Binding Title}"
-    Width="400"
-    FixedSize="True"
+    Width="Auto"
+    MaxWidth="1200"
+    FixedSize="False"
     SizeToContent="WidthAndHeight"
     Style="{StaticResource CustomWindow}"
     Topmost="True"
     WindowStartupLocation="CenterScreen"
     mc:Ignorable="d">
-    <ContentPresenter Content="{Binding}" />
+    <ContentPresenter Content="{Binding}" Margin="5" />
 </wpf:CustomWindow>

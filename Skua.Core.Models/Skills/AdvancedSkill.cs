@@ -10,8 +10,8 @@ public class AdvancedSkill
         ClassName = className;
         Skills = skills;
         SkillTimeout = skillTimeout;
-        ClassUseMode = (ClassUseMode)Enum.Parse(typeof(ClassUseMode), classUseMode);
-        SkillUseMode = (SkillUseMode)Enum.Parse(typeof(SkillUseMode), skillUseMode);
+        ClassUseMode = (ClassUseMode)Enum.Parse(typeof(ClassUseMode), classUseMode, ignoreCase: true);
+        SkillUseMode = (SkillUseMode)Enum.Parse(typeof(SkillUseMode), skillUseMode, ignoreCase: true);
     }
 
     public AdvancedSkill(string className, string skills, int skillTimeout = -1, int classUseMode = 0, SkillUseMode skillUseMode = SkillUseMode.UseIfAvailable)
@@ -37,7 +37,7 @@ public class AdvancedSkill
         ClassName = className;
         Skills = skills;
         SkillTimeout = skillTimeout;
-        ClassUseMode = (ClassUseMode)Enum.Parse(typeof(ClassUseMode), classUseMode);
+        ClassUseMode = (ClassUseMode)Enum.Parse(typeof(ClassUseMode), classUseMode, ignoreCase: true);
         SkillUseMode = skillUseMode;
     }
 

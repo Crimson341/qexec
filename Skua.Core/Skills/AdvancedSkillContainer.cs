@@ -194,7 +194,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             var skillStr = skill.SkillId.ToString();
             if (skill.Rules?.Count > 0)
             {
-                skillStr += ConvertRulesToString(skill.Rules);
+                skillStr += " " + ConvertRulesToString(skill.Rules);
             }
             parts.Add(skillStr);
         }
@@ -204,7 +204,11 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     private string ConvertRulesToString(List<SkillRuleJson> rules)
     {
         var ruleParts = new List<string>();
-        foreach (var rule in rules)
+        var multiAuraRules = rules.Where(r => r.Type == "MultiAura").ToList();
+        var singleAuraRules = rules.Where(r => r.Type == "Aura").ToList();
+        var otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura").ToList();
+
+        foreach (var rule in otherRules)
         {
             switch (rule.Type)
             {
@@ -214,9 +218,6 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 case "Mana":
                     ruleParts.Add($"M{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}");
                     break;
-                case "Aura":
-                    ruleParts.Add($"A{(rule.Comparison == "greater" ? ">" : "<")}\" {rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}");
-                    break;
                 case "Wait":
                     ruleParts.Add($"WW{rule.Timeout}");
                     break;
@@ -225,6 +226,36 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                     break;
             }
         }
+
+        if (singleAuraRules.Count > 1)
+        {
+            foreach (var rule in singleAuraRules)
+            {
+                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}&");
+            }
+        }
+        else if (singleAuraRules.Count == 1)
+        {
+            var rule = singleAuraRules[0];
+            ruleParts.Add($"A{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}");
+        }
+
+        if (multiAuraRules.Count > 0)
+        {
+            int operatorIndex = multiAuraRules.First().Timeout ?? 0;
+            string opChar = operatorIndex switch
+            {
+                1 => "|",
+                2 => "+",
+                _ => "&"
+            };
+            
+            foreach (var rule in multiAuraRules)
+            {
+                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{opChar}");
+            }
+        }
+
         return string.Join(" ", ruleParts);
     }
 

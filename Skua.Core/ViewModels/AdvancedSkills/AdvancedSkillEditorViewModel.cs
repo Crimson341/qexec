@@ -15,11 +15,11 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
         ClassUseModes = new[]
         {
             "Base",
-            "Attack",
-            "Defense",
+            "Atk",
+            "Def",
             "Farm",
             "Solo",
-            "Support"
+            "Supp"
         };
         UseRules = new();
         ClearSkillsCommand = new RelayCommand(CurrentSkillsList.Clear);
