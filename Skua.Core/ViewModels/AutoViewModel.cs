@@ -34,11 +34,15 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
     [ObservableProperty]
     private string? _selectedClassModeString;
 
-    partial void OnSelectedClassModeStringChanged(string? value)
+    async partial void OnSelectedClassStringChanged(string? value)
     {
-        LoadSelectedClassMode();
+        await EquipSelectedClassAsync();
     }
 
+    async partial void OnSelectedClassModeStringChanged(string? value)
+    {
+        await LoadSelectedClassMode();
+    }
 
     public IScriptAuto Auto { get; }
     public List<string>? PlayerClasses => _inventory.Items?.Where(i => i.Category == ItemCategory.Class).Select(i => i.Name).ToList();
@@ -46,27 +50,28 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
     [ObservableProperty]
     private List<string> _currentClassModeStrings = new();
 
-    private string? _selectedClass;
+    [ObservableProperty]
+    private string? _selectedClassString;
 
     public string? SelectedClass
     {
-        get { return _selectedClass; }
+        get { return _selectedClassString; }
         set
         {
-            if (SetProperty(ref _selectedClass, value) && value is not null)
+            if (SetProperty(ref _selectedClassString, value) && value is not null)
             {
                 CurrentClassModes = new();
                 CurrentClassModeStrings = new List<string>();
-                CurrentClassModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedClass).Select(s => s.ClassUseMode));
-                
+                CurrentClassModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedClassString).Select(s => s.ClassUseMode));
+
                 var classModes = _advancedSkills.GetAvailableClassModes();
-                if (classModes.TryGetValue(_selectedClass, out var modes))
+                if (classModes.TryGetValue(_selectedClassString, out var modes))
                 {
                     CurrentClassModeStrings = new List<string>(modes.OrderBy(x => x));
                 }
-                
+
                 OnPropertyChanged(nameof(CurrentClassModes));
-                
+
                 if (CurrentClassModes.Any())
                 {
                     SelectedClassMode = CurrentClassModes.First();
@@ -76,8 +81,21 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
                     SelectedClassModeString = CurrentClassModeStrings.First();
                 }
                 
-                _inventory.EquipItem(value);
+                OnSelectedClassStringChanged(_selectedClassString);
             }
+        }
+    }
+    private async Task EquipSelectedClassAsync()
+    {
+        try
+        {
+            await Task.Run(() => _inventory.EquipItem(_selectedClassString)).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch
+        {
         }
     }
 
@@ -96,12 +114,12 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         SelectedClassModeString = null;
     }
 
-    private void LoadSelectedClassMode()
+    private async Task LoadSelectedClassMode()
     {
         if (string.IsNullOrEmpty(SelectedClassModeString))
             return;
 
-        var skill = _advancedSkills.GetClassModeSkills(SelectedClass, SelectedClassModeString);
+        var skill = _advancedSkills.GetClassModeSkills(_selectedClassString, SelectedClassModeString);
         if (skill != null)
         {
             SelectedClassMode = skill.ClassUseMode;
@@ -115,10 +133,10 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         _autoCts?.Dispose();
         _autoCts = new CancellationTokenSource();
 
-        if (_selectedClass is not null && _selectedClassMode is not null)
+        if (_selectedClassString is not null && _selectedClassMode is not null)
         {
             await Task.Factory.StartNew(
-                () => Auto.StartAutoHunt(_selectedClass, (ClassUseMode)_selectedClassMode),
+                () => Auto.StartAutoHunt(_selectedClassString, (ClassUseMode)_selectedClassMode),
                 _autoCts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
@@ -139,10 +157,10 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         _autoCts?.Dispose();
         _autoCts = new CancellationTokenSource();
 
-        if (_selectedClass is not null && _selectedClassMode is not null)
+        if (_selectedClassString is not null && _selectedClassMode is not null)
         {
             await Task.Factory.StartNew(
-                () => Auto.StartAutoAttack(_selectedClass, (ClassUseMode)_selectedClassMode),
+                () => Auto.StartAutoAttack(_selectedClassString, (ClassUseMode)_selectedClassMode),
                 _autoCts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
