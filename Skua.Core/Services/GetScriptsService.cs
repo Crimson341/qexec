@@ -5,6 +5,7 @@ using Skua.Core.Models;
 using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
 using static Skua.Core.Utils.ValidatedHttpExtensions;
+using System.Text;
 
 namespace Skua.Core.Services;
 
@@ -13,6 +14,9 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
     private readonly IDialogService _dialogService;
     private const string _rawScriptsJsonUrl = "auqw/Scripts/refs/heads/Skua/scripts.json";
     private const string _skillsSetsRawUrl = "auqw/Scripts/refs/heads/Skua/Skills/AdvancedSkills.txt";
+    private const string _repoOwner = "auqw";
+    private const string _repoName = "Scripts";
+    private const string _repoBranch = "Skua";
 
     [ObservableProperty]
     private RangedObservableCollection<ScriptInfo> _scripts = new();
@@ -171,6 +175,150 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         catch
         {
             return false;
+        }
+    }
+
+    private async Task<string?> GetLastCommitShaAsync(CancellationToken token)
+    {
+        try
+        {
+            string url = $"https://api.github.com/repos/{_repoOwner}/{_repoName}/commits/{_repoBranch}";
+            using var response = await HttpClients.MakeGitHubApiRequestAsync(url);
+            string content = await response.Content.ReadAsStringAsync(token);
+            var commit = JsonConvert.DeserializeObject<GitHubCommit>(content);
+            return commit?.Sha;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private async Task<HashSet<string>> GetChangedFilesAsync(string oldSha, string newSha, CancellationToken token)
+    {
+        try
+        {
+            string url = $"https://api.github.com/repos/{_repoOwner}/{_repoName}/compare/{oldSha}...{newSha}";
+            using var response = await HttpClients.MakeGitHubApiRequestAsync(url);
+            string content = await response.Content.ReadAsStringAsync(token);
+            var compare = JsonConvert.DeserializeObject<GitHubCompare>(content);
+            
+            if (compare?.Files == null)
+                return new HashSet<string>();
+
+            return compare.Files
+                .Where(f => f.Status != "removed")
+                .Select(f => f.FileName)
+                .ToHashSet();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowMessageBox($"Error getting changed files: {ex.Message}", "Debug Info");
+            return new HashSet<string>();
+        }
+    }
+
+    private string? GetStoredCommitSha()
+    {
+        try
+        {
+            if (File.Exists(ClientFileSources.SkuaScriptsCommitFile))
+                return File.ReadAllText(ClientFileSources.SkuaScriptsCommitFile).Trim();
+        }
+        catch { }
+        return null;
+    }
+
+    private async Task StoreCommitShaAsync(string sha)
+    {
+        try
+        {
+            await File.WriteAllTextAsync(ClientFileSources.SkuaScriptsCommitFile, sha);
+        }
+        catch { }
+    }
+
+    public IEnumerable<ScriptInfo> GetOutdatedScripts()
+    {
+        return _scripts.Where(s => s.Outdated).ToList();
+    }
+
+    public async Task<int> IncrementalUpdateScriptsAsync(IProgress<string>? progress, CancellationToken token)
+    {
+        try
+        {
+            progress?.Report("Checking for updates...");
+            
+            string? currentSha = await GetLastCommitShaAsync(token);
+            if (string.IsNullOrEmpty(currentSha))
+            {
+                progress?.Report("Failed to get latest commit. Performing full refresh...");
+                await RefreshScriptsAsync(progress, token);
+                return 0;
+            }
+
+            string? storedSha = GetStoredCommitSha();
+            if (string.IsNullOrEmpty(storedSha))
+            {
+                progress?.Report("First time setup. Downloading all scripts...");
+                await RefreshScriptsAsync(progress, token);
+                await StoreCommitShaAsync(currentSha);
+                return _scripts.Count;
+            }
+
+            if (storedSha == currentSha)
+            {
+                progress?.Report("Scripts are up to date.");
+                return 0;
+            }
+
+            progress?.Report("Fetching changed files...");
+            var changedFiles = await GetChangedFilesAsync(storedSha, currentSha, token);
+            
+            if (changedFiles.Count == 0)
+            {
+                progress?.Report("No script changes detected.");
+                await StoreCommitShaAsync(currentSha);
+                return 0;
+            }
+
+            progress?.Report($"Found {changedFiles.Count} changed files. Updating...");
+            
+            List<ScriptInfo> scripts = await GetScriptsInfo(true, token);
+            var scriptsToUpdate = scripts.Where(s => changedFiles.Contains(s.FilePath)).ToList();
+            
+            int updated = 0;
+            foreach (var script in scriptsToUpdate)
+            {
+                if (token.IsCancellationRequested)
+                    break;
+                    
+                try
+                {
+                    await ManagerDownloadScriptAsync(script);
+                    updated++;
+                    progress?.Report($"Updated {updated}/{scriptsToUpdate.Count}: {script.Name}");
+                }
+                catch (Exception ex)
+                {
+                    progress?.Report($"Failed to update {script.Name}: {ex.Message}");
+                }
+            }
+
+            await StoreCommitShaAsync(currentSha);
+            progress?.Report($"Update complete. {updated} scripts updated.");
+            return updated;
+        }
+        catch (TaskCanceledException)
+        {
+            progress?.Report("Update cancelled.");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowMessageBox($"Error during incremental update: {ex.Message}\r\nFalling back to full refresh.", "Update Error");
+            await RefreshScriptsAsync(progress, token);
+            return 0;
         }
     }
 }

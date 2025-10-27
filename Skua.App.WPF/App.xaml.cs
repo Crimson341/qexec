@@ -91,7 +91,8 @@ public sealed partial class App : Application
         {
             Task.Factory.StartNew(async () =>
             {
-                await getScripts.GetScriptsAsync(null, default);
+                int updatedCount = await getScripts.IncrementalUpdateScriptsAsync(null, default);
+                
                 if ((getScripts.Missing > 0 || getScripts.Outdated > 0)
                     && (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateBotScripts") || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your scripts?", "Script Update", true) == true))
                 {

@@ -152,6 +152,9 @@ public partial class ClientUpdatesViewModel : BotControlViewModelBase
         if (!Directory.Exists(skuaPath))
             Directory.CreateDirectory(skuaPath);
 
+        if (File.Exists(ClientFileSources.SkuaScriptsCommitFile))
+            File.Delete(ClientFileSources.SkuaScriptsCommitFile);
+
         await UpdateScripts(token);
     }
 
@@ -161,9 +164,7 @@ public partial class ClientUpdatesViewModel : BotControlViewModelBase
         IsBusy = true;
         try
         {
-            await _scriptsService.RefreshScriptsAsync(_progress, token);
-
-            int count = await Task.Run(async () => await _scriptsService.ManagerDownloadAllWhereAsync(s => !s.Downloaded || s.Outdated));
+            int count = await _scriptsService.IncrementalUpdateScriptsAsync(_progress, token);
             ProgressStatus = $"Downloaded {count} scripts.";
         }
         catch (OperationCanceledException)

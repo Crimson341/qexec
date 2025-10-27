@@ -16,6 +16,8 @@ public interface IGetScriptsService : INotifyPropertyChanged
 
     public Task RefreshScriptsAsync(IProgress<string>? progress, CancellationToken token);
 
+    public Task<int> IncrementalUpdateScriptsAsync(IProgress<string>? progress, CancellationToken token);
+
     public Task<long> CheckAdvanceSkillSetsUpdates();
 
     public Task DownloadScriptAsync(ScriptInfo info);

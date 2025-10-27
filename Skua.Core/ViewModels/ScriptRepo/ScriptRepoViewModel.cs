@@ -64,7 +64,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
             await Task.Run(async () =>
             {
                 Progress<string> progress = new(ProgressHandler);
-                await _getScriptsService.RefreshScriptsAsync(progress, token);
+                await _getScriptsService.IncrementalUpdateScriptsAsync(progress, token);
             }, token);
         }
         catch { }
