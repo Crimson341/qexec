@@ -34,7 +34,7 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
     private readonly IDialogService _dialogService;
 
     [ObservableProperty]
-    private int _currentSkillTimeout = 250;
+    private int _currentSkillTimeout = 100;
 
     [ObservableProperty]
     private bool _useWaitModeBool;

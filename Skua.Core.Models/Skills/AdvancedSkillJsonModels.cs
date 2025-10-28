@@ -56,7 +56,7 @@ public class SkillModeJson
     public string SkillUseMode { get; set; } = "UseIfAvailable";
 
     [JsonPropertyName("skillTimeout")]
-    public int SkillTimeout { get; set; } = 250;
+    public int SkillTimeout { get; set; } = 100;
 
     [JsonPropertyName("skills")]
     public List<AdvancedSkillJson> Skills { get; set; } = new();

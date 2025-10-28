@@ -47,7 +47,7 @@ public static class AdvancedSkillsParser
         string className = parts[1].Trim();
         string skillsStr = parts[2].Trim();
 
-        int skillTimeout = 250;
+        int skillTimeout = 100;
         string skillUseMode = "UseIfAvailable";
 
         if (parts.Length == 4)
