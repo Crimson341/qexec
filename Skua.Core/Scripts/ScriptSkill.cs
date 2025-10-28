@@ -10,7 +10,7 @@ namespace Skua.Core.Scripts;
 
 public partial class ScriptSkill : IScriptSkill
 {
-    private const string genericSkills = "1 | 2 | 3 | 4";
+    private const string genericSkills = "0 | 1 | 2 | 3 | 4";
     private readonly Lazy<IFlashUtil> _lazyFlash;
     private readonly Lazy<IScriptPlayer> _lazyPlayer;
     private readonly Lazy<IScriptSelfAuras> _lazySelf;

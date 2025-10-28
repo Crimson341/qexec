@@ -42,7 +42,7 @@ public class AdvancedSkill
     }
 
     public string ClassName { get; set; } = "Generic";
-    public string Skills { get; set; } = "1 | 2 | 3 | 4";
+    public string Skills { get; set; } = "0 | 1 | 2 | 3 | 4";
     public int SkillTimeout { get; set; } = 250;
     public ClassUseMode ClassUseMode { get; set; } = ClassUseMode.Base;
     public SkillUseMode SkillUseMode { get; set; } = SkillUseMode.UseIfAvailable;
