@@ -143,6 +143,11 @@ public static class HttpClients
         {
             client.BaseAddress = new Uri("https://raw.githubusercontent.com/");
             client.Timeout = timeout;
+            client.DefaultRequestHeaders.CacheControl = new System.Net.Http.Headers.CacheControlHeaderValue
+            {
+                NoCache = true,
+                NoStore = true
+            };
         }
         else
         {

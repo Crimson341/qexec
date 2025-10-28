@@ -133,23 +133,6 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         });
     }
 
-    public long GetSkillsSetsTextFileSize()
-    {
-        string rootSkillsSetsFile = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.json");
-        if (!File.Exists(ClientFileSources.SkuaAdvancedSkillsFile))
-        {
-            if (File.Exists(rootSkillsSetsFile))
-                File.Copy(rootSkillsSetsFile, ClientFileSources.SkuaAdvancedSkillsFile, true);
-            else
-                return -1;
-        }
-
-        FileInfo file = new(ClientFileSources.SkuaAdvancedSkillsFile);
-        if (file.Exists)
-            return file.Length;
-
-        return -1;
-    }
 
     public async Task<long> CheckAdvanceSkillSetsUpdates()
     {

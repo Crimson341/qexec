@@ -30,7 +30,5 @@ public interface IGetScriptsService : INotifyPropertyChanged
 
     public Task DeleteScriptAsync(ScriptInfo info);
 
-    public long GetSkillsSetsTextFileSize();
-
     public Task<bool> UpdateSkillSetsFile();
 }

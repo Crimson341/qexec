@@ -102,27 +102,29 @@ public sealed partial class App : Application
             });
         }
 
-        if (Services.GetRequiredService<ISettingsService>().Get<bool>("CheckAdvanceSkillSetsUpdates", true))
+        if (Services.GetRequiredService<ISettingsService>().Get<bool>("CheckAdvanceSkillSetsUpdates"))
         {
-            long skillsFileSize = getScripts.GetSkillsSetsTextFileSize();
             IAdvancedSkillContainer advanceSkillSets = Services.GetRequiredService<IAdvancedSkillContainer>();
             Task.Factory.StartNew(async () =>
             {
-                if ((skillsFileSize < await getScripts.CheckAdvanceSkillSetsUpdates())
-                    && (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateAdvanceSkillSetsUpdates", true) || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your AdvanceSkill Sets?", "AdvanceSkill Sets Update", true) == true))
+                long remoteSize = await getScripts.CheckAdvanceSkillSetsUpdates();
+                if (remoteSize > 0)
                 {
-                    if (await getScripts.UpdateSkillSetsFile())
+                    if (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateAdvanceSkillSetsUpdates") || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your AdvanceSkill Sets?", "AdvanceSkill Sets Update", true) == true)
                     {
-                        if (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateAdvanceSkillSetsUpdates", true))
-                            Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets has been updated.\r\nYou can disable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
-                        else
-                            Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets has been updated.\r\nYou can enable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
+                        if (await getScripts.UpdateSkillSetsFile())
+                        {
+                            if (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateAdvanceSkillSetsUpdates"))
+                                Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets has been updated.\r\nYou can disable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
+                            else
+                                Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets has been updated.\r\nYou can enable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
 
-                        advanceSkillSets.SyncSkills();
-                    }
-                    else
-                    {
-                        Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets update error.\r\nYou can disable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
+                            advanceSkillSets.SyncSkills();
+                        }
+                        else
+                        {
+                            Services.GetRequiredService<IDialogService>().ShowMessageBox($"AdvanceSkill Sets update error.\r\nYou can disable auto AdvanceSkill Sets updates in Options > Application.", "AdvanceSkill Sets Update");
+                        }
                     }
                 }
             });
