@@ -94,15 +94,6 @@ public static class AdvancedSkillsParser
 
                 bool hasMultiAura = rules?.Any(r => r.Type == "MultiAura") ?? false;
                 skill.MultiAura = hasMultiAura;
-
-                if (hasMultiAura && !string.IsNullOrEmpty(multiAuraOperator))
-                {
-                    skill.MultiAuraOperator = multiAuraOperator;
-                }
-                else
-                {
-                    skill.MultiAuraOperator = null;
-                }
             }
 
             skills.Add(skill);
@@ -395,14 +386,17 @@ public static class AdvancedSkillsParser
 
                 if (!string.IsNullOrEmpty(auraName))
                 {
-                    multiAuraRules.Add(new SkillRuleJson
+                    var rule = new SkillRuleJson
                     {
                         Type = "MultiAura",
                         AuraName = auraName,
                         AuraTarget = auraTarget,
                         Value = auraValue,
                         Comparison = comparison
-                    });
+                    };
+                    if (multiAuraRules.Count == 0)
+                        rule.MultiAuraOperator = multiAuraOperator;
+                    multiAuraRules.Add(rule);
                 }
 
                 while (pos < rulesPart.Length && rulesPart[pos] == ' ')
