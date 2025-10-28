@@ -53,7 +53,7 @@ public static class AdvancedSkillsParser
         if (parts.Length == 4)
         {
             string lastPart = parts[3].Trim();
-            
+
             if (lastPart.Equals("Use if Available", StringComparison.OrdinalIgnoreCase))
             {
                 skillUseMode = "UseIfAvailable";
@@ -100,8 +100,8 @@ public static class AdvancedSkillsParser
     private static List<SkillRuleJson> ParseRules(string rulesPart)
     {
         var rules = new List<SkillRuleJson>();
-        bool hasSkip = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
-        
+        bool skipOnMatch = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
+
         int pos = 0;
         var singleAuraRules = new List<SkillRuleJson>();
         var multiAuraRules = new List<SkillRuleJson>();
@@ -225,7 +225,7 @@ public static class AdvancedSkillsParser
                             pos++;
                     }
                     string rawName = rulesPart.Substring(nameStart, pos - nameStart);
-                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rulesPart.Length && rulesPart[pos] == '"')
                         pos++;
 
@@ -341,7 +341,7 @@ public static class AdvancedSkillsParser
                             pos++;
                     }
                     string rawName = rulesPart.Substring(nameStart, pos - nameStart);
-                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rulesPart.Length && rulesPart[pos] == '"')
                         pos++;
                 }
@@ -420,7 +420,7 @@ public static class AdvancedSkillsParser
         rules.AddRange(singleAuraRules);
         rules.AddRange(multiAuraRules);
 
-        if (hasSkip)
+        if (skipOnMatch)
         {
             rules.Add(new SkillRuleJson { Type = "Skip" });
         }
