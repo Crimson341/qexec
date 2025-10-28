@@ -104,14 +104,11 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
         if (string.IsNullOrEmpty(SelectedClassName) || string.IsNullOrEmpty(SelectedMode))
             return;
 
+        SelectedSkill = null;
         var skill = _advancedSkillContainer.GetClassModeSkills(SelectedClassName, SelectedMode);
         if (skill != null)
         {
-            SelectedSkill = new AdvancedSkill(skill.ClassName, skill.Skills, skill.SkillTimeout, skill.ClassUseMode, skill.SkillUseMode);
-        }
-        else
-        {
-            SelectedSkill = null;
+            SelectedSkill = skill;
         }
     }
 
