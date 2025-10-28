@@ -104,6 +104,7 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
         if (string.IsNullOrEmpty(SelectedClassName) || string.IsNullOrEmpty(SelectedMode))
             return;
 
+        SelectedSkill = null;
         var skill = _advancedSkillContainer.GetClassModeSkills(SelectedClassName, SelectedMode);
         if (skill != null)
         {
@@ -144,8 +145,18 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     {
         if (message.PropertyName == nameof(IAdvancedSkillContainer.LoadedSkills))
         {
+            var currentSkill = recipient.SelectedSkill;
             recipient._loadedSkills = null;
             recipient.OnPropertyChanged(nameof(recipient.LoadedSkills));
+            
+            if (currentSkill != null)
+            {
+                var refreshedSkill = recipient._advancedSkillContainer.GetClassModeSkills(currentSkill.ClassName, currentSkill.ClassUseMode.ToString());
+                if (refreshedSkill != null)
+                {
+                    recipient.SelectedSkill = refreshedSkill;
+                }
+            }
         }
     }
 }
