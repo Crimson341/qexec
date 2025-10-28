@@ -134,9 +134,8 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     private void SaveSkill(SavedAdvancedSkillsViewModel recipient, SaveAdvancedSkillMessage message)
     {
         recipient._advancedSkillContainer.TryOverride(message.AdvSkill);
-        Task.Run(async () =>
+        Task.Delay(1000).ContinueWith(_ => 
         {
-            await Task.Delay(500);
             recipient._loadedSkills = null;
             recipient.OnPropertyChanged(nameof(recipient.LoadedSkills));
         });
