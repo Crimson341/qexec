@@ -54,14 +54,14 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         if (!_loadedSkills.Contains(skill))
         {
             _loadedSkills.Add(skill);
-            Broadcast(new(), _loadedSkills, nameof(LoadedSkills));
+            OnPropertyChanged(nameof(LoadedSkills));
             Save();
             return;
         }
 
         int index = _loadedSkills.IndexOf(skill);
         _loadedSkills[index] = skill;
-        Broadcast(new(), _loadedSkills, nameof(LoadedSkills));
+        OnPropertyChanged(nameof(LoadedSkills));
         Save();
     }
 
