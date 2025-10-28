@@ -399,7 +399,6 @@ public class SkillItemViewModel : ObservableObject
             string opStr = UseRules.MultiAuraOperatorIndex switch
             {
                 1 => "OR",
-                2 => "SUM",
                 _ => "AND"
             };
             bob.Append($" - [Multi-Aura ({opStr})");
@@ -444,8 +443,7 @@ public class SkillItemViewModel : ObservableObject
         {
             string opChar = UseRules.MultiAuraOperatorIndex switch
             {
-                1 => "|",
-                2 => "+",
+                1 => ";",
                 _ => "&"
             };
             foreach (var check in UseRules.MultiAuraChecks)
