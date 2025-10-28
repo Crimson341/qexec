@@ -193,17 +193,6 @@ public class AdvancedSkillCommand
     {
         if (checks == null || checks.Count == 0)
             return true;
-
-        if (op == MultiAuraOperator.Sum)
-        {
-            int totalStacks = 0;
-            foreach (var check in checks)
-            {
-                totalStacks += GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
-            }
-            var firstCheck = checks[0];
-            return firstCheck.Greater ? totalStacks >= checks[0].StackCount : totalStacks <= checks[0].StackCount;
-        }
         else if (op == MultiAuraOperator.Or)
         {
             foreach (var check in checks)
