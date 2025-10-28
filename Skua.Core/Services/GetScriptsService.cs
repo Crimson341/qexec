@@ -13,7 +13,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 {
     private readonly IDialogService _dialogService;
     private const string _rawScriptsJsonUrl = "auqw/Scripts/refs/heads/Skua/scripts.json";
-    private const string _skillsSetsRawUrl = "auqw/Scripts/refs/heads/Skua/Skills/AdvancedSkills.txt";
+    private const string _skillsSetsRawUrl = "auqw/Scripts/refs/heads/Skua/Skills/AdvancedSkills.json";
     private const string _repoOwner = "auqw";
     private const string _repoName = "Scripts";
     private const string _repoBranch = "Skua";
@@ -135,7 +135,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public long GetSkillsSetsTextFileSize()
     {
-        string rootSkillsSetsFile = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.txt");
+        string rootSkillsSetsFile = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.json");
         if (!File.Exists(ClientFileSources.SkuaAdvancedSkillsFile))
         {
             if (File.Exists(rootSkillsSetsFile))

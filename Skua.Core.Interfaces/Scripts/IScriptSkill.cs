@@ -78,7 +78,7 @@ public interface IScriptSkill
     void LoadAdvanced(string skills, int skillTimeout = -1, SkillUseMode skillMode = SkillUseMode.UseIfAvailable);
 
     /// <summary>
-    /// Loads the skills of the specified <paramref name="className"/> from AdvancedSkills.txt.
+    /// Loads the skills of the specified <paramref name="className"/> from AdvancedSkills.json.
     /// </summary>
     /// <param name="className">Name of the class to use</param>
     /// <param name="autoEquip">Whether to equip the class, useful if you want to use multiple skill sets for 1 class</param>
@@ -152,7 +152,7 @@ public interface IScriptSkill
     }
 
     /// <summary>
-    /// Loads the skills of the specified <paramref name="className"/> from AdvancedSkills.txt and starts the skill thread.
+    /// Loads the skills of the specified <paramref name="className"/> from AdvancedSkills.json and starts the skill thread.
     /// </summary>
     /// <param name="className">Name of the class to use</param>
     /// <param name="autoEquip">Whether to equip the class, useful if you want to use multiple skill sets for 1 class</param>

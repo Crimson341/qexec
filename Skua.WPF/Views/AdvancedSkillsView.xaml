@@ -11,8 +11,8 @@
     xmlns:vms="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
     xmlns:wpf="clr-namespace:Skua.WPF"
     d:DataContext="{d:DesignInstance vms:AdvancedSkillsViewModel}"
-    d:DesignHeight="900"
-    d:DesignWidth="500"
+    d:DesignHeight="650"
+    d:DesignWidth="400"
     mc:Ignorable="d">
     <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
         <StackPanel>

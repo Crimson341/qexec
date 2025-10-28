@@ -27,9 +27,9 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     public AdvancedSkillContainer()
     {
         _defaultSkillsSetsPath = ClientFileSources.SkuaAdvancedSkillsFile;
-        _userSkillsSetsPath = Path.Combine(ClientFileSources.SkuaDIR, "UserAdvancedSkills.txt");
+        _userSkillsSetsPath = Path.Combine(ClientFileSources.SkuaDIR, "UserAdvancedSkills.json");
 
-        string rootDefaultSkills = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.txt");
+        string rootDefaultSkills = Path.Combine(AppContext.BaseDirectory, "AdvancedSkills.json");
         if (File.Exists(rootDefaultSkills) && !File.Exists(_defaultSkillsSetsPath))
         {
             File.Copy(rootDefaultSkills, _defaultSkillsSetsPath, true);
@@ -96,10 +96,10 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     public void LoadSkills()
     {
         LoadedSkills.Clear();
-        
+
         string jsonPath = Path.ChangeExtension(_userSkillsSetsPath, ".json");
         _loadedFilePath = jsonPath;
-        
+
         if (File.Exists(jsonPath))
         {
             string fileContent = File.ReadAllText(jsonPath);

@@ -41,6 +41,7 @@
             Name="SkillsList"
             Grid.Row="1"
             Margin="6,3,6,6"
+            MaxHeight="325"
             HorizontalContentAlignment="Stretch"
             ItemsSource="{Binding LoadedSkills, UpdateSourceTrigger=PropertyChanged}"
             SelectedItem="{Binding SelectedSkill}"

@@ -21,16 +21,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="AdvancedSkills.txt" />
     <None Remove="Quests.txt" />
+    <None Remove="AdvancedSkills.json"/>
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="AdvancedSkills.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Quests.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="AdvancedSkills.json">
+    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Resource Include="SkuaIcon.ico" />
   </ItemGroup>

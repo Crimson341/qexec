@@ -2,7 +2,7 @@
     <Fragment>
         <DirectoryRef Id="INSTALLFOLDER">
             <Component Id="cmp1jNFW3f4TC5ZydoNMn2KRSYzrcQ" Guid="{FE683F53-EAF9-471C-B0F0-F5D71C06DFC7}">
-                <File Id="fil9lxhGDqGZ2ei4Lso0B08j89vPLk" KeyPath="yes" Source="$(var.BasePath)\AdvancedSkills.txt" />
+                <File Id="fil9lxhGDqGZ2ei4Lso0B08j89vPLk" KeyPath="yes" Source="$(var.BasePath)\AdvancedSkills.json" />
             </Component>
             <Component Id="cmpDSGGeDFo2AsbSrbqFJnkvQ2ahLM" Guid="{A1C90C9B-0481-426B-B6BA-42968961A4C0}">
                 <File Id="filTnqir8plLW_W3SdHyVySGbNLCeI" KeyPath="yes" Source="$(var.BasePath)\Quests.txt" />
