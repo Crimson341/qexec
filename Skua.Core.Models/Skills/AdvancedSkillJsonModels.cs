@@ -8,7 +8,8 @@ public class AdvancedSkillJson
     public int SkillId { get; set; }
 
     [JsonPropertyName("rules")]
-    public List<SkillRuleJson>? Rules { get; set; } = new();
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public List<SkillRuleJson>? Rules { get; set; }
 }
 
 public class SkillRuleJson
@@ -17,21 +18,27 @@ public class SkillRuleJson
     public string Type { get; set; } = "None";
 
     [JsonPropertyName("value")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Value { get; set; }
 
     [JsonPropertyName("comparison")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? Comparison { get; set; }
 
     [JsonPropertyName("auraName")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AuraName { get; set; }
 
     [JsonPropertyName("auraTarget")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AuraTarget { get; set; }
 
     [JsonPropertyName("skipOnMatch")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SkipOnMatch { get; set; }
 
     [JsonPropertyName("timeout")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Timeout { get; set; }
 }
 

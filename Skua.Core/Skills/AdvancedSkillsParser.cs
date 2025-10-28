@@ -87,7 +87,8 @@ public static class AdvancedSkillsParser
             if (trimmed.Length > 1)
             {
                 string rulesPart = trimmed[1..].Trim();
-                skill.Rules = ParseRules(rulesPart);
+                var rules = ParseRules(rulesPart);
+                skill.Rules = rules?.Count > 0 ? rules : null;
             }
 
             skills.Add(skill);
@@ -99,7 +100,7 @@ public static class AdvancedSkillsParser
     private static List<SkillRuleJson> ParseRules(string rulesPart)
     {
         var rules = new List<SkillRuleJson>();
-        bool skipOnMatch = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
+        bool hasSkip = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
         
         int pos = 0;
         var singleAuraRules = new List<SkillRuleJson>();
@@ -116,12 +117,14 @@ public static class AdvancedSkillsParser
                 if (pos > numStart)
                 {
                     int timeout = int.Parse(rulesPart.Substring(numStart, pos - numStart));
-                    rules.Add(new SkillRuleJson
+                    var waitRule = new SkillRuleJson
                     {
                         Type = "Wait",
-                        Timeout = timeout,
                         SkipOnMatch = skipOnMatch
-                    });
+                    };
+                    if (timeout > 0)
+                        waitRule.Timeout = timeout;
+                    rules.Add(waitRule);
                 }
 
                 while (pos < rulesPart.Length && rulesPart[pos] == ' ')
@@ -292,15 +295,18 @@ public static class AdvancedSkillsParser
 
                 if (!string.IsNullOrEmpty(auraName))
                 {
-                    singleAuraRules.Add(new SkillRuleJson
+                    var auraRule = new SkillRuleJson
                     {
                         Type = "Aura",
-                        AuraName = auraName,
-                        AuraTarget = auraTarget,
                         Value = auraValue,
                         Comparison = comparison,
                         SkipOnMatch = skipOnMatch
-                    });
+                    };
+                    if (!string.IsNullOrEmpty(auraName))
+                        auraRule.AuraName = auraName;
+                    if (!string.IsNullOrEmpty(auraTarget))
+                        auraRule.AuraTarget = auraTarget;
+                    singleAuraRules.Add(auraRule);
                 }
 
                 while (pos < rulesPart.Length && rulesPart[pos] == ' ')
@@ -413,6 +419,11 @@ public static class AdvancedSkillsParser
 
         rules.AddRange(singleAuraRules);
         rules.AddRange(multiAuraRules);
+
+        if (hasSkip)
+        {
+            rules.Add(new SkillRuleJson { Type = "Skip" });
+        }
 
         if (rules.Count == 0)
         {
