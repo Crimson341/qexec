@@ -51,16 +51,17 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     public void TryOverride(AdvancedSkill skill)
     {
-        if (!_loadedSkills.Contains(skill))
+        var existingIndex = _loadedSkills.FindIndex(s => s.ClassName == skill.ClassName && s.ClassUseMode == skill.ClassUseMode);
+        
+        if (existingIndex >= 0)
+        {
+            _loadedSkills[existingIndex] = skill;
+        }
+        else
         {
             _loadedSkills.Add(skill);
-            Broadcast(new(), _loadedSkills, nameof(LoadedSkills));
-            Save();
-            return;
         }
-
-        int index = _loadedSkills.IndexOf(skill);
-        _loadedSkills[index] = skill;
+        
         Broadcast(new(), _loadedSkills, nameof(LoadedSkills));
         Save();
     }

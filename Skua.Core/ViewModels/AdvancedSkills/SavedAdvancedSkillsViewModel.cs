@@ -137,8 +137,6 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     private void SaveSkill(SavedAdvancedSkillsViewModel recipient, SaveAdvancedSkillMessage message)
     {
         recipient._advancedSkillContainer.TryOverride(message.AdvSkill);
-        recipient._loadedSkills = null;
-        recipient.OnPropertyChanged(nameof(recipient.LoadedSkills));
     }
 
     private void AdvancedSkillsChanged(SavedAdvancedSkillsViewModel recipient, PropertyChangedMessage<List<AdvancedSkill>> message)
@@ -154,7 +152,7 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
                 var refreshedSkill = recipient._advancedSkillContainer.GetClassModeSkills(currentSkill.ClassName, currentSkill.ClassUseMode.ToString());
                 if (refreshedSkill != null)
                 {
-                    recipient.SelectedSkill = refreshedSkill;
+                    recipient.SelectedSkill = new AdvancedSkill(refreshedSkill.ClassName, refreshedSkill.Skills, refreshedSkill.SkillTimeout, refreshedSkill.ClassUseMode, refreshedSkill.SkillUseMode);
                 }
             }
         }
