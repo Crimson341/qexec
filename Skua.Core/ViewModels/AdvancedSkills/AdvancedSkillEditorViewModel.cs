@@ -160,6 +160,7 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
         recipient.CurrentSkillsList.Clear();
         recipient.CurrentSkillTimeout = 250;
         recipient.UseWaitModeBool = false;
+        recipient.UseRules.Clear();
         
         recipient.CurrentClassName = message.AdvSkill.ClassName;
         recipient.SelectedClassUseMode = (int)message.AdvSkill.ClassUseMode;
