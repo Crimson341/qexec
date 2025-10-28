@@ -16,7 +16,7 @@ public class AdvancedSkillJson
     public bool SkipOnMatch { get; set; }
 
     [JsonPropertyName("isMultiAura")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool MultiAura { get; set; }
 
 
