@@ -14,6 +14,15 @@ public class AdvancedSkillJson
     [JsonPropertyName("skipOnMatch")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
     public bool SkipOnMatch { get; set; }
+
+    [JsonPropertyName("isMultiAura")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool MultiAura { get; set; }
+
+
+    [JsonPropertyName("multiAuraOperator")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? MultiAuraOperator { get; set; }
 }
 
 public class SkillRuleJson
@@ -40,10 +49,6 @@ public class SkillRuleJson
     [JsonPropertyName("timeout")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Timeout { get; set; }
-
-    [JsonPropertyName("multiAuraOperator")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? MultiAuraOperator { get; set; }
 }
 
 public class SkillModeJson

@@ -28,6 +28,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
         _partyMemberHealthGreaterThanBool = rules.PartyMemberHealthGreaterThanBool;
         _partyMemberHealthUseValue = rules.PartyMemberHealthUseValue;
         _partyMemberHealthIsPercentage = rules.PartyMemberHealthIsPercentage;
+        _multiAuraBool = rules.MultiAuraBool;
         _multiAuraOperatorIndex = rules.MultiAuraOperatorIndex;
         foreach (var check in rules.MultiAuraChecks)
         {
@@ -43,6 +44,9 @@ public partial class SkillRulesViewModel : ObservableRecipient
 
     [ObservableProperty]
     private bool _useRuleBool;
+
+    [ObservableProperty]
+    private bool _multiAuraBool;
 
     [ObservableProperty]
     private bool _healthGreaterThanBool = true;
@@ -201,6 +205,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
         PartyMemberHealthGreaterThanBool = true;
         PartyMemberHealthUseValue = 0;
         PartyMemberHealthIsPercentage = true;
+        MultiAuraBool = false;
         MultiAuraChecks.Clear();
         MultiAuraOperatorIndex = 0;
     }

@@ -196,7 +196,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             var skillStr = skill.SkillId.ToString();
             if (skill.Rules?.Count > 0)
             {
-                skillStr += " " + ConvertRulesToString(skill.Rules);
+                skillStr += " " + ConvertRulesToString(skill.Rules, skill.MultiAura, skill.MultiAuraOperator);
             }
             if (skill.SkipOnMatch)
             {
@@ -207,11 +207,11 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         return string.Join(" | ", parts);
     }
 
-    private string ConvertRulesToString(List<SkillRuleJson> rules)
+    private string ConvertRulesToString(List<SkillRuleJson> rules, bool isMultiAura, string? multiAuraOperator)
     {
         var ruleParts = new List<string>();
-        var multiAuraRules = rules.Where(r => r.Type == "MultiAura").ToList();
-        var singleAuraRules = rules.Where(r => r.Type == "Aura").ToList();
+        var multiAuraRules = isMultiAura ? rules.Where(r => r.Type == "MultiAura").ToList() : new List<SkillRuleJson>();
+        var singleAuraRules = !isMultiAura ? rules.Where(r => r.Type == "Aura").ToList() : new List<SkillRuleJson>();
         var otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura" && r.Type != "Skip").ToList();
 
         foreach (var rule in otherRules)
@@ -232,7 +232,22 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             }
         }
 
-        if (singleAuraRules.Count > 1)
+        if (isMultiAura && multiAuraRules.Count > 0)
+        {
+            string opChar = multiAuraOperator switch
+            {
+                "OR" => ":",
+                _ => "&"
+            };
+
+            for (int i = 0; i < multiAuraRules.Count; i++)
+            {
+                var rule = multiAuraRules[i];
+                string suffix = i < multiAuraRules.Count - 1 ? opChar : "";
+                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{suffix}");
+            }
+        }
+        else if (singleAuraRules.Count > 1)
         {
             for (int i = 0; i < singleAuraRules.Count; i++)
             {
@@ -245,36 +260,6 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         {
             var rule = singleAuraRules[0];
             ruleParts.Add($"A{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}");
-        }
-
-        if (multiAuraRules.Count > 0)
-        {
-            string opChar = "&";
-            string? multiAuraOp = multiAuraRules.First().MultiAuraOperator;
-            if (multiAuraOp != null)
-            {
-                opChar = multiAuraOp switch
-                {
-                    "OR" => ":",
-                    _ => "&"
-                };
-            }
-            else
-            {
-                int operatorIndex = multiAuraRules.First().Timeout ?? 0;
-                opChar = operatorIndex switch
-                {
-                    1 => ":",
-                    _ => "&"
-                };
-            }
-
-            for (int i = 0; i < multiAuraRules.Count; i++)
-            {
-                var rule = multiAuraRules[i];
-                string suffix = i < multiAuraRules.Count - 1 ? opChar : "";
-                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{suffix}");
-            }
         }
 
         return string.Join(" ", ruleParts);

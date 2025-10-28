@@ -38,6 +38,7 @@ public class SkillItemViewModel : ObservableObject
             AuraTargetIndex = useRules.AuraTargetIndex,
             AuraName = useRules.AuraName,
             SkipUseBool = useRules.SkipUseBool,
+            MultiAuraBool = useRules.MultiAuraBool,
             MultiAuraOperatorIndex = useRules.MultiAuraOperatorIndex
         };
         foreach (var check in useRules.MultiAuraChecks)
@@ -57,7 +58,7 @@ public class SkillItemViewModel : ObservableObject
     {
         Skill = int.Parse(skill.AsSpan(0, 1));
         string rest = skill[1..].Trim();
-        bool useRule = false, healthGreater = false, manaGreater = false, auraGreater = false, skip = false;
+        bool useRule = false, healthGreater = false, manaGreater = false, auraGreater = false, skip = false, multiAura = false;
         int waitVal = 0, healthVal = 0, manaVal = 0, auraVal = 0, auraTargetIndex = 0;
         string auraName = string.Empty;
         List<AuraCheckViewModel> multiAuraChecks = new();
@@ -335,6 +336,7 @@ public class SkillItemViewModel : ObservableObject
             AuraTargetIndex = auraTargetIndex,
             AuraName = multiAuraChecks.Count > 0 ? string.Empty : auraName,
             SkipUseBool = skip,
+            MultiAuraBool = multiAuraChecks.Count > 0,
             MultiAuraOperatorIndex = multiAuraOp
         };
         foreach (var check in multiAuraChecks)
