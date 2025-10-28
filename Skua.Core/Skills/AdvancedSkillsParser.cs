@@ -88,17 +88,16 @@ public static class AdvancedSkillsParser
             {
                 string rulesPart = trimmed[1..].Trim();
                 bool hasSkipFlag = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
-                var rules = ParseRules(rulesPart);
+                var rules = ParseRules(rulesPart, out string multiAuraOperator);
                 skill.Rules = rules?.Count > 0 ? rules : null;
                 skill.SkipOnMatch = hasSkipFlag;
-                
+
                 bool hasMultiAura = rules?.Any(r => r.Type == "MultiAura") ?? false;
                 skill.MultiAura = hasMultiAura;
-                
-                if (hasMultiAura)
+
+                if (hasMultiAura && !string.IsNullOrEmpty(multiAuraOperator))
                 {
-                    var multiAuraRule = rules.First(r => r.Type == "MultiAura");
-                    skill.MultiAuraOperator = multiAuraRule.MultiAuraOperator ?? "AND";
+                    skill.MultiAuraOperator = multiAuraOperator;
                 }
                 else
                 {
@@ -112,9 +111,10 @@ public static class AdvancedSkillsParser
         return skills;
     }
 
-    private static List<SkillRuleJson> ParseRules(string rulesPart)
+    private static List<SkillRuleJson> ParseRules(string rulesPart, out string multiAuraOperator)
     {
         var rules = new List<SkillRuleJson>();
+        multiAuraOperator = "AND";
         bool skipOnMatch = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
 
         int pos = 0;
@@ -389,6 +389,7 @@ public static class AdvancedSkillsParser
                         ':' => "OR",
                         _ => "AND"
                     };
+                    multiAuraOperator = operatorIndex;
                     pos++;
                 }
 
@@ -400,8 +401,7 @@ public static class AdvancedSkillsParser
                         AuraName = auraName,
                         AuraTarget = auraTarget,
                         Value = auraValue,
-                        Comparison = comparison,
-                        MultiAuraOperator = operatorIndex
+                        Comparison = comparison
                     });
                 }
 
