@@ -193,7 +193,8 @@ public class AdvancedSkillCommand
     {
         if (checks == null || checks.Count == 0)
             return true;
-        else if (op == MultiAuraOperator.Or)
+
+        if (op == MultiAuraOperator.Or)
         {
             foreach (var check in checks)
             {
