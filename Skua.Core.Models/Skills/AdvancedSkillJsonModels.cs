@@ -10,6 +10,10 @@ public class AdvancedSkillJson
     [JsonPropertyName("rules")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public List<SkillRuleJson>? Rules { get; set; }
+
+    [JsonPropertyName("skipOnMatch")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
+    public bool SkipOnMatch { get; set; }
 }
 
 public class SkillRuleJson
@@ -33,13 +37,13 @@ public class SkillRuleJson
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? AuraTarget { get; set; }
 
-    [JsonPropertyName("skipOnMatch")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)]
-    public bool SkipOnMatch { get; set; }
-
     [JsonPropertyName("timeout")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Timeout { get; set; }
+
+    [JsonPropertyName("multiAuraOperator")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? MultiAuraOperator { get; set; }
 }
 
 public class SkillModeJson

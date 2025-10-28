@@ -198,6 +198,10 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             {
                 skillStr += " " + ConvertRulesToString(skill.Rules);
             }
+            if (skill.SkipOnMatch)
+            {
+                skillStr += "S";
+            }
             parts.Add(skillStr);
         }
         return string.Join(" | ", parts);
@@ -208,7 +212,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         var ruleParts = new List<string>();
         var multiAuraRules = rules.Where(r => r.Type == "MultiAura").ToList();
         var singleAuraRules = rules.Where(r => r.Type == "Aura").ToList();
-        var otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura").ToList();
+        var otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura" && r.Type != "Skip").ToList();
 
         foreach (var rule in otherRules)
         {
@@ -224,10 +228,6 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
                 case "Wait":
                     ruleParts.Add($"WW{rule.Timeout}");
-                    break;
-
-                case "Skip":
-                    ruleParts.Add("S");
                     break;
             }
         }
@@ -247,12 +247,25 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
         if (multiAuraRules.Count > 0)
         {
-            int operatorIndex = multiAuraRules.First().Timeout ?? 0;
-            string opChar = operatorIndex switch
+            string opChar = "&";
+            string? multiAuraOp = multiAuraRules.First().MultiAuraOperator;
+            if (multiAuraOp != null)
             {
-                1 => ":",
-                _ => "&"
-            };
+                opChar = multiAuraOp switch
+                {
+                    "Or" => "|",
+                    _ => "&"
+                };
+            }
+            else
+            {
+                int operatorIndex = multiAuraRules.First().Timeout ?? 0;
+                opChar = operatorIndex switch
+                {
+                    1 => "|",
+                    _ => "&"
+                };
+            }
 
             foreach (var rule in multiAuraRules)
             {

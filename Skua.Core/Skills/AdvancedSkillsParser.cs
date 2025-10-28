@@ -87,8 +87,10 @@ public static class AdvancedSkillsParser
             if (trimmed.Length > 1)
             {
                 string rulesPart = trimmed[1..].Trim();
+                bool hasSkipFlag = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
                 var rules = ParseRules(rulesPart);
                 skill.Rules = rules?.Count > 0 ? rules : null;
+                skill.SkipOnMatch = hasSkipFlag;
             }
 
             skills.Add(skill);
@@ -119,8 +121,7 @@ public static class AdvancedSkillsParser
                     int timeout = int.Parse(rulesPart.Substring(numStart, pos - numStart));
                     var waitRule = new SkillRuleJson
                     {
-                        Type = "Wait",
-                        SkipOnMatch = skipOnMatch
+                        Type = "Wait"
                     };
                     if (timeout > 0)
                         waitRule.Timeout = timeout;
@@ -155,8 +156,7 @@ public static class AdvancedSkillsParser
                     {
                         Type = "Health",
                         Value = value,
-                        Comparison = comparison,
-                        SkipOnMatch = skipOnMatch
+                        Comparison = comparison
                     });
                 }
 
@@ -188,8 +188,7 @@ public static class AdvancedSkillsParser
                     {
                         Type = "Mana",
                         Value = value,
-                        Comparison = comparison,
-                        SkipOnMatch = skipOnMatch
+                        Comparison = comparison
                     });
                 }
 
@@ -299,8 +298,7 @@ public static class AdvancedSkillsParser
                     {
                         Type = "Aura",
                         Value = auraValue,
-                        Comparison = comparison,
-                        SkipOnMatch = skipOnMatch
+                        Comparison = comparison
                     };
                     if (!string.IsNullOrEmpty(auraName))
                         auraRule.AuraName = auraName;
@@ -370,14 +368,13 @@ public static class AdvancedSkillsParser
                         auraTarget = "target";
                 }
 
-                int operatorIndex = 0;
-                if (pos < rulesPart.Length && (rulesPart[pos] == '&' || rulesPart[pos] == '|' || rulesPart[pos] == '+'))
+                string operatorIndex = "AND";
+                if (pos < rulesPart.Length && (rulesPart[pos] == '&' || rulesPart[pos] == ':'))
                 {
-                    operatorIndex = rulesPart[pos] switch
+                    operatorIndex = (int)rulesPart[pos] switch
                     {
-                        '|' => 1,
-                        '+' => 2,
-                        _ => 0
+                        1 => "OR",
+                        _ => "AND"
                     };
                     pos++;
                 }
@@ -391,8 +388,7 @@ public static class AdvancedSkillsParser
                         AuraTarget = auraTarget,
                         Value = auraValue,
                         Comparison = comparison,
-                        SkipOnMatch = skipOnMatch,
-                        Timeout = operatorIndex
+                        MultiAuraOperator = operatorIndex
                     });
                 }
 
@@ -401,11 +397,6 @@ public static class AdvancedSkillsParser
             }
             else if (char.ToUpper(rulesPart[pos]) == 'S')
             {
-                rules.Add(new SkillRuleJson
-                {
-                    Type = "Skip",
-                    SkipOnMatch = skipOnMatch
-                });
                 pos++;
 
                 while (pos < rulesPart.Length && rulesPart[pos] == ' ')
