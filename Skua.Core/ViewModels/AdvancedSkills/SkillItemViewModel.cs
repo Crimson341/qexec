@@ -167,14 +167,13 @@ public class SkillItemViewModel : ObservableObject
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
 
-                if (pos < rest.Length && (rest[pos] == '&' || rest[pos] == '|' || rest[pos] == '+'))
+                if (pos < rest.Length && (rest[pos] == '&' || rest[pos] == ':'))
                 {
                     if (multiAuraChecks.Count == 0)
                     {
                         multiAuraOp = rest[pos] switch
                         {
-                            '|' => 1,
-                            '+' => 2,
+                            ':' => 1,
                             _ => 0
                         };
                     }
