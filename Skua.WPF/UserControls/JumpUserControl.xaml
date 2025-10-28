@@ -19,13 +19,9 @@
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
-        <DockPanel Grid.Column="0">
-            <Button
-                Margin="3,0"
-                materialDesign:ButtonAssist.CornerRadius="0 2 2 0"
-                Command="{Binding UpdateCellsCommand}"
-                Content="{materialDesign:PackIcon Kind=Reload}"
-                DockPanel.Dock="Right" />
+        <DockPanel
+            Grid.Column="0"
+            Margin="3,0,4,3">
             <ComboBox
                 x:Name="Cells"
                 ItemsSource="{Binding Cells}"

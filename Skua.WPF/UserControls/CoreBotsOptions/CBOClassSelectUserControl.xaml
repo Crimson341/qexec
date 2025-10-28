@@ -28,14 +28,8 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
                 <DockPanel Grid.Row="0" Margin="0,0,0,3">
-                    <Button
-                        materialDesign:ButtonAssist.CornerRadius="0 2 2 0"
-                        Command="{Binding ReloadClassesCommand}"
-                        Content="{materialDesign:PackIcon Kind=Reload}"
-                        DockPanel.Dock="Right" />
                     <ComboBox
                         x:Name="SoloClassComboBox"
-                        Margin="0,0,6,0"
                         DropDownOpened="ClassComboBox_DropDownOpened"
                         materialDesign:HintAssist.Hint="Class"
                         ItemsSource="{Binding PlayerClasses}"
@@ -67,14 +61,8 @@
                     <RowDefinition Height="auto" />
                 </Grid.RowDefinitions>
                 <DockPanel Grid.Row="0" Margin="0,0,0,3">
-                    <Button
-                        materialDesign:ButtonAssist.CornerRadius="0 2 2 0"
-                        Command="{Binding ReloadClassesCommand}"
-                        Content="{materialDesign:PackIcon Kind=Reload}"
-                        DockPanel.Dock="Right" />
                     <ComboBox
                         x:Name="FarmClassComboBox"
-                        Margin="0,0,6,0"
                         DropDownOpened="ClassComboBox_DropDownOpened"
                         materialDesign:HintAssist.Hint="Class"
                         ItemsSource="{Binding PlayerClasses}"

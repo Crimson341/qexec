@@ -25,12 +25,14 @@ public partial class JumpViewModel : BotControlViewModelBase
     {
         if (!string.IsNullOrEmpty(value) && !_suppressAutoJump)
         {
-            // Set default pad to Left if not already set
-            if (string.IsNullOrEmpty(SelectedPad))
+            if (!string.IsNullOrEmpty(SelectedCell) && SelectedCell == "Enter")
+            {
+                SelectedPad = "Spawn";
+            }
+            else if (string.IsNullOrEmpty(SelectedPad))
             {
                 SelectedPad = "Left";
             }
-            // Auto-jump when cell is selected
             JumpTo();
         }
     }

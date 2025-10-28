@@ -54,11 +54,6 @@
                 <ColumnDefinition Width="2*" />
             </Grid.ColumnDefinitions>
             <DockPanel Grid.Column="0" Margin="0,0,3,0">
-                <Button
-                    materialDesign:ButtonAssist.CornerRadius="0 2 2 0"
-                    Command="{Binding ReloadClassesCommand}"
-                    Content="{materialDesign:PackIcon Kind=Reload}"
-                    DockPanel.Dock="Right" />
                 <ComboBox
                     Margin="0,0,3,0"
                     DropDownOpened="ComboBox_DropDownOpened"
