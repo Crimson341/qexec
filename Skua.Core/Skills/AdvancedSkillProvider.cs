@@ -284,7 +284,6 @@ public class AdvancedSkillProvider : ISkillProvider
             MultiAuraOperator op = multiAuraOp switch
             {
                 1 => MultiAuraOperator.Or,
-                2 => MultiAuraOperator.Sum,
                 _ => MultiAuraOperator.And
             };
             rules.Add(new UseRule(SkillRule.Aura, shouldSkip, multiAuraChecks, op));

@@ -289,7 +289,6 @@ public enum MultiAuraOperator
 {
     And,
     Or,
-    Sum
 }
 
 public struct UseRule

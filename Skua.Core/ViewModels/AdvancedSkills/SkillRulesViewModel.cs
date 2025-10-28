@@ -161,7 +161,6 @@ public partial class SkillRulesViewModel : ObservableRecipient
             MultiAuraOperator op = MultiAuraOperatorIndex switch
             {
                 1 => MultiAuraOperator.Or,
-                2 => MultiAuraOperator.Sum,
                 _ => MultiAuraOperator.And
             };
             rules.Add(new UseRule(SkillRule.Aura, SkipUseBool, auraChecks, op));

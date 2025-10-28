@@ -371,9 +371,9 @@ public static class AdvancedSkillsParser
                 string operatorIndex = "AND";
                 if (pos < rulesPart.Length && (rulesPart[pos] == '&' || rulesPart[pos] == ':'))
                 {
-                    operatorIndex = (int)rulesPart[pos] switch
+                    operatorIndex = rulesPart[pos] switch
                     {
-                        1 => "OR",
+                        ':' => "OR",
                         _ => "AND"
                     };
                     pos++;

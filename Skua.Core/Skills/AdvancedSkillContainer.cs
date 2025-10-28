@@ -234,9 +234,11 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
         if (singleAuraRules.Count > 1)
         {
-            foreach (var rule in singleAuraRules)
+            for (int i = 0; i < singleAuraRules.Count; i++)
             {
-                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}&");
+                var rule = singleAuraRules[i];
+                string suffix = i < singleAuraRules.Count - 1 ? "&" : "";
+                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{suffix}");
             }
         }
         else if (singleAuraRules.Count == 1)
