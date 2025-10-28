@@ -327,12 +327,6 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     {
         var config = new AdvancedSkillsConfigJson();
 
-        if (File.Exists(filePath))
-        {
-            string existingContent = File.ReadAllText(filePath);
-            config = JsonSerializer.Deserialize<AdvancedSkillsConfigJson>(existingContent) ?? new AdvancedSkillsConfigJson();
-        }
-
         foreach (var skill in _loadedSkills)
         {
             if (!config.ContainsKey(skill.ClassName))
