@@ -314,11 +314,9 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 if (!jsonPath.EndsWith(".json"))
                     jsonPath = Path.ChangeExtension(jsonPath, ".json");
                 SaveToJson(jsonPath);
-                _jsonConfig = null;
             }
             catch
             {
-                _jsonConfig = null;
             }
         }, _saveCts.Token);
     }
