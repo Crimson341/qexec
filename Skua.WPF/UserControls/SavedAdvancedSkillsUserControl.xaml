@@ -18,7 +18,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
-            <RowDefinition Height="*" />
+            <RowDefinition Height="335" />
         </Grid.RowDefinitions>
         <DockPanel Grid.Row="0">
             <Button
@@ -41,14 +41,17 @@
             Name="SkillsList"
             Grid.Row="1"
             Margin="6,3,6,6"
-            MaxHeight="325"
             HorizontalContentAlignment="Stretch"
             ItemsSource="{Binding LoadedSkills, UpdateSourceTrigger=PropertyChanged}"
             SelectedItem="{Binding SelectedSkill}"
             SelectionMode="Extended"
             VirtualizingPanel.IsVirtualizing="True"
-            VirtualizingPanel.VirtualizationMode="Recycling"
->
+            VirtualizingPanel.VirtualizationMode="Recycling">
+            <ListBox.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Command="{Binding RemoveSelectedCommand}" Header="Remove Selected" />
+                </ContextMenu>
+            </ListBox.ContextMenu>
             <ListBox.ItemsPanel>
                 <ItemsPanelTemplate>
                     <VirtualizingStackPanel />
