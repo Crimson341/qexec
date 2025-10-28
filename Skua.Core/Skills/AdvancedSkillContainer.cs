@@ -95,7 +95,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     public void LoadSkills()
     {
-        LoadedSkills.Clear();
+        _loadedSkills.Clear();
         _jsonConfig = null;
 
         string jsonPath = Path.ChangeExtension(_userSkillsSetsPath, ".json");
@@ -296,9 +296,10 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         SyncSkills();
     }
 
-    public void Save()
+    public async void Save()
     {
         _saveCts?.Cancel();
+        await (_saveTask ?? Task.CompletedTask);
         _saveCts?.Dispose();
         _saveCts = new CancellationTokenSource();
 
