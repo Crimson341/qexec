@@ -443,7 +443,7 @@ public class SkillItemViewModel : ObservableObject
         {
             string opChar = UseRules.MultiAuraOperatorIndex switch
             {
-                1 => ";",
+                1 => ":",
                 _ => "&"
             };
             foreach (var check in UseRules.MultiAuraChecks)
