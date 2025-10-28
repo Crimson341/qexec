@@ -54,12 +54,14 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         if (!_loadedSkills.Contains(skill))
         {
             _loadedSkills.Add(skill);
+            OnPropertyChanged(nameof(LoadedSkills));
             Save();
             return;
         }
 
         int index = _loadedSkills.IndexOf(skill);
         _loadedSkills[index] = skill;
+        OnPropertyChanged(nameof(LoadedSkills));
         Save();
     }
 
@@ -296,10 +298,9 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         SyncSkills();
     }
 
-    public async void Save()
+    public void Save()
     {
         _saveCts?.Cancel();
-        await (_saveTask ?? Task.CompletedTask);
         _saveCts?.Dispose();
         _saveCts = new CancellationTokenSource();
 
