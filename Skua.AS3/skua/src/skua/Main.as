@@ -657,7 +657,7 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
-    public static function getTAura(monster:Object):String {
+    public static function GetEntityAura(monster:Object):String {
         var aura:Object = null;
         var auras:Object = null;
         try {
@@ -937,7 +937,6 @@ public class Main extends MovieClip {
                     monsterData.intHP = monster.dataLeaf.intHP;
                     monsterData.intHPMax = monster.dataLeaf.intHPMax;
                     monsterData.intState = monster.dataLeaf.intState;
-                    monsterData.auras = monster.dataLeaf.auras;
                 }
                 retMonsters.push(monsterData);
             }
@@ -959,7 +958,6 @@ public class Main extends MovieClip {
             monsterData.intHP = monster.dataLeaf.intHP;
             monsterData.intHPMax = monster.dataLeaf.intHPMax;
             monsterData.intState = monster.dataLeaf.intState;
-            monsterData.auras = getTAura(monster);
         }
         return JSON.stringify(monsterData);
     }
@@ -975,7 +973,6 @@ public class Main extends MovieClip {
                 monsterData.intHP = monster.dataLeaf.intHP;
                 monsterData.intHPMax = monster.dataLeaf.intHPMax;
                 monsterData.intState = monster.dataLeaf.intState;
-                monsterData.auras = monster.dataLeaf.auras;
             }
             retMonsters.push(monsterData);
         }
