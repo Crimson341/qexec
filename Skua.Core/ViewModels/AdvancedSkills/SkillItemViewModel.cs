@@ -433,6 +433,7 @@ public class SkillItemViewModel : ObservableObject
         bob.Append(Skill);
         if (!UseRules.UseRuleBool)
             return bob.ToString();
+        System.Diagnostics.Debug.WriteLine($"Convert Skill {Skill}: MultiAuraChecks.Count={UseRules.MultiAuraChecks.Count}, MultiAuraBool={UseRules.MultiAuraBool}");
         if (UseRules.WaitUseValue != 0)
             bob.Append($" WW{UseRules.WaitUseValue}");
         if (UseRules.HealthUseValue != 0)
