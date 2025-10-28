@@ -142,6 +142,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 case 3:
                     _loadedSkills.Add(new AdvancedSkill(parts[1].Trim(), parts[2].Trim(), 250, parts[0].Trim(), "WaitForCooldown"));
                     break;
+
                 case 4:
                     {
                         bool waitForCooldown = int.TryParse(parts[3].RemoveLetters(), out int result);
@@ -167,9 +168,9 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 {
                     string classUseMode = modeEntry.Key;
                     var skillMode = modeEntry.Value;
-                    
+
                     string skillsStr = ConvertSkillsToString(skillMode.Skills);
-                    
+
                     _loadedSkills.Add(new AdvancedSkill(
                         className,
                         skillsStr,
@@ -215,12 +216,15 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 case "Health":
                     ruleParts.Add($"H{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}");
                     break;
+
                 case "Mana":
                     ruleParts.Add($"M{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}");
                     break;
+
                 case "Wait":
                     ruleParts.Add($"WW{rule.Timeout}");
                     break;
+
                 case "Skip":
                     ruleParts.Add("S");
                     break;
@@ -245,11 +249,10 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             int operatorIndex = multiAuraRules.First().Timeout ?? 0;
             string opChar = operatorIndex switch
             {
-                1 => "|",
-                2 => "+",
+                1 => ":",
                 _ => "&"
             };
-            
+
             foreach (var rule in multiAuraRules)
             {
                 ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{opChar}");
@@ -306,7 +309,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 if (!jsonPath.EndsWith(".json"))
                     jsonPath = Path.ChangeExtension(jsonPath, ".json");
                 SaveToJson(jsonPath);
-                
+
                 if (!_saveCts.Token.IsCancellationRequested)
                 {
                     LoadSkills();
