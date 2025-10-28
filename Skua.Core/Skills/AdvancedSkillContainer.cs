@@ -253,7 +253,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             {
                 opChar = multiAuraOp switch
                 {
-                    "Or" => "|",
+                    "OR" => ":",
                     _ => "&"
                 };
             }
@@ -262,14 +262,16 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 int operatorIndex = multiAuraRules.First().Timeout ?? 0;
                 opChar = operatorIndex switch
                 {
-                    1 => "|",
+                    1 => ":",
                     _ => "&"
                 };
             }
 
-            foreach (var rule in multiAuraRules)
+            for (int i = 0; i < multiAuraRules.Count; i++)
             {
-                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{opChar}");
+                var rule = multiAuraRules[i];
+                string suffix = i < multiAuraRules.Count - 1 ? opChar : "";
+                ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{suffix}");
             }
         }
 
