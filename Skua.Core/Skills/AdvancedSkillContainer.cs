@@ -196,7 +196,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             var skillStr = skill.SkillId.ToString();
             if (skill.Rules?.Count > 0)
             {
-                skillStr += " " + ConvertRulesToString(skill.Rules, skill.MultiAura);
+                skillStr += " " + ConvertRulesToString(skill.Rules, skill.MultiAura, skill.MultiAuraOperator);
             }
             if (skill.SkipOnMatch)
             {
@@ -207,7 +207,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         return string.Join(" | ", parts);
     }
 
-    private string ConvertRulesToString(List<SkillRuleJson> rules, bool isMultiAura)
+    private string ConvertRulesToString(List<SkillRuleJson> rules, bool isMultiAura, string? multiAuraOperator)
     {
         var ruleParts = new List<string>();
         var multiAuraRules = isMultiAura ? rules.Where(r => r.Type == "MultiAura").ToList() : new List<SkillRuleJson>();
@@ -235,9 +235,9 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         if (isMultiAura && multiAuraRules.Count > 0)
         {
             string opChar = "&";
-            if (multiAuraRules.Count > 0 && !string.IsNullOrEmpty(multiAuraRules[0].MultiAuraOperator))
+            if (!string.IsNullOrEmpty(multiAuraOperator))
             {
-                opChar = multiAuraRules[0].MultiAuraOperator switch
+                opChar = multiAuraOperator switch
                 {
                     "OR" => ":",
                     _ => "&"

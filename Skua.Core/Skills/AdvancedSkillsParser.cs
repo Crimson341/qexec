@@ -94,6 +94,10 @@ public static class AdvancedSkillsParser
 
                 bool hasMultiAura = rules?.Any(r => r.Type == "MultiAura") ?? false;
                 skill.MultiAura = hasMultiAura;
+                if (hasMultiAura)
+                {
+                    skill.MultiAuraOperator = multiAuraOperator;
+                }
             }
 
             skills.Add(skill);
@@ -414,11 +418,6 @@ public static class AdvancedSkillsParser
         }
 
         rules.AddRange(singleAuraRules);
-        
-        if (multiAuraRules.Count > 0)
-        {
-            multiAuraRules[0].MultiAuraOperator = multiAuraOperator;
-        }
         rules.AddRange(multiAuraRules);
 
         if (rules.Count == 0)
