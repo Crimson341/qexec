@@ -158,10 +158,14 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
     private void EditSkill(AdvancedSkillEditorViewModel recipient, EditAdvancedSkillMessage message)
     {
         recipient.CurrentSkillsList.Clear();
-        recipient.CurrentSkillTimeout = message.AdvSkill.SkillTimeout;
-        recipient.UseWaitModeBool = message.AdvSkill.SkillUseMode != SkillUseMode.UseIfAvailable;
+        recipient.CurrentSkillTimeout = 250;
+        recipient.UseWaitModeBool = false;
+        recipient.UseRules.Clear();
+        
         recipient.CurrentClassName = message.AdvSkill.ClassName;
         recipient.SelectedClassUseMode = (int)message.AdvSkill.ClassUseMode;
+        recipient.CurrentSkillTimeout = message.AdvSkill.SkillTimeout;
+        recipient.UseWaitModeBool = message.AdvSkill.SkillUseMode != SkillUseMode.UseIfAvailable;
         recipient.CurrentSkillsList.AddRange(message.AdvSkill.Skills.Split(new[] { '|' }, StringSplitOptions.RemoveEmptyEntries).Select(s => new SkillItemViewModel(s.Trim())));
     }
 }
