@@ -93,10 +93,9 @@ public static class AdvancedSkillsParser
                 skill.SkipOnMatch = hasSkipFlag;
 
                 bool hasMultiAura = rules?.Any(r => r.Type == "MultiAura") ?? false;
-                bool hasMultiAuraPlaceholder = rulesPart.Contains("MA&") || rulesPart.Contains("MA:");
-                skill.MultiAura = hasMultiAura || hasMultiAuraPlaceholder;
+                skill.MultiAura = hasMultiAura;
 
-                if ((hasMultiAura || hasMultiAuraPlaceholder) && !string.IsNullOrEmpty(multiAuraOperator))
+                if (hasMultiAura && !string.IsNullOrEmpty(multiAuraOperator))
                 {
                     skill.MultiAuraOperator = multiAuraOperator;
                 }

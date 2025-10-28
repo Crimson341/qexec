@@ -439,8 +439,7 @@ public class SkillItemViewModel : ObservableObject
             bob.Append($" H{(UseRules.HealthGreaterThanBool ? ">" : "<")}{UseRules.HealthUseValue}");
         if (UseRules.ManaUseValue != 0)
             bob.Append($" M{(UseRules.ManaGreaterThanBool ? ">" : "<")}{UseRules.ManaUseValue}");
-        
-        if (UseRules.MultiAuraBool)
+        if (UseRules.MultiAuraChecks.Count > 0)
         {
             string opChar = UseRules.MultiAuraOperatorIndex switch
             {
@@ -453,15 +452,6 @@ public class SkillItemViewModel : ObservableObject
                 string suffix = i < UseRules.MultiAuraChecks.Count - 1 ? opChar : "";
                 string target = check.AuraTargetIndex == 1 ? " TARGET" : string.Empty;
                 bob.Append($" MA{(check.IsGreater ? ">" : "<")}\"{check.AuraName}\" {check.StackCount}{target}{suffix}");
-            }
-            if (UseRules.MultiAuraChecks.Count == 0)
-            {
-                string opChar = UseRules.MultiAuraOperatorIndex switch
-                {
-                    1 => ":",
-                    _ => "&"
-                };
-                bob.Append($" MA{opChar}");
             }
         }
         else if (!string.IsNullOrEmpty(UseRules.AuraName))

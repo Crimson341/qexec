@@ -149,6 +149,8 @@ public partial class SkillRulesViewModel : ObservableRecipient
     private void RemoveAuraCheck(AuraCheckViewModel check)
     {
         MultiAuraChecks.Remove(check);
+        if (MultiAuraChecks.Count == 0)
+            MultiAuraBool = false;
     }
 
     public UseRule[] ToUseRules()
