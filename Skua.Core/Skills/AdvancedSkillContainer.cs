@@ -303,6 +303,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         _saveCts?.Cancel();
         _saveCts?.Dispose();
         _saveCts = new CancellationTokenSource();
+        _jsonConfig = null;
 
         _saveTask = Task.Factory.StartNew(() =>
         {
@@ -312,11 +313,6 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 if (!jsonPath.EndsWith(".json"))
                     jsonPath = Path.ChangeExtension(jsonPath, ".json");
                 SaveToJson(jsonPath);
-
-                if (!_saveCts.Token.IsCancellationRequested)
-                {
-                    LoadSkills();
-                }
             }
             catch
             {
