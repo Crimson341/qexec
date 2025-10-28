@@ -278,7 +278,7 @@ public struct AuraCheck
 public enum MultiAuraOperator
 {
     And,
-    Or,
+    Or
 }
 
 public struct UseRule
