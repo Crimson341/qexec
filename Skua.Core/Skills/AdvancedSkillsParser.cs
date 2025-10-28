@@ -394,8 +394,6 @@ public static class AdvancedSkillsParser
                         Value = auraValue,
                         Comparison = comparison
                     };
-                    if (multiAuraRules.Count == 0)
-                        rule.MultiAuraOperator = multiAuraOperator;
                     multiAuraRules.Add(rule);
                 }
 
@@ -416,6 +414,11 @@ public static class AdvancedSkillsParser
         }
 
         rules.AddRange(singleAuraRules);
+        
+        if (multiAuraRules.Count > 0)
+        {
+            multiAuraRules[0].MultiAuraOperator = multiAuraOperator;
+        }
         rules.AddRange(multiAuraRules);
 
         if (rules.Count == 0)
