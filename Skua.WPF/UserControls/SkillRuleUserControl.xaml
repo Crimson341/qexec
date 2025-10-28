@@ -297,7 +297,7 @@
                         Height="38"
                         Margin="0,0,10,10"
                         HorizontalAlignment="Center"
-                        SelectedIndex="{Binding MultiAuraOperatorIndex, UpdateSourceTrigger=PropertyChanged}">
+                        SelectedIndex="{Binding MultiAuraOperatorIndex, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}">
                         <ComboBoxItem Content="AND" />
                         <ComboBoxItem Content="OR" />
                     </ComboBox>
