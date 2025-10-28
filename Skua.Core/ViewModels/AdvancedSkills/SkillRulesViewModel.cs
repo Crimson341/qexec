@@ -12,33 +12,27 @@ public partial class SkillRulesViewModel : ObservableRecipient
 
     public SkillRulesViewModel(SkillRulesViewModel rules)
     {
-        _useRuleBool = rules.UseRuleBool;
-        _waitUseValue = rules.WaitUseValue;
-        _healthGreaterThanBool = rules.HealthGreaterThanBool;
-        _healthUseValue = rules.HealthUseValue;
-        _healthIsPercentage = rules.HealthIsPercentage;
-        _manaGreaterThanBool = rules.ManaGreaterThanBool;
-        _manaUseValue = rules.ManaUseValue;
-        _manaIsPercentage = rules.ManaIsPercentage;
-        _auraGreaterThanBool = rules.AuraGreaterThanBool;
-        _auraUseValue = rules.AuraUseValue;
-        _auraTargetIndex = rules.AuraTargetIndex;
-        _auraName = rules.AuraName;
-        _skipUseBool = rules.SkipUseBool;
-        _partyMemberHealthGreaterThanBool = rules.PartyMemberHealthGreaterThanBool;
-        _partyMemberHealthUseValue = rules.PartyMemberHealthUseValue;
-        _partyMemberHealthIsPercentage = rules.PartyMemberHealthIsPercentage;
-        _multiAuraBool = rules.MultiAuraBool;
-        _multiAuraOperatorIndex = rules.MultiAuraOperatorIndex;
+        UseRuleBool = rules.UseRuleBool;
+        WaitUseValue = rules.WaitUseValue;
+        HealthGreaterThanBool = rules.HealthGreaterThanBool;
+        HealthUseValue = rules.HealthUseValue;
+        HealthIsPercentage = rules.HealthIsPercentage;
+        ManaGreaterThanBool = rules.ManaGreaterThanBool;
+        ManaUseValue = rules.ManaUseValue;
+        ManaIsPercentage = rules.ManaIsPercentage;
+        AuraGreaterThanBool = rules.AuraGreaterThanBool;
+        AuraUseValue = rules.AuraUseValue;
+        AuraTargetIndex = rules.AuraTargetIndex;
+        AuraName = rules.AuraName;
+        SkipUseBool = rules.SkipUseBool;
+        PartyMemberHealthGreaterThanBool = rules.PartyMemberHealthGreaterThanBool;
+        PartyMemberHealthUseValue = rules.PartyMemberHealthUseValue;
+        PartyMemberHealthIsPercentage = rules.PartyMemberHealthIsPercentage;
+        MultiAuraBool = rules.MultiAuraBool;
+        MultiAuraOperatorIndex = rules.MultiAuraOperatorIndex;
         foreach (var check in rules.MultiAuraChecks)
         {
-            MultiAuraChecks.Add(new AuraCheckViewModel
-            {
-                AuraName = check.AuraName,
-                StackCount = check.StackCount,
-                IsGreater = check.IsGreater,
-                AuraTargetIndex = check.AuraTargetIndex
-            });
+            MultiAuraChecks.Add(new AuraCheckViewModel(check));
         }
     }
 

@@ -25,32 +25,7 @@ public class SkillItemViewModel : ObservableObject
     public SkillItemViewModel(int skill, SkillRulesViewModel useRules)
     {
         Skill = skill;
-        _useRules = new SkillRulesViewModel()
-        {
-            UseRuleBool = useRules.UseRuleBool,
-            WaitUseValue = useRules.WaitUseValue,
-            HealthGreaterThanBool = useRules.HealthGreaterThanBool,
-            HealthUseValue = useRules.HealthUseValue,
-            ManaGreaterThanBool = useRules.ManaGreaterThanBool,
-            ManaUseValue = useRules.ManaUseValue,
-            AuraGreaterThanBool = useRules.AuraGreaterThanBool,
-            AuraUseValue = useRules.AuraUseValue,
-            AuraTargetIndex = useRules.AuraTargetIndex,
-            AuraName = useRules.AuraName,
-            SkipUseBool = useRules.SkipUseBool,
-            MultiAuraBool = useRules.MultiAuraBool,
-            MultiAuraOperatorIndex = useRules.MultiAuraOperatorIndex
-        };
-        foreach (var check in useRules.MultiAuraChecks)
-        {
-            _useRules.MultiAuraChecks.Add(new()
-            {
-                AuraName = check.AuraName,
-                StackCount = check.StackCount,
-                IsGreater = check.IsGreater,
-                AuraTargetIndex = check.AuraTargetIndex
-            });
-        }
+        _useRules = new SkillRulesViewModel(useRules);
         _displayString = ToString();
     }
 

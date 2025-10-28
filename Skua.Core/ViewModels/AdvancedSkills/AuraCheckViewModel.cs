@@ -5,6 +5,18 @@ namespace Skua.Core.ViewModels;
 
 public partial class AuraCheckViewModel : ObservableRecipient
 {
+    public AuraCheckViewModel()
+    {
+    }
+
+    public AuraCheckViewModel(AuraCheckViewModel check)
+    {
+        AuraName = check.AuraName;
+        StackCount = check.StackCount;
+        IsGreater = check.IsGreater;
+        AuraTargetIndex = check.AuraTargetIndex;
+    }
+
     [ObservableProperty]
     private string _auraName = string.Empty;
 
