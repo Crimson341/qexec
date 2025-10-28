@@ -445,10 +445,12 @@ public class SkillItemViewModel : ObservableObject
                 1 => ":",
                 _ => "&"
             };
-            foreach (var check in UseRules.MultiAuraChecks)
+            for (int i = 0; i < UseRules.MultiAuraChecks.Count; i++)
             {
+                var check = UseRules.MultiAuraChecks[i];
+                string suffix = i < UseRules.MultiAuraChecks.Count - 1 ? opChar : "";
                 string target = check.AuraTargetIndex == 1 ? " TARGET" : string.Empty;
-                bob.Append($" MA{(check.IsGreater ? ">" : "<")}\"{check.AuraName}\" {check.StackCount}{target}{opChar}");
+                bob.Append($" MA{(check.IsGreater ? ">" : "<")}\"{check.AuraName}\" {check.StackCount}{target}{suffix}");
             }
         }
         else if (!string.IsNullOrEmpty(UseRules.AuraName))
