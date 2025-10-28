@@ -54,7 +54,6 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     {
         get
         {
-            // Only create new collection if it doesn't exist or needs refresh
             _loadedSkills ??= new ObservableCollection<AdvancedSkill>(_advancedSkillContainer.LoadedSkills);
             return _loadedSkills;
         }
@@ -145,7 +144,6 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     {
         if (message.PropertyName == nameof(IAdvancedSkillContainer.LoadedSkills))
         {
-            // Force refresh of the collection
             recipient._loadedSkills = null;
             recipient.OnPropertyChanged(nameof(recipient.LoadedSkills));
         }

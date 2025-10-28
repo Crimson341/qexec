@@ -96,6 +96,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     public void LoadSkills()
     {
         LoadedSkills.Clear();
+        _jsonConfig = null;
 
         string jsonPath = Path.ChangeExtension(_userSkillsSetsPath, ".json");
         _loadedFilePath = jsonPath;
