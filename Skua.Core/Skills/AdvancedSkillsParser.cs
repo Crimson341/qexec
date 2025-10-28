@@ -420,11 +420,6 @@ public static class AdvancedSkillsParser
         rules.AddRange(singleAuraRules);
         rules.AddRange(multiAuraRules);
 
-        if (skipOnMatch)
-        {
-            rules.Add(new SkillRuleJson { Type = "Skip" });
-        }
-
         if (rules.Count == 0)
         {
             rules.Add(new SkillRuleJson { Type = "None" });
