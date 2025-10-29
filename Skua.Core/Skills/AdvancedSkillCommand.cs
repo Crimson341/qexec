@@ -170,8 +170,7 @@ public class AdvancedSkillCommand
                         .Sum(a => Convert.ToInt32(a.Value ?? 1));
             }
         }
-
-        if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
+        else if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
         {
             if (!player.HasTarget)
                 return false;
@@ -186,7 +185,7 @@ public class AdvancedSkillCommand
             }
         }
 
-        return greater ? totalStacks > count : totalStacks < count;
+        return greater ? totalStacks >= count : totalStacks <= count;
     }
 
     private bool MultiAuraUseRule(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, List<AuraCheck> checks, MultiAuraOperator op)

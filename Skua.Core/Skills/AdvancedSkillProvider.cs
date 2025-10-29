@@ -123,12 +123,11 @@ public class AdvancedSkillProvider : ISkillProvider
                 while (pos < useRule.Length && useRule[pos] == ' ')
                     pos++;
 
-                if (pos < useRule.Length && (useRule[pos] == '&' || useRule[pos] == '|' || useRule[pos] == '+'))
+                if (pos < useRule.Length && (useRule[pos] == '&' || useRule[pos] == ':'))
                 {
                     multiAuraOp = useRule[pos] switch
                     {
-                        '|' => 1,
-                        '+' => 2,
+                        ':' => 1,
                         _ => 0
                     };
                     pos++;
