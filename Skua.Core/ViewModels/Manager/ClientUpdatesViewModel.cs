@@ -164,7 +164,9 @@ public partial class ClientUpdatesViewModel : BotControlViewModelBase
         IsBusy = true;
         try
         {
-            int count = await _scriptsService.IncrementalUpdateScriptsAsync(_progress, token);
+            await _scriptsService.RefreshScriptsAsync(_progress, token);
+
+            int count = await Task.Run(async () => await _scriptsService.ManagerDownloadAllWhereAsync(s => !s.Downloaded || s.Outdated));
             ProgressStatus = $"Downloaded {count} scripts.";
         }
         catch (OperationCanceledException)
