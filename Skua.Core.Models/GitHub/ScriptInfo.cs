@@ -19,6 +19,9 @@ public class ScriptInfo
     [JsonProperty("size")]
     public int Size { get; set; }
 
+    [JsonProperty("sha256")]
+    public string? Sha256 { get; set; }
+
     [JsonProperty("fileName")]
     public string FileName { get; set; }
 
@@ -34,7 +37,24 @@ public class ScriptInfo
     public bool Downloaded => File.Exists(LocalFile);
 
     public int LocalSize => Downloaded ? (int)new FileInfo(LocalFile).Length : 0;
-    public bool Outdated => Downloaded && LocalSize != Size;
+    
+    public string? LocalSha256 
+    {
+        get
+        {
+            if (!Downloaded) return null;
+            try
+            {
+                using var sha256 = System.Security.Cryptography.SHA256.Create();
+                using var stream = File.OpenRead(LocalFile);
+                byte[] hash = sha256.ComputeHash(stream);
+                return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
+            }
+            catch { return null; }
+        }
+    }
+    
+    public bool Outdated => Downloaded && (LocalSize != Size || (!string.IsNullOrEmpty(Sha256) && LocalSha256 != Sha256));
 
     public override string ToString()
     {
