@@ -138,8 +138,17 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
     {
         try
         {
+            long localSize = 0;
+            if (File.Exists(ClientFileSources.SkuaAdvancedSkillsFile))
+            {
+                FileInfo fileInfo = new FileInfo(ClientFileSources.SkuaAdvancedSkillsFile);
+                localSize = fileInfo.Length;
+            }
+
             string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _skillsSetsRawUrl);
-            return content.Length;
+            long remoteSize = content.Length;
+            
+            return remoteSize != localSize ? remoteSize : 0;
         }
         catch
         {
