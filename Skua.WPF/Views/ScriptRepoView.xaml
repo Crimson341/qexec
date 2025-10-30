@@ -184,7 +184,8 @@
                                 Width="70"
                                 Command="{Binding StartScriptCommand}"
                                 CommandParameter="{Binding}"
-                                IsEnabled="{Binding Downloaded, FallbackValue=False}" />
+                                IsEnabled="{Binding Downloaded, FallbackValue=False}"
+                                Visibility="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.IsManagerMode, Converter={StaticResource InverseBooleanToVisibilityConverter}, FallbackValue=Visible}" />
                             <Button Content="Load"
                                 Width="70"
                                 Command="{Binding LoadScriptCommand}"

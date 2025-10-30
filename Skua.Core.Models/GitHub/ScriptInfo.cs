@@ -37,8 +37,8 @@ public class ScriptInfo
     public bool Downloaded => File.Exists(LocalFile);
 
     public int LocalSize => Downloaded ? (int)new FileInfo(LocalFile).Length : 0;
-    
-    public string? LocalSha256 
+
+    public string? LocalSha256
     {
         get
         {
@@ -53,7 +53,7 @@ public class ScriptInfo
             catch { return null; }
         }
     }
-    
+
     public bool Outdated => Downloaded && (LocalSize != Size || (!string.IsNullOrEmpty(Sha256) && LocalSha256 != Sha256));
 
     public override string ToString()

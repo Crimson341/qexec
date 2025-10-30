@@ -208,7 +208,12 @@ public static class Services
         services.AddSingleton<IClientFilesService, ClientFilesService>();
         services.AddSingleton<ClientUpdatesViewModel>();
         services.AddSingleton<GitHubAuthViewModel>();
-        services.AddSingleton<ScriptRepoManagerViewModel>();
+        services.AddSingleton<ScriptRepoViewModel>(s => 
+        {
+            var vm = new ScriptRepoViewModel(s.GetRequiredService<IGetScriptsService>(), s.GetRequiredService<IProcessService>());
+            vm.IsManagerMode = true;
+            return vm;
+        });
         services.AddSingleton<GoalsViewModel>();
         services.AddSingleton<AboutViewModel>();
         services.AddSingleton<ChangeLogsViewModel>();

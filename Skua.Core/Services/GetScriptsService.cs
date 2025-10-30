@@ -76,11 +76,11 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
             string content = await response.Content.ReadAsStringAsync(token);
             if (string.IsNullOrWhiteSpace(content))
                 throw new InvalidDataException("scripts.json is empty or null");
-                
+
             var scripts = JsonConvert.DeserializeObject<List<ScriptInfo>>(content);
             if (scripts == null || !scripts.Any())
                 throw new InvalidDataException("scripts.json contains no valid scripts");
-                
+
             return scripts;
         }
     }
@@ -91,18 +91,9 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (!parent.Exists)
             parent.Create();
 
-        string script = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, info.DownloadUrl);
-        await File.WriteAllTextAsync(info.LocalFile, script);
-    }
-
-    public async Task ManagerDownloadScriptAsync(ScriptInfo info)
-    {
-        DirectoryInfo parent = Directory.GetParent(info.ManagerLocalFile)!;
-        if (!parent.Exists)
-            parent.Create();
-
-        string script = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, info.DownloadUrl);
-        await File.WriteAllTextAsync(info.ManagerLocalFile, script);
+        using var response = await ValidatedHttpExtensions.GetAsync(HttpClients.GitHubRaw, info.DownloadUrl);
+        byte[] scriptBytes = await response.Content.ReadAsByteArrayAsync();
+        await File.WriteAllBytesAsync(info.LocalFile, scriptBytes);
     }
 
     public async Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred)
@@ -110,14 +101,6 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         IEnumerable<ScriptInfo> toUpdate = _scripts.Where(pred);
         int count = toUpdate.Count();
         await Task.WhenAll(toUpdate.Select(s => DownloadScriptAsync(s)));
-        return count;
-    }
-
-    public async Task<int> ManagerDownloadAllWhereAsync(Func<ScriptInfo, bool> pred)
-    {
-        IEnumerable<ScriptInfo> toUpdate = _scripts.Where(pred);
-        int count = toUpdate.Count();
-        await Task.WhenAll(toUpdate.Select(s => ManagerDownloadScriptAsync(s)));
         return count;
     }
 
@@ -133,7 +116,6 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         });
     }
 
-
     public async Task<long> CheckAdvanceSkillSetsUpdates()
     {
         try
@@ -147,7 +129,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
             string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _skillsSetsRawUrl);
             long remoteSize = content.Length;
-            
+
             return remoteSize != localSize ? remoteSize : 0;
         }
         catch
@@ -194,7 +176,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
             using var response = await HttpClients.MakeGitHubApiRequestAsync(url);
             string content = await response.Content.ReadAsStringAsync(token);
             var compare = JsonConvert.DeserializeObject<GitHubCompare>(content);
-            
+
             if (compare?.Files == null)
                 return new HashSet<string>();
 
@@ -240,7 +222,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         try
         {
             progress?.Report("Checking for updates...");
-            
+
             string? currentSha = await GetLastCommitShaAsync(token);
             if (string.IsNullOrEmpty(currentSha))
             {
@@ -266,7 +248,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
             progress?.Report("Fetching changed files...");
             var changedFiles = await GetChangedFilesAsync(storedSha, currentSha, token);
-            
+
             if (changedFiles.Count == 0)
             {
                 progress?.Report("No script changes detected.");
@@ -274,20 +256,31 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
                 return 0;
             }
 
-            progress?.Report($"Found {changedFiles.Count} changed files. Updating...");
-            
+            var scriptChangedFiles = changedFiles
+                .Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) && f != "scripts.json")
+                .ToHashSet();
+
+            if (scriptChangedFiles.Count == 0)
+            {
+                progress?.Report("No script changes detected (only metadata files changed).");
+                await StoreCommitShaAsync(currentSha);
+                return 0;
+            }
+
+            progress?.Report($"Found {scriptChangedFiles.Count} changed scripts. Updating...");
+
             List<ScriptInfo> scripts = await GetScriptsInfo(true, token);
-            var scriptsToUpdate = scripts.Where(s => changedFiles.Contains(s.FilePath)).ToList();
-            
+            var scriptsToUpdate = scripts.Where(s => scriptChangedFiles.Contains(s.FilePath)).ToList();
+
             int updated = 0;
             foreach (var script in scriptsToUpdate)
             {
                 if (token.IsCancellationRequested)
                     break;
-                    
+
                 try
                 {
-                    await ManagerDownloadScriptAsync(script);
+                    await DownloadScriptAsync(script);
                     updated++;
                     progress?.Report($"Updated {updated}/{scriptsToUpdate.Count}: {script.Name}");
                 }

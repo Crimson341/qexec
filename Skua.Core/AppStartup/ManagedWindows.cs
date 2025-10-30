@@ -46,7 +46,7 @@ public class ManagedWindows
     {
         IWindowService windowService = s.GetRequiredService<IWindowService>();
 
-        windowService.RegisterManagedWindow("Script Repo Manager", s.GetRequiredService<ScriptRepoManagerViewModel>());
+        windowService.RegisterManagedWindow("Script Repo", s.GetRequiredService<ScriptRepoViewModel>());
         windowService.RegisterManagedWindow("Application Themes", s.GetRequiredService<ApplicationThemesViewModel>());
     }
 }

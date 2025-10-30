@@ -22,11 +22,7 @@ public interface IGetScriptsService : INotifyPropertyChanged
 
     public Task DownloadScriptAsync(ScriptInfo info);
 
-    public Task ManagerDownloadScriptAsync(ScriptInfo info);
-
     public Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred);
-
-    public Task<int> ManagerDownloadAllWhereAsync(Func<ScriptInfo, bool> pred);
 
     public Task DeleteScriptAsync(ScriptInfo info);
 

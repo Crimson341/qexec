@@ -165,7 +165,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         var windowService = Ioc.Default.GetService<IWindowService>();
         if (windowService != null)
         {
-            windowService.ShowManagedWindow("Script Repo Manager");
+            windowService.ShowManagedWindow("Script Repo");
         }
     }
 

@@ -38,6 +38,7 @@ public partial class App : Application
 
         _ = Services.GetRequiredService<IThemeService>();
         ISettingsService settings = Services.GetRequiredService<ISettingsService>();
+        IGetScriptsService getScripts = Services.GetRequiredService<IGetScriptsService>();
 
         Dispatcher.ShutdownStarted += Dispatcher_ShutdownStarted;
         StrongReferenceMessenger.Default.Register<App, UpdateFinishedMessage>(this, CloseManager);
@@ -51,6 +52,19 @@ public partial class App : Application
 
                 if (updateVM.UpdateVisible && Ioc.Default.GetRequiredService<IDialogService>().ShowMessageBox("New update available, download?", "Update Available", true) == true)
                     await updateVM.Update();
+            });
+        }
+
+        if (settings.Get<bool>("CheckBotScriptsUpdates"))
+        {
+            Task.Factory.StartNew(async () =>
+            {
+                await getScripts.GetScriptsAsync(null, default);
+
+                if ((getScripts.Missing > 0 || getScripts.Outdated > 0) && settings.Get<bool>("AutoUpdateBotScripts"))
+                {
+                    int count = await getScripts.DownloadAllWhereAsync(s => !s.Downloaded || s.Outdated);
+                }
             });
         }
     }

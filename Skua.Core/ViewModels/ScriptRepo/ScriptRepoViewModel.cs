@@ -27,6 +27,9 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
     private readonly IProcessService _processService;
 
     [ObservableProperty]
+    private bool _isManagerMode;
+
+    [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(DownloadedQuantity), nameof(OutdatedQuantity), nameof(ScriptQuantity), nameof(BotScriptQuantity))]
     private RangedObservableCollection<ScriptInfoViewModel> _scripts = new();
 

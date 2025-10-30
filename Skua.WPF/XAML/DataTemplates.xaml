@@ -141,7 +141,4 @@
     <DataTemplate DataType="{x:Type managerVms:AccountManagerViewModel}">
         <views:AccountManagerView />
     </DataTemplate>
-    <DataTemplate DataType="{x:Type managerVms:ScriptRepoManagerViewModel}">
-        <views:ScriptRepoManagerView />
-    </DataTemplate>
 </ResourceDictionary>
