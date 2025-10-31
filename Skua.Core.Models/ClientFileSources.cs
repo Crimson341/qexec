@@ -3,6 +3,7 @@
 public static class ClientFileSources
 {
     public static string SkuaDIR { get; } = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua");
+    public static string SkuaSettingsDIR { get; } = Path.Combine(SkuaDIR, "Skua.settings.json");
     public static string SkuaScriptsDIR { get; } = Path.Combine(SkuaDIR, "Scripts");
     public static string SkuaThemesDIR { get; } = Path.Combine(SkuaDIR, "themes");
     public static string SkuaOptionsDIR { get; } = Path.Combine(SkuaDIR, "options");

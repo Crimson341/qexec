@@ -9,7 +9,6 @@ using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Servers;
 using Skua.Core.Utils;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 using System.Collections.Specialized;
 using System.Diagnostics;
 
@@ -32,7 +31,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         Task.Run(async () => await _GetServers());
         Accounts = new();
         _GetSavedAccounts();
-        _syncThemes = _settingsService.Get("SyncThemes", false);
+        _syncThemes = _settingsService.Get("syncTheme", false);
         // TODO different clients path
     }
 
@@ -125,7 +124,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         // TODO show dialog to choose between clients
         // TODO manage ids for sync in the future
 
-        _syncThemes = _settingsService.Get("SyncThemes", false);
+        _syncThemes = _settingsService.Get("syncTheme", false);
         foreach (var acc in Accounts.Where(a => a.UseCheck))
         {
             _LaunchAcc(acc.Username, acc.Password, acc.DisplayName);
@@ -136,7 +135,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     [RelayCommand]
     public async Task StartAllAccounts()
     {
-        _syncThemes = _settingsService.Get("SyncThemes", false);
+        _syncThemes = _settingsService.Get("syncTheme", false);
         foreach (var acc in Accounts)
         {
             _LaunchAcc(acc.Username, acc.Password, acc.DisplayName);

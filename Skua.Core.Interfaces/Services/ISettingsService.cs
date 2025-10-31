@@ -1,4 +1,6 @@
-﻿namespace Skua.Core.Interfaces;
+using Skua.Core.Models;
+
+namespace Skua.Core.Interfaces;
 
 public interface ISettingsService
 {
@@ -7,4 +9,12 @@ public interface ISettingsService
     T? Get<T>(string key);
 
     T Get<T>(string key, T defaultValue);
+
+    void Initialize(AppRole role);
+
+    SharedSettings GetShared();
+
+    ClientSettings GetClient();
+
+    ManagerSettings GetManager();
 }

@@ -49,9 +49,6 @@ public partial class App : Application
             {
                 ClientUpdatesViewModel updateVM = Ioc.Default.GetRequiredService<ClientUpdatesViewModel>();
                 await updateVM.Refresh();
-
-                if (updateVM.UpdateVisible && Ioc.Default.GetRequiredService<IDialogService>().ShowMessageBox("New update available, download?", "Update Available", true) == true)
-                    await updateVM.Update();
             });
         }
 
@@ -72,7 +69,6 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
-
 
         bool isChangeLogActivated = Services.GetRequiredService<ISettingsService>().Get<bool>("ChangeLogActivated");
         if (!isChangeLogActivated)
