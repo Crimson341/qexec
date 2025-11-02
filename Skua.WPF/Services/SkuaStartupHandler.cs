@@ -7,12 +7,13 @@ using System.Windows;
 
 namespace Skua.WPF;
 
-public sealed class SkuaStartupHandler
+public sealed class SkuaStartupHandler : IDisposable
 {
     private readonly IScriptInterface _bot;
     private readonly ISettingsService _settingsService;
     private readonly IThemeService _themeService;
     private ParserResult<SkuaOptions> _result;
+    private bool _disposed;
 
     public SkuaStartupHandler(string[] args, IScriptInterface bot, ISettingsService settingsService, IThemeService themeService)
     {
@@ -73,6 +74,26 @@ public sealed class SkuaStartupHandler
             _themeService.SetCurrentTheme(ThemeItem.FromString(options.UseTheme));
 
         return true;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        try
+        {
+            _bot.Flash.FlashCall -= LoadGame;
+            _bot.Flash.FlashCall -= Login;
+        }
+        catch { }
+
+        GC.SuppressFinalize(this);
+    }
+
+    ~SkuaStartupHandler()
+    {
+        Dispose();
     }
 }
 

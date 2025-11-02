@@ -39,12 +39,7 @@ public class FlashUtil : IFlashUtil
             if (!EoLHook.IsHooked)
                 EoLHook.Hook();
 
-            // Unsubscribe from old Flash events before disposal
-            if (Flash != null)
-            {
-                Flash.FlashCall -= CallHandler;
-                Flash.Dispose();
-            }
+            CleanupOldFlash();
 
             AxShockwaveFlash flash = new();
             flash.BeginInit();
@@ -77,6 +72,38 @@ public class FlashUtil : IFlashUtil
         finally
         {
             EoLHook.Unhook();
+        }
+    }
+
+    private void CleanupOldFlash()
+    {
+        if (Flash == null) return;
+
+        Flash.FlashCall -= CallHandler;
+
+        try
+        {
+            Flash.Stop();
+        }
+        catch { /* ignored */ }
+
+        object ocx = null;
+        try
+        {
+            ocx = Flash.GetOcx();
+        }
+        catch { /* ignored */ }
+
+        Flash.Dispose();
+        Flash = null;
+
+        if (ocx != null)
+        {
+            try
+            {
+                System.Runtime.InteropServices.Marshal.FinalReleaseComObject(ocx);
+            }
+            catch { /* ignored */ }
         }
     }
 
@@ -205,12 +232,14 @@ public class FlashUtil : IFlashUtil
 
     public void Dispose()
     {
-        EoLHook.Unhook();
-        if (Flash != null)
+        try
         {
-            Flash.FlashCall -= CallHandler;
-            Flash.Dispose();
-            Flash = null;
+            CleanupOldFlash();
+        }
+        catch { /* ignored */ }
+        finally
+        {
+            EoLHook.Unhook();
         }
     }
 }

@@ -302,15 +302,64 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         }
     }
 
-    public async ValueTask DisposeAsync()
+    private bool _disposed;
+
+    public void Dispose()
     {
-        if (_taskDrops is not null)
+        if (_disposed) return;
+        _disposed = true;
+
+        try
         {
             _ctsDrops?.Cancel();
-            await _taskDrops;
-            _ctsDrops?.Dispose();
+            Wait.ForTrue(() => _taskDrops?.IsCompleted == true, null, 20);
         }
-        _timerDrops.Dispose();
+        catch { }
+
+        _ctsDrops?.Dispose();
+        _ctsDrops = null;
+        _taskDrops = null;
+        
+        _timerDrops?.Dispose();
+        
+        if (IsActive)
+        {
+            StrongReferenceMessenger.Default.UnregisterAll(this);
+            Messenger.UnregisterAll(this);
+            IsActive = false;
+        }
+
+        GC.SuppressFinalize(this);
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_disposed) return;
+        _disposed = true;
+
+        try
+        {
+            if (_taskDrops is not null)
+            {
+                _ctsDrops?.Cancel();
+                await _taskDrops;
+            }
+        }
+        catch { }
+
+        _ctsDrops?.Dispose();
+        _ctsDrops = null;
+        _taskDrops = null;
+        
+        _timerDrops?.Dispose();
+        
+        if (IsActive)
+        {
+            StrongReferenceMessenger.Default.UnregisterAll(this);
+            Messenger.UnregisterAll(this);
+            IsActive = false;
+        }
+
         GC.SuppressFinalize(this);
     }
 }

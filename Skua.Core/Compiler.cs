@@ -1,7 +1,8 @@
-﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using System.Reflection;
+using System.Runtime.Loader;
 using System.Text;
 using Westwind.Scripting;
 
@@ -54,11 +55,14 @@ public class Compiler : CSharpScriptExecution
             if (!CompileAssembly(code))
                 return null;
 
-            // Limit cache size to prevent unbounded memory growth
             if (CachedAssemblies.Count >= MaxCachedAssemblies)
             {
-                // Clear half of the cache when limit is reached
-                CachedAssemblies.Clear();
+                var oldestKey = CachedAssemblies.Keys.First();
+                if (CachedAssemblies.TryGetValue(oldestKey, out var oldAssembly))
+                {
+                    oldAssembly?.Dispose();
+                    CachedAssemblies.Remove(oldestKey);
+                }
             }
 
             CachedAssemblies[hash] = Assembly;
@@ -68,7 +72,6 @@ public class Compiler : CSharpScriptExecution
             Assembly = CachedAssemblies[hash];
         }
 
-        // Figure out the class name
         return Assembly.ExportedTypes.First();
     }
 
@@ -173,6 +176,17 @@ public class Compiler : CSharpScriptExecution
     /// </summary>
     public static void ClearAssemblyCache()
     {
-        CachedAssemblies?.Clear();
+        if (CachedAssemblies == null) return;
+        
+        foreach (var asm in CachedAssemblies.Values)
+        {
+            try
+            {
+                asm?.Dispose();
+            }
+            catch { }
+        }
+        
+        CachedAssemblies.Clear();
     }
 }

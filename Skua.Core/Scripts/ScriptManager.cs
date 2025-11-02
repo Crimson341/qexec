@@ -191,6 +191,16 @@ public partial class ScriptManager : ObservableObject, IScriptManager
             return;
         }
         Wait.ForTrue(() => ScriptCts == null, 20);
+        
+        var thread = _currentScriptThread;
+        if (thread != null && thread.IsAlive)
+        {
+            if (!thread.Join(TimeSpan.FromSeconds(5)))
+            {
+                _logger?.ScriptLog("Script thread did not exit within timeout.");
+            }
+        }
+        
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
@@ -205,6 +215,19 @@ public partial class ScriptManager : ObservableObject, IScriptManager
             return;
         }
         await Wait.ForTrueAsync(() => ScriptCts == null, 30);
+        
+        var thread = _currentScriptThread;
+        if (thread != null && thread.IsAlive)
+        {
+            await Task.Run(() =>
+            {
+                if (!thread.Join(TimeSpan.FromSeconds(5)))
+                {
+                    _logger?.ScriptLog("Script thread did not exit within timeout.");
+                }
+            });
+        }
+        
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
