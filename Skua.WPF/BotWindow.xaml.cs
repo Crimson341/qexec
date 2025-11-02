@@ -1,4 +1,8 @@
-﻿using Skua.Core.ViewModels;
+using CommunityToolkit.Mvvm.Messaging;
+using Skua.Core.ViewModels;
+using System;
+using System.Windows;
+using System.Windows.Controls;
 using System.ComponentModel;
 using System.Windows.Data;
 
@@ -15,9 +19,10 @@ public partial class BotWindow : CustomWindow
     {
         InitializeComponent();
         Loaded += BotWindow_Loaded;
+        Closed += BotWindow_Closed;
     }
 
-    private void BotWindow_Loaded(object sender, System.Windows.RoutedEventArgs e)
+    private void BotWindow_Loaded(object sender, RoutedEventArgs e)
     {
         Loaded -= BotWindow_Loaded;
         var cvs = FindResource("BotViewsSource") as CollectionViewSource;
@@ -34,13 +39,27 @@ public partial class BotWindow : CustomWindow
         return obj is BotControlViewModelBase vm && vm.Title.Contains(BotControlsSearchBox.Text);
     }
 
-    private void BotControlsSearchBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+    private void BotControlsSearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
         _collectionView?.Refresh();
     }
 
-    private void MenuToggleButton_Click(object sender, System.Windows.RoutedEventArgs e)
+    private void MenuToggleButton_Click(object sender, RoutedEventArgs e)
     {
         BotControlsSearchBox.Focus();
+    }
+
+    private void BotWindow_Closed(object? sender, EventArgs e)
+    {
+        Closed -= BotWindow_Closed;
+        if (DataContext is BotWindowViewModel vm)
+        {
+            StrongReferenceMessenger.Default.Unregister<object>(vm);
+        }
+        if (DataContext is IDisposable disposable)
+        {
+            disposable.Dispose();
+        }
+        DataContext = null;
     }
 }
