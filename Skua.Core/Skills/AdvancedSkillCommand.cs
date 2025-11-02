@@ -1,5 +1,4 @@
 ﻿using Skua.Core.Interfaces;
-using Skua.Core.Interfaces.Auras;
 
 namespace Skua.Core.Skills;
 
@@ -51,10 +50,20 @@ public class AdvancedSkillCommand
                     break;
 
                 case SkillRule.Aura:
-                    if (useRule.MultiAuraChecks.Count > 0)
-                        shouldUse = MultiAuraUseRule(player, self, target, useRule.MultiAuraChecks, useRule.MultiAuraOperator);
-                    else
-                        shouldUse = AuraUseRule(player, self, target, useRule.AuraTarget, useRule.Greater, useRule.Value, useRule.AuraName);
+                    var singleCheck = new List<AuraCheck>
+                        {
+                            new() {
+                                AuraName = useRule.AuraName,
+                                AuraTarget = useRule.AuraTarget,
+                                Greater = useRule.Greater,
+                                StackCount = useRule.Value
+                            }
+                        };
+                    shouldUse = AuraUseRule(player, self, target, singleCheck);
+                    break;
+
+                case SkillRule.MultiAura:
+                    shouldUse = MultiAuraUseRule(player, self, target, useRule.MultiAuraChecks, useRule.MultiAuraOperator);
                     break;
 
                 case SkillRule.PartyHealth:
@@ -155,37 +164,18 @@ public class AdvancedSkillCommand
         return false;
     }
 
-    private bool AuraUseRule(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, string auraTarget, bool greater, int count, string auraName = "")
+    private bool AuraUseRule(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, List<AuraCheck> checks)
     {
-        int totalStacks = 0;
+        if (checks == null || checks.Count == 0)
+            return true;
 
-        if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
+        foreach (var check in checks)
         {
-            if (self.Auras != null && self.Auras.Count > 0)
-            {
-                totalStacks = string.IsNullOrEmpty(auraName)
-                    ? self.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
-                    : self.Auras
-                        .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
-                        .Sum(a => Convert.ToInt32(a.Value ?? 1));
-            }
-        }
-        else if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
-        {
-            if (!player.HasTarget)
+            double stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
+            if (!(check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount))
                 return false;
-
-            if (target.Auras != null && target.Auras.Count > 0)
-            {
-                totalStacks = string.IsNullOrEmpty(auraName)
-                    ? target.Auras.Sum(a => Convert.ToInt32(a.Value ?? 1))
-                    : target.Auras
-                        .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
-                        .Sum(a => Convert.ToInt32(a.Value ?? 1));
-            }
         }
-
-        return greater ? totalStacks >= count : totalStacks <= count;
+        return true;
     }
 
     private bool MultiAuraUseRule(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, List<AuraCheck> checks, MultiAuraOperator op)
@@ -197,7 +187,7 @@ public class AdvancedSkillCommand
         {
             foreach (var check in checks)
             {
-                int stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
+                double stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
                 if (check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount)
                     return true;
             }
@@ -207,7 +197,7 @@ public class AdvancedSkillCommand
         {
             foreach (var check in checks)
             {
-                int stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
+                double stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
                 if (!(check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount))
                     return false;
             }
@@ -215,7 +205,7 @@ public class AdvancedSkillCommand
         }
     }
 
-    private int GetAuraStacks(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, string auraTarget, string auraName)
+    private double GetAuraStacks(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, string auraTarget, string auraName)
     {
         if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
         {
@@ -223,7 +213,7 @@ public class AdvancedSkillCommand
             {
                 return self.Auras
                     .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
-                    .Sum(a => Convert.ToInt32(a.Value ?? 1));
+                    .Sum(a => a.Value);
             }
         }
         else if (auraTarget.Equals("target", StringComparison.OrdinalIgnoreCase))
@@ -235,7 +225,7 @@ public class AdvancedSkillCommand
             {
                 return target.Auras
                     .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
-                    .Sum(a => Convert.ToInt32(a.Value ?? 1));
+                    .Sum(a => a.Value);
             }
         }
 
@@ -254,6 +244,7 @@ public enum SkillRule
     Health,
     Mana,
     Aura,
+    MultiAura,
     PartyHealth,
     Wait
 }
@@ -292,6 +283,7 @@ public struct UseRule
     public bool IsPercentage { get; set; }
     public List<AuraCheck> MultiAuraChecks { get; set; }
     public MultiAuraOperator MultiAuraOperator { get; set; }
+    public bool IsMultiAura { get; set; }
 
     public UseRule()
     {
@@ -305,6 +297,7 @@ public struct UseRule
         IsPercentage = true;
         MultiAuraChecks = new();
         MultiAuraOperator = MultiAuraOperator.And;
+        IsMultiAura = false;
     }
 
     public UseRule(SkillRule rule)
@@ -319,6 +312,7 @@ public struct UseRule
         IsPercentage = true;
         MultiAuraChecks = new();
         MultiAuraOperator = MultiAuraOperator.And;
+        IsMultiAura = false;
     }
 
     public UseRule(SkillRule rule, bool greater, int value, bool shouldSkip)
@@ -333,6 +327,7 @@ public struct UseRule
         IsPercentage = true;
         MultiAuraChecks = new();
         MultiAuraOperator = MultiAuraOperator.And;
+        IsMultiAura = false;
     }
 
     public UseRule(SkillRule rule, bool greater, int value, bool shouldSkip, string auraTarget, string auraName = "", int partyMemberIndex = -1, bool isPercentage = true)
@@ -347,11 +342,12 @@ public struct UseRule
         IsPercentage = isPercentage;
         MultiAuraChecks = new();
         MultiAuraOperator = MultiAuraOperator.And;
+        IsMultiAura = false;
     }
 
     public UseRule(SkillRule rule, bool shouldSkip, List<AuraCheck> auraChecks, MultiAuraOperator op = MultiAuraOperator.And)
     {
-        Rule = rule;
+        Rule = auraChecks.Count > 1 ? SkillRule.MultiAura : rule;
         Greater = default;
         Value = default;
         ShouldSkip = shouldSkip;
@@ -361,5 +357,6 @@ public struct UseRule
         IsPercentage = true;
         MultiAuraChecks = auraChecks;
         MultiAuraOperator = op;
+        IsMultiAura = auraChecks.Count > 1;
     }
 }

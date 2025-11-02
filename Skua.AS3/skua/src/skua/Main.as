@@ -28,7 +28,8 @@ import skua.util.SFSEvent;
 [SWF(frameRate="30", backgroundColor="#000000", width="958", height="550")]
 public class Main extends MovieClip {
     public static var instance:Main;
-
+    private static var selfAuraData:Object = {};
+    private static var targetAuraData:Object = {};
     private static var _gameClass:Class;
     private static var _fxStore:Object = {};
     private static var _fxLastOpt:Boolean = false;
@@ -133,7 +134,71 @@ public class Main extends MovieClip {
     }
 
     public function onExtensionResponse(packet:*):void {
+        trackAuraStacks(packet);
         this.external.call('pext', JSON.stringify(packet));
+    }
+
+    private function trackAuraStacks(packet:*):void {
+        try {
+            if (packet.params && packet.params.type == 'json' && packet.params.dataObj) {
+                var data:Object = packet.params.dataObj;
+                if (data.cmd == 'ct' && data.a) {
+                    var myUserId:String = instance.game.sfc.myUserId.toString();
+                    for each (var action:Object in data.a) {
+                        if (action.cmd && action.auras) {
+                            var targetId:String = action.tInf;
+                            var isSelf:Boolean = targetId == 'p:' + myUserId;
+                            var isTarget:Boolean = instance.game.world.myAvatar.target && 
+                                                   (targetId == 'p:' + instance.game.world.myAvatar.target.dataLeaf.entID || 
+                                                    targetId == 'm:' + instance.game.world.myAvatar.target.dataLeaf.MonMapID);
+                            
+                            if (isSelf || isTarget) {
+                                var auraTracker:Object = isSelf ? selfAuraData : targetAuraData;
+                                
+                                for each (var aura:Object in action.auras) {
+                                    if (action.cmd.indexOf('+') > -1 || action.cmd.indexOf('++') > -1) {
+                                        var incrementBy:int = (aura.val != undefined && aura.val != null) ? parseInt(aura.val) : 1;
+                                        if (!auraTracker.hasOwnProperty(aura.nam)) {
+                                            auraTracker[aura.nam] = {
+                                                stackCount: incrementBy,
+                                                isNew: aura.isNew,
+                                                icon: aura.icon,
+                                                t: aura.t,
+                                                dur: aura.dur,
+                                                spellOn: aura.spellOn,
+                                                passive: aura.passive
+                                            };
+                                        } else {
+                                            if (aura.isNew) {
+                                                auraTracker[aura.nam].stackCount = incrementBy;
+                                            } else {
+                                                if (aura.val != undefined && aura.val != null) {
+                                                    auraTracker[aura.nam].stackCount = parseInt(aura.val);
+                                                } else {
+                                                    auraTracker[aura.nam].stackCount += incrementBy;
+                                                }
+                                            }
+                                            auraTracker[aura.nam].isNew = aura.isNew;
+                                            if (aura.icon) auraTracker[aura.nam].icon = aura.icon;
+                                            if (aura.t) auraTracker[aura.nam].t = aura.t;
+                                            if (aura.dur) auraTracker[aura.nam].dur = aura.dur;
+                                            if (aura.spellOn) auraTracker[aura.nam].spellOn = aura.spellOn;
+                                            if (aura.passive) auraTracker[aura.nam].passive = aura.passive;
+                                        }
+                                    } else if (action.cmd.indexOf('-') > -1 || action.cmd.indexOf('--') > -1) {
+                                        delete auraTracker[aura.nam];
+                                    }
+                                }
+                            }
+                        }
+                    }
+                } else if (data.cmd == 'clearAuras') {
+                    selfAuraData = {};
+                    targetAuraData = {};
+                }
+            }
+        } catch (e:Error) {
+        }
     }
 
     private function onGameClick(event:MouseEvent) : void
@@ -628,6 +693,7 @@ public class Main extends MovieClip {
     public static function getSubjectAuras(subject:String):String {
         var aura:Object = null;
         var auras:Object = null;
+        var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
         try {
             auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
         } catch (e:Error) {
@@ -637,21 +703,22 @@ public class Main extends MovieClip {
         var auraArray:Array = [];
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
+            var trackedData:Object = auraTracker.hasOwnProperty(aura.nam) ? auraTracker[aura.nam] : null;
             auraArray.push({
                 'nam': aura.nam,
-                'val': aura.val == undefined ? 1 : aura.val,
+                'val': trackedData ? trackedData.stackCount : 1,
                 'passive': aura.passive,
                 'ts': aura.ts,
                 'dur': parseInt(aura.dur),
                 'potionType': aura.potionType,
                 'cat': aura.cat,
-                't': aura.t,
+                't': trackedData && trackedData.t ? trackedData.t : aura.t,
                 's': aura.s,
                 'fx': aura.fx,
                 'animOn': aura.animOn,
                 'animOff': aura.animOff,
                 'msgOn': aura.msgOn,
-                'isNew': aura.isNew
+                'isNew': trackedData ? trackedData.isNew : aura.isNew
             });
         }
         return JSON.stringify(auraArray);
@@ -666,12 +733,13 @@ public class Main extends MovieClip {
             return '[]';
         }
 
+
         var auraArray:Array = [];
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
             auraArray.push({
                 'nam': aura.nam,
-                'val': aura.val == undefined ? 1 : aura.val,
+                'val': isNaN(aura.val) ? 1 : aura.val,
                 'passive': aura.passive,
                 'ts': aura.ts,
                 'dur': parseInt(aura.dur),
@@ -690,6 +758,7 @@ public class Main extends MovieClip {
     }
 
     public static function GetAurasValue(subject:String, auraName:String):String {
+        var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
         var aura:Object = null;
         var auras:Object = null;
         try {
@@ -701,7 +770,7 @@ public class Main extends MovieClip {
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
             if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
-                return (aura.val == undefined || aura.val == null ? 1 : aura.val).toString();
+                return auraTracker.hasOwnProperty(aura.nam) ? auraTracker[aura.nam].stackCount.toString() : '1';
             }
         }
         return '1';

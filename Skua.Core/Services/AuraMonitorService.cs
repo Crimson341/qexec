@@ -1,4 +1,4 @@
-using Skua.Core.Interfaces.Auras;
+using Skua.Core.Interfaces;
 using Skua.Core.Interfaces.Services;
 using Skua.Core.Models.Auras;
 using System.Collections.Concurrent;
@@ -8,7 +8,7 @@ namespace Skua.Core.Services;
 /// <summary>
 /// Service that monitors aura changes and publishes events.
 /// </summary>
-public class AuraMonitorService : IAuraMonitorService
+public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDisposable
 {
     private readonly IScriptSelfAuras _selfAuras;
     private readonly IScriptTargetAuras _targetAuras;
@@ -20,13 +20,13 @@ public class AuraMonitorService : IAuraMonitorService
     private bool _disposed;
 
 
-    public event Action<string, DateTimeOffset, int, object, SubjectType>? AuraActivated;
+    public event Action<string, DateTimeOffset, int, double, SubjectType>? AuraActivated;
 
 
     public event Action<string, SubjectType>? AuraDeactivated;
 
 
-    public event Action<string, object, object, SubjectType>? AuraStackChanged;
+    public event Action<string, double, double, SubjectType>? AuraStackChanged;
 
     public bool IsMonitoring => _isMonitoring;
 
@@ -38,7 +38,7 @@ public class AuraMonitorService : IAuraMonitorService
     private class AuraState
     {
         public string Name { get; init; } = string.Empty;
-        public object? StackValue { get; set; }
+        public double StackValue { get; set; }
         public DateTimeOffset TimeStarted { get; init; }
         public int DurationSeconds { get; init; }
         public bool IsActive { get; set; }
@@ -97,6 +97,8 @@ public class AuraMonitorService : IAuraMonitorService
 
     private void PollAuras(object? state)
     {
+        if (_disposed) return;
+
         if (SubscriberCount == 0)
         {
             StopMonitoring();
@@ -126,7 +128,7 @@ public class AuraMonitorService : IAuraMonitorService
         {
             if (string.IsNullOrEmpty(aura.Name)) continue;
 
-            object? stackValue = aura.Value;
+            double stackValue = aura.Value;
 
             if (stateDict.TryGetValue(aura.Name, out AuraState? existingState))
             {
@@ -135,7 +137,7 @@ public class AuraMonitorService : IAuraMonitorService
                     continue;
                 }
 
-                object? oldValue = existingState.StackValue;
+                double oldValue = existingState.StackValue;
                 existingState.StackValue = stackValue;
 
                 AuraStackChanged?.Invoke(aura.Name, oldValue, stackValue, subject);
@@ -177,9 +179,23 @@ public class AuraMonitorService : IAuraMonitorService
     public void Dispose()
     {
         if (_disposed) return;
+        _disposed = true;
 
         StopMonitoring();
         _pollTimer?.Dispose();
-        _disposed = true;
+        _selfAuraStates.Clear();
+        _targetAuraStates.Clear();
+        GC.SuppressFinalize(this);
+    }
+
+    public ValueTask DisposeAsync()
+    {
+        Dispose();
+        return default;
+    }
+
+    ~AuraMonitorService()
+    {
+        Dispose();
     }
 }

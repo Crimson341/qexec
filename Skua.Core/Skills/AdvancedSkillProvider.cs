@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
-using Skua.Core.Interfaces.Auras;
 using Skua.Core.Messaging;
 using Skua.Core.Utils;
 
@@ -252,7 +251,19 @@ public class AdvancedSkillProvider : ISkillProvider
                 }
 
                 if (!string.IsNullOrEmpty(auraName))
-                    rules.Add(new UseRule(SkillRule.Aura, isGreater, auraValue, shouldSkip, auraTarget, auraName));
+                {
+                    List<AuraCheck> singleCheck = new()
+                    {
+                        new AuraCheck
+                        {
+                            AuraName = auraName,
+                            AuraTarget = auraTarget,
+                            Greater = isGreater,
+                            StackCount = auraValue
+                        }
+                    };
+                    rules.Add(new UseRule(SkillRule.Aura, shouldSkip, singleCheck));
+                }
                 continue;
             }
 
@@ -285,7 +296,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 1 => MultiAuraOperator.Or,
                 _ => MultiAuraOperator.And
             };
-            rules.Add(new UseRule(SkillRule.Aura, shouldSkip, multiAuraChecks, op));
+            rules.Add(new UseRule(SkillRule.MultiAura, shouldSkip, multiAuraChecks, op));
         }
 
         return rules.Count == 0 ? new[] { new UseRule(SkillRule.None) } : rules.ToArray();

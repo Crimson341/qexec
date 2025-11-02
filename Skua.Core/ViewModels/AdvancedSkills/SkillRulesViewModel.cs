@@ -163,11 +163,21 @@ public partial class SkillRulesViewModel : ObservableRecipient
                 1 => MultiAuraOperator.Or,
                 _ => MultiAuraOperator.And
             };
-            rules.Add(new UseRule(SkillRule.Aura, SkipUseBool, auraChecks, op));
+            rules.Add(new UseRule(SkillRule.MultiAura, SkipUseBool, auraChecks, op));
         }
         else if (!string.IsNullOrEmpty(AuraName) || AuraUseValue != 0)
         {
-            rules.Add(new UseRule(SkillRule.Aura, AuraGreaterThanBool, AuraUseValue, SkipUseBool, AuraTargetIndex == 1 ? "target" : "self", AuraName));
+            List<AuraCheck> singleCheck = new()
+            {
+                new AuraCheck
+                {
+                    AuraName = AuraName,
+                    AuraTarget = AuraTargetIndex == 1 ? "target" : "self",
+                    Greater = AuraGreaterThanBool,
+                    StackCount = AuraUseValue
+                }
+            };
+            rules.Add(new UseRule(SkillRule.Aura, SkipUseBool, singleCheck));
         }
 
         if (HealthUseValue != 0)

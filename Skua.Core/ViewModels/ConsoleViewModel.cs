@@ -11,6 +11,7 @@ public partial class ConsoleViewModel : BotControlViewModelBase
 using Skua.Core.Interfaces;
 using Skua.Core.Utils;
 using Skua.Core.Models;
+using Skua.Core.Models.Auras;
 using Skua.Core.Models.Items;
 using Skua.Core.Models.Monsters;
 using Skua.Core.Models.Players;
@@ -19,7 +20,7 @@ using Skua.Core.Models.Servers;
 using Skua.Core.Models.Shops;
 using Skua.Core.Models.Skills;
 using Newtonsoft.Json;
-public class Script{ public void ScriptMain(IScriptInterface bot){";
+public class Script{ public void ScriptMain(IScriptInterface Bot){";
 
     public ConsoleViewModel(IDialogService dialogService, IScriptManager scriptManager)
         : base("Console", 700, 400)
@@ -32,7 +33,7 @@ public class Script{ public void ScriptMain(IScriptInterface bot){";
     private readonly IScriptManager _scriptManager;
 
     [ObservableProperty]
-    private string _snippetText = "bot.Log(\"Test\");";
+    private string _snippetText = "Bot.Log(\"Test\");";
 
     [RelayCommand]
     private async Task Run()
