@@ -58,11 +58,7 @@ public class Compiler : CSharpScriptExecution
             if (CachedAssemblies.Count >= MaxCachedAssemblies)
             {
                 var oldestKey = CachedAssemblies.Keys.First();
-                if (CachedAssemblies.TryGetValue(oldestKey, out var oldAssembly))
-                {
-                    oldAssembly?.Dispose();
-                    CachedAssemblies.Remove(oldestKey);
-                }
+                CachedAssemblies.Remove(oldestKey, out _);
             }
 
             CachedAssemblies[hash] = Assembly;
@@ -176,17 +172,6 @@ public class Compiler : CSharpScriptExecution
     /// </summary>
     public static void ClearAssemblyCache()
     {
-        if (CachedAssemblies == null) return;
-        
-        foreach (var asm in CachedAssemblies.Values)
-        {
-            try
-            {
-                asm?.Dispose();
-            }
-            catch { }
-        }
-        
-        CachedAssemblies.Clear();
+        CachedAssemblies?.Clear();
     }
 }

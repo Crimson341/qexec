@@ -234,3 +234,6 @@ dotnet_naming_style.begins_with__.required_prefix = _
 dotnet_naming_style.begins_with__.required_suffix = 
 dotnet_naming_style.begins_with__.word_separator = 
 dotnet_naming_style.begins_with__.capitalization = camel_case
+
+# CS1591: Missing XML comment for publicly visible type or member
+dotnet_diagnostic.CS1591.severity = none

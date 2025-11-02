@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 using System.ComponentModel;
-using System.Windows;
 
 namespace Skua.Core.ViewModels;
 
@@ -17,7 +16,7 @@ public class BindingOptionItemViewModel<TDisplay, TOptionBindingTarget> : Comman
         _binding = binding;
         _options = options;
         Value = _options.OptionDictionary[_binding].Invoke();
-        PropertyChangedEventManager.AddHandler(_options, Option_PropertyChanged, string.Empty);
+        _options.PropertyChanged += Option_PropertyChanged;
     }
 
     public BindingOptionItemViewModel(string content, string tag, string binding, TOptionBindingTarget options, IRelayCommand command) : base(content, tag, command, typeof(TDisplay))
@@ -25,7 +24,7 @@ public class BindingOptionItemViewModel<TDisplay, TOptionBindingTarget> : Comman
         _binding = binding;
         _options = options;
         Value = _options.OptionDictionary[_binding].Invoke();
-        PropertyChangedEventManager.AddHandler(_options, Option_PropertyChanged, string.Empty);
+        _options.PropertyChanged += Option_PropertyChanged;
     }
 
     public BindingOptionItemViewModel(string content, string description, string tag, string binding, TOptionBindingTarget options, IRelayCommand command) : base(content, description, tag, command, typeof(TDisplay))
@@ -33,7 +32,7 @@ public class BindingOptionItemViewModel<TDisplay, TOptionBindingTarget> : Comman
         _binding = binding;
         _options = options;
         Value = _options.OptionDictionary[_binding].Invoke();
-        PropertyChangedEventManager.AddHandler(_options, Option_PropertyChanged, string.Empty);
+        _options.PropertyChanged += Option_PropertyChanged;
     }
 
     private void Option_PropertyChanged(object? sender, PropertyChangedEventArgs e)
@@ -47,7 +46,7 @@ public class BindingOptionItemViewModel<TDisplay, TOptionBindingTarget> : Comman
         if (_disposed) return;
         _disposed = true;
 
-        PropertyChangedEventManager.RemoveHandler(_options, Option_PropertyChanged, string.Empty);
+        _options.PropertyChanged -= Option_PropertyChanged;
         GC.SuppressFinalize(this);
     }
 

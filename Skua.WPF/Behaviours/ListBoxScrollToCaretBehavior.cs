@@ -12,7 +12,6 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
     private ScrollViewer? _scrollViewer;
     private bool _isScrollDownEnabled;
     private INotifyCollectionChanged? _collectionSource;
-    private DependencyPropertyDescriptor? _itemsSourceDp;
 
     protected override void OnAttached()
     {
@@ -26,15 +25,9 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
         AssociatedObject.Loaded -= OnLoaded;
         AssociatedObject.Unloaded -= OnUnloaded;
         
-        if (_itemsSourceDp != null)
-        {
-            _itemsSourceDp.RemoveValueChanged(AssociatedObject, OnItemsSourceChanged);
-            _itemsSourceDp = null;
-        }
-
         if (_collectionSource != null)
         {
-            CollectionChangedEventManager.RemoveHandler(_collectionSource, OnCollectionChanged);
+            _collectionSource.CollectionChanged -= OnCollectionChanged;
             _collectionSource = null;
         }
 
@@ -44,14 +37,11 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
 
     private void OnLoaded(object sender, RoutedEventArgs e)
     {
-        _itemsSourceDp = DependencyPropertyDescriptor.FromProperty(
-            ItemsControl.ItemsSourceProperty,
-            typeof(ItemsControl));
-
-        if (_itemsSourceDp != null)
-            _itemsSourceDp.AddValueChanged(AssociatedObject, OnItemsSourceChanged);
-
-        HookItemsSource();
+        if (AssociatedObject.ItemsSource is INotifyCollectionChanged incc)
+        {
+            _collectionSource = incc;
+            _collectionSource.CollectionChanged += OnCollectionChanged;
+        }
 
         if (VisualTreeHelper.GetChildrenCount(AssociatedObject) > 0)
         {
@@ -60,37 +50,11 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
         }
     }
 
-    private void OnItemsSourceChanged(object sender, EventArgs e)
-    {
-        HookItemsSource();
-    }
-
-    private void HookItemsSource()
-    {
-        var newSrc = AssociatedObject.ItemsSource as INotifyCollectionChanged;
-        if (!ReferenceEquals(_collectionSource, newSrc))
-        {
-            if (_collectionSource != null)
-                CollectionChangedEventManager.RemoveHandler(_collectionSource, OnCollectionChanged);
-
-            _collectionSource = newSrc;
-
-            if (_collectionSource != null)
-                CollectionChangedEventManager.AddHandler(_collectionSource, OnCollectionChanged);
-        }
-    }
-
     private void OnUnloaded(object sender, RoutedEventArgs e)
     {
-        if (_itemsSourceDp != null)
-        {
-            _itemsSourceDp.RemoveValueChanged(AssociatedObject, OnItemsSourceChanged);
-            _itemsSourceDp = null;
-        }
-
         if (_collectionSource != null)
         {
-            CollectionChangedEventManager.RemoveHandler(_collectionSource, OnCollectionChanged);
+            _collectionSource.CollectionChanged -= OnCollectionChanged;
             _collectionSource = null;
         }
 
