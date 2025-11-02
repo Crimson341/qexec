@@ -15,8 +15,6 @@ namespace Skua.Core.Scripts;
 
 public partial class ScriptManager : ObservableObject, IScriptManager, IDisposable
 {
-    private readonly ConcurrentScriptExecutor _executor;
-
     public ScriptManager(
         ILogService logger,
         Lazy<IScriptInterface> scriptInterface,
@@ -33,7 +31,6 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         _lazyWait = wait;
         _lazyAuraMonitor = auraMonitorService;
         _logger = logger;
-        _executor = new(maxConcurrentScripts: 1);
     }
 
     private readonly Lazy<IScriptInterface> _lazyBot;
@@ -50,7 +47,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     private IScriptWait Wait => _lazyWait.Value;
     private IAuraMonitorService AuraMonitor => _lazyAuraMonitor.Value;
 
-    private ScriptExecutionContext? _currentContext;
+    private Thread? _currentScriptThread;
+    private readonly object _threadLock = new();
     private bool _stoppedByScript;
     private bool _runScriptStoppingBool;
     private readonly Dictionary<string, bool> _configured = new();
@@ -82,20 +80,20 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         try
         {
             await _lazyBot.Value.Auto.StopAsync();
+
             object? script = Compile(File.ReadAllText(LoadedScript));
+
             LoadScriptConfig(script);
             if (_configured.TryGetValue(Config!.Storage, out bool b) && !b)
                 Config.Configure();
 
             Handlers.Clear();
-            ScriptRunning = true;
-            StrongReferenceMessenger.Default.Send<ScriptStartedMessage, int>((int)MessageChannels.ScriptStatus);
-
-            _currentContext = await _executor.StartScriptAsync("main_script", async (ct) =>
+            _runScriptStoppingBool = false;
+            
+            _currentScriptThread = new(async () =>
             {
                 Exception? exception = null;
                 ScriptCts = new();
-                using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(ct, ScriptCts.Token);
                 try
                 {
                     script?.GetType().GetMethod("ScriptMain")?.Invoke(script, new object[] { _lazyBot.Value });
@@ -105,7 +103,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     if (e is not TargetInvocationException || !_stoppedByScript)
                     {
                         exception = e;
-                        _logger.DebugLog($"Error while running script:\r\nMessage: {(e.InnerException is not null ? e.InnerException.Message : e.Message)}\r\nStackTrace: {(e.InnerException is not null ? e.InnerException.StackTrace : e.StackTrace)}");
+                        Trace.WriteLine($"Error while running script:\r\nMessage: {(e.InnerException is not null ? e.InnerException.Message : e.Message)}\r\nStackTrace: {(e.InnerException is not null ? e.InnerException.StackTrace : e.StackTrace)}");
+
                         StrongReferenceMessenger.Default.Send<ScriptErrorMessage, int>(new(e), (int)MessageChannels.ScriptStatus);
                         _runScriptStoppingBool = true;
                     }
@@ -121,10 +120,14 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                             switch (await Task.Run(async () => await StrongReferenceMessenger.Default.Send<ScriptStoppingRequestMessage, int>(new(exception), (int)MessageChannels.ScriptStatus)))
                             {
                                 case true:
-                                    _logger.DebugLog("Script finished successfully.");
+                                    Trace.WriteLine("Script finished successfully.");
                                     break;
+
                                 case false:
-                                    _logger.DebugLog("Script finished early or with errors.");
+                                    Trace.WriteLine("Script finished early or with errors.");
+                                    break;
+
+                                default:
                                     break;
                             }
                         }
@@ -134,6 +137,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     script = null;
                     Skills.Stop();
                     Drops.Stop();
+
                     AuraMonitor.StopMonitoring();
                     ScriptCts?.Dispose();
                     ScriptCts = null;
@@ -141,6 +145,17 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     ScriptRunning = false;
                 }
             });
+
+            _currentScriptThread.Name = "Script Thread";
+            _currentScriptThread.IsBackground = true;
+            
+            lock (_threadLock)
+            {
+                _currentScriptThread.Start();
+                ScriptRunning = true;
+            }
+
+            StrongReferenceMessenger.Default.Send<ScriptStartedMessage, int>((int)MessageChannels.ScriptStatus);
 
             return null;
         }
@@ -153,7 +168,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     public async Task RestartScriptAsync()
     {
-        _logger.DebugLog("Restarting script");
+        Trace.WriteLine("Restarting script");
         await StopScriptAsync(false);
         await Task.Run(async () =>
         {
@@ -164,7 +179,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     public void RestartScript()
     {
-        _logger.DebugLog("Restarting script");
+        Trace.WriteLine("Restarting script");
         StopScript(false);
         Task.Run(async () =>
         {
@@ -178,10 +193,27 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         _runScriptStoppingBool = runScriptStoppingEvent;
         _stoppedByScript = true;
         ScriptCts?.Cancel();
-        if (_currentContext?.CancellationToken.IsCancellationRequested == false)
+        
+        if (Thread.CurrentThread.Name == "Script Thread")
         {
-            _currentContext.Cancel();
+            ScriptCts?.Token.ThrowIfCancellationRequested();
+            return;
         }
+        
+        Wait.ForTrue(() => ScriptCts == null, 20);
+        
+        lock (_threadLock)
+        {
+            var thread = _currentScriptThread;
+            if (thread != null && thread.IsAlive)
+            {
+                if (!thread.Join(TimeSpan.FromSeconds(5)))
+                {
+                    _logger?.ScriptLog("Script thread did not exit within timeout.");
+                }
+            }
+        }
+        
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
@@ -190,10 +222,32 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         _runScriptStoppingBool = runScriptStoppingEvent;
         _stoppedByScript = true;
         ScriptCts?.Cancel();
-        if (_currentContext != null)
+        
+        if (Thread.CurrentThread.Name == "Script Thread")
         {
-            await _executor.StopScriptAsync(_currentContext.ScriptId);
+            ScriptCts?.Token.ThrowIfCancellationRequested();
+            return;
         }
+        
+        await Wait.ForTrueAsync(() => ScriptCts == null, 30).ConfigureAwait(false);
+        
+        Thread? thread;
+        lock (_threadLock)
+        {
+            thread = _currentScriptThread;
+        }
+        
+        if (thread != null && thread.IsAlive)
+        {
+            await Task.Run(() =>
+            {
+                if (!thread.Join(TimeSpan.FromSeconds(5)))
+                {
+                    _logger?.ScriptLog("Script thread did not exit within timeout.");
+                }
+            }).ConfigureAwait(false);
+        }
+        
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
@@ -213,7 +267,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         dynamic? assembly = compiler.CompileClass(final);
 
         sw.Stop();
-        _logger.DebugLog($"Script compilation took {sw.ElapsedMilliseconds}ms.");
+        Trace.WriteLine($"Script compilation took {sw.ElapsedMilliseconds}ms.");
 
         File.WriteAllText(Path.Combine(ClientFileSources.SkuaScriptsDIR, "z_CompiledScript.cs"), final);
 
@@ -363,7 +417,20 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     public void Dispose()
     {
-        _executor?.Dispose();
+        Thread? thread;
+        lock (_threadLock)
+        {
+            thread = _currentScriptThread;
+        }
+        
+        if (thread?.IsAlive == true)
+        {
+            ScriptCts?.Cancel();
+            if (!thread.Join(TimeSpan.FromSeconds(5)))
+            {
+                _logger?.ScriptLog("Script thread did not exit during disposal.");
+            }
+        }
         ScriptCts?.Dispose();
     }
 }

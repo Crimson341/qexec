@@ -231,6 +231,13 @@ public interface IScriptInterface
     void Sleep(int ms);
 
     /// <summary>
+    /// Asynchronously sleeps the bot for the specified time period without blocking the thread.
+    /// </summary>
+    /// <param name="ms">Time in milliseconds for the bot to sleep.</param>
+    /// <returns>A task representing the asynchronous sleep operation.</returns>
+    Task SleepAsync(int ms);
+
+    /// <summary>
     /// Stops the script
     /// </summary>
     /// <param name="runScriptStoppingEvent">Whether to fire the <see cref="IScriptEvent.ScriptStopping"/> event.</param>

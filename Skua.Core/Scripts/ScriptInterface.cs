@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Newtonsoft.Json;
 using Skua.Core.Interfaces;
@@ -6,6 +6,7 @@ using Skua.Core.Interfaces.Services;
 using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Items;
+using Skua.Core.Threading;
 using Skua.Core.Utils;
 using System.Diagnostics;
 
@@ -15,6 +16,8 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 {
     private CancellationTokenSource? ScriptInterfaceCTS;
     private readonly Thread ScriptInterfaceThread;
+    private GameStateChannel? _stateChannel;
+    private GameApiThreadSafeWrapper? _apiWrapper;
     private const int _timerDelay = 20;
     private readonly TimeLimiter _limit = new();
     private readonly ILogService _logger;
@@ -137,6 +140,13 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
         Version = Version.Parse(settingsService.Get("ApplicationVersion", "0.0.0.0"));
 
+        _stateChannel = new GameStateChannel(_ => { }, 100);
+        _stateChannel.Start();
+        if (events is ScriptEvent scriptEvent)
+            scriptEvent.SetStateChannel(_stateChannel);
+
+        _apiWrapper = new GameApiThreadSafeWrapper(this, 1);
+        _apiWrapper.Start();
         Flash.FlashCall += HandleFlashCall;
 
         ScriptInterfaceThread = new(() =>
@@ -174,6 +184,12 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     {
         CheckScriptTermination();
         Thread.Sleep(ms);
+    }
+
+    public async Task SleepAsync(int ms)
+    {
+        CheckScriptTermination();
+        await Task.Delay(ms);
     }
 
     private void CheckScriptTermination()
@@ -643,7 +659,19 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 ScriptInterfaceCTS?.Dispose();
                 ScriptInterfaceCTS = null;
 
-                // Cancel and clean up re-login task
+                if (_apiWrapper != null)
+                {
+                    _apiWrapper.StopAsync().GetAwaiter().GetResult();
+                    _apiWrapper = null;
+                }
+
+                if (_stateChannel != null)
+                {
+                    _stateChannel.StopAsync().GetAwaiter().GetResult();
+                    _stateChannel.Dispose();
+                    _stateChannel = null;
+                }
+
                 _reloginCTS?.Cancel();
                 _reloginCTS?.Dispose();
                 _reloginCTS = null;

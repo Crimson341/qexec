@@ -1,11 +1,14 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
+using Skua.Core.Threading;
 
 namespace Skua.Core.Scripts;
 
 public class ScriptEvent : IScriptEvent, IDisposable
 {
+    private GameStateChannel? _stateChannel;
+
     public ScriptEvent()
     {
         _messenger = StrongReferenceMessenger.Default;
@@ -81,6 +84,24 @@ public class ScriptEvent : IScriptEvent, IDisposable
 
     public event RunToAreaHandler? RunToArea;
 
+    public void SetStateChannel(GameStateChannel stateChannel)
+    {
+        _stateChannel = stateChannel;
+    }
+
+    private void PublishStateChange(string category, object? data)
+    {
+        if (_stateChannel != null)
+        {
+            _stateChannel.Publish(new GameStateChange
+            {
+                Category = category,
+                Data = data,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
     public void ClearHandlers()
     {
         PlayerDeath = null;
@@ -128,21 +149,25 @@ public class ScriptEvent : IScriptEvent, IDisposable
     public void OnItemDropped(ScriptEvent recipient, ItemDroppedMessage message)
     {
         recipient.ItemDropped?.Invoke(message.Item, message.AddedToInv, message.QuantityNow);
+        recipient.PublishStateChange(GameStateCategories.ItemDropped, message.Item);
     }
 
     private void OnItemSold(ScriptEvent recipient, ItemSoldMessage message)
     {
         recipient.ItemSold?.Invoke(message.CharItemID, message.QuantitySold, message.CurrentQuantity, message.Cost, message.IsAC);
+        recipient.PublishStateChange(GameStateCategories.PlayerInventory, message.CharItemID);
     }
 
     private void OnItemBought(ScriptEvent recipient, ItemBoughtMessage message)
     {
         recipient.ItemBought?.Invoke(message.CharItemID);
+        recipient.PublishStateChange(GameStateCategories.PlayerInventory, message.CharItemID);
     }
 
     public void OnItemAddedToBank(ScriptEvent recipient, ItemAddedToBankMessage message)
     {
         recipient.ItemAddedToBank?.Invoke(message.Item, message.QuantityNow);
+        recipient.PublishStateChange(GameStateCategories.PlayerInventory, message.Item);
     }
 
     public void OnCounterAttack(ScriptEvent recipient, CounterAttackMessage message)
@@ -153,26 +178,31 @@ public class ScriptEvent : IScriptEvent, IDisposable
     public void OnPlayerDeath(ScriptEvent recipient, PlayerDeathMessage message)
     {
         recipient.PlayerDeath?.Invoke();
+        recipient.PublishStateChange(GameStateCategories.PlayerStats, null);
     }
 
     public void OnMonsterKilled(ScriptEvent recipient, MonsterKilledMessage message)
     {
         recipient.MonsterKilled?.Invoke(message.MapID);
+        recipient.PublishStateChange(GameStateCategories.MonsterKilled, message.MapID);
     }
 
     public void OnQuestAccepted(ScriptEvent recipient, QuestAcceptedMessage message)
     {
         recipient.QuestAccepted?.Invoke(message.QuestID);
+        recipient.PublishStateChange(GameStateCategories.PlayerStats, message.QuestID);
     }
 
     public void OnQuestTurnIn(ScriptEvent recipient, QuestTurninMessage message)
     {
         recipient.QuestTurnedIn?.Invoke(message.QuestID);
+        recipient.PublishStateChange(GameStateCategories.PlayerStats, message.QuestID);
     }
 
     public void OnMapChanged(ScriptEvent recipient, MapChangedMessage message)
     {
         recipient.MapChanged?.Invoke(message.Map);
+        recipient.PublishStateChange(GameStateCategories.MapChanged, message.Map);
     }
 
     public void OnCellChanged(ScriptEvent recipient, CellChangedMessage message)
