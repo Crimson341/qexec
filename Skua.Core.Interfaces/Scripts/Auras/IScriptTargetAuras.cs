@@ -1,4 +1,4 @@
-﻿namespace Skua.Core.Interfaces.Auras;
+﻿namespace Skua.Core.Interfaces;
 
 /// <summary>
 /// Represents a collection of aura-related operations that can be performed on a target entity.

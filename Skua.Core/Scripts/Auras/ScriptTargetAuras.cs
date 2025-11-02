@@ -1,9 +1,8 @@
 ﻿using Newtonsoft.Json;
 using Skua.Core.Interfaces;
-using Skua.Core.Interfaces.Auras;
 using Skua.Core.Models.Auras;
 
-namespace Skua.Core.Scripts.Auras;
+namespace Skua.Core.Scripts;
 
 public partial class ScriptTargetAuras : IScriptTargetAuras
 {

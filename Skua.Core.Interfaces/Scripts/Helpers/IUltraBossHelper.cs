@@ -1,6 +1,4 @@
-using Skua.Core.Interfaces.Auras;
 using Skua.Core.Models.Auras;
-using Skua.Core.Models.Monsters;
 
 namespace Skua.Core.Interfaces;
 

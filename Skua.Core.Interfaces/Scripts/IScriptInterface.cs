@@ -1,5 +1,4 @@
-﻿using Skua.Core.Interfaces.Auras;
-using Skua.Core.Interfaces.Services;
+﻿using Skua.Core.Interfaces.Services;
 using Skua.Core.Models;
 
 namespace Skua.Core.Interfaces;

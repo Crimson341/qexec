@@ -1,7 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Flash;
 using Skua.Core.Interfaces;
-using Skua.Core.Interfaces.Auras;
+using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models.Skills;
 using Skua.Core.Skills;

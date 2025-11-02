@@ -1,4 +1,4 @@
-﻿namespace Skua.Core.Interfaces.Auras;
+﻿namespace Skua.Core.Interfaces;
 
 /// <summary>
 /// Defines functionality for managing auras that are applied to the player.

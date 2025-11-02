@@ -1,7 +1,6 @@
 using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
-using Skua.Core.Interfaces.Auras;
 using Skua.Core.Messaging;
 using Skua.Core.Models.Auras;
 using Skua.Core.Models.Monsters;
