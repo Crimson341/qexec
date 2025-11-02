@@ -89,7 +89,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
             Handlers.Clear();
             _runScriptStoppingBool = false;
-            
+
             _currentScriptThread = new(async () =>
             {
                 Exception? exception = null;
@@ -148,7 +148,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
             _currentScriptThread.Name = "Script Thread";
             _currentScriptThread.IsBackground = true;
-            
+
             lock (_threadLock)
             {
                 _currentScriptThread.Start();
@@ -193,15 +193,15 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         _runScriptStoppingBool = runScriptStoppingEvent;
         _stoppedByScript = true;
         ScriptCts?.Cancel();
-        
+
         if (Thread.CurrentThread.Name == "Script Thread")
         {
             ScriptCts?.Token.ThrowIfCancellationRequested();
             return;
         }
-        
+
         Wait.ForTrue(() => ScriptCts == null, 20);
-        
+
         lock (_threadLock)
         {
             var thread = _currentScriptThread;
@@ -213,7 +213,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 }
             }
         }
-        
+
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
@@ -222,21 +222,21 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         _runScriptStoppingBool = runScriptStoppingEvent;
         _stoppedByScript = true;
         ScriptCts?.Cancel();
-        
+
         if (Thread.CurrentThread.Name == "Script Thread")
         {
             ScriptCts?.Token.ThrowIfCancellationRequested();
             return;
         }
-        
+
         await Wait.ForTrueAsync(() => ScriptCts == null, 30).ConfigureAwait(false);
-        
+
         Thread? thread;
         lock (_threadLock)
         {
             thread = _currentScriptThread;
         }
-        
+
         if (thread != null && thread.IsAlive)
         {
             await Task.Run(() =>
@@ -247,7 +247,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 }
             }).ConfigureAwait(false);
         }
-        
+
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
@@ -422,7 +422,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             thread = _currentScriptThread;
         }
-        
+
         if (thread?.IsAlive == true)
         {
             ScriptCts?.Cancel();
