@@ -780,8 +780,9 @@ public class Main extends MovieClip {
         var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
         var aura:Object = null;
         var auras:* = null;
+        var username:String = (instance.game.loginInfo.strUsername).toLowerCase();
         try {
-            auras = subject == 'Self' ? [instance.game.world.uoTree, instance.game.loginInfo.strUsername.toLowerCase(), auras].join(".") : instance.game.world.myAvatar.target.dataLeaf.auras;
+            auras = subject == 'Self' ? [instance.game.world.uoTree, username, auras].join(".") : instance.game.world.myAvatar.target.dataLeaf.auras;
         } catch (e:Error) {
             return '1';
         }
