@@ -724,6 +724,19 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
+    public static function auraTest():String {
+        var username:String = (instance.game.loginInfo.strUsername).toLowerCase();
+        var auras:Object = null;
+        try {
+            auras = [instance.game.world.uoTree, username, auras].join(".")
+        }
+        catch (e:Error) {
+            return '[]';
+        }
+
+        return JSON.stringify(auras);
+    }
+
     public static function GetEntityAura(monster:Object):String {
         var aura:Object = null;
         var auras:Object = null;
@@ -756,7 +769,6 @@ public class Main extends MovieClip {
         }
         return JSON.stringify(auraArray);
     }
-/*
     public static function GetAurasValue(subject:String, auraName:String):String {
         var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
         var aura:Object = null;
@@ -774,20 +786,6 @@ public class Main extends MovieClip {
             }
         }
         return '1';
-    }
-*/
-    public static function GetAurasValue(subject:String, auraName:String):String {
-        var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
-        var aura:Object = null;
-        var auras:* = null;
-        var username:String = (instance.game.loginInfo.strUsername).toLowerCase();
-        try {
-            auras = subject == 'Self' ? [instance.game.world.uoTree, username, auras].join(".") : instance.game.world.myAvatar.target.dataLeaf.auras;
-        } catch (e:Error) {
-            return '1';
-        }
-
-        return auras;
     }
 
     public static function HasAnyActiveAura(subject:String, auraNames:String):String {
