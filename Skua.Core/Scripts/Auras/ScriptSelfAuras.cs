@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.Auras;
+using Skua.Core.Flash;
 
 namespace Skua.Core.Scripts;
 
@@ -32,6 +33,9 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
     {
         return GetAura(auraName) != null;
     }
+
+    [JsonCallBinding("auraTest")]
+    private string _auraTest;
 
     public bool TryGetAura(string auraName, out Aura? aura)
     {

@@ -724,12 +724,12 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
-    public static function auraTest(auraName:String):String {
-        var username:String = (instance.game.loginInfo.strUsername).toLowerCase();
+    public static function auraTest():String {
+        var plrUser:String = (instance.game.loginInfo.strUsername).toLowerCase();
         var auras:Object = null;
         var uoTreeArray:Array = [];
         try {
-            auras = instance.game.world.uoTree[username]
+            auras = instance.game.world.uoTree[plrUser]
         }
         catch (e:Error) {
             return '[]';

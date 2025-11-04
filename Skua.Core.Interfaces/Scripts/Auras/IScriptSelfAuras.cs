@@ -10,4 +10,8 @@
 /// </remarks>
 public interface IScriptSelfAuras : IScriptAuras
 {
+    /// <summary>
+    /// Represents the test value associated with the aura.
+    /// </summary>
+    public string AuraTest { get; }
 }
