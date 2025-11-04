@@ -789,7 +789,7 @@ public class Main extends MovieClip {
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
             if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
-                return aura.hasOwnProperty(auraName) ? aura[auraName].val.toString() : '1';
+                return isNaN(aura.val) ? '1' : aura.val;
             }
         }
         return '1';
