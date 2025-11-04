@@ -781,7 +781,7 @@ public class Main extends MovieClip {
         var aura:Object = null;
         var auras:* = null;
         try {
-            auras = subject == 'Self' ? [instance.game.world.uoTree, instance.game.loginInfo.strUsername, auras].join(".") : instance.game.world.myAvatar.target.dataLeaf.auras;
+            auras = subject == 'Self' ? [instance.game.world.uoTree, instance.game.loginInfo.strUsername.toLowerCase(), auras].join(".") : instance.game.world.myAvatar.target.dataLeaf.auras;
         } catch (e:Error) {
             return '1';
         }
