@@ -724,23 +724,97 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
-    public static function auraTest():String {
-        var plrUser:String = (instance.game.loginInfo.strUsername).toLowerCase();
-        var userObj:Object = null;
-        var uoTreeArray:Array = [];
-        try {
-            userObj = instance.game.world.uoTree[plrUser];
-            if (!userObj) {
-                return '[]';
+    private static function rebuildAuraArray(auras:Object):Array {
+        var rebuiltAuras:Array = [];
+        if (!auras) {
+            return rebuiltAuras;
+        }
+        
+        for (var i:int = 0; i < auras.length; i++) {
+            var aura:Object = auras[i];
+            var rebuiltAura:Object = {};
+            for (var key:String in aura) {
+                if (key == "cLeaf") {
+                    rebuiltAura[key] = "cycle_";
+                } else {
+                    rebuiltAura[key] = aura[key];
+                }
+            }
+            if (!rebuiltAura.hasOwnProperty("val")) {
+                rebuiltAura.val = 1;
+            }
+            rebuiltAuras.push(rebuiltAura);
+        }
+        
+        return rebuiltAuras;
+    }
+
+    public static function rebuilduoTree(playerName:String):Object {
+        var plrUser:String = playerName.toLowerCase();
+        var userObj:* = instance.game.world.uoTree[plrUser];
+        if (!userObj) {
+            return {};
+        }
+
+        var rebuiltObj:Object = {};
+        for (var prop:String in userObj) {
+            if (prop == "auras") {
+                rebuiltObj[prop] = rebuildAuraArray(userObj.auras);
+            } else {
+                rebuiltObj[prop] = userObj[prop];
             }
         }
+
+        return rebuiltObj;
+    }
+
+    public static function rebuildmonTree(monsterName:String):Object {
+        var monID:int = 0;
+        for each (var monster:* in instance.game.world.monsters)
+        {
+            if (monster.objData.strMonName.toLowerCase() == monsterName.toLowerCase() && monster != null) {
+                monID = monster.objData.MonMapID
+            }
+        }
+        var monObj:* = instance.game.world.monTree[monID];
+        if (!monObj) {
+            return {};
+        }
+        var rebuiltObj:Object = {};
+        for (var prop:String in monObj) {
+            if (prop == "auras") {
+                rebuiltObj[prop] = rebuildAuraArray(monObj.auras);
+            } else {
+                rebuiltObj[prop] = monObj[prop];
+            }
+        }
+
+        return rebuiltObj;
+    }
+
+    public static function auraTest():String {
+        var plrUser:String = instance.game.sfc.myUserName.toLowerCase();
+        try {
+            var userObj:* = instance.game.world.uoTree[plrUser];
+            if (!userObj) {
+                return '{}';
+            }
+            return JSON.stringify(rebuildAuraArray(userObj.auras))
+        }
         catch (e:Error) {
-            return '[]';
+            return '{}';
         }
-        for (var prop:String in userObj) {
-            uoTreeArray.push({key: prop, value: userObj[prop]});
+        return '{}';
+    }
+
+    public static function MonTest(monID:String):String {
+        try {
+            return JSON.stringify(rebuildmonTree(monID));
         }
-        return JSON.stringify(uoTreeArray);
+        catch (e:Error) {
+            return '{}';
+        }
+        return '{}';
     }
 
     public static function GetEntityAura(monster:Object):String {

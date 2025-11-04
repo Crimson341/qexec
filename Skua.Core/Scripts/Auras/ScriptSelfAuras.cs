@@ -34,8 +34,15 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
         return GetAura(auraName) != null;
     }
 
-    [JsonCallBinding("auraTest")]
-    private string _auraTest;
+    public string AuraTest()
+    {
+        return Flash.Call<string>("auraTest");
+    }
+
+    public string MonTest(string monsterName)
+    {
+        return Flash.Call<string>("monTest", monsterName);
+    }
 
     public bool TryGetAura(string auraName, out Aura? aura)
     {
