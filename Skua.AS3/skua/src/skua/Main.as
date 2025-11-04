@@ -779,20 +779,14 @@ public class Main extends MovieClip {
     public static function GetAurasValue(subject:String, auraName:String):String {
         var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
         var aura:Object = null;
-        var auras:Object = null;
+        var auras:* = null;
         try {
             auras = subject == 'Self' ? [instance.game.world.uoTree, instance.game.loginInfo.strUsername, auras].join(".") : instance.game.world.myAvatar.target.dataLeaf.auras;
         } catch (e:Error) {
             return '1';
         }
 
-        for (var i:int = 0; i < auras.length; i++) {
-            aura = auras[i];
-            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
-                return isNaN(aura.val) ? '1' : aura.val;
-            }
-        }
-        return '1';
+        return auras;
     }
 
     public static function HasAnyActiveAura(subject:String, auraNames:String):String {
