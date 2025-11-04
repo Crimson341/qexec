@@ -724,7 +724,7 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
-    private static function rebuildAuraArray(auras:Object):Array {
+    public static function rebuildAuraArray(auras:Object):Array {
         var rebuiltAuras:Array = [];
         if (!auras) {
             return rebuiltAuras;
@@ -774,14 +774,7 @@ public class Main extends MovieClip {
         return rebuiltObj;
     }
 
-    public static function rebuildmonTree(monsterName:String):Object {
-        var monID:int = 0;
-        for each (var monster:* in instance.game.world.monsters)
-        {
-            if (monster.objData.strMonName.toLowerCase() == monsterName.toLowerCase() && monster != null) {
-                monID = monster.objData.MonMapID
-            }
-        }
+    public static function rebuildmonTree(monID:int):Object {
         var monObj:* = instance.game.world.monTree[monID];
         if (!monObj) {
             return {};
@@ -798,8 +791,8 @@ public class Main extends MovieClip {
         return rebuiltObj;
     }
 
-    public static function auraTest():String {
-        var plrUser:String = instance.game.sfc.myUserName.toLowerCase();
+    public static function GetPlayerAura(playerName:String):String {
+        var plrUser:String = playerName.toLowerCase();
         try {
             var userObj:* = instance.game.world.uoTree[plrUser];
             if (!userObj) {
@@ -808,157 +801,34 @@ public class Main extends MovieClip {
             return JSON.stringify(rebuildAuraArray(userObj.auras))
         }
         catch (e:Error) {
-            return '{}';
         }
         return '{}';
     }
 
-    public static function MonTest(monID:String):String {
+    public static function GetMonsterAuraByName(monsterName:String):String {
+
+        try {
+            var monID:int = 0;
+            for each (var monster:* in instance.game.world.monsters)
+            {
+                if (monster.objData.strMonName.toLowerCase() == monsterName.toLowerCase() && monster != null) {
+                    monID = monster.objData.MonMapID
+                }
+            }
+            return JSON.stringify(rebuildmonTree(monID));
+        }
+        catch (e:Error) {
+        }
+        return '{}';
+    }
+
+    public static function GetMonsterAuraByID(monID:int):String {
         try {
             return JSON.stringify(rebuildmonTree(monID));
         }
         catch (e:Error) {
-            return '{}';
         }
         return '{}';
-    }
-
-    public static function GetEntityAura(monster:Object):String {
-        var aura:Object = null;
-        var auras:Object = null;
-        try {
-            auras = monster.dataLeaf.auras;
-        } catch (e:Error) {
-            return '[]';
-        }
-
-
-        var auraArray:Array = [];
-        for (var i:int = 0; i < auras.length; i++) {
-            aura = auras[i];
-            auraArray.push({
-                'nam': aura.nam,
-                'val': isNaN(aura.val) ? 1 : aura.val,
-                'passive': aura.passive,
-                'ts': aura.ts,
-                'dur': parseInt(aura.dur),
-                'potionType': aura.potionType,
-                'cat': aura.cat,
-                't': aura.t,
-                's': aura.s,
-                'fx': aura.fx,
-                'animOn': aura.animOn,
-                'animOff': aura.animOff,
-                'msgOn': aura.msgOn,
-                'isNew': aura.isNew
-            });
-        }
-        return JSON.stringify(auraArray);
-    }
-    public static function GetAurasValue(subject:String, auraName:String):String {
-        var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
-        var aura:Object = null;
-        var auras:Object = null;
-        try {
-            auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-        } catch (e:Error) {
-            return '1';
-        }
-
-        for (var i:int = 0; i < auras.length; i++) {
-            aura = auras[i];
-            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
-                return auraTracker.hasOwnProperty(aura.nam) ? auraTracker[aura.nam].stackCount.toString() : '1';
-            }
-        }
-        return '1';
-    }
-
-    public static function HasAnyActiveAura(subject:String, auraNames:String):String {
-        var auraList:Array = auraNames.split(',');
-        var auras:Object = null;
-        try {
-            auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-        } catch (e:Error) {
-            return false.toString();
-        }
-
-        for (var i:int = 0; i < auras.length; i++) {
-            var aura:Object = auras[i];
-            for (var j:int = 0; j < auraList.length; j++) {
-                if (aura.nam.toLowerCase() == auraList[j].toLowerCase().trim()) {
-                    return true.toString();
-                }
-            }
-        }
-        return false.toString();
-    }
-
-    public static function HasAllActiveAuras(subject:String, auraNames:String):String {
-        var auraList:Array = auraNames.split(',');
-        var auras:Object = null;
-        try {
-            auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-        } catch (e:Error) {
-            return false.toString();
-        }
-
-        var foundCount:int = 0;
-        for (var i:int = 0; i < auraList.length; i++) {
-            for (var j:int = 0; j < auras.length; j++) {
-                if (auras[j].nam.toLowerCase() == auraList[i].toLowerCase().trim()) {
-                    foundCount++;
-                    break;
-                }
-            }
-        }
-        return (foundCount == auraList.length).toString();
-    }
-
-    public static function GetTotalAuraStacks(subject:String, auraNamePattern:String):String {
-        var auras:Object = null;
-        try {
-            auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-        } catch (e:Error) {
-            return '0';
-        }
-
-        var totalStacks:int = 0;
-        var pattern:String = auraNamePattern.toLowerCase();
-
-        for (var i:int = 0; i < auras.length; i++) {
-            var aura:Object = auras[i];
-            var auraName:String = aura.nam.toLowerCase();
-
-            if (auraName == pattern || auraName.indexOf(pattern) != -1) {
-                var stacks:int = (aura.val == undefined || aura.val == null) ? 1 : parseInt(aura.val);
-                totalStacks += stacks;
-            }
-        }
-        return totalStacks.toString();
-    }
-
-    public static function GetAuraSecondsRemaining(subject:String, auraName:String):String {
-        var aura:Object = null;
-        var auras:Object = null;
-        try {
-            auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-        } catch (e:Error) {
-            return '0';
-        }
-
-        for (var i:int = 0; i < auras.length; i++) {
-            aura = auras[i];
-            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
-                var currentTime:Number = new Date().getTime();
-                var auraTime:Number = parseFloat(aura.ts);
-                var duration:Number = parseFloat(aura.dur) * 1000;
-                var expiresAt:Number = auraTime + duration;
-                var remaining:Number = Math.max(0, (expiresAt - currentTime) / 1000);
-                return Math.floor(remaining).toString();
-            }
-        }
-        return '0';
     }
 
     public static function getAvatar(id:int):String {

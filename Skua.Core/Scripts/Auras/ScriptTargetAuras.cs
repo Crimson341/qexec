@@ -7,18 +7,21 @@ namespace Skua.Core.Scripts;
 public partial class ScriptTargetAuras : IScriptTargetAuras
 {
     private readonly Lazy<IFlashUtil> _lazyFlash;
+    private readonly Lazy<IScriptPlayer> _lazyPlayer;
     private IFlashUtil Flash => _lazyFlash.Value;
+    private IScriptPlayer Player => _lazyPlayer.Value;
 
-    public ScriptTargetAuras(Lazy<IFlashUtil> lazyFlash)
+    public ScriptTargetAuras(Lazy<IFlashUtil> lazyFlash, Lazy<IScriptPlayer> lazyPlayer)
     {
         _lazyFlash = lazyFlash;
+        _lazyPlayer = lazyPlayer;
     }
 
     public List<Aura> Auras
     {
         get
         {
-            string? auraData = Flash.Call("getSubjectAuras", nameof(SubjectType.Target));
+            string? auraData = Flash.Call("GetMonsterAuraByID", Player.Target.MapID) ?? "[]";
             return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
         }
     }
@@ -33,6 +36,16 @@ public partial class ScriptTargetAuras : IScriptTargetAuras
         return GetAura(auraName) != null;
     }
 
+    public string GetMonsterAura(string monsterName)
+    {
+        return Flash.Call("GetMonsterAuraByName", monsterName) ?? "[]";
+    }
+
+    public string GetMonsterAura(int monID)
+    {
+        return Flash.Call("GetMonsterAuraByID", monID) ?? "[]";
+    }
+
     public bool TryGetAura(string auraName, out Aura? aura)
     {
         if (HasActiveAura(auraName))
@@ -42,35 +55,5 @@ public partial class ScriptTargetAuras : IScriptTargetAuras
         }
         aura = null;
         return false;
-    }
-
-    public int GetAuraValue(string auraName)
-    {
-        return Flash.Call<int>("GetAurasValue", nameof(SubjectType.Target), auraName);
-    }
-
-    public bool HasAuraWithMinStacks(string auraName, int minStacks)
-    {
-        return GetAuraValue(auraName) >= minStacks;
-    }
-
-    public int GetAuraSecondsRemaining(string auraName)
-    {
-        return Flash.Call<int>("GetAuraSecondsRemaining", nameof(SubjectType.Target), auraName);
-    }
-
-    public bool HasAnyActiveAura(params string[] auraNames)
-    {
-        return Flash.Call<bool>("HasAnyActiveAura", nameof(SubjectType.Target), string.Join(",", auraNames));
-    }
-
-    public bool HasAllActiveAuras(params string[] auraNames)
-    {
-        return Flash.Call<bool>("HasAllActiveAuras", nameof(SubjectType.Target), string.Join(",", auraNames));
-    }
-
-    public int GetTotalAuraStacks(string auraNamePattern)
-    {
-        return Flash.Call<int>("GetTotalAuraStacks", nameof(SubjectType.Target), auraNamePattern);
     }
 }

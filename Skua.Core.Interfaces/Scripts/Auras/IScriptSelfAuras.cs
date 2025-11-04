@@ -11,15 +11,9 @@
 public interface IScriptSelfAuras : IScriptAuras
 {
     /// <summary>
-    /// Represents the test value associated with the aura.
+    /// Retrieves the auras currently applied to the player.
     /// </summary>
-    public string AuraTest();
-
-    /// <summary>
-    /// Returns information about the specified monster.
-    /// </summary>
-    /// <param name="monsterName">The name of the monster to retrieve information for. Cannot be null or empty.</param>
-    /// <returns>A string containing information about the specified monster. Returns an empty string if the monster is not
-    /// found.</returns>
-    public string MonTest(string monsterName);
+    /// <param name="playerName">The name of the aura to retrieve. This value is case-sensitive and cannot be null or empty.</param>
+    /// <returns>A string representing the value of the specified aura if it is active on the player; otherwise, null.</returns>
+    public string GetPlayerAura(string playerName);
 }
