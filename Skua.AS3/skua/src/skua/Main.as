@@ -756,13 +756,32 @@ public class Main extends MovieClip {
         }
         return JSON.stringify(auraArray);
     }
-
+/*
     public static function GetAurasValue(subject:String, auraName:String):String {
         var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
         var aura:Object = null;
         var auras:Object = null;
         try {
             auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
+        } catch (e:Error) {
+            return '1';
+        }
+
+        for (var i:int = 0; i < auras.length; i++) {
+            aura = auras[i];
+            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
+                return auraTracker.hasOwnProperty(aura.nam) ? auraTracker[aura.nam].stackCount.toString() : '1';
+            }
+        }
+        return '1';
+    }
+*/
+    public static function GetAurasValue(subject:String, auraName:String):String {
+        var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
+        var aura:Object = null;
+        var auras:Object = null;
+        try {
+            auras = subject == 'Self' ? instance.game.world.uoTree + "." + instance.game.loginInfo.strUsername + "." + auras : instance.game.world.myAvatar.target.dataLeaf.auras;
         } catch (e:Error) {
             return '1';
         }
