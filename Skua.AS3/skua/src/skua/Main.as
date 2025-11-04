@@ -733,16 +733,22 @@ public class Main extends MovieClip {
         for (var i:int = 0; i < auras.length; i++) {
             var aura:Object = auras[i];
             var rebuiltAura:Object = {};
+            var hasVal:Boolean = false;
+            
             for (var key:String in aura) {
                 if (key == "cLeaf") {
                     rebuiltAura[key] = "cycle_";
+                } else if (key == "val") {
+                    rebuiltAura[key] = Math.floor(aura[key]);
+                    hasVal = true;
                 } else {
                     rebuiltAura[key] = aura[key];
                 }
             }
-            if (!rebuiltAura.hasOwnProperty("val")) {
+            if (!hasVal) {
                 rebuiltAura.val = 1;
             }
+            
             rebuiltAuras.push(rebuiltAura);
         }
         
