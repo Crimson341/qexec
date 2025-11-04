@@ -724,7 +724,7 @@ public class Main extends MovieClip {
         return JSON.stringify(auraArray);
     }
 
-    public static function auraTest():String {
+    public static function auraTest(auraName:String):String {
         var username:String = (instance.game.loginInfo.strUsername).toLowerCase();
         var auras:Object = null;
         try {
@@ -734,7 +734,11 @@ public class Main extends MovieClip {
             return '[]';
         }
 
-        return JSON.stringify(auras);
+        var auraByName:Object = [auras, auraName].join(".");
+
+        var auraValue:String = auraByName.val;
+
+        return auraValue;
     }
 
     public static function GetEntityAura(monster:Object):String {
