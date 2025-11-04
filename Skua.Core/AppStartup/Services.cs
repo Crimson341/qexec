@@ -7,7 +7,6 @@ using Skua.Core.Interfaces.Services;
 using Skua.Core.Options;
 using Skua.Core.Plugins;
 using Skua.Core.Scripts;
-using Skua.Core.Scripts.Helpers;
 using Skua.Core.Services;
 using Skua.Core.Skills;
 using Skua.Core.Utils;
@@ -52,7 +51,6 @@ public static class Services
         services.AddSingleton<IScriptBank, ScriptBank>();
 
         services.AddSingleton<IAdvancedSkillContainer, AdvancedSkillContainer>();
-        services.AddSingleton<IUltraBossHelper, UltraBossHelper>();
         services.AddSingleton<IScriptCombat, ScriptCombat>();
         services.AddSingleton<IScriptKill, ScriptKill>();
         services.AddSingleton<IScriptHunt, ScriptHunt>();
