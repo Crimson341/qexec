@@ -727,18 +727,18 @@ public class Main extends MovieClip {
     public static function auraTest(auraName:String):String {
         var username:String = (instance.game.loginInfo.strUsername).toLowerCase();
         var auras:Object = null;
+        var uoTreeArray:Array = [];
         try {
-            auras = [instance.game.world.uoTree, username, auras].join(".")
+            auras = instance.game.world.uoTree[username]
         }
         catch (e:Error) {
             return '[]';
         }
-
-        var auraByName:Object = [auras, auraName].join(".");
-
-        var auraValue:String = auraByName.val;
-
-        return auraValue;
+        for (var i:int = 0; i < auras.length; i++) {
+            var aura:Object = auras[i];
+            uoTreeArray.push(aura);
+        }
+        return JSON.stringify(uoTreeArray);
     }
 
     public static function GetEntityAura(monster:Object):String {
