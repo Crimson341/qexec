@@ -17,7 +17,7 @@ public class Aura
     /// The aura's stack value/count.
     /// </summary>
     [JsonProperty("val")]
-    public double Value { get; set; } = 1;
+    public int Value { get; set; } = 1;
 
     /// <summary>
     /// The icon file name for the aura.
@@ -36,6 +36,13 @@ public class Aura
     /// </summary>
     [JsonProperty("t")]
     public string Type { get; set; } = string.Empty;
+
+    /// <summary>
+    /// This should always return "cycle_" as having cLeaf inside of an aura causes a circular reference.
+    /// <br> We manually set the cLeaf to equal to "cycle_" to avoid this </br>.
+    /// </summary>
+    [JsonProperty("cLeaf")]
+    public string cLeaf { get; set; } = string.Empty;
 
     /// <summary>
     /// The duration of the aura in seconds.
@@ -106,5 +113,9 @@ public class Aura
     public override string ToString()
     {
         return $"{Name} (x{Value})";
+    }
+    public string ToJson(Formatting formatting = Formatting.None)
+    {
+        return JsonConvert.SerializeObject(this, formatting);
     }
 }

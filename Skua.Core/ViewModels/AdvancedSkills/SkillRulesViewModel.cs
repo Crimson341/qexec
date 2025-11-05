@@ -151,7 +151,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
     {
         List<UseRule> rules = new();
 
-        if (MultiAuraChecks.Count > 0)
+        if (MultiAuraChecks.Count > 0 && MultiAuraBool)
         {
             List<AuraCheck> auraChecks = new();
             foreach (var check in MultiAuraChecks)
@@ -167,17 +167,8 @@ public partial class SkillRulesViewModel : ObservableRecipient
         }
         else if (!string.IsNullOrEmpty(AuraName) || AuraUseValue != 0)
         {
-            List<AuraCheck> singleCheck = new()
-            {
-                new AuraCheck
-                {
-                    AuraName = AuraName,
-                    AuraTarget = AuraTargetIndex == 1 ? "target" : "self",
-                    Greater = AuraGreaterThanBool,
-                    StackCount = AuraUseValue
-                }
-            };
-            rules.Add(new UseRule(SkillRule.Aura, SkipUseBool, singleCheck));
+            string target = AuraTargetIndex == 1 ? "target" : "self";
+            rules.Add(new UseRule(SkillRule.Aura, SkipUseBool, AuraName, target, AuraGreaterThanBool, AuraUseValue));
         }
 
         if (HealthUseValue != 0)

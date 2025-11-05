@@ -739,7 +739,12 @@ public class Main extends MovieClip {
                 if (key == "cLeaf") {
                     rebuiltAura[key] = "cycle_";
                 } else if (key == "val") {
-                    rebuiltAura[key] = Math.floor(aura[key]);
+                    var rawVal:* = aura[key];
+                    if (rawVal == null || isNaN(rawVal)) {
+                        rebuiltAura[key] = 1;
+                    } else {
+                        rebuiltAura[key] = Math.max(1, Math.floor(rawVal));
+                    }
                     hasVal = true;
                 } else {
                     rebuiltAura[key] = aura[key];
@@ -796,13 +801,13 @@ public class Main extends MovieClip {
         try {
             var userObj:* = instance.game.world.uoTree[plrUser];
             if (!userObj) {
-                return '{}';
+                return '[]';
             }
             return JSON.stringify(rebuildAuraArray(userObj.auras))
         }
         catch (e:Error) {
         }
-        return '{}';
+        return '[]';
     }
 
     public static function GetMonsterAuraByName(monsterName:String):String {
@@ -815,20 +820,28 @@ public class Main extends MovieClip {
                     monID = monster.objData.MonMapID
                 }
             }
-            return JSON.stringify(rebuildmonTree(monID));
+            var monObj:* = instance.game.world.monTree[monID];
+            if (!monObj) {
+                return '[]';
+            }
+            return JSON.stringify(rebuildAuraArray(monObj.auras));
         }
         catch (e:Error) {
         }
-        return '{}';
+        return '[]';
     }
 
     public static function GetMonsterAuraByID(monID:int):String {
         try {
-            return JSON.stringify(rebuildmonTree(monID));
+            var monObj:* = instance.game.world.monTree[monID];
+            if (!monObj) {
+                return '[]';
+            }
+            return JSON.stringify(rebuildAuraArray(monObj.auras));
         }
         catch (e:Error) {
         }
-        return '{}';
+        return '[]';
     }
 
     public static function getAvatar(id:int):String {

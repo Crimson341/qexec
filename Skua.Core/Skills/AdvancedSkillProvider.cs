@@ -252,17 +252,7 @@ public class AdvancedSkillProvider : ISkillProvider
 
                 if (!string.IsNullOrEmpty(auraName))
                 {
-                    List<AuraCheck> singleCheck = new()
-                    {
-                        new AuraCheck
-                        {
-                            AuraName = auraName,
-                            AuraTarget = auraTarget,
-                            Greater = isGreater,
-                            StackCount = auraValue
-                        }
-                    };
-                    rules.Add(new UseRule(SkillRule.Aura, shouldSkip, singleCheck));
+                    rules.Add(new UseRule(SkillRule.Aura, shouldSkip, auraName, auraTarget, isGreater, auraValue));
                 }
                 continue;
             }

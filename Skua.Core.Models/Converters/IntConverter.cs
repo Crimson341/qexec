@@ -11,6 +11,8 @@ public class IntConverter : JsonConverter<int>
 
     public override int ReadJson(JsonReader reader, Type objectType, int existingValue, bool hasExistingValue, JsonSerializer serializer)
     {
-        return reader.Value == null ? 1 : int.TryParse(reader.Value.ToString(), out int result) ? result : 1;
+        return reader.Value == null || reader.Value == "null"
+            ? 1
+            : int.TryParse(reader.Value.ToString(), out int result) ? result : 1;
     }
 }

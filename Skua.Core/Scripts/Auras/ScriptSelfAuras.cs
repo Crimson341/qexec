@@ -22,7 +22,7 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
     {
         get
         {
-            string auraData = Flash.Call("GetPlayerAura", Player.Username) ?? "[]";
+            string auraData = Flash.Call("GetPlayerAura", Player.Username.ToLower()) ?? "[]";
             return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
         }
     }
