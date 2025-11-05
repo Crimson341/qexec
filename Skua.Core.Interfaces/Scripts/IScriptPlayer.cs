@@ -84,11 +84,6 @@ public interface IScriptPlayer
     /// <summary>
     /// Gets the player's username.
     /// </summary>
-    string SFCUsername { get; }
-
-    /// <summary>
-    /// Gets the player's username.
-    /// </summary>
     string Username { get; }
 
     /// <summary>
