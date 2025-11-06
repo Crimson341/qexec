@@ -20,9 +20,13 @@ public partial class CBOClassSelectUserControl : UserControl
         {
             var soloClass = vm.SelectedSoloClass;
             var farmClass = vm.SelectedFarmClass;
+            var dodgeClass = vm.SelectedDodgeClass;
+            var bossClass = vm.SelectedBossClass;
             vm.ReloadClassesCommand.Execute(null);
             vm.SelectedSoloClass = soloClass;
             vm.SelectedFarmClass = farmClass;
+            vm.SelectedDodgeClass = dodgeClass;
+            vm.SelectedBossClass = bossClass;
         }
     }
 }

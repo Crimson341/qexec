@@ -24,6 +24,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Button
             Grid.ColumnSpan="2"
@@ -104,6 +105,83 @@
                     materialDesign:HintAssist.Hint="Ground Item"
                     ItemsSource="{Binding GroundItems}"
                     SelectedItem="{Binding SelectedFarmGroundItem}" />
+            </StackPanel>
+        </GroupBox>
+
+        <GroupBox
+            Grid.Row="2"
+            Grid.Column="0"
+            Margin="0,6,3,0"
+            Header="Dodge Class Equipment">
+            <StackPanel>
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Helm"
+                    ItemsSource="{Binding Helms}"
+                    SelectedItem="{Binding SelectedDodgeHelm}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Armor"
+                    ItemsSource="{Binding Armors}"
+                    SelectedItem="{Binding SelectedDodgeArmor}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Cape"
+                    ItemsSource="{Binding Capes}"
+                    SelectedItem="{Binding SelectedDodgeCape}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Weapon"
+                    ItemsSource="{Binding Weapons}"
+                    SelectedItem="{Binding SelectedDodgeWeapon}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Pet"
+                    ItemsSource="{Binding Pets}"
+                    SelectedItem="{Binding SelectedDodgePet}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Ground Item"
+                    ItemsSource="{Binding GroundItems}"
+                    SelectedItem="{Binding SelectedDodgeGroundItem}" />
+            </StackPanel>
+        </GroupBox>
+        <GroupBox
+            Grid.Row="2"
+            Grid.Column="1"
+            Margin="3,6,0,0"
+            Header="Boss Class Equipment">
+            <StackPanel>
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Helm"
+                    ItemsSource="{Binding Helms}"
+                    SelectedItem="{Binding SelectedBossHelm}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Armor"
+                    ItemsSource="{Binding Armors}"
+                    SelectedItem="{Binding SelectedBossArmor}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Cape"
+                    ItemsSource="{Binding Capes}"
+                    SelectedItem="{Binding SelectedBossCape}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Weapon"
+                    ItemsSource="{Binding Weapons}"
+                    SelectedItem="{Binding SelectedBossWeapon}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Pet"
+                    ItemsSource="{Binding Pets}"
+                    SelectedItem="{Binding SelectedBossPet}" />
+                <ComboBox
+                    DropDownOpened="ComboBox_DropDownOpened"
+                    materialDesign:HintAssist.Hint="Ground Item"
+                    ItemsSource="{Binding GroundItems}"
+                    SelectedItem="{Binding SelectedBossGroundItem}" />
             </StackPanel>
         </GroupBox>
     </Grid>

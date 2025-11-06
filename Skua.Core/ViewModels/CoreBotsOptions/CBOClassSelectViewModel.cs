@@ -156,6 +156,142 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     [ObservableProperty]
     private bool _useFarmEquipment;
 
+    private string? _selectedDodgeClass;
+
+    public string? SelectedDodgeClass
+    {
+        get { return _selectedDodgeClass; }
+        set
+        {
+            if (SetProperty(ref _selectedDodgeClass, value) && value is not null)
+            {
+                DodgeUseModes = new();
+                DodgeModeStrings = new();
+                string classToUse = value;
+
+                if (value == CurrentClassOption)
+                {
+                    classToUse = _player.CurrentClass?.Name ?? string.Empty;
+                    if (string.IsNullOrEmpty(classToUse))
+                    {
+                        DodgeUseModes.Add(ClassUseMode.Base);
+                    }
+                    else
+                    {
+                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        if (skillModes.Count > 0)
+                        {
+                            DodgeUseModes.AddRange(skillModes);
+                        }
+                        else
+                        {
+                            DodgeUseModes.Add(ClassUseMode.Base);
+                            EnsureSkillEntryExists(classToUse);
+                        }
+                    }
+                }
+                else
+                {
+                    DodgeUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                }
+
+                var classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out var modes))
+                {
+                    DodgeModeStrings.AddRange(modes.OrderBy(x => x));
+                }
+
+                OnPropertyChanged(nameof(DodgeUseModes));
+                OnPropertyChanged(nameof(DodgeModeStrings));
+                if (SelectedDodgeUseMode is null)
+                    SelectedDodgeUseMode = DodgeUseModes.FirstOrDefault();
+                if (SelectedDodgeModeString is null && DodgeModeStrings.Count > 0)
+                    SelectedDodgeModeString = DodgeModeStrings.FirstOrDefault();
+            }
+        }
+    }
+
+    public List<ClassUseMode> DodgeUseModes { get; private set; } = new();
+
+    public List<string> DodgeModeStrings { get; private set; } = new();
+
+    [ObservableProperty]
+    private ClassUseMode? _selectedDodgeUseMode;
+
+    [ObservableProperty]
+    private string? _selectedDodgeModeString;
+
+    [ObservableProperty]
+    private bool _useDodgeEquipment;
+
+    private string? _selectedBossClass;
+
+    public string? SelectedBossClass
+    {
+        get { return _selectedBossClass; }
+        set
+        {
+            if (SetProperty(ref _selectedBossClass, value) && value is not null)
+            {
+                BossUseModes = new();
+                BossModeStrings = new();
+                string classToUse = value;
+
+                if (value == CurrentClassOption)
+                {
+                    classToUse = _player.CurrentClass?.Name ?? string.Empty;
+                    if (string.IsNullOrEmpty(classToUse))
+                    {
+                        BossUseModes.Add(ClassUseMode.Base);
+                    }
+                    else
+                    {
+                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        if (skillModes.Count > 0)
+                        {
+                            BossUseModes.AddRange(skillModes);
+                        }
+                        else
+                        {
+                            BossUseModes.Add(ClassUseMode.Base);
+                            EnsureSkillEntryExists(classToUse);
+                        }
+                    }
+                }
+                else
+                {
+                    BossUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                }
+
+                var classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out var modes))
+                {
+                    BossModeStrings.AddRange(modes.OrderBy(x => x));
+                }
+
+                OnPropertyChanged(nameof(BossUseModes));
+                OnPropertyChanged(nameof(BossModeStrings));
+                if (SelectedBossUseMode is null)
+                    SelectedBossUseMode = BossUseModes.FirstOrDefault();
+                if (SelectedBossModeString is null && BossModeStrings.Count > 0)
+                    SelectedBossModeString = BossModeStrings.FirstOrDefault();
+            }
+        }
+    }
+
+    public List<ClassUseMode> BossUseModes { get; private set; } = new();
+
+    public List<string> BossModeStrings { get; private set; } = new();
+
+    [ObservableProperty]
+    private ClassUseMode? _selectedBossUseMode;
+
+    [ObservableProperty]
+    private string? _selectedBossModeString;
+
+    [ObservableProperty]
+    private bool _useBossEquipment;
+
     private readonly IScriptInventory _inventory;
     private readonly IAdvancedSkillContainer _advancedSkills;
     private readonly IScriptPlayer _player;
@@ -186,12 +322,22 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
         FarmUseModes = new();
         SelectedFarmClass = null;
         SelectedFarmUseMode = null;
+
+        DodgeUseModes = new();
+        SelectedDodgeClass = null;
+        SelectedDodgeUseMode = null;
+
+        BossUseModes = new();
+        SelectedBossClass = null;
+        SelectedBossUseMode = null;
     }
 
     public StringBuilder Save(StringBuilder builder)
     {
         string soloClass = SelectedSoloClass == CurrentClassOption ? CurrentClassOption : SelectedSoloClass;
         string farmClass = SelectedFarmClass == CurrentClassOption ? CurrentClassOption : SelectedFarmClass;
+        string dodgeClass = SelectedDodgeClass == CurrentClassOption ? CurrentClassOption : SelectedDodgeClass;
+        string bossClass = SelectedBossClass == CurrentClassOption ? CurrentClassOption : SelectedBossClass;
         
         builder.AppendLine($"SoloClassSelect: {soloClass}");
         builder.AppendLine($"SoloEquipCheck: {UseSoloEquipment}");
@@ -199,6 +345,12 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
         builder.AppendLine($"FarmClassSelect: {farmClass}");
         builder.AppendLine($"FarmEquipCheck: {UseFarmEquipment}");
         builder.AppendLine($"FarmModeSelect: {SelectedFarmUseMode}");
+        builder.AppendLine($"DodgeClassSelect: {dodgeClass}");
+        builder.AppendLine($"DodgeEquipCheck: {UseDodgeEquipment}");
+        builder.AppendLine($"DodgeModeSelect: {SelectedDodgeUseMode}");
+        builder.AppendLine($"BossClassSelect: {bossClass}");
+        builder.AppendLine($"BossEquipCheck: {UseBossEquipment}");
+        builder.AppendLine($"BossModeSelect: {SelectedBossUseMode}");
 
         return builder;
     }
@@ -255,6 +407,48 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             SelectedFarmClass = string.Empty;
             UseFarmEquipment = false;
             SelectedFarmUseMode = ClassUseMode.Base;
+        }
+
+        if (values.ContainsKey("DodgeClassSelect"))
+        {
+            string dodgeClassValue = values["DodgeClassSelect"];
+            if (dodgeClassValue != CurrentClassOption && !PlayerClasses.Contains(dodgeClassValue))
+            {
+                PlayerClasses.Add(dodgeClassValue);
+                OnPropertyChanged(nameof(PlayerClasses));
+            }
+            SelectedDodgeClass = dodgeClassValue;
+            UseDodgeEquipment = values.TryGetValue("DodgeEquipCheck", out string? check) && Convert.ToBoolean(check);
+            SelectedDodgeUseMode = values.TryGetValue("DodgeModeSelect", out string? mode) && !string.IsNullOrWhiteSpace(mode)
+                ? Enum.TryParse(typeof(ClassUseMode), mode, true, out object? result) ? (ClassUseMode)result! : ClassUseMode.Base
+                : ClassUseMode.Base;
+        }
+        else
+        {
+            SelectedDodgeClass = string.Empty;
+            UseDodgeEquipment = false;
+            SelectedDodgeUseMode = ClassUseMode.Base;
+        }
+
+        if (values.ContainsKey("BossClassSelect"))
+        {
+            string bossClassValue = values["BossClassSelect"];
+            if (bossClassValue != CurrentClassOption && !PlayerClasses.Contains(bossClassValue))
+            {
+                PlayerClasses.Add(bossClassValue);
+                OnPropertyChanged(nameof(PlayerClasses));
+            }
+            SelectedBossClass = bossClassValue;
+            UseBossEquipment = values.TryGetValue("BossEquipCheck", out string? check) && Convert.ToBoolean(check);
+            SelectedBossUseMode = values.TryGetValue("BossModeSelect", out string? mode) && !string.IsNullOrWhiteSpace(mode)
+                ? Enum.TryParse(typeof(ClassUseMode), mode, true, out object? result) ? (ClassUseMode)result! : ClassUseMode.Base
+                : ClassUseMode.Base;
+        }
+        else
+        {
+            SelectedBossClass = string.Empty;
+            UseBossEquipment = false;
+            SelectedBossUseMode = ClassUseMode.Base;
         }
     }
 }

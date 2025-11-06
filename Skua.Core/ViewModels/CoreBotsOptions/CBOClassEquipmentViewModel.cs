@@ -58,6 +58,42 @@ public partial class CBOClassEquipmentViewModel : ObservableObject, IManageCBOpt
     [ObservableProperty]
     private string? _selectedSoloGroundItem;
 
+    [ObservableProperty]
+    private string? _selectedDodgeHelm;
+
+    [ObservableProperty]
+    private string? _selectedDodgeArmor;
+
+    [ObservableProperty]
+    private string? _selectedDodgeCape;
+
+    [ObservableProperty]
+    private string? _selectedDodgeWeapon;
+
+    [ObservableProperty]
+    private string? _selectedDodgePet;
+
+    [ObservableProperty]
+    private string? _selectedDodgeGroundItem;
+
+    [ObservableProperty]
+    private string? _selectedBossHelm;
+
+    [ObservableProperty]
+    private string? _selectedBossArmor;
+
+    [ObservableProperty]
+    private string? _selectedBossCape;
+
+    [ObservableProperty]
+    private string? _selectedBossWeapon;
+
+    [ObservableProperty]
+    private string? _selectedBossPet;
+
+    [ObservableProperty]
+    private string? _selectedBossGroundItem;
+
     [RelayCommand]
     private void RefreshInventory()
     {
@@ -92,6 +128,20 @@ public partial class CBOClassEquipmentViewModel : ObservableObject, IManageCBOpt
         builder.AppendLine($"Pet2Select: {SelectedFarmPet}");
         builder.AppendLine($"GroundItem2Select: {SelectedFarmGroundItem}");
 
+        builder.AppendLine($"Helm3Select: {SelectedDodgeHelm}");
+        builder.AppendLine($"Armor3Select: {SelectedDodgeArmor}");
+        builder.AppendLine($"Cape3Select: {SelectedDodgeCape}");
+        builder.AppendLine($"Weapon3Select: {SelectedDodgeWeapon}");
+        builder.AppendLine($"Pet3Select: {SelectedDodgePet}");
+        builder.AppendLine($"GroundItem3Select: {SelectedDodgeGroundItem}");
+
+        builder.AppendLine($"Helm4Select: {SelectedBossHelm}");
+        builder.AppendLine($"Armor4Select: {SelectedBossArmor}");
+        builder.AppendLine($"Cape4Select: {SelectedBossCape}");
+        builder.AppendLine($"Weapon4Select: {SelectedBossWeapon}");
+        builder.AppendLine($"Pet4Select: {SelectedBossPet}");
+        builder.AppendLine($"GroundItem4Select: {SelectedBossGroundItem}");
+
         return builder;
     }
 
@@ -122,6 +172,32 @@ public partial class CBOClassEquipmentViewModel : ObservableObject, IManageCBOpt
             Pets.Add(SelectedFarmPet);
         if (!string.IsNullOrEmpty(SelectedFarmGroundItem = GetValue("GroundItem2Select")))
             GroundItems.Add(SelectedFarmGroundItem);
+
+        if (!string.IsNullOrEmpty(SelectedDodgeHelm = GetValue("Helm3Select")))
+            Helms.Add(SelectedDodgeHelm);
+        if (!string.IsNullOrEmpty(SelectedDodgeArmor = GetValue("Armor3Select")))
+            Armors.Add(SelectedDodgeArmor);
+        if (!string.IsNullOrEmpty(SelectedDodgeCape = GetValue("Cape3Select")))
+            Capes.Add(SelectedDodgeCape);
+        if (!string.IsNullOrEmpty(SelectedDodgeWeapon = GetValue("Weapon3Select")))
+            Weapons.Add(SelectedDodgeWeapon);
+        if (!string.IsNullOrEmpty(SelectedDodgePet = GetValue("Pet3Select")))
+            Pets.Add(SelectedDodgePet);
+        if (!string.IsNullOrEmpty(SelectedDodgeGroundItem = GetValue("GroundItem3Select")))
+            GroundItems.Add(SelectedDodgeGroundItem);
+
+        if (!string.IsNullOrEmpty(SelectedBossHelm = GetValue("Helm4Select")))
+            Helms.Add(SelectedBossHelm);
+        if (!string.IsNullOrEmpty(SelectedBossArmor = GetValue("Armor4Select")))
+            Armors.Add(SelectedBossArmor);
+        if (!string.IsNullOrEmpty(SelectedBossCape = GetValue("Cape4Select")))
+            Capes.Add(SelectedBossCape);
+        if (!string.IsNullOrEmpty(SelectedBossWeapon = GetValue("Weapon4Select")))
+            Weapons.Add(SelectedBossWeapon);
+        if (!string.IsNullOrEmpty(SelectedBossPet = GetValue("Pet4Select")))
+            Pets.Add(SelectedBossPet);
+        if (!string.IsNullOrEmpty(SelectedBossGroundItem = GetValue("GroundItem4Select")))
+            GroundItems.Add(SelectedBossGroundItem);
 
         string GetValue(string key) => values.TryGetValue(key, out string? value) ? value : string.Empty;
     }

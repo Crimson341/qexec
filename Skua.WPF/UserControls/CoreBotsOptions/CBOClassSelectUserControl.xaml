@@ -12,6 +12,7 @@
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -80,6 +81,74 @@
                     HorizontalAlignment="Stretch"
                     Content="Specify Equipment"
                     IsChecked="{Binding UseFarmEquipment}"
+                    Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}" />
+            </Grid>
+        </GroupBox>
+        <GroupBox
+            Grid.Row="1"
+            Grid.Column="0"
+            Margin="0,6,3,0"
+            Header="Dodge Class">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" Margin="0,0,0,3">
+                    <ComboBox
+                        x:Name="DodgeClassComboBox"
+                        DropDownOpened="ClassComboBox_DropDownOpened"
+                        materialDesign:HintAssist.Hint="Class"
+                        ItemsSource="{Binding PlayerClasses}"
+                        SelectedItem="{Binding SelectedDodgeClass}" />
+                </DockPanel>
+                <ComboBox
+                    Grid.Row="1"
+                    Height="32"
+                    Margin="0,3"
+                    materialDesign:HintAssist.Hint="Mode"
+                    ItemsSource="{Binding DodgeModeStrings}"
+                    SelectedItem="{Binding SelectedDodgeModeString}" />
+                <CheckBox
+                    Grid.Row="2"
+                    HorizontalAlignment="Stretch"
+                    Content="Specify Equipment"
+                    IsChecked="{Binding UseDodgeEquipment}"
+                    Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}" />
+            </Grid>
+        </GroupBox>
+        <GroupBox
+            Grid.Row="1"
+            Grid.Column="1"
+            Margin="3,6,0,0"
+            Header="Boss Class">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                    <RowDefinition Height="auto" />
+                </Grid.RowDefinitions>
+                <DockPanel Grid.Row="0" Margin="0,0,0,3">
+                    <ComboBox
+                        x:Name="BossClassComboBox"
+                        DropDownOpened="ClassComboBox_DropDownOpened"
+                        materialDesign:HintAssist.Hint="Class"
+                        ItemsSource="{Binding PlayerClasses}"
+                        SelectedItem="{Binding SelectedBossClass}" />
+                </DockPanel>
+                <ComboBox
+                    Grid.Row="1"
+                    Height="32"
+                    Margin="0,3"
+                    materialDesign:HintAssist.Hint="Mode"
+                    ItemsSource="{Binding BossModeStrings}"
+                    SelectedItem="{Binding SelectedBossModeString}" />
+                <CheckBox
+                    Grid.Row="2"
+                    HorizontalAlignment="Stretch"
+                    Content="Specify Equipment"
+                    IsChecked="{Binding UseBossEquipment}"
                     Style="{StaticResource MaterialDesignFilterChipPrimaryCheckBox}" />
             </Grid>
         </GroupBox>
