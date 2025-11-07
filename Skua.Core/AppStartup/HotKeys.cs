@@ -24,7 +24,8 @@ internal class HotKeys
             { "OpenBank", new RelayCommand(Ioc.Default.GetRequiredService<IScriptBank>().Open, CanExecuteHotKey) },
             { "OpenConsole", new RelayCommand(OpenConsole, CanExecuteHotKey) },
             { "ToggleAutoAttack", new RelayCommand(ToggleAutoAttack, CanExecuteHotKey) },
-            { "ToggleAutoHunt", new RelayCommand(ToggleAutoHunt, CanExecuteHotKey) }
+            { "ToggleAutoHunt", new RelayCommand(ToggleAutoHunt, CanExecuteHotKey) },
+            { "ToggleLagKiller", new RelayCommand(ToggleLagKiller, CanExecuteHotKey) }
         };
 
         return hotKeys;
@@ -82,5 +83,11 @@ internal class HotKeys
     private static void LoadScript()
     {
         StrongReferenceMessenger.Default.Send<LoadScriptMessage, int>(new(null), (int)MessageChannels.ScriptStatus);
+    }
+
+    private static void ToggleLagKiller()
+    {
+        var options = Ioc.Default.GetRequiredService<IScriptOption>();
+        options.LagKiller = !options.LagKiller;
     }
 }

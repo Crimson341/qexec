@@ -178,7 +178,8 @@ public class ClientSettings
                 "OpenBank|F2",
                 "OpenConsole|F3",
                 "ToggleAutoAttack|F4",
-                "ToggleAutoHunt|F5"
+                "ToggleAutoHunt|F5",
+                "ToggleLagKiller|F6"
             };
         }
 
