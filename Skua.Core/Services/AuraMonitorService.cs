@@ -20,13 +20,13 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
     private bool _disposed;
 
 
-    public event Action<string, DateTimeOffset, int, int, SubjectType>? AuraActivated;
+    public event Action<string, DateTimeOffset, float, float, SubjectType>? AuraActivated;
 
 
     public event Action<string, SubjectType>? AuraDeactivated;
 
 
-    public event Action<string, int, int, SubjectType>? AuraStackChanged;
+    public event Action<string, float, float, SubjectType>? AuraStackChanged;
 
     public bool IsMonitoring => _isMonitoring;
 
@@ -38,7 +38,7 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
     private class AuraState
     {
         public string Name { get; init; } = string.Empty;
-        public int StackValue { get; set; }
+        public float StackValue { get; set; }
         public DateTimeOffset TimeStarted { get; init; }
         public int DurationSeconds { get; init; }
         public bool IsActive { get; set; }
@@ -128,7 +128,7 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
         {
             if (string.IsNullOrEmpty(aura.Name)) continue;
 
-            int stackValue = aura.Value;
+            float stackValue = aura.Value;
 
             if (stateDict.TryGetValue(aura.Name, out AuraState? existingState))
             {
@@ -137,7 +137,7 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
                     continue;
                 }
 
-                int oldValue = existingState.StackValue;
+                float oldValue = existingState.StackValue;
                 existingState.StackValue = stackValue;
 
                 AuraStackChanged?.Invoke(aura.Name, oldValue, stackValue, subject);

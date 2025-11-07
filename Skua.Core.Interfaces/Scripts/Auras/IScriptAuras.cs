@@ -36,6 +36,20 @@ public interface IScriptAuras
     Aura? GetAura(string auraName);
 
     /// <summary>
+    /// Retrieves the current value associated with the specified aura.
+    /// </summary>
+    /// <param name="auraName">The name of the aura for which to obtain the value. Cannot be null or empty.</param>
+    /// <returns>The value of the specified aura as a floating-point number. Returns 0 if the aura is not found.</returns>
+    float GetAuraValue(string auraName);
+
+    /// <summary>
+    /// Determines whether any of the specified aura names are currently active.
+    /// </summary>
+    /// <param name="auraNames">An array of aura names to check for activity. Each name represents an aura to be evaluated. Cannot be null.</param>
+    /// <returns>true if at least one of the specified auras is active; otherwise, false.</returns>
+    public bool HasAnyActiveAura(params string[] auraNames);
+
+    /// <summary>
     /// Tried to get the aura of a subject type with the specified aura name.
     /// </summary>
     /// <param name="auraName">The aura name.</param>

@@ -742,8 +742,6 @@ public class Main extends MovieClip {
                     var rawVal:* = aura[key];
                     if (rawVal == null || isNaN(rawVal)) {
                         rebuiltAura[key] = 1;
-                    } else {
-                        rebuiltAura[key] = Math.max(1, Math.floor(rawVal));
                     }
                     hasVal = true;
                 } else {
@@ -804,6 +802,76 @@ public class Main extends MovieClip {
                 return '[]';
             }
             return JSON.stringify(rebuildAuraArray(userObj.auras))
+        }
+        catch (e:Error) {
+        }
+        return '[]';
+    }
+
+    public static function HasAnyActiveAura(subject:String, auraNames:String):String {
+        var auraList:Array = auraNames.split(',');
+        var auras:Object = null;
+        try {
+            auras = subject == 'Self' ? GetCurrentPlayerAura : GetMonsterAuraByTarget;
+        } catch (e:Error) {
+            return false.toString();
+        }
+
+        for (var i:int = 0; i < auras.length; i++) {
+            var aura:Object = auras[i];
+            for (var j:int = 0; j < auraList.length; j++) {
+                if (aura.nam.toLowerCase() == auraList[j].toLowerCase().trim()) {
+                    return true.toString();
+                }
+            }
+        }
+        return false.toString();
+    }
+
+    public static function GetCurrentPlayerAura():String {
+        var plrUser:String = instance.game.sfc.myUserName.toLowerCase();
+        try {
+            var userObj:* = instance.game.world.uoTree[plrUser];
+            if (!userObj) {
+                return '[]';
+            }
+            return JSON.stringify(rebuildAuraArray(userObj.auras))
+        }
+        catch (e:Error) {
+        }
+        return '[]';
+    }
+
+    public static function GetAurasValue(subject:String, auraName:String):String {
+        var aura:Object = null;
+        var auras:Object = null;
+        try {
+            auras = subject == 'Self' ? GetCurrentPlayerAura() : GetMonsterAuraByTarget();
+        } catch (e:Error) {
+            return '0';
+        }
+
+        for (var i:int = 0; i < auras.length; i++) {
+            aura = auras[i];
+            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
+                return aura.val.ToString();
+            }
+        }
+        return '0';
+    }
+
+    public static function GetMonsterAuraByTarget():String {
+
+        try {
+            var monID:int = 0;
+            if (instance.game.world.myAvatar.target != null) {
+                monID = instance.game.world.myAvatar.target.dataLeaf.MonMapID;
+            }
+            var monObj:* = instance.game.world.monTree[monID];
+            if (!monObj) {
+                return '[]';
+            }
+            return JSON.stringify(rebuildAuraArray(monObj.auras));
         }
         catch (e:Error) {
         }

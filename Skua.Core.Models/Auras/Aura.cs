@@ -17,7 +17,7 @@ public class Aura
     /// The aura's stack value/count.
     /// </summary>
     [JsonProperty("val")]
-    public int Value { get; set; } = 1;
+    public float Value { get; set; } = 1;
 
     /// <summary>
     /// The icon file name for the aura.

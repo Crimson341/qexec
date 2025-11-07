@@ -121,7 +121,7 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
 
     public bool CheckAuraThreshold(IScriptSelfAuras auras, string auraName, int threshold, string comparison = ">=")
     {
-        int value = auras.GetAuraValue(auraName);
+        float value = auras.GetAuraValue(auraName);
         return comparison switch
         {
             "<" => value < threshold,
@@ -149,20 +149,20 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
         }
     }
 
-    public bool ShouldUseSkill(IScriptSelfAuras selfAuras, Dictionary<string, Func<int, bool>> conditions)
+    public bool ShouldUseSkill(IScriptSelfAuras selfAuras, Dictionary<string, Func<float, bool>> conditions)
     {
         return conditions.All(condition =>
         {
-            int auraValue = selfAuras.GetAuraValue(condition.Key);
+            float auraValue = selfAuras.GetAuraValue(condition.Key);
             return condition.Value(auraValue);
         });
     }
 
-    public bool ShouldUseSkill(IScriptTargetAuras targetAuras, Dictionary<string, Func<int, bool>> conditions)
+    public bool ShouldUseSkill(IScriptTargetAuras targetAuras, Dictionary<string, Func<float, bool>> conditions)
     {
         return conditions.All(condition =>
         {
-            int auraValue = targetAuras.GetAuraValue(condition.Key);
+            float auraValue = targetAuras.GetAuraValue(condition.Key);
             return condition.Value(auraValue);
         });
     }

@@ -42,6 +42,16 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
         return Flash.Call("GetPlayerAura", playerName) ?? "[]";
     }
 
+    public float GetAuraValue(string auraName)
+    {
+        return Flash.Call<float>("GetAurasValue", nameof(SubjectType.Self), auraName);
+    }
+
+    public bool HasAnyActiveAura(params string[] auraNames)
+    {
+        return Flash.Call<bool>("HasAnyActiveAura", nameof(SubjectType.Self), string.Join(",", auraNames));
+    }
+
     public bool TryGetAura(string auraName, out Aura? aura)
     {
         if (HasActiveAura(auraName))

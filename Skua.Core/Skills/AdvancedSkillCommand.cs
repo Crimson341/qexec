@@ -171,7 +171,7 @@ public class AdvancedSkillCommand
 
         foreach (var check in checks)
         {
-            int stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
+            float stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
             if (!(check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount))
                 return false;
         }
@@ -187,7 +187,7 @@ public class AdvancedSkillCommand
         {
             foreach (var check in checks)
             {
-                int stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
+                float stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
                 if (check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount)
                     return true;
             }
@@ -197,7 +197,7 @@ public class AdvancedSkillCommand
         {
             foreach (var check in checks)
             {
-                int stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
+                float stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
                 if (!(check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount))
                     return false;
             }
@@ -205,7 +205,7 @@ public class AdvancedSkillCommand
         }
     }
 
-    private int GetAuraStacks(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, string auraTarget, string auraName)
+    private float GetAuraStacks(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, string auraTarget, string auraName)
     {
         if (auraTarget.Equals("self", StringComparison.OrdinalIgnoreCase))
         {

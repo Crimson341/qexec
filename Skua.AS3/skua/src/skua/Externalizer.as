@@ -66,10 +66,14 @@ public class Externalizer {
         this.addCallback("auraComparison", Main.auraComparison);
         this.addCallback("isTrue", Main.isTrue);
         this.addCallback("getSubjectAuras", Main.getSubjectAuras);
+        this.addCallback("HasAnyActiveAura", Main.HasAnyActiveAura);
         this.addCallback("GetPlayerAura", Main.GetPlayerAura);
+        this.addCallback("GetCurrentPlayerAura", Main.GetCurrentPlayerAura);
+        this.addCallback("GetMonsterAuraByTarget", Main.GetMonsterAuraByTarget);
         this.addCallback("GetMonsterAuraByName", Main.GetMonsterAuraByName);
         this.addCallback("GetMonsterAuraByID", Main.GetMonsterAuraByID);
         this.addCallback("rebuildAuraArray", Main.rebuildAuraArray);
+        this.addCallback("GetAurasValue", Main.GetAurasValue);
         this.addCallback("rebuilduoTree", Main.rebuilduoTree);
         this.addCallback("rebuildmonTree", Main.rebuildmonTree);
         this.addCallback("getAvatar", Main.getAvatar);

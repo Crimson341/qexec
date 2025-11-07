@@ -75,7 +75,7 @@ public interface IUltraBossHelper
     /// <param name="selfAuras">Self auras interface to check</param>
     /// <param name="conditions">Dictionary of aura names and their required conditions</param>
     /// <returns>True if all conditions are met</returns>
-    bool ShouldUseSkill(IScriptSelfAuras selfAuras, Dictionary<string, Func<int, bool>> conditions);
+    bool ShouldUseSkill(IScriptSelfAuras selfAuras, Dictionary<string, Func<float, bool>> conditions);
 
     /// <summary>
     /// Checks if all aura conditions are met for skill usage using target auras (case-insensitive).
@@ -83,7 +83,7 @@ public interface IUltraBossHelper
     /// <param name="targetAuras">Target auras interface to check</param>
     /// <param name="conditions">Dictionary of aura names and their required conditions</param>
     /// <returns>True if all conditions are met</returns>
-    bool ShouldUseSkill(IScriptTargetAuras targetAuras, Dictionary<string, Func<int, bool>> conditions);
+    bool ShouldUseSkill(IScriptTargetAuras targetAuras, Dictionary<string, Func<float, bool>> conditions);
     #endregion
 
 }
