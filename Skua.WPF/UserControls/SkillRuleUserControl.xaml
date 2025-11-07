@@ -16,7 +16,7 @@
     mc:Ignorable="d">
     <UserControl.Resources>
         <Style BasedOn="{StaticResource MaterialDesignFloatingHintTextBox}" TargetType="TextBox" />
-        <conv:StringToIntConverter x:Key="StringToIntConverter" />
+        <conv:StringToFloatConverter x:Key="StringToFloatConverter" />
         <BooleanToVisibilityConverter x:Key="BoolToVisConverter" />
         <conv:InverseBooleanToVisibilityConverter x:Key="InverseBoolToVisConverter" />
     </UserControl.Resources>
@@ -262,9 +262,9 @@
                         Grid.Column="1"
                         materialDesign:HintAssist.Hint="Stacks"
                         Margin="3,0,3,0"
-                        Text="{Binding AuraUseValue, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource StringToIntConverter}}">
+                        Text="{Binding AuraUseValue, UpdateSourceTrigger=LostFocus, Converter={StaticResource StringToFloatConverter}}">
                         <b:Interaction.Behaviors>
-                            <wpf:TextBoxOnlyNumbersBehavior />
+                            <wpf:TextBoxOnlyFloatingPointBehavior/>
                         </b:Interaction.Behaviors>
                     </TextBox>
                     <ComboBox
@@ -349,9 +349,9 @@
                                     Grid.Column="2"
                                     Margin="2,0,2,0"
                                     materialDesign:HintAssist.Hint="Stacks"
-                                    Text="{Binding StackCount, UpdateSourceTrigger=PropertyChanged}">
+                                    Text="{Binding StackCount, UpdateSourceTrigger=LostFocus, Converter={StaticResource StringToFloatConverter}}">
                                     <b:Interaction.Behaviors>
-                                        <wpf:TextBoxOnlyNumbersBehavior />
+                                        <wpf:TextBoxOnlyFloatingPointBehavior/>
                                     </b:Interaction.Behaviors>
                                 </TextBox>
                                 <ComboBox

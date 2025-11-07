@@ -690,41 +690,24 @@ public class Main extends MovieClip {
         return false.toString();
     }
 
-    public static function getSubjectAuras(subject:String):String {
-        var aura:Object = null;
-        var auras:Object = null;
-        var auraTracker:Object = subject == 'Self' ? selfAuraData : targetAuraData;
-        try {
-            auras = subject == 'Self' ? instance.game.world.myAvatar.dataLeaf.auras : instance.game.world.myAvatar.target.dataLeaf.auras;
-        } catch (e:Error) {
-            return '[]';
+    public static function getSubjectAuras(subject:String):Array {
+        if (subject == 'Self')
+        {
+            var userObj:* = instance.game.world.uoTree[instance.game.sfc.myUserName.toLowerCase()];
+            return rebuildAuraArray(userObj.auras)
         }
-
-        var auraArray:Array = [];
-        for (var i:int = 0; i < auras.length; i++) {
-            aura = auras[i];
-            var trackedData:Object = auraTracker.hasOwnProperty(aura.nam) ? auraTracker[aura.nam] : null;
-            auraArray.push({
-                'nam': aura.nam,
-                'val': trackedData ? trackedData.stackCount : 1,
-                'passive': aura.passive,
-                'ts': aura.ts,
-                'dur': parseInt(aura.dur),
-                'potionType': aura.potionType,
-                'cat': aura.cat,
-                't': trackedData && trackedData.t ? trackedData.t : aura.t,
-                's': aura.s,
-                'fx': aura.fx,
-                'animOn': aura.animOn,
-                'animOff': aura.animOff,
-                'msgOn': aura.msgOn,
-                'isNew': trackedData ? trackedData.isNew : aura.isNew
-            });
+        else
+        {
+            var monID:int = 0;
+            if (instance.game.world.myAvatar.target != null) {
+                monID = instance.game.world.myAvatar.target.dataLeaf.MonMapID;
+            }
+            var monObj:* = instance.game.world.monTree[monID];
+            return rebuildAuraArray(monObj.auras)
         }
-        return JSON.stringify(auraArray);
     }
 
-    public static function rebuildAuraArray(auras:Object):Array {
+    public static function  rebuildAuraArray(auras:Object):Array {
         var rebuiltAuras:Array = [];
         if (!auras) {
             return rebuiltAuras;
@@ -790,8 +773,45 @@ public class Main extends MovieClip {
                 rebuiltObj[prop] = monObj[prop];
             }
         }
-
         return rebuiltObj;
+    }
+
+    public static function HasAnyActiveAura(subject:String, auraNames:String):String {
+        var auraList:Array = auraNames.split(',');
+        var auras:Object = null;
+        try {
+            auras = getSubjectAuras(subject);
+        } catch (e:Error) {
+            return false.toString();
+        }
+
+        for (var i:int = 0; i < auras.length; i++) {
+            var aura:Object = auras[i];
+            for (var j:int = 0; j < auraList.length; j++) {
+                if (aura.nam.toLowerCase() == auraList[j].toLowerCase().trim()) {
+                    return true.toString();
+                }
+            }
+        }
+        return false.toString();
+    }
+
+    public static function GetAurasValue(subject:String, auraName:String):Number {
+        var aura:Object = null;
+        var auras:Array = null;
+        try {
+            auras = getSubjectAuras(subject);
+        } catch (e:Error) {
+            return 442;
+        }
+
+        for (var i:int = 0; i < auras.length; i++) {
+            aura = auras[i];
+            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
+                return aura.val;
+            }
+        }
+        return 444;
     }
 
     public static function GetPlayerAura(playerName:String):String {
@@ -808,60 +828,21 @@ public class Main extends MovieClip {
         return '[]';
     }
 
-    public static function HasAnyActiveAura(subject:String, auraNames:String):String {
-        var auraList:Array = auraNames.split(',');
-        var auras:Object = null;
-        try {
-            auras = subject == 'Self' ? GetCurrentPlayerAura : GetMonsterAuraByTarget;
-        } catch (e:Error) {
-            return false.toString();
-        }
-
-        for (var i:int = 0; i < auras.length; i++) {
-            var aura:Object = auras[i];
-            for (var j:int = 0; j < auraList.length; j++) {
-                if (aura.nam.toLowerCase() == auraList[j].toLowerCase().trim()) {
-                    return true.toString();
-                }
-            }
-        }
-        return false.toString();
-    }
-
     public static function GetCurrentPlayerAura():String {
         var plrUser:String = instance.game.sfc.myUserName.toLowerCase();
         try {
             var userObj:* = instance.game.world.uoTree[plrUser];
             if (!userObj) {
-                return '[]';
+                return 'Error: Could get User Object Tree';
             }
-            return JSON.stringify(rebuildAuraArray(userObj.auras))
+            JSON.stringify(rebuildAuraArray(userObj.auras));
         }
         catch (e:Error) {
         }
         return '[]';
     }
 
-    public static function GetAurasValue(subject:String, auraName:String):String {
-        var aura:Object = null;
-        var auras:Object = null;
-        try {
-            auras = subject == 'Self' ? GetCurrentPlayerAura() : GetMonsterAuraByTarget();
-        } catch (e:Error) {
-            return '0';
-        }
-
-        for (var i:int = 0; i < auras.length; i++) {
-            aura = auras[i];
-            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
-                return aura.val.ToString();
-            }
-        }
-        return '0';
-    }
-
     public static function GetMonsterAuraByTarget():String {
-
         try {
             var monID:int = 0;
             if (instance.game.world.myAvatar.target != null) {
@@ -869,7 +850,7 @@ public class Main extends MovieClip {
             }
             var monObj:* = instance.game.world.monTree[monID];
             if (!monObj) {
-                return '[]';
+                return 'Error: Could get Monster Object Tree';
             }
             return JSON.stringify(rebuildAuraArray(monObj.auras));
         }
@@ -890,7 +871,7 @@ public class Main extends MovieClip {
             }
             var monObj:* = instance.game.world.monTree[monID];
             if (!monObj) {
-                return '[]';
+                return 'Error: Could get Monster Object Tree';
             }
             return JSON.stringify(rebuildAuraArray(monObj.auras));
         }
@@ -903,7 +884,7 @@ public class Main extends MovieClip {
         try {
             var monObj:* = instance.game.world.monTree[monID];
             if (!monObj) {
-                return '[]';
+                return 'Error: Could get Monster Object Tree';
             }
             return JSON.stringify(rebuildAuraArray(monObj.auras));
         }

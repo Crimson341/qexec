@@ -78,7 +78,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 }
 
                 string auraName = "";
-                int auraValue = 0;
+                float auraValue = 0;
 
                 if (pos < useRule.Length && useRule[pos] == '"')
                 {
@@ -92,7 +92,7 @@ public class AdvancedSkillProvider : ISkillProvider
                             pos++;
                     }
                     string rawName = useRule.Substring(nameStart, pos - nameStart);
-                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < useRule.Length && useRule[pos] == '"')
                         pos++;
                 }
@@ -101,10 +101,10 @@ public class AdvancedSkillProvider : ISkillProvider
                     pos++;
 
                 int numStart = pos;
-                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                while (pos < useRule.Length && (char.IsDigit(useRule[pos]) || useRule[pos] == '.'))
                     pos++;
-                if (pos > numStart)
-                    auraValue = int.Parse(useRule.Substring(numStart, pos - numStart));
+                if (pos > numStart && float.TryParse(useRule.Substring(numStart, pos - numStart), out float parsed))
+                    auraValue = parsed;
 
                 while (pos < useRule.Length && useRule[pos] == ' ')
                     pos++;
@@ -202,7 +202,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 }
 
                 string auraName = "";
-                int auraValue = 0;
+                float auraValue = 0;
 
                 if (pos < useRule.Length && useRule[pos] == '"')
                 {
@@ -216,14 +216,14 @@ public class AdvancedSkillProvider : ISkillProvider
                             pos++;
                     }
                     string rawName = useRule.Substring(nameStart, pos - nameStart);
-                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < useRule.Length && useRule[pos] == '"')
                         pos++;
                 }
                 else
                 {
                     int nameStart = pos;
-                    while (pos < useRule.Length && useRule[pos] != ' ' && !char.IsDigit(useRule[pos]))
+                    while (pos < useRule.Length && useRule[pos] != ' ' && !char.IsDigit(useRule[pos]) && useRule[pos] != '.')
                         pos++;
                     auraName = useRule.Substring(nameStart, pos - nameStart);
                 }
@@ -232,10 +232,10 @@ public class AdvancedSkillProvider : ISkillProvider
                     pos++;
 
                 int numStart = pos;
-                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                while (pos < useRule.Length && (char.IsDigit(useRule[pos]) || useRule[pos] == '.'))
                     pos++;
-                if (pos > numStart)
-                    auraValue = int.Parse(useRule.Substring(numStart, pos - numStart));
+                if (pos > numStart && float.TryParse(useRule.Substring(numStart, pos - numStart), out float parsed))
+                    auraValue = parsed;
 
                 while (pos < useRule.Length && useRule[pos] == ' ')
                     pos++;

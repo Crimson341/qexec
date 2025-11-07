@@ -89,15 +89,13 @@ public partial class SkillRulesViewModel : ObservableRecipient
     [ObservableProperty]
     private bool _auraGreaterThanBool = true;
 
-    private int _auraUseValue;
+    private float _auraUseValue;
 
-    public int AuraUseValue
+    public float AuraUseValue
     {
         get { return _auraUseValue; }
         set
         {
-            if (value < 0)
-                return;
             SetProperty(ref _auraUseValue, value);
         }
     }

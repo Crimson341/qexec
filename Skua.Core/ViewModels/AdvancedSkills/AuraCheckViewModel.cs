@@ -20,9 +20,9 @@ public partial class AuraCheckViewModel : ObservableRecipient
     [ObservableProperty]
     private string _auraName = string.Empty;
 
-    private int _stackCount;
+    private float _stackCount;
 
-    public int StackCount
+    public float StackCount
     {
         get { return _stackCount; }
         set

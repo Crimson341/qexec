@@ -31,7 +31,7 @@ public class SkillRuleJson
 
     [JsonPropertyName("value")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public int? Value { get; set; }
+    public float? Value { get; set; }
 
     [JsonPropertyName("comparison")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

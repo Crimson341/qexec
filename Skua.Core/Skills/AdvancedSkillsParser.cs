@@ -186,7 +186,7 @@ public static class AdvancedSkillsParser
                 }
 
                 string auraName = "";
-                int auraValue = 0;
+                float auraValue = 0;
 
                 if (pos < rulesPart.Length && rulesPart[pos] == '"')
                 {
@@ -209,10 +209,10 @@ public static class AdvancedSkillsParser
                     pos++;
 
                 int valueStart = pos;
-                while (pos < rulesPart.Length && char.IsDigit(rulesPart[pos]))
+                while (pos < rulesPart.Length && (char.IsDigit(rulesPart[pos]) || rulesPart[pos] == '.'))
                     pos++;
-                if (valueStart < pos)
-                    auraValue = int.Parse(rulesPart.Substring(valueStart, pos - valueStart));
+                if (valueStart < pos && float.TryParse(rulesPart.Substring(valueStart, pos - valueStart), out float parsedValue))
+                    auraValue = parsedValue;
 
                 while (pos < rulesPart.Length && rulesPart[pos] == ' ')
                     pos++;
@@ -304,7 +304,7 @@ public static class AdvancedSkillsParser
                 }
 
                 string auraName = "";
-                int auraValue = 0;
+                float auraValue = 0;
 
                 if (pos < rulesPart.Length && rulesPart[pos] == '"')
                 {
@@ -326,10 +326,10 @@ public static class AdvancedSkillsParser
                         pos++;
 
                     int valueStart = pos;
-                    while (pos < rulesPart.Length && char.IsDigit(rulesPart[pos]))
+                    while (pos < rulesPart.Length && (char.IsDigit(rulesPart[pos]) || rulesPart[pos] == '.'))
                         pos++;
-                    if (valueStart < pos)
-                        auraValue = int.Parse(rulesPart.Substring(valueStart, pos - valueStart));
+                    if (valueStart < pos && float.TryParse(rulesPart.Substring(valueStart, pos - valueStart), out float parsedValue))
+                        auraValue = parsedValue;
                 }
                 else
                 {
@@ -356,18 +356,19 @@ public static class AdvancedSkillsParser
                         pos++;
 
                     int valueStart = pos;
-                    while (pos < rulesPart.Length && char.IsDigit(rulesPart[pos]))
+                    while (pos < rulesPart.Length && (char.IsDigit(rulesPart[pos]) || rulesPart[pos] == '.'))
                         pos++;
 
                     if (lastDigitStart >= 0 && lastDigitEnd > lastDigitStart)
                     {
                         auraName = rulesPart.Substring(nameStart, lastDigitStart - nameStart).Trim();
-                        auraValue = int.Parse(rulesPart.Substring(lastDigitStart, lastDigitEnd - lastDigitStart));
+                        if (float.TryParse(rulesPart.Substring(lastDigitStart, lastDigitEnd - lastDigitStart), out float val1))
+                            auraValue = val1;
                     }
-                    else if (valueStart < pos)
+                    else if (valueStart < pos && float.TryParse(rulesPart.Substring(valueStart, pos - valueStart), out float val2))
                     {
                         auraName = rulesPart.Substring(nameStart, valueStart - nameStart).Trim();
-                        auraValue = int.Parse(rulesPart.Substring(valueStart, pos - valueStart));
+                        auraValue = val2;
                     }
                 }
 

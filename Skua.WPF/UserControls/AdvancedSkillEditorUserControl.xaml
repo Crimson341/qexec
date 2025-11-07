@@ -106,6 +106,12 @@
                     ScrollViewer.VerticalScrollBarVisibility="Visible"
                     SelectedIndex="{Binding SelectedSkillIndex}"
                     SelectedItem="{Binding SelectedSkill}">
+                    <ListBox.ContextMenu>
+                        <ContextMenu>
+                            <MenuItem Header="Edit" Command="{Binding EditSkillCommand}" />
+                            <MenuItem Header="Remove" Command="{Binding RemoveSkillCommand}" />
+                        </ContextMenu>
+                    </ListBox.ContextMenu>
                     <ListBox.ToolTip>
                         <TextBlock>
                             <Run FontWeight="Bold">Up/Down Arrows:</Run>

@@ -42,11 +42,11 @@ public class AdvancedSkillCommand
             switch (useRule.Rule)
             {
                 case SkillRule.Health:
-                    shouldUse = HealthUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
+                    shouldUse = HealthUseRule(player, useRule.Greater, (int)useRule.Value, useRule.IsPercentage);
                     break;
 
                 case SkillRule.Mana:
-                    shouldUse = ManaUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
+                    shouldUse = ManaUseRule(player, useRule.Greater, (int)useRule.Value, useRule.IsPercentage);
                     break;
 
                 case SkillRule.Aura:
@@ -67,13 +67,13 @@ public class AdvancedSkillCommand
                     break;
 
                 case SkillRule.PartyHealth:
-                    shouldUse = PartyHealthUseRule(player, useRule.Greater, useRule.Value, useRule.IsPercentage);
+                    shouldUse = PartyHealthUseRule(player, useRule.Greater, (int)useRule.Value, useRule.IsPercentage);
                     break;
 
                 case SkillRule.Wait:
                     if (useRule.ShouldSkip && !canUse)
                         return null;
-                    Task.Delay(useRule.Value).Wait();
+                    Task.Delay((int)useRule.Value).Wait();
                     break;
 
                 case SkillRule.None:
@@ -252,7 +252,7 @@ public enum SkillRule
 public struct AuraCheck
 {
     public string AuraName { get; set; }
-    public int StackCount { get; set; }
+    public float StackCount { get; set; }
     public bool Greater { get; set; }
     public string AuraTarget { get; set; }
 
@@ -275,7 +275,7 @@ public struct UseRule
 {
     public SkillRule Rule { get; set; }
     public bool Greater { get; set; }
-    public int Value { get; set; }
+    public float Value { get; set; }
     public bool ShouldSkip { get; set; }
     public string AuraTarget { get; set; }
     public string AuraName { get; set; }
@@ -346,6 +346,21 @@ public struct UseRule
     }
 
     public UseRule(SkillRule rule, bool shouldSkip, string auraName, string auraTarget, bool greater, int stackCount, bool isPercentage = false)
+    {
+        Rule = rule;
+        Greater = greater;
+        Value = stackCount;
+        ShouldSkip = shouldSkip;
+        AuraTarget = auraTarget;
+        AuraName = auraName;
+        PartyMemberIndex = -1;
+        IsPercentage = isPercentage;
+        MultiAuraChecks = new();
+        MultiAuraOperator = MultiAuraOperator.And;
+        IsMultiAura = false;
+    }
+
+    public UseRule(SkillRule rule, bool shouldSkip, string auraName, string auraTarget, bool greater, float stackCount, bool isPercentage = false)
     {
         Rule = rule;
         Greater = greater;
