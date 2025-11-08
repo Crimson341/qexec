@@ -38,7 +38,10 @@ public class HotKeyService : IHotKeyService, IDisposable
 
         StringCollection? hotkeys = _settingsService.Get<StringCollection>("HotKeys");
         if (hotkeys is null)
-            return;
+            hotkeys = new StringCollection();
+
+        EnsureAllBindingsExist(hotkeys);
+        _settingsService.Set("HotKeys", hotkeys);
 
         foreach (string? hk in hotkeys)
         {
@@ -48,6 +51,9 @@ public class HotKeyService : IHotKeyService, IDisposable
             var split = hk.Split('|');
             if (_hotKeys.ContainsKey(split[0]))
             {
+                if (split.Length < 2 || string.IsNullOrWhiteSpace(split[1]))
+                    continue;
+
                 KeyBinding? kb = ParseToKeyBinding(split[1]);
                 if (kb is null)
                 {
@@ -76,9 +82,10 @@ public class HotKeyService : IHotKeyService, IDisposable
     public List<T> GetHotKeys<T>()
         where T : IHotKey, new()
     {
-        var hotkeys = _settingsService.Get<StringCollection>("HotKeys");
-        if (hotkeys is null)
-            return new();
+        var hotkeys = _settingsService.Get<StringCollection>("HotKeys") ?? new StringCollection();
+
+        EnsureAllBindingsExist(hotkeys);
+        _settingsService.Set("HotKeys", hotkeys);
 
         List<T> parsed = new();
         foreach (string hk in hotkeys)
@@ -86,7 +93,8 @@ public class HotKeyService : IHotKeyService, IDisposable
             if (string.IsNullOrEmpty(hk))
                 continue;
             var split = hk.Split('|');
-            parsed.Add(new() { Binding = split[0], Title = _decamelizer.Decamelize(split[0], null), KeyGesture = split[1] });
+            string gesture = split.Length > 1 ? split[1] : string.Empty;
+            parsed.Add(new() { Binding = split[0], Title = _decamelizer.Decamelize(split[0], null), KeyGesture = gesture });
         }
         return parsed;
     }
@@ -129,6 +137,34 @@ public class HotKeyService : IHotKeyService, IDisposable
             return null;
 
         return kb;
+    }
+
+    private void EnsureAllBindingsExist(StringCollection hotkeys)
+    {
+        HashSet<string> existing = new();
+        HashSet<string> usedGestures = new(StringComparer.OrdinalIgnoreCase);
+        foreach (string hk in hotkeys)
+        {
+            if (string.IsNullOrWhiteSpace(hk))
+                continue;
+            var split = hk.Split('|');
+            if (split.Length > 0 && !string.IsNullOrWhiteSpace(split[0]))
+                existing.Add(split[0]);
+            if (split.Length > 1 && !string.IsNullOrWhiteSpace(split[1]))
+                usedGestures.Add(split[1]);
+        }
+
+        foreach (var key in _hotKeys.Keys)
+        {
+            if (existing.Contains(key))
+                continue;
+
+            string gesture = string.Empty;
+            if (string.Equals(key, "ToggleLagKiller", StringComparison.Ordinal) && !usedGestures.Contains("F6"))
+                gesture = "F6";
+
+            hotkeys.Add($"{key}|{gesture}");
+        }
     }
 
     private bool _disposed = false;

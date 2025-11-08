@@ -85,6 +85,19 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     [ObservableProperty]
     private string? _selectedSoloModeString;
 
+    // Keep enum and string mode selections in sync so saves persist the user's choice.
+    partial void OnSelectedSoloModeStringChanged(string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && Enum.TryParse(typeof(ClassUseMode), value, true, out object? result))
+            SelectedSoloUseMode = (ClassUseMode)result!;
+    }
+    partial void OnSelectedSoloUseModeChanged(ClassUseMode? value)
+    {
+        string? mode = value?.ToString();
+        if (!string.IsNullOrEmpty(mode) && SelectedSoloModeString != mode)
+            SelectedSoloModeString = mode;
+    }
+
     [ObservableProperty]
     private bool _useSoloEquipment;
 
@@ -152,6 +165,19 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     [ObservableProperty]
     private string? _selectedFarmModeString;
+
+    // Keep enum and string mode selections in sync so saves persist the user's choice.
+    partial void OnSelectedFarmModeStringChanged(string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && Enum.TryParse(typeof(ClassUseMode), value, true, out object? result))
+            SelectedFarmUseMode = (ClassUseMode)result!;
+    }
+    partial void OnSelectedFarmUseModeChanged(ClassUseMode? value)
+    {
+        string? mode = value?.ToString();
+        if (!string.IsNullOrEmpty(mode) && SelectedFarmModeString != mode)
+            SelectedFarmModeString = mode;
+    }
 
     [ObservableProperty]
     private bool _useFarmEquipment;
@@ -221,6 +247,19 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     [ObservableProperty]
     private string? _selectedDodgeModeString;
 
+    // Keep enum and string mode selections in sync so saves persist the user's choice.
+    partial void OnSelectedDodgeModeStringChanged(string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && Enum.TryParse(typeof(ClassUseMode), value, true, out object? result))
+            SelectedDodgeUseMode = (ClassUseMode)result!;
+    }
+    partial void OnSelectedDodgeUseModeChanged(ClassUseMode? value)
+    {
+        string? mode = value?.ToString();
+        if (!string.IsNullOrEmpty(mode) && SelectedDodgeModeString != mode)
+            SelectedDodgeModeString = mode;
+    }
+
     [ObservableProperty]
     private bool _useDodgeEquipment;
 
@@ -288,6 +327,19 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     [ObservableProperty]
     private string? _selectedBossModeString;
+
+    // Keep enum and string mode selections in sync so saves persist the user's choice.
+    partial void OnSelectedBossModeStringChanged(string? value)
+    {
+        if (!string.IsNullOrWhiteSpace(value) && Enum.TryParse(typeof(ClassUseMode), value, true, out object? result))
+            SelectedBossUseMode = (ClassUseMode)result!;
+    }
+    partial void OnSelectedBossUseModeChanged(ClassUseMode? value)
+    {
+        string? mode = value?.ToString();
+        if (!string.IsNullOrEmpty(mode) && SelectedBossModeString != mode)
+            SelectedBossModeString = mode;
+    }
 
     [ObservableProperty]
     private bool _useBossEquipment;
