@@ -22,7 +22,7 @@ public class TextBoxOnlyFloatingPointBehavior : Behavior<TextBox>
     {
         foreach (char c in e.Text)
         {
-            if (!char.IsDigit(c) && c != '.' && c != '-')
+            if (!char.IsDigit(c) && c != '.')
             {
                 e.Handled = true;
                 return;

@@ -7,7 +7,9 @@ using Skua.Core.Interfaces;
 using Skua.WPF;
 using Skua.WPF.Services;
 using System;
+using System.Globalization;
 using System.IO;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Animation;
@@ -30,6 +32,11 @@ public sealed partial class App : Application
 
     public App()
     {
+        Thread.CurrentThread.CurrentCulture = CultureInfo.InvariantCulture;
+        Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
+        CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
+        CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+
         InitializeComponent();
 
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);

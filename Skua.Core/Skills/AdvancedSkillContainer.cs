@@ -98,60 +98,25 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         LoadedSkills.Clear();
         _jsonConfig = null;
 
-        string jsonPath = Path.ChangeExtension(_userSkillsSetsPath, ".json");
-        _loadedFilePath = jsonPath;
+        _loadedFilePath = _userSkillsSetsPath;
 
-        if (File.Exists(jsonPath))
-        {
-            string fileContent = File.ReadAllText(jsonPath);
-            LoadFromJson(fileContent);
-        }
-        else if (File.Exists(_userSkillsSetsPath))
+        if (File.Exists(_userSkillsSetsPath))
         {
             string fileContent = File.ReadAllText(_userSkillsSetsPath);
-            LoadFromText(fileContent);
+            LoadFromJson(fileContent);
         }
         else
         {
             _CopyDefaultSkills();
-            if (File.Exists(jsonPath))
-            {
-                string fileContent = File.ReadAllText(jsonPath);
-                LoadFromJson(fileContent);
-            }
-            else if (File.Exists(_userSkillsSetsPath))
+            if (File.Exists(_userSkillsSetsPath))
             {
                 string fileContent = File.ReadAllText(_userSkillsSetsPath);
-                LoadFromText(fileContent);
+                LoadFromJson(fileContent);
             }
         }
 
         OnPropertyChanged(nameof(LoadedSkills));
         Broadcast(new(), _loadedSkills, nameof(LoadedSkills));
-    }
-
-    private void LoadFromText(string textContent)
-    {
-        foreach (string line in textContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None))
-        {
-            if (string.IsNullOrWhiteSpace(line))
-                continue;
-
-            string[] parts = line.Split(new[] { '=' }, 4);
-            switch (parts.Length)
-            {
-                case 3:
-                    _loadedSkills.Add(new AdvancedSkill(parts[1].Trim(), parts[2].Trim(), 250, parts[0].Trim(), "WaitForCooldown"));
-                    break;
-
-                case 4:
-                    {
-                        bool waitForCooldown = int.TryParse(parts[3].RemoveLetters(), out int result);
-                        _loadedSkills.Add(new AdvancedSkill(parts[1].Trim(), parts[2].Trim(), waitForCooldown ? result : 250, parts[0].Trim(), waitForCooldown ? SkillUseMode.WaitForCooldown : SkillUseMode.UseIfAvailable));
-                        break;
-                    }
-            }
-        }
     }
 
     private void LoadFromJson(string jsonContent)
@@ -182,10 +147,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
                 }
             }
         }
-        catch
-        {
-            LoadFromText(jsonContent);
-        }
+        catch { /* ignored */ }
     }
 
     private string ConvertSkillsToString(List<AdvancedSkillJson> skills)

@@ -123,7 +123,7 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
 
                 int valueStart = pos;
-                while (pos < rest.Length && (char.IsDigit(rest[pos]) || rest[pos] == '.'))
+                while (pos < rest.Length && (char.IsDigit(rest[pos]) || pos < rest.Length && rest[pos] == '.'))
                     pos++;
                 if (valueStart < pos && float.TryParse(rest.Substring(valueStart, pos - valueStart), out float mauraValParsed))
                     mauraVal = mauraValParsed;
@@ -226,7 +226,7 @@ public class SkillItemViewModel : ObservableObject
                         pos++;
 
                     int valueStart = pos;
-                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || rest[pos] == '.'))
+                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || pos < rest.Length && rest[pos] == '.'))
                         pos++;
                     if (valueStart < pos && float.TryParse(rest.Substring(valueStart, pos - valueStart), out float auraValParsed))
                         auraVal = auraValParsed;
@@ -256,7 +256,7 @@ public class SkillItemViewModel : ObservableObject
                         pos++;
 
                     int valueStart = pos;
-                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || rest[pos] == '.'))
+                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || pos < rest.Length && rest[pos] == '.'))
                         pos++;
 
                     if (lastDigitStart >= 0 && lastDigitEnd > lastDigitStart)

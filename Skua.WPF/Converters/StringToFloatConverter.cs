@@ -20,7 +20,7 @@ public class StringToFloatConverter : IValueConverter
                 return 0;
             if (float.TryParse(strValue, out float result))
                 return result;
-            if (strValue.EndsWith(".") || strValue == "-" || strValue == "-.")
+            if (strValue.EndsWith('.'))
                 return 0;
         }
         return 0;
