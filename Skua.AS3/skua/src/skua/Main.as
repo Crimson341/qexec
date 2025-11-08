@@ -725,6 +725,8 @@ public class Main extends MovieClip {
                     var rawVal:* = aura[key];
                     if (rawVal == null || isNaN(rawVal)) {
                         rebuiltAura[key] = 1;
+                    } else {
+                        rebuiltAura[key] = rawVal;
                     }
                     hasVal = true;
                 } else {
