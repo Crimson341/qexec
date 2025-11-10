@@ -319,9 +319,9 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         _ctsDrops?.Dispose();
         _ctsDrops = null;
         _taskDrops = null;
-        
+
         _timerDrops?.Dispose();
-        
+
         if (IsActive)
         {
             StrongReferenceMessenger.Default.UnregisterAll(this);
@@ -350,9 +350,9 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         _ctsDrops?.Dispose();
         _ctsDrops = null;
         _taskDrops = null;
-        
+
         _timerDrops?.Dispose();
-        
+
         if (IsActive)
         {
             StrongReferenceMessenger.Default.UnregisterAll(this);
