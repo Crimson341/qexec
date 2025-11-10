@@ -70,7 +70,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         if (!CurrentDrops.Contains(name, StringComparer.OrdinalIgnoreCase))
             return;
 
-        ItemBase drop = _currentDropInfos.Find(d => d.Name == name)!;
+        ItemBase drop = _currentDropInfos.Find(d => d.Name.ToLowerInvariant() == name.ToLowerInvariant())!;
         Send.Packet($"%xt%zm%getDrop%{Map.RoomID}%{drop.ID}%");
         _currentDropInfos.Remove(drop);
         OnPropertyChanged(nameof(CurrentDropInfos));
