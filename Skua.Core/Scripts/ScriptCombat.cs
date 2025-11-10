@@ -22,6 +22,7 @@ public partial class ScriptCombat : IScriptCombat
         _lazyMap = map;
         _messenger = StrongReferenceMessenger.Default;
 
+        _messenger.Register<ScriptCombat, CounterAttackMessage, int>(this, (int)MessageChannels.GameEvents, CounterAttack);
         _messenger.Register<ScriptCombat, PlayerDeathMessage, int>(this, (int)MessageChannels.GameEvents, PlayerDead);
         _messenger.Register<ScriptCombat, ScriptStoppedMessage, int>(this, (int)MessageChannels.ScriptStatus, ScriptStopped);
     }
@@ -38,6 +39,8 @@ public partial class ScriptCombat : IScriptCombat
     private IScriptWait Wait => _lazyWait.Value;
     private IScriptPlayer Player => _lazyPlayer.Value;
     private IScriptMap Map => _lazyMap.Value;
+
+    public bool EnableCounterHandler { get; set; } = false;
 
     public bool StopAttacking { get; set; }
 
@@ -105,5 +108,26 @@ public partial class ScriptCombat : IScriptCombat
     private void ScriptStopped(ScriptCombat recipient, ScriptStoppedMessage message)
     {
         recipient.StopAttacking = false;
+    }
+
+    private Monster? _target;
+
+    private void CounterAttack(ScriptCombat recipient, CounterAttackMessage message)
+    {
+        if (EnableCounterHandler)
+        {
+            if (message.Faded)
+            {
+                recipient.StopAttacking = false;
+                if (recipient._target is not null)
+                    recipient.Attack(recipient._target.MapID);
+                recipient._target = null;
+                return;
+            }
+            recipient.StopAttacking = true;
+            recipient._target = recipient.Player.Target;
+            recipient.CancelAutoAttack();
+            recipient.CancelTarget();
+        }
     }
 }

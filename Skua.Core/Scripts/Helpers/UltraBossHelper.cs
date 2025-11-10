@@ -42,10 +42,7 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
             return;
 
         _isEnabled = true;
-        _messenger.Register<UltraBossHelper, CounterAttackMessage, int>(
-            this,
-            (int)MessageChannels.GameEvents,
-            OnCounterAttack);
+        Combat.EnableCounterHandler = true;
     }
 
     public void DisableCounterAttack()
@@ -55,9 +52,7 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
 
         _isEnabled = false;
         _isCounterAttackActive = false;
-        _previousTarget = null;
-        _messenger.Unregister<CounterAttackMessage, int>(this, (int)MessageChannels.GameEvents);
-        Combat.StopAttacking = false;
+        Combat.EnableCounterHandler = false;
     }
 
     public void SetAttacksStopped(bool shouldStop)
@@ -70,33 +65,6 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
 
         _isCounterAttackActive = false;
         _previousTarget = null;
-    }
-
-    private static void OnCounterAttack(UltraBossHelper recipient, CounterAttackMessage message)
-    {
-        if (!recipient._isEnabled)
-            return;
-
-        if (message.Faded)
-        {
-            recipient._isCounterAttackActive = false;
-            recipient.Combat.StopAttacking = false;
-            if (recipient._previousTarget is null)
-            {
-                return;
-            }
-
-            recipient.Combat.Attack(recipient._previousTarget.MapID);
-            recipient._previousTarget = null;
-        }
-        else
-        {
-            recipient._isCounterAttackActive = true;
-            recipient.Combat.StopAttacking = true;
-            recipient._previousTarget = recipient.Player.Target;
-            recipient.Combat.CancelAutoAttack();
-            recipient.Combat.CancelTarget();
-        }
     }
 
     public (bool hasPositive, bool hasNegative, bool hasReversed) AnalyzeChargeMechanics(

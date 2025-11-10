@@ -14,6 +14,11 @@ namespace Skua.Core.Interfaces;
 public interface IScriptCombat
 {
     /// <summary>
+    /// Wether the counter attack handler is enabled.
+    /// </summary>
+    bool EnableCounterHandler { get; set; }
+
+    /// <summary>
     /// Whether the player should stop using skills.
     /// </summary>
     bool StopAttacking { get; set; }
