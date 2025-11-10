@@ -152,9 +152,9 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         Trace.WriteLine("Auto attack started.");
         Player.SetSpawnPoint();
 
-        if (Player.HasTarget)
+        if (Player.HasTarget && !Combat.StopAttacking)
             _target = Player.Target?.Name ?? "*";
-        else
+        else if (!Combat.StopAttacking)
             _target = "*";
 
         _logger.ScriptLog($"[Auto Attack] Attacking {_target}");
@@ -183,9 +183,9 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
     {
         Trace.WriteLine("Auto hunt started.");
 
-        if (Player.HasTarget)
+        if (Player.HasTarget && !Combat.StopAttacking)
             _target = Player.Target?.Name ?? "*";
-        else
+        else if (!Combat.StopAttacking)
         {
             List<string> monsters = Monsters.CurrentMonsters.Select(m => m.Name).ToList();
             _target = string.Join('|', monsters);

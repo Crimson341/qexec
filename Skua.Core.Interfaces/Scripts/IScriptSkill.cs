@@ -69,6 +69,9 @@ public interface IScriptSkill
     /// </returns>
     bool UseSkill(int index);
 
+    void Resume();
+    void Pause();
+
     /// <summary>
     /// Loads the skills from the specified <paramref name="skills"/> string.
     /// </summary>

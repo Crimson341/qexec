@@ -66,9 +66,11 @@ public partial class ScriptSkill : IScriptSkill
     public ISkillProvider? OverrideProvider { get; set; } = null;
     public ISkillProvider BaseProvider { get; private set; }
     public bool TimerRunning { get; private set; } = false;
+    public bool IsPaused { get; private set; } = false;
     public int SkillInterval { get; set; } = 100;
     public int SkillTimeout { get; set; } = -1;
     public SkillUseMode SkillUseMode { get; set; } = SkillUseMode.UseIfAvailable;
+    private ManualResetEvent _pauseEvent = new(true);
 
     public void Start()
     {
@@ -109,6 +111,24 @@ public partial class ScriptSkill : IScriptSkill
         _provider?.Stop();
         _skillsCTS?.Cancel();
         Wait.ForTrue(() => !TimerRunning, 20);
+    }
+
+    public void Pause()
+    {
+        if (!TimerRunning || IsPaused)
+            return;
+
+        IsPaused = true;
+        _pauseEvent.Reset();
+    }
+
+    public void Resume()
+    {
+        if (!TimerRunning || !IsPaused)
+            return;
+
+        IsPaused = false;
+        _pauseEvent.Set();
     }
 
     public void SetProvider(ISkillProvider provider)
@@ -194,14 +214,13 @@ public partial class ScriptSkill : IScriptSkill
 
     private async Task _Timer(CancellationToken token)
     {
-        // get current player skills
         SkillInfo[]? playerSkills = Player.Skills;
-        // if the player has skills assign to _playerSkills to be used later
         if (playerSkills is not null && playerSkills.Length > 0)
             _playerSkills = playerSkills;
 
         while (!token.IsCancellationRequested)
         {
+            _pauseEvent.WaitOne();
             if (Combat.StopAttacking)
             {
                 _counterAttack.WaitOne(10000);
