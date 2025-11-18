@@ -18,7 +18,7 @@ public class WebClient : HttpClient
         if (accJson)
             DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         DefaultRequestHeaders.UserAgent.ParseAdd("Skua");
-        Timeout = TimeSpan.FromSeconds(30);
+        Timeout = TimeSpan.FromSeconds(60);
     }
 
     /// <param name="token"></param>
@@ -27,7 +27,7 @@ public class WebClient : HttpClient
         DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("bearer", token);
         DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
         DefaultRequestHeaders.UserAgent.ParseAdd("Skua/ScriptsUser");
-        Timeout = TimeSpan.FromSeconds(30);
+        Timeout = TimeSpan.FromSeconds(60);
     }
 
     private static HttpClientHandler CreateHttpClientHandler()
@@ -94,7 +94,7 @@ public static class HttpClients
     /// <returns>A properly configured HttpClient</returns>
     public static HttpClient CreateSafeGitHubRawClient()
     {
-        return CreateHttpClient("Skua/1.0", TimeSpan.FromSeconds(30), true);
+        return CreateHttpClient("Skua/1.0", TimeSpan.FromSeconds(60), true);
     }
 
     /// <summary>
@@ -112,9 +112,7 @@ public static class HttpClients
             }
             _lastGitHubApiCall = DateTime.UtcNow;
             var client = GetGHClient();
-            var response = await client.GetAsync(url);
-
-            response.EnsureSuccessStatusCode();
+            var response = await ValidatedHttpExtensions.GetAsyncWithRetry(client, url, CancellationToken.None);
 
             if (response.Headers.TryGetValues("X-RateLimit-Remaining", out var remainingValues))
             {
@@ -172,14 +170,15 @@ public static class HttpClients
 /// </summary>
 public static class ValidatedHttpExtensions
 {
+    private const int MaxRetries = 3;
+    private const int InitialDelayMs = 1000;
+
     /// <summary>
     /// Makes a validated GET request that throws on failure
     /// </summary>
     public static async Task<HttpResponseMessage> GetAsync(this HttpClient client, string requestUri)
     {
-        var response = await client.GetAsync(requestUri);
-        response.EnsureSuccessStatusCode();
-        return response;
+        return await GetAsyncWithRetry(client, requestUri, CancellationToken.None);
     }
 
     /// <summary>
@@ -187,9 +186,7 @@ public static class ValidatedHttpExtensions
     /// </summary>
     public static async Task<HttpResponseMessage> GetAsync(this HttpClient client, string requestUri, CancellationToken cancellationToken)
     {
-        var response = await client.GetAsync(requestUri, cancellationToken);
-        response.EnsureSuccessStatusCode();
-        return response;
+        return await GetAsyncWithRetry(client, requestUri, cancellationToken);
     }
 
     /// <summary>
@@ -200,5 +197,38 @@ public static class ValidatedHttpExtensions
         using var response = await GetAsync(client, requestUri);
         var content = await response.Content.ReadAsStringAsync();
         return string.IsNullOrWhiteSpace(content) ? throw new InvalidDataException("Response content is empty or null") : content;
+    }
+
+    /// <summary>
+    /// Gets string content with validation and retries that throws on failure
+    /// </summary>
+    public static async Task<HttpResponseMessage> GetAsyncWithRetry(HttpClient client, string requestUri, CancellationToken cancellationToken)
+    {
+        int delayMs = InitialDelayMs;
+        Exception? lastException = null;
+
+        for (int attempt = 0; attempt < MaxRetries; attempt++)
+        {
+            try
+            {
+                var response = await client.GetAsync(requestUri, cancellationToken);
+                response.EnsureSuccessStatusCode();
+                return response;
+            }
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            {
+                lastException = ex;
+                await Task.Delay(delayMs, cancellationToken);
+                delayMs *= 2;
+            }
+            catch (TaskCanceledException ex) when (attempt < MaxRetries - 1)
+            {
+                lastException = ex;
+                await Task.Delay(delayMs, cancellationToken);
+                delayMs *= 2;
+            }
+        }
+
+        throw lastException ?? new HttpRequestException($"Failed to fetch {requestUri} after {MaxRetries} attempts");
     }
 }
