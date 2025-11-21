@@ -79,7 +79,8 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
         bool relogin = options.AutoRelogin;
         options.AutoRelogin = false;
         IPAddress ip = IPAddress.TryParse(SelectedServer.IP, out IPAddress? addr) ? addr : Dns.GetHostEntry(SelectedServer.IP).AddressList[0];
-        _gameProxy.Destination = new IPEndPoint(ip, 5588);
+        int port = SelectedServer.Port != 0 ? SelectedServer.Port : 5588;
+        _gameProxy.Destination = new IPEndPoint(ip, port);
         _gameProxy.Start();
         _server.Logout();
         _server.Login();
