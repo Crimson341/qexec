@@ -86,12 +86,12 @@ public partial class CustomWindow : Window
         _handle = HwndSource.FromHwnd(new WindowInteropHelper(this).Handle);
         _hook = new HwndSourceHook(WindowChromePatch.WindowProc);
         _handle.AddHook(_hook);
-        
+
         ApplyRoundedCorners(_handle.Handle);
-        
+
         SourceInitialized -= CustomWindow_SourceInitialized;
     }
-    
+
     private static void ApplyRoundedCorners(IntPtr hwnd)
     {
         try
@@ -100,14 +100,14 @@ public partial class CustomWindow : Window
             var preference = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
             DwmSetWindowAttribute(hwnd, attribute, ref preference, sizeof(uint));
         }
-        catch {  }
+        catch { }
     }
-    
+
     private enum DWMWINDOWATTRIBUTE
     {
         DWMWA_WINDOW_CORNER_PREFERENCE = 33
     }
-    
+
     private enum DWM_WINDOW_CORNER_PREFERENCE
     {
         DWMWCP_DEFAULT = 0,
@@ -115,7 +115,7 @@ public partial class CustomWindow : Window
         DWMWCP_ROUND = 2,
         DWMWCP_ROUNDSMALL = 3
     }
-    
+
     [DllImport("dwmapi.dll", PreserveSig = true)]
     private static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attribute, ref DWM_WINDOW_CORNER_PREFERENCE pvAttribute, int cbAttribute);
 
