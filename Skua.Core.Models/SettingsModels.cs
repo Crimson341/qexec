@@ -59,7 +59,7 @@ public class SharedSettings
     public string UserGitHubToken { get; set; } = string.Empty;
 
     [JsonPropertyName("ApplicationVersion")]
-    public string ApplicationVersion { get; set; } = "1.3.0.0";
+    public string ApplicationVersion { get; set; } = "0.0.0.0";
 
     [JsonPropertyName("CustomBackgroundPath")]
     public string CustomBackgroundPath { get; set; } = string.Empty;
@@ -99,7 +99,7 @@ public class SharedSettings
             CurrentTheme = "Skua,Dark,#FF607D8B,#FF607D8B,#FF000000,#FF000000,true,4.5,Medium,All";
 
         if (string.IsNullOrEmpty(ApplicationVersion))
-            ApplicationVersion = "1.3.0.0";
+            ApplicationVersion = "0.0.0.0";
     }
 }
 

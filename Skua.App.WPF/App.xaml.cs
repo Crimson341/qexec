@@ -36,13 +36,14 @@ public sealed partial class App : Application
         Thread.CurrentThread.CurrentUICulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
+        Services = ConfigureServices();
+        Services.GetRequiredService<ISettingsService>().SetApplicationVersion("1.3.0.1");
 
         InitializeComponent();
 
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string targetPath = Path.Combine(appData, "Skua");
 
-        Services = ConfigureServices();
         Services.GetRequiredService<IClientFilesService>().CreateDirectories();
         Services.GetRequiredService<IClientFilesService>().CreateFiles();
         Task.Factory.StartNew(async () => await Services.GetRequiredService<IScriptServers>().GetServers());

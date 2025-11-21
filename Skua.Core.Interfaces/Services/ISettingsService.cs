@@ -17,4 +17,6 @@ public interface ISettingsService
     ClientSettings GetClient();
 
     ManagerSettings GetManager();
+
+    void SetApplicationVersion(string version);
 }

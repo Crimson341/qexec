@@ -26,13 +26,16 @@ public partial class App : Application
 
     public App()
     {
+
+        Services = ConfigureServices();
+        Services.GetRequiredService<ISettingsService>().SetApplicationVersion("1.3.0.1");
+
         InitializeComponent();
         SingleInstanceWatcher();
 
         string appData = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
         string targetPath = Path.Combine(appData, "Skua");
 
-        Services = ConfigureServices();
         Services.GetRequiredService<IClientFilesService>().CreateDirectories();
         Services.GetRequiredService<IClientFilesService>().CreateFiles();
 
