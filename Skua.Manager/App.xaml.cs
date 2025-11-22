@@ -28,7 +28,7 @@ public partial class App : Application
     {
 
         Services = ConfigureServices();
-        Services.GetRequiredService<ISettingsService>().SetApplicationVersion("1.3.0.1");
+        Services.GetRequiredService<ISettingsService>().SetApplicationVersion("1.3.0.2");
 
         InitializeComponent();
         SingleInstanceWatcher();

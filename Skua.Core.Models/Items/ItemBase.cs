@@ -44,6 +44,13 @@ public class ItemBase
     public virtual bool Upgrade { get; set; }
 
     /// <summary>
+    /// Indicates whether the item is currently being worn.
+    /// </summary>
+    [JsonProperty("bWear")]
+    [JsonConverter(typeof(StringBoolConverter))]
+    public virtual bool Wearing { get; set; }
+
+    /// <summary>
     /// Indicates if the item is an AC item.
     /// </summary>
     [JsonProperty("bCoins")]

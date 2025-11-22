@@ -14,6 +14,7 @@ using Skua.Core.Utils;
 using Skua.Core.ViewModels;
 using Skua.Core.ViewModels.Manager;
 using System.Reflection;
+
 namespace Skua.Core.AppStartup;
 
 public static class Services
@@ -183,7 +184,6 @@ public static class Services
         services.AddSingleton<CBOClassSelectViewModel>();
         services.AddSingleton<CBOLoadoutViewModel>();
 
-
         return services;
     }
 
@@ -206,7 +206,7 @@ public static class Services
         services.AddSingleton<IClientFilesService, ClientFilesService>();
         services.AddSingleton<ClientUpdatesViewModel>();
         services.AddSingleton<GitHubAuthViewModel>();
-        services.AddSingleton<ScriptRepoViewModel>(s => 
+        services.AddSingleton<ScriptRepoViewModel>(s =>
         {
             var vm = new ScriptRepoViewModel(s.GetRequiredService<IGetScriptsService>(), s.GetRequiredService<IProcessService>());
             vm.IsManagerMode = true;
@@ -240,6 +240,12 @@ public static class Services
             .Where(s => !s.Contains("xunit"))
             .Select(s => MetadataReference.CreateFromFile(s))
             .ToList();
+
+        string? regexPath = typeof(System.Text.RegularExpressions.Regex).Assembly.Location;
+        if (!string.IsNullOrEmpty(regexPath))
+        {
+            refs.Add(MetadataReference.CreateFromFile(regexPath));
+        }
         compiler.AddAssemblies(refs);
         compiler.AddAssemblies(refPaths.Select(s => MetadataReference.CreateFromFile(s)));
         compiler.AddNamespaces(new[]
@@ -254,6 +260,7 @@ public static class Services
             "Skua.Core.Models.Servers",
             "Skua.Core.Models.Shops",
             "Skua.Core.Models.Skills",
+            "Skua.Core.Models.Auras",
         });
         compiler.SaveGeneratedCode = true;
         return compiler;
