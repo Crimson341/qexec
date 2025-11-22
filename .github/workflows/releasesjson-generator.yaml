@@ -34,6 +34,40 @@ jobs:
              https://api.github.com/repos/${{ github.repository }}/releases \
              > releases.json
 
+    - name: Generate Changelog
+      run: |
+        python3 -c "
+        import json
+        from datetime import datetime
+        
+        with open('releases.json') as f:
+          releases = json.load(f)
+        
+        filtered_releases = [r for r in releases if not r.get('draft', False) and not r.get('prerelease', False)]
+        filtered_releases.sort(key=lambda x: x.get('published_at', ''), reverse=True)
+        
+        with open('changelogs.md', 'w', encoding='utf-8') as f:
+          for release in filtered_releases:
+            tag = release.get('tag_name', '')
+            name = release.get('name', '') or tag
+            published_at = release.get('published_at', '')
+            body = release.get('body', '') or 'No release notes provided.'
+            
+            try:
+              if published_at:
+                dt = datetime.fromisoformat(published_at.replace('Z', '+00:00'))
+                formatted_date = dt.strftime('%B %d, %Y')
+              else:
+                formatted_date = 'Unknown date'
+            except:
+              formatted_date = published_at
+            
+            f.write(f'# {name}\n')
+            f.write(f'## Released: {formatted_date}\n\n')
+            f.write(f'{body}\n\n')
+            f.write('---\n\n')
+        "
+
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
@@ -45,8 +79,9 @@ jobs:
       uses: stefanzweifel/git-auto-commit-action@v4
       with:
         branch: ${{ github.ref_name }}
-        commit_message: 'Update releases.json [skip ci]'
-        file_pattern: 'releases.json'
+        commit_message: 'Update releases.json and changelogs.md [skip ci]'
+        file_pattern: 'releases.json
+changelogs.md'
         commit_user_name: 'github-actions[bot]'
         commit_user_email: 'github-actions[bot]@users.noreply.github.com'
 
