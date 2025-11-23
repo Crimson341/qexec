@@ -51,7 +51,7 @@ public static class HttpClients
 
     static HttpClients()
     {
-        ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls13 | SecurityProtocolType.Tls12 | SecurityProtocolType.Tls11 | SecurityProtocolType.Tls;
+        ServicePointManager.SecurityProtocol = SecurityProtocolType.SystemDefault;
     }
 
     /// <summary>
