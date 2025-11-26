@@ -84,7 +84,7 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
         _gameProxy.Start();
         _server.Logout();
         _server.Login();
-        _server.ConnectIP("127.0.0.1");
+        _server.ConnectIP("127.0.0.1", port);
         OnPropertyChanged(nameof(Running));
         options.AutoRelogin = relogin;
     }

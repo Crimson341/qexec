@@ -75,6 +75,14 @@ public interface IScriptServers : INotifyPropertyChanged
     bool ConnectIP(string serverIp);
 
     /// <summary>
+    /// Connects to the game server with the specified <paramref name="serverIp"/> address and <paramref name="port"/>.
+    /// </summary>
+    /// <param name="serverIp"></param>
+    /// <param name="port"></param>
+    /// <returns></returns>
+    bool ConnectIP(string serverIp, int port);
+
+    /// <summary>
     /// Checks if the player is currently connected to a game server.
     /// </summary>
     bool IsConnected { get; }
