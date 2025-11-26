@@ -49,7 +49,7 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
     public void Stop()
     {
         _captureProxyCTS?.Cancel();
-        try { _listener.Stop(); } catch { }
+        try { _listener?.Stop(); } catch { }
         if (_forwarder?.Connected ?? false)
         {
             _forwarder.Close();
@@ -67,7 +67,7 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
     {
         try
         {
-            _listener.Start();
+            _listener?.Start();
         }
         catch
         {
@@ -80,7 +80,9 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
             TcpClient? localForwarder = null;
             try
             {
-                localClient = _listener.AcceptTcpClient();
+                localClient = _listener?.AcceptTcpClient();
+                if (localClient == null)
+                    break;
                 localClient.NoDelay = true;
                 localForwarder = new TcpClient();
                 localForwarder.NoDelay = true;
@@ -104,7 +106,7 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
             }
         }
 
-        _listener.Stop();
+        _listener?.Stop();
     }
     private async Task _DataInterceptor(TcpClient target, TcpClient destination, bool outbound, CancellationToken token)
     {
@@ -112,7 +114,7 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
         List<byte> cpacket = new();
         NetworkStream targetStream = target.GetStream();
         NetworkStream destStream = destination.GetStream();
-        IInterceptor[] interceptors = Interceptors.Count > 0 ? Interceptors.OrderBy(i => i.Priority).ToArray() : null;
+        IInterceptor[]? interceptors = Interceptors.Count > 0 ? Interceptors.OrderBy(i => i.Priority).ToArray() : null;
 
         try
         {
