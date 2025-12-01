@@ -21,7 +21,8 @@ public partial class ScriptTargetAuras : IScriptTargetAuras
     {
         get
         {
-            string? auraData = Flash.Call("GetMonsterAuraByID", Player.Target.MapID) ?? "[]";
+            int mapId = Player.Target?.MapID ?? 0;
+            string? auraData = Flash.Call("GetMonsterAuraByID", mapId) ?? "[]";
             return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
         }
     }
