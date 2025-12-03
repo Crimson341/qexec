@@ -37,7 +37,7 @@ public sealed partial class App : Application
         CultureInfo.DefaultThreadCurrentCulture = CultureInfo.InvariantCulture;
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         Services = ConfigureServices();
-        Services.GetRequiredService<ISettingsService>().SetApplicationVersion("1.3.0.2");
+        Services.GetRequiredService<ISettingsService>().SetApplicationVersion("1.3.0.3");
 
         InitializeComponent();
 

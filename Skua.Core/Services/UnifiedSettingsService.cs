@@ -317,7 +317,7 @@ public class UnifiedSettingsService
             newRoot.Shared.UserGitHubToken = val?.ToString() ?? string.Empty;
 
         if (oldData.TryGetValue("ApplicationVersion", out val))
-            newRoot.Shared.ApplicationVersion = val?.ToString() ?? "1.3.0.2";
+            newRoot.Shared.ApplicationVersion = val?.ToString() ?? "1.3.0.3";
 
         if (oldData.TryGetValue("CheckBotScriptsUpdates", out val))
             if (bool.TryParse(val?.ToString(), out bool checkScripts))
