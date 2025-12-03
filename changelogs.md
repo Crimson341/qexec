@@ -1,3 +1,15 @@
+# Skua 1.3.0.3
+## Released: December 03, 2025
+
+- Packet Interceptor: 
+  - now connects to the correct proxy port
+- Auras de-serialization:
+  -  *should* be fixed
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.3.0.2...1.3.0.3
+
+---
+
 # Skua 1.3.0.2
 ## Released: November 22, 2025
 
