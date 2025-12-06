@@ -53,7 +53,6 @@ public class PlayerInfo
     [JsonProperty("intLevel")]
     public int Level { get; set; }
 
-
     /// <summary>
     /// The cell the player is currently in.
     /// </summary>
