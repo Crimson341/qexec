@@ -21,7 +21,7 @@ public partial class JumpViewModel : BotControlViewModelBase
     [ObservableProperty]
     private string _selectedCell = string.Empty;
 
-    partial void OnSelectedCellChanged(string value)
+    async partial void OnSelectedCellChanged(string value)
     {
         if (!string.IsNullOrEmpty(value) && !_suppressAutoJump)
         {
@@ -33,7 +33,7 @@ public partial class JumpViewModel : BotControlViewModelBase
             {
                 SelectedPad = "Left";
             }
-            JumpTo();
+            await JumpTo();
         }
     }
 
@@ -56,9 +56,9 @@ public partial class JumpViewModel : BotControlViewModelBase
     }
 
     [RelayCommand]
-    private void JumpTo()
+    private async Task JumpTo()
     {
-        _mapService.Jump(SelectedCell, SelectedPad);
+        await Task.Run(() => _mapService.Jump(SelectedCell, SelectedPad));
     }
 
     [RelayCommand]
