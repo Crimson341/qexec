@@ -1,11 +1,20 @@
 {
   "ArchMage": {
-    "Farm": {
+    "Base": {
       "skillUseMode": "WaitForCooldown",
       "skillTimeout": 100,
       "skills": [
         {
-          "skillId": 1
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "incinerate",
+              "auraTarget": "target"
+            }
+          ]
         },
         {
           "skillId": 4,
@@ -13,12 +22,21 @@
             {
               "type": "Health",
               "value": 70,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 70,
-              "comparison": "greater"
+              "comparison": "less",
+              "isPercentage": true
+            },
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Corporeal Ascenion",
+              "auraTarget": "self"
             }
           ]
         },
@@ -28,7 +46,8 @@
             {
               "type": "Mana",
               "value": 30,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -37,39 +56,27 @@
         }
       ]
     },
-    "Base": {
-      "skillUseMode": "WaitForCooldown",
+    "Farm": {
+      "skillUseMode": "UseIfAvailable",
       "skillTimeout": 100,
       "skills": [
         {
-          "skillId": 1
+          "skillId": 4,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Corporeal Ascenion",
+              "auraTarget": "self"
+            }
+          ]
         },
         {
-          "skillId": 4
-        },
-        {
-          "skillId": 1
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 1
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 1
+          "skillId": 0
         },
         {
           "skillId": 2
-        },
-        {
-          "skillId": 4
         }
       ]
     }
@@ -94,14 +101,15 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
       ]
     }
   },
-  "Abyssal Angel\u0027s Shadow": {
+  "Abyssal Angel's Shadow": {
     "Base": {
       "skillUseMode": "WaitForCooldown",
       "skillTimeout": 100,
@@ -121,7 +129,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -171,7 +180,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -198,7 +208,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -208,7 +219,7 @@
   "Alpha Pirate": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4
@@ -259,11 +270,53 @@
   },
   "Arcana Invoker": {
     "Solo": {
-      "skillUseMode": "WaitForCooldown",
+      "skillUseMode": "UseIfAvailable",
       "skillTimeout": 100,
       "skills": [
         {
-          "skillId": 1
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "MultiAura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "XXI - The World",
+              "auraTarget": "self"
+            },
+            {
+              "type": "MultiAura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "0 - The Fool",
+              "auraTarget": "self"
+            }
+          ],
+          "isMultiAura": true,
+          "multiAuraOperator": "AND"
+        },
+        {
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0.5,
+              "comparison": "greater",
+              "auraName": "XX - Judgement",
+              "auraTarget": "self"
+            }
+          ]
+        },
+        {
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 22,
+              "comparison": "greater",
+              "auraName": "End of the World",
+              "auraTarget": "self"
+            }
+          ]
         },
         {
           "skillId": 2
@@ -272,199 +325,10 @@
           "skillId": 3
         },
         {
-          "skillId": 4
-        },
-        {
           "skillId": 2
         },
         {
-          "skillId": 3
-        },
-        {
           "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 2
         }
       ]
     }
@@ -501,7 +365,7 @@
   "ArchFiend": {
     "Solo": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -519,7 +383,7 @@
     },
     "Farm": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -547,7 +411,8 @@
             {
               "type": "Health",
               "value": 70,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -560,7 +425,8 @@
             {
               "type": "Health",
               "value": 70,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -573,7 +439,8 @@
             {
               "type": "Health",
               "value": 70,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -586,7 +453,8 @@
             {
               "type": "Health",
               "value": 70,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -599,7 +467,8 @@
             {
               "type": "Health",
               "value": 70,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -612,9 +481,54 @@
             {
               "type": "Health",
               "value": 70,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
+        }
+      ]
+    },
+    "Atk": {
+      "skillUseMode": "UseIfAvailable",
+      "skillTimeout": 100,
+      "skills": [
+        {
+          "skillId": 3,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Righteous Seal",
+              "auraTarget": "target"
+            }
+          ]
+        },
+        {
+          "skillId": 4,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "greater",
+              "auraName": "Righteous Seal",
+              "auraTarget": "target"
+            }
+          ]
+        },
+        {
+          "skillId": 2,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 70,
+              "comparison": "less",
+              "isPercentage": true
+            }
+          ]
+        },
+        {
+          "skillId": 1
         }
       ]
     }
@@ -816,7 +730,7 @@
   "Beast Warrior": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -836,7 +750,7 @@
   "BeastMaster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -936,7 +850,7 @@
   "Blaze Binder": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 2
@@ -975,26 +889,60 @@
   },
   "Blood Sorceress": {
     "Base": {
-      "skillUseMode": "WaitForCooldown",
+      "skillUseMode": "UseIfAvailable",
       "skillTimeout": 100,
       "skills": [
         {
-          "skillId": 4
-        },
-        {
-          "skillId": 4
-        },
-        {
-          "skillId": 4
+          "skillId": 4,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 70,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "MultiAura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Mirrored Pact",
+              "auraTarget": "self"
+            },
+            {
+              "type": "MultiAura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Arcane Pact",
+              "auraTarget": "self"
+            }
+          ],
+          "isMultiAura": true,
+          "multiAuraOperator": "OR"
         },
         {
           "skillId": 2
         },
         {
-          "skillId": 1
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 70,
+              "comparison": "greater",
+              "isPercentage": true
+            }
+          ]
         },
         {
-          "skillId": 3
+          "skillId": 3,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 70,
+              "comparison": "less",
+              "isPercentage": true
+            }
+          ]
         }
       ]
     }
@@ -1042,7 +990,7 @@
   "Chaos Avenger": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4,
@@ -1054,7 +1002,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1068,7 +1017,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1082,7 +1032,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1096,7 +1047,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -1112,7 +1064,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1122,7 +1075,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1132,7 +1086,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1142,7 +1097,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -1160,7 +1116,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1170,7 +1127,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1180,7 +1138,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -1190,7 +1149,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -1240,13 +1200,31 @@
       "skillTimeout": 100,
       "skills": [
         {
+          "skillId": 3
+        },
+        {
           "skillId": 1
         },
+        {
+          "skillId": 2
+        },
+        {
+          "skillId": 4
+        }
+      ]
+    },
+    "Farm": {
+      "skillUseMode": "WaitForCooldown",
+      "skillTimeout": 100,
+      "skills": [
         {
           "skillId": 3
         },
         {
           "skillId": 2
+        },
+        {
+          "skillId": 4
         }
       ]
     }
@@ -1257,13 +1235,31 @@
       "skillTimeout": 100,
       "skills": [
         {
+          "skillId": 3
+        },
+        {
           "skillId": 1
         },
+        {
+          "skillId": 2
+        },
+        {
+          "skillId": 4
+        }
+      ]
+    },
+    "Farm": {
+      "skillUseMode": "WaitForCooldown",
+      "skillTimeout": 100,
+      "skills": [
         {
           "skillId": 3
         },
         {
           "skillId": 2
+        },
+        {
+          "skillId": 4
         }
       ]
     }
@@ -1274,13 +1270,31 @@
       "skillTimeout": 100,
       "skills": [
         {
+          "skillId": 3
+        },
+        {
           "skillId": 1
         },
+        {
+          "skillId": 2
+        },
+        {
+          "skillId": 4
+        }
+      ]
+    },
+    "Farm": {
+      "skillUseMode": "WaitForCooldown",
+      "skillTimeout": 100,
+      "skills": [
         {
           "skillId": 3
         },
         {
           "skillId": 2
+        },
+        {
+          "skillId": 4
         }
       ]
     }
@@ -1291,13 +1305,31 @@
       "skillTimeout": 100,
       "skills": [
         {
+          "skillId": 3
+        },
+        {
           "skillId": 1
         },
+        {
+          "skillId": 2
+        },
+        {
+          "skillId": 4
+        }
+      ]
+    },
+    "Farm": {
+      "skillUseMode": "WaitForCooldown",
+      "skillTimeout": 100,
+      "skills": [
         {
           "skillId": 3
         },
         {
           "skillId": 2
+        },
+        {
+          "skillId": 4
         }
       ]
     }
@@ -1603,10 +1635,73 @@
     }
   },
   "Chrono ShadowSlayer": {
+    "Solo": {
+      "skillUseMode": "WaitForCooldown",
+      "skillTimeout": 100,
+      "skills": [
+        {
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "less",
+              "auraName": "Rounds Empty!",
+              "auraTarget": "self"
+            }
+          ]
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 2
+        },
+        {
+          "skillId": 4
+        },
+        {
+          "skillId": 0,
+          "rules": [
+            {
+              "type": "Mana",
+              "value": 15,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "greater",
+              "auraName": "Gunslinger Stance!",
+              "auraTarget": "self"
+            }
+          ]
+        }
+      ]
+    },
     "Atk": {
       "skillUseMode": "WaitForCooldown",
       "skillTimeout": 100,
       "skills": [
+        {
+          "skillId": 1
+        },
         {
           "skillId": 3
         },
@@ -1627,9 +1722,6 @@
         },
         {
           "skillId": 4
-        },
-        {
-          "skillId": 1
         }
       ]
     },
@@ -1672,15 +1764,105 @@
         },
         {
           "skillId": 1
+        }
+      ]
+    },
+    "Farm": {
+      "skillUseMode": "UseIfAvailable",
+      "skillTimeout": 100,
+      "skills": [
+        {
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "greater",
+              "auraName": "Rounds Empty",
+              "auraTarget": "self"
+            }
+          ]
+        },
+        {
+          "skillId": 3,
+          "rules": [
+            {
+              "type": "None"
+            }
+          ],
+          "skipOnMatch": true
         }
       ]
     }
   },
   "Chrono ShadowHunter": {
+    "Solo": {
+      "skillUseMode": "WaitForCooldown",
+      "skillTimeout": 100,
+      "skills": [
+        {
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "less",
+              "auraName": "Rounds Empty!",
+              "auraTarget": "self"
+            }
+          ]
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 2
+        },
+        {
+          "skillId": 4
+        },
+        {
+          "skillId": 0,
+          "rules": [
+            {
+              "type": "Mana",
+              "value": 15,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "greater",
+              "auraName": "Gunslinger Stance!",
+              "auraTarget": "self"
+            }
+          ]
+        }
+      ]
+    },
     "Atk": {
       "skillUseMode": "WaitForCooldown",
       "skillTimeout": 100,
       "skills": [
+        {
+          "skillId": 1
+        },
         {
           "skillId": 3
         },
@@ -1701,9 +1883,6 @@
         },
         {
           "skillId": 4
-        },
-        {
-          "skillId": 1
         }
       ]
     },
@@ -1746,6 +1925,33 @@
         },
         {
           "skillId": 1
+        }
+      ]
+    },
+    "Farm": {
+      "skillUseMode": "UseIfAvailable",
+      "skillTimeout": 100,
+      "skills": [
+        {
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "greater",
+              "auraName": "Rounds Empty",
+              "auraTarget": "self"
+            }
+          ]
+        },
+        {
+          "skillId": 3,
+          "rules": [
+            {
+              "type": "None"
+            }
+          ],
+          "skipOnMatch": true
         }
       ]
     }
@@ -1827,7 +2033,8 @@
             {
               "type": "Health",
               "value": 60,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -1952,7 +2159,8 @@
             {
               "type": "Health",
               "value": 60,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -1994,7 +2202,7 @@
   "Classic Alpha Pirate": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4
@@ -2089,7 +2297,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -2113,7 +2322,8 @@
             {
               "type": "Health",
               "value": 35,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -2149,7 +2359,7 @@
   "Classic Exalted Soul Cleaver": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2169,7 +2379,7 @@
   "Classic Guardian": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2189,7 +2399,7 @@
   "Classic Legion DoomKnight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2209,7 +2419,7 @@
   "Classic Paladin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2229,7 +2439,7 @@
   "Classic Pirate": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2249,7 +2459,7 @@
   "Classic Soul Cleaver": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2269,7 +2479,7 @@
   "ClawSuit": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2338,7 +2548,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -2389,7 +2600,7 @@
   "Daimon": {
     "Farm": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2403,7 +2614,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -2439,7 +2651,7 @@
   "Dark Caster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2508,7 +2720,7 @@
   "Dark Harbinger": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2539,7 +2751,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -2558,7 +2771,7 @@
   "Dark Lord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2575,7 +2788,8 @@
             {
               "type": "Health",
               "value": 40,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -2585,7 +2799,7 @@
   "Dark Master of Moglins": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 2
@@ -2619,7 +2833,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -2638,7 +2853,7 @@
   "Dark Ultra OmniNight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2658,7 +2873,7 @@
   "Darkblood StormKing": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2678,7 +2893,7 @@
   "Darkside": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2698,7 +2913,7 @@
   "DeathKnight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2718,7 +2933,7 @@
   "DeathKnight Lord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2738,7 +2953,7 @@
   "Defender": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2758,7 +2973,7 @@
   "DoomKnight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2778,7 +2993,7 @@
   "DoomKnight OverLord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2798,7 +3013,7 @@
   "Dragon Knight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2860,12 +3075,21 @@
     }
   },
   "Dragon Shinobi": {
-    "Farm": {
-      "skillUseMode": "WaitForCooldown",
+    "Base": {
+      "skillUseMode": "UseIfAvailable",
       "skillTimeout": 100,
       "skills": [
         {
-          "skillId": 1
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
+            }
+          ]
         },
         {
           "skillId": 2,
@@ -2873,12 +3097,21 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 70,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
             }
           ]
         },
@@ -2886,9 +3119,28 @@
           "skillId": 3,
           "rules": [
             {
+              "type": "Health",
+              "value": 30,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
               "type": "Mana",
               "value": 10,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
+            }
+          ]
+        },
+        {
+          "skillId": 4,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
             }
           ]
         }
@@ -2898,7 +3150,7 @@
   "Dragonlord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2918,7 +3170,7 @@
   "Dragonslayer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2938,7 +3190,7 @@
   "Dragonslayer General": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -2950,97 +3202,87 @@
           "skillId": 3
         },
         {
-          "skillId": 4
+          "skillId": 4,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 1,
+              "comparison": "less",
+              "auraName": "Forgone Conclusion",
+              "auraTarget": "self"
+            }
+          ]
         }
       ]
     }
   },
   "DragonSoul Shinobi": {
-    "Farm": {
-      "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
-      "skills": [
-        {
-          "skillId": 1
-        },
-        {
-          "skillId": 2,
-          "rules": [
-            {
-              "type": "Health",
-              "value": 30,
-              "comparison": "less"
-            },
-            {
-              "type": "Mana",
-              "value": 70,
-              "comparison": "greater"
-            }
-          ]
-        },
-        {
-          "skillId": 3,
-          "rules": [
-            {
-              "type": "Health",
-              "value": 30,
-              "comparison": "greater"
-            },
-            {
-              "type": "Mana",
-              "value": 10,
-              "comparison": "less"
-            }
-          ]
-        }
-      ]
-    },
     "Base": {
-      "skillUseMode": "WaitForCooldown",
+      "skillUseMode": "UseIfAvailable",
       "skillTimeout": 100,
       "skills": [
-        {
-          "skillId": 4,
-          "rules": [
-            {
-              "type": "Health",
-              "value": 50,
-              "comparison": "greater"
-            }
-          ]
-        },
-        {
-          "skillId": 3,
-          "rules": [
-            {
-              "type": "Mana",
-              "value": 70,
-              "comparison": "less"
-            }
-          ]
-        },
-        {
-          "skillId": 2,
-          "rules": [
-            {
-              "type": "Health",
-              "value": 50,
-              "comparison": "less"
-            },
-            {
-              "type": "Mana",
-              "value": 70,
-              "comparison": "greater"
-            }
-          ]
-        },
         {
           "skillId": 1,
           "rules": [
             {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
+            }
+          ]
+        },
+        {
+          "skillId": 2,
+          "rules": [
+            {
               "type": "Health",
-              "value": 50,
-              "comparison": "greater"
+              "value": 30,
+              "comparison": "less",
+              "isPercentage": true
+            },
+            {
+              "type": "Mana",
+              "value": 70,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
+            }
+          ]
+        },
+        {
+          "skillId": 3,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 30,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "Mana",
+              "value": 10,
+              "comparison": "less",
+              "isPercentage": true
+            }
+          ]
+        },
+        {
+          "skillId": 4,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
             }
           ]
         }
@@ -3050,7 +3292,7 @@
   "Drakel Warlord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3070,7 +3312,7 @@
   "Drakkar Knight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3090,7 +3332,7 @@
   "Elemental Dracomancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -3219,7 +3461,7 @@
   "Enforcer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3301,7 +3543,7 @@
   "Eternal Inversionist": {
     "Farm": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 2
@@ -3640,7 +3882,7 @@
   "Frostval Barbarian": {
     "Supp": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -3655,7 +3897,7 @@
     },
     "Farm": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4
@@ -3678,7 +3920,7 @@
   "Giftbox": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3866,7 +4108,7 @@
   "Great Thief": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 2
@@ -3883,7 +4125,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -3893,7 +4136,7 @@
   "Grim Necromancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3913,7 +4156,7 @@
   "Grunge Rocker": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3933,7 +4176,7 @@
   "Guardian": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3953,7 +4196,7 @@
   "Healer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -3964,7 +4207,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -3974,12 +4218,14 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -3992,7 +4238,7 @@
   "Healer (Rare)": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4003,7 +4249,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -4030,7 +4277,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -4060,7 +4308,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -4134,7 +4383,7 @@
   "Hobo Highlord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4145,7 +4394,27 @@
   "Horc Evader": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
+      "skills": [
+        {
+          "skillId": 2
+        },
+        {
+          "skillId": 1
+        },
+        {
+          "skillId": 3
+        },
+        {
+          "skillId": 4
+        }
+      ]
+    }
+  },
+  "Hollowborn Vindicator Member Preview": {
+    "Base": {
+      "skillUseMode": "UseIfAvailable",
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4162,30 +4431,10 @@
       ]
     }
   },
-  "hollowborn vindicator member preview": {
+  "Hollowborn Vindicator": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
-      "skills": [
-        {
-          "skillId": 1
-        },
-        {
-          "skillId": 2
-        },
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4
-        }
-      ]
-    }
-  },
-  "hollowborn vindicator": {
-    "Base": {
-      "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4302,7 +4551,7 @@
   "Imperial Chunin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4322,7 +4571,7 @@
   "Infinite Dark Caster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4342,7 +4591,7 @@
   "Infinite Legion Dark Caster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4362,7 +4611,7 @@
   "Infinity Titan": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -4380,7 +4629,7 @@
     },
     "Solo": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4,
@@ -4388,7 +4637,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -4401,7 +4651,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -4414,7 +4665,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -4428,7 +4680,7 @@
     },
     "Supp": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -4533,50 +4785,23 @@
       ]
     }
   },
-  "King\u0027s Echo": {
-    "Solo": {
-      "skillUseMode": "WaitForCooldown",
-      "skillTimeout": 100,
-      "skills": [
-        {
-          "skillId": 3
-        },
-        {
-          "skillId": 4,
-          "rules": [
-            {
-              "type": "Mana",
-              "value": 20,
-              "comparison": "greater"
-            }
-          ]
-        },
-        {
-          "skillId": 1,
-          "rules": [
-            {
-              "type": "Mana",
-              "value": 20,
-              "comparison": "greater"
-            }
-          ]
-        },
-        {
-          "skillId": 2,
-          "rules": [
-            {
-              "type": "Mana",
-              "value": 20,
-              "comparison": "greater"
-            }
-          ]
-        }
-      ]
-    },
+  "King's Echo": {
     "Base": {
-      "skillUseMode": "WaitForCooldown",
+      "skillUseMode": "UseIfAvailable",
       "skillTimeout": 100,
       "skills": [
+        {
+          "skillId": 3,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Royal Resolve",
+              "auraTarget": "self"
+            }
+          ]
+        },
         {
           "skillId": 1
         },
@@ -4588,18 +4813,9 @@
           "rules": [
             {
               "type": "Mana",
-              "value": 25,
-              "comparison": "less"
-            }
-          ]
-        },
-        {
-          "skillId": 3,
-          "rules": [
-            {
-              "type": "Health",
-              "value": 90,
-              "comparison": "less"
+              "value": 10,
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -4719,7 +4935,7 @@
   "Legendary ArchFiend": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4739,7 +4955,7 @@
   "Legendary Hero": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4785,7 +5001,7 @@
   "Legion BladeMaster Assassin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4805,7 +5021,7 @@
   "Legion DoomKnight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4825,7 +5041,7 @@
   "Legion DoomKnight Tester": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4845,7 +5061,7 @@
   "Legion Evolved Dark Caster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4865,7 +5081,7 @@
   "Legion Paladin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4885,7 +5101,7 @@
   "Legion Revenant": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -4905,7 +5121,7 @@
   "Legion Revenant Member Test": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -4925,7 +5141,7 @@
   "Legion SwordMaster Assassin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -4945,7 +5161,7 @@
   "Leprechaun": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5012,7 +5228,7 @@
   "LightCaster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -5032,7 +5248,7 @@
   "LightCaster Test": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -5084,8 +5300,11 @@
   "Lord Of Order": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
+        {
+          "skillId": 0
+        },
         {
           "skillId": 2
         },
@@ -5104,7 +5323,7 @@
   "Love Caster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5190,7 +5409,7 @@
   "Master of Moglins": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 2
@@ -5213,7 +5432,7 @@
   "Master Ranger": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5245,7 +5464,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -5282,7 +5502,7 @@
   "MechaJouster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5302,7 +5522,7 @@
   "MindBreaker": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5362,7 +5582,7 @@
   "Mystical Dark Caster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5476,7 +5696,7 @@
   "Nechronomancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4,
@@ -5484,7 +5704,8 @@
             {
               "type": "Health",
               "value": 60,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -5503,7 +5724,7 @@
   "Necrotic Chronomancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4,
@@ -5511,7 +5732,8 @@
             {
               "type": "Health",
               "value": 60,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -5530,7 +5752,7 @@
   "Necromancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5544,12 +5766,14 @@
             {
               "type": "Mana",
               "value": 25,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Health",
               "value": 30,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -5562,7 +5786,7 @@
   "Neo Metal Necro": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5608,7 +5832,7 @@
   "Ninja Warrior": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5628,7 +5852,7 @@
   "Northlands Monk": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5648,7 +5872,7 @@
   "NOT A MOD": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5668,7 +5892,7 @@
   "Nu Metal Necro": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5688,7 +5912,7 @@
   "Oracle": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5705,12 +5929,14 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -5776,7 +6002,7 @@
   "Paladin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -5804,12 +6030,14 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 95,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -5819,12 +6047,14 @@
             {
               "type": "Health",
               "value": 60,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 75,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -5957,12 +6187,14 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 95,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -5972,12 +6204,14 @@
             {
               "type": "Health",
               "value": 60,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 75,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -6002,7 +6236,7 @@
   "Obsidian No Class": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6030,7 +6264,8 @@
             {
               "type": "Health",
               "value": 60,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -6040,7 +6275,7 @@
   "PaladinSlayer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6060,7 +6295,7 @@
   "Pink Romancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6080,7 +6315,7 @@
   "Pinkomancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6094,12 +6329,14 @@
             {
               "type": "Mana",
               "value": 25,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Health",
               "value": 30,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -6112,7 +6349,7 @@
   "Pirate": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6132,7 +6369,7 @@
   "Prismatic ClawSuit": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6152,7 +6389,7 @@
   "ProtoSartorium": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6183,7 +6420,8 @@
             {
               "type": "Mana",
               "value": 25,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -6202,7 +6440,7 @@
   "Pumpkin Lord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6262,7 +6500,7 @@
   "Pyromancer": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6282,7 +6520,7 @@
   "Renegade": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6302,7 +6540,7 @@
   "Rogue": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 2
@@ -6322,7 +6560,7 @@
   "Rogue (Rare)": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 2
@@ -6342,7 +6580,7 @@
   "Royal BattleMage": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6409,7 +6647,7 @@
   "Rustbucket": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -6489,20 +6727,60 @@
   },
   "Scarlet Sorceress": {
     "Base": {
-      "skillUseMode": "WaitForCooldown",
+      "skillUseMode": "UseIfAvailable",
       "skillTimeout": 100,
       "skills": [
         {
-          "skillId": 4
-        },
-        {
-          "skillId": 1
+          "skillId": 4,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 70,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "MultiAura",
+              "value": 0,
+              "comparison": "greater",
+              "auraName": "Mirrored Pact",
+              "auraTarget": "self"
+            },
+            {
+              "type": "MultiAura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Arcane Pact",
+              "auraTarget": "self"
+            }
+          ],
+          "isMultiAura": true,
+          "multiAuraOperator": "OR"
         },
         {
           "skillId": 2
         },
         {
-          "skillId": 3
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 70,
+              "comparison": "greater",
+              "isPercentage": true
+            }
+          ]
+        },
+        {
+          "skillId": 3,
+          "rules": [
+            {
+              "type": "Health",
+              "value": 70,
+              "comparison": "less",
+              "isPercentage": true
+            }
+          ]
         }
       ]
     }
@@ -6510,7 +6788,7 @@
   "Sentinel": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6528,12 +6806,21 @@
     }
   },
   "Shadow Dragon Shinobi": {
-    "Farm": {
+    "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
-          "skillId": 1
+          "skillId": 1,
+          "rules": [
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
+            }
+          ]
         },
         {
           "skillId": 2,
@@ -6541,12 +6828,21 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             },
             {
               "type": "Mana",
               "value": 70,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
             }
           ]
         },
@@ -6554,60 +6850,28 @@
           "skillId": 3,
           "rules": [
             {
+              "type": "Health",
+              "value": 30,
+              "comparison": "greater",
+              "isPercentage": true
+            },
+            {
               "type": "Mana",
               "value": 10,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
-        }
-      ]
-    },
-    "Base": {
-      "skillUseMode": "WaitForCooldown",
-      "skillTimeout": 100,
-      "skills": [
+        },
         {
           "skillId": 4,
           "rules": [
             {
-              "type": "Health",
-              "value": 50,
-              "comparison": "greater"
-            }
-          ]
-        },
-        {
-          "skillId": 3,
-          "rules": [
-            {
-              "type": "Mana",
-              "value": 70,
-              "comparison": "less"
-            }
-          ]
-        },
-        {
-          "skillId": 2,
-          "rules": [
-            {
-              "type": "Health",
-              "value": 50,
-              "comparison": "less"
-            },
-            {
-              "type": "Mana",
-              "value": 70,
-              "comparison": "greater"
-            }
-          ]
-        },
-        {
-          "skillId": 1,
-          "rules": [
-            {
-              "type": "Health",
-              "value": 50,
-              "comparison": "greater"
+              "type": "Aura",
+              "value": 0,
+              "comparison": "less",
+              "auraName": "Shadow Soul",
+              "auraTarget": "self"
             }
           ]
         }
@@ -6617,7 +6881,7 @@
   "Shadow Ripper": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6637,7 +6901,7 @@
   "Shadow Rocker": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6657,7 +6921,7 @@
   "ShadowFlame DragonLord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6677,7 +6941,7 @@
   "ShadowScythe General": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6946,7 +7210,7 @@
   "Shaman": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4
@@ -6964,7 +7228,7 @@
     },
     "Farm": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -6988,7 +7252,7 @@
     },
     "Solo": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4
@@ -7020,7 +7284,7 @@
   "Silver Paladin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7040,7 +7304,7 @@
   "SkyCharged Grenadier": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7060,7 +7324,7 @@
   "SkyGuard Grenadier": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7147,7 +7411,7 @@
   "Soul Cleaver": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7241,7 +7505,7 @@
   "StarLord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7261,7 +7525,7 @@
   "StoneCrusher": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -7279,7 +7543,7 @@
     },
     "Solo": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 4,
@@ -7287,7 +7551,8 @@
             {
               "type": "Mana",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -7300,7 +7565,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         },
@@ -7311,7 +7577,7 @@
     },
     "Supp": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3
@@ -7331,7 +7597,7 @@
   "SwordMaster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7351,7 +7617,7 @@
   "SwordMaster Assassin": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7651,7 +7917,7 @@
   "Timeless Dark Caster": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7671,7 +7937,7 @@
   "Troll Spellsmith": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7691,7 +7957,7 @@
   "Troubador of Love": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7753,7 +8019,7 @@
     },
     "Def": {
       "skillUseMode": "WaitForCooldown",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7779,7 +8045,7 @@
   "Ultra OmniKnight": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7855,7 +8121,7 @@
   "Unchained Rocker": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7875,7 +8141,7 @@
   "Unchained Rockstar": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7906,7 +8172,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -7933,7 +8200,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -7949,7 +8217,7 @@
   "Undead Leperchaun": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -7983,7 +8251,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "less"
+              "comparison": "less",
+              "isPercentage": true
             }
           ]
         }
@@ -7993,7 +8262,7 @@
   "Unlucky Leperchaun": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8221,7 +8490,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8237,7 +8507,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8247,7 +8518,8 @@
             {
               "type": "Health",
               "value": 90,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8260,7 +8532,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8270,7 +8543,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8283,7 +8557,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -8291,7 +8566,7 @@
     },
     "Def": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8308,7 +8583,8 @@
             {
               "type": "Health",
               "value": 90,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -8316,7 +8592,7 @@
     },
     "Farm": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3,
@@ -8324,7 +8600,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8340,7 +8617,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -8358,7 +8636,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8374,7 +8653,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8384,7 +8664,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8397,7 +8678,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8407,7 +8689,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8420,7 +8703,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -8428,7 +8712,7 @@
     },
     "Def": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8445,7 +8729,8 @@
             {
               "type": "Health",
               "value": 90,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -8453,7 +8738,7 @@
     },
     "Farm": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 3,
@@ -8461,7 +8746,8 @@
             {
               "type": "Health",
               "value": 50,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8477,7 +8763,8 @@
             {
               "type": "Health",
               "value": 30,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -8520,7 +8807,7 @@
     },
     "Def": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8537,7 +8824,8 @@
             {
               "type": "Health",
               "value": 90,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         }
@@ -8547,7 +8835,7 @@
   "Warlord": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8567,7 +8855,7 @@
   "Warrior": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8587,7 +8875,7 @@
   "Warrior (Rare)": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8607,7 +8895,7 @@
   "WarriorScythe General": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8627,7 +8915,7 @@
   "Witch": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8655,7 +8943,8 @@
             {
               "type": "Mana",
               "value": 60,
-              "comparison": "greater"
+              "comparison": "greater",
+              "isPercentage": true
             }
           ]
         },
@@ -8681,7 +8970,7 @@
     },
     "Def": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": [
         {
           "skillId": 1
@@ -8698,7 +8987,7 @@
   "": {
     "Base": {
       "skillUseMode": "UseIfAvailable",
-      "skillTimeout": 250,
+      "skillTimeout": 100,
       "skills": []
     }
   }
