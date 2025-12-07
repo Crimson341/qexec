@@ -1,10 +1,11 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using System;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
 using System.Windows.Shell;
+using Windows.Win32;
+using Windows.Win32.Graphics.Dwm;
 
 namespace Skua.WPF;
 
@@ -92,32 +93,19 @@ public partial class CustomWindow : Window
         SourceInitialized -= CustomWindow_SourceInitialized;
     }
 
-    private static void ApplyRoundedCorners(IntPtr hwnd)
+    private static unsafe void ApplyRoundedCorners(IntPtr hwnd)
     {
         try
         {
-            var attribute = DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE;
             var preference = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
-            DwmSetWindowAttribute(hwnd, attribute, ref preference, sizeof(uint));
+            PInvoke.DwmSetWindowAttribute(
+                (Windows.Win32.Foundation.HWND)hwnd,
+                DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,
+                &preference,
+                sizeof(DWM_WINDOW_CORNER_PREFERENCE));
         }
-        catch { }
+        catch { /* ignored */ }
     }
-
-    private enum DWMWINDOWATTRIBUTE
-    {
-        DWMWA_WINDOW_CORNER_PREFERENCE = 33
-    }
-
-    private enum DWM_WINDOW_CORNER_PREFERENCE
-    {
-        DWMWCP_DEFAULT = 0,
-        DWMWCP_DONOTROUND = 1,
-        DWMWCP_ROUND = 2,
-        DWMWCP_ROUNDSMALL = 3
-    }
-
-    [DllImport("dwmapi.dll", PreserveSig = true)]
-    private static extern int DwmSetWindowAttribute(IntPtr hwnd, DWMWINDOWATTRIBUTE attribute, ref DWM_WINDOW_CORNER_PREFERENCE pvAttribute, int cbAttribute);
 
     public override void OnApplyTemplate()
     {
