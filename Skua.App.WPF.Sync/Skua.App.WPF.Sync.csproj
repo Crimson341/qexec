@@ -50,5 +50,14 @@
     <ProjectReference Include="..\Skua.WPF\Skua.WPF.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="AxInterop.ShockwaveFlashObjects">
+      <HintPath>..\Skua.App.WPF\Assemblies\AxInterop.ShockwaveFlashObjects.dll</HintPath>
+    </Reference>
+    <Reference Include="Interop.ShockwaveFlashObjects">
+      <HintPath>..\Skua.App.WPF\Assemblies\Interop.ShockwaveFlashObjects.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>
 
