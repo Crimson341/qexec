@@ -139,6 +139,49 @@ public static class AdvancedSkillsParser
                 while (pos < rulesPart.Length && rulesPart[pos] == ' ')
                     pos++;
             }
+            else if (pos + 1 < rulesPart.Length && char.ToUpper(rulesPart[pos]) == 'P' && char.ToUpper(rulesPart[pos + 1]) == 'H')
+            {
+                pos += 2;
+                string comparison = "less";
+                if (pos < rulesPart.Length && rulesPart[pos] == '>')
+                {
+                    comparison = "greater";
+                    pos++;
+                }
+                else if (pos < rulesPart.Length && rulesPart[pos] == '<')
+                {
+                    pos++;
+                }
+
+                int numStart = pos;
+                while (pos < rulesPart.Length && char.IsDigit(rulesPart[pos]))
+                    pos++;
+
+                if (pos > numStart)
+                {
+                    int value = int.Parse(rulesPart.Substring(numStart, pos - numStart));
+                    bool isPercentage = true;
+                    if (pos < rulesPart.Length && rulesPart[pos] == '#')
+                    {
+                        isPercentage = false;
+                        pos++;
+                    }
+                    else if (pos < rulesPart.Length && rulesPart[pos] == '%')
+                    {
+                        pos++;
+                    }
+                    rules.Add(new SkillRuleJson
+                    {
+                        Type = "PartyHealth",
+                        Value = value,
+                        Comparison = comparison,
+                        IsPercentage = isPercentage
+                    });
+                }
+
+                while (pos < rulesPart.Length && rulesPart[pos] == ' ')
+                    pos++;
+            }
             else if (char.ToUpper(rulesPart[pos]) == 'H')
             {
                 pos++;
@@ -160,11 +203,22 @@ public static class AdvancedSkillsParser
                 if (pos > numStart)
                 {
                     int value = int.Parse(rulesPart.Substring(numStart, pos - numStart));
+                    bool isPercentage = true;
+                    if (pos < rulesPart.Length && rulesPart[pos] == '#')
+                    {
+                        isPercentage = false;
+                        pos++;
+                    }
+                    else if (pos < rulesPart.Length && rulesPart[pos] == '%')
+                    {
+                        pos++;
+                    }
                     rules.Add(new SkillRuleJson
                     {
                         Type = "Health",
                         Value = value,
-                        Comparison = comparison
+                        Comparison = comparison,
+                        IsPercentage = isPercentage
                     });
                 }
 
@@ -278,11 +332,22 @@ public static class AdvancedSkillsParser
                 if (pos > numStart)
                 {
                     int value = int.Parse(rulesPart.Substring(numStart, pos - numStart));
+                    bool isPercentage = true;
+                    if (pos < rulesPart.Length && rulesPart[pos] == '#')
+                    {
+                        isPercentage = false;
+                        pos++;
+                    }
+                    else if (pos < rulesPart.Length && rulesPart[pos] == '%')
+                    {
+                        pos++;
+                    }
                     rules.Add(new SkillRuleJson
                     {
                         Type = "Mana",
                         Value = value,
-                        Comparison = comparison
+                        Comparison = comparison,
+                        IsPercentage = isPercentage
                     });
                 }
 

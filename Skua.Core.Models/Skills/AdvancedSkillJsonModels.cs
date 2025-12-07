@@ -48,6 +48,10 @@ public class SkillRuleJson
     [JsonPropertyName("timeout")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public int? Timeout { get; set; }
+
+    [JsonPropertyName("isPercentage")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public bool? IsPercentage { get; set; }
 }
 
 public class SkillModeJson

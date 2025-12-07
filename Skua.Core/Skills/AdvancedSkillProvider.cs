@@ -145,6 +145,33 @@ public class AdvancedSkillProvider : ISkillProvider
                 continue;
             }
 
+            if (pos + 1 < useRule.Length && (useRule[pos] == 'p' || useRule[pos] == 'P') && (useRule[pos + 1] == 'h' || useRule[pos + 1] == 'H'))
+            {
+                pos += 2;
+                bool isGreater = pos < useRule.Length && useRule[pos] == '>';
+                if (isGreater || (pos < useRule.Length && useRule[pos] == '<'))
+                    pos++;
+                int numStart = pos;
+                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
+                    pos++;
+                if (pos > numStart)
+                {
+                    int value = int.Parse(useRule.Substring(numStart, pos - numStart));
+                    bool isPercentage = true;
+                    if (pos < useRule.Length && useRule[pos] == '#')
+                    {
+                        isPercentage = false;
+                        pos++;
+                    }
+                    else if (pos < useRule.Length && useRule[pos] == '%')
+                    {
+                        pos++;
+                    }
+                    rules.Add(new UseRule(SkillRule.PartyHealth, isGreater, value, shouldSkip, isPercentage));
+                }
+                continue;
+            }
+
             if (useRule[pos] == 'h' || useRule[pos] == 'H')
             {
                 pos++;
@@ -155,7 +182,20 @@ public class AdvancedSkillProvider : ISkillProvider
                 while (pos < useRule.Length && char.IsDigit(useRule[pos]))
                     pos++;
                 if (pos > numStart)
-                    rules.Add(new UseRule(SkillRule.Health, isGreater, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
+                {
+                    int value = int.Parse(useRule.Substring(numStart, pos - numStart));
+                    bool isPercentage = true;
+                    if (pos < useRule.Length && useRule[pos] == '#')
+                    {
+                        isPercentage = false;
+                        pos++;
+                    }
+                    else if (pos < useRule.Length && useRule[pos] == '%')
+                    {
+                        pos++;
+                    }
+                    rules.Add(new UseRule(SkillRule.Health, isGreater, value, shouldSkip, isPercentage));
+                }
                 continue;
             }
 
@@ -169,21 +209,20 @@ public class AdvancedSkillProvider : ISkillProvider
                 while (pos < useRule.Length && char.IsDigit(useRule[pos]))
                     pos++;
                 if (pos > numStart)
-                    rules.Add(new UseRule(SkillRule.Mana, isGreater, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
-                continue;
-            }
-
-            if (useRule[pos] == 'p' || useRule[pos] == 'P')
-            {
-                pos++;
-                bool isGreater = pos < useRule.Length && useRule[pos] == '>';
-                if (isGreater || (pos < useRule.Length && useRule[pos] == '<'))
-                    pos++;
-                int numStart = pos;
-                while (pos < useRule.Length && char.IsDigit(useRule[pos]))
-                    pos++;
-                if (pos > numStart)
-                    rules.Add(new UseRule(SkillRule.PartyHealth, isGreater, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
+                {
+                    int value = int.Parse(useRule.Substring(numStart, pos - numStart));
+                    bool isPercentage = true;
+                    if (pos < useRule.Length && useRule[pos] == '#')
+                    {
+                        isPercentage = false;
+                        pos++;
+                    }
+                    else if (pos < useRule.Length && useRule[pos] == '%')
+                    {
+                        pos++;
+                    }
+                    rules.Add(new UseRule(SkillRule.Mana, isGreater, value, shouldSkip, isPercentage));
+                }
                 continue;
             }
 

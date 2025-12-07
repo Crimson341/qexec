@@ -178,14 +178,19 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
         foreach (var rule in otherRules)
         {
+            string percentIndicator = (rule.IsPercentage ?? true) ? "%" : "#";
             switch (rule.Type)
             {
                 case "Health":
-                    ruleParts.Add($"H{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}");
+                    ruleParts.Add($"H{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}{percentIndicator}");
                     break;
 
                 case "Mana":
-                    ruleParts.Add($"M{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}");
+                    ruleParts.Add($"M{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}{percentIndicator}");
+                    break;
+
+                case "PartyHealth":
+                    ruleParts.Add($"PH{(rule.Comparison == "greater" ? ">" : "<")}{rule.Value}{percentIndicator}");
                     break;
 
                 case "Wait":

@@ -34,7 +34,8 @@ public class SkillItemViewModel : ObservableObject
         Skill = int.Parse(skill.AsSpan(0, 1));
         string rest = skill[1..].Trim();
         bool useRule = false, healthGreater = false, manaGreater = false, auraGreater = false, skip = false, multiAura = false;
-        int waitVal = 0, healthVal = 0, manaVal = 0, auraTargetIndex = 0;
+        bool healthIsPercentage = true, manaIsPercentage = true, partyHealthIsPercentage = true, partyHealthGreater = false;
+        int waitVal = 0, healthVal = 0, manaVal = 0, auraTargetIndex = 0, partyHealthVal = 0;
         float auraVal = 0;
         string auraName = string.Empty;
         List<AuraCheckViewModel> multiAuraChecks = new();
@@ -62,6 +63,36 @@ public class SkillItemViewModel : ObservableObject
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
             }
+            else if (pos + 1 < rest.Length && rest[pos] == 'P' && rest[pos + 1] == 'H')
+            {
+                useRule = true;
+                pos += 2;
+                if (pos < rest.Length && rest[pos] == '>')
+                {
+                    partyHealthGreater = true;
+                    pos++;
+                }
+                else if (pos < rest.Length && rest[pos] == '<')
+                {
+                    pos++;
+                }
+                int numStart = pos;
+                while (pos < rest.Length && char.IsDigit(rest[pos]))
+                    pos++;
+                if (pos > numStart)
+                    partyHealthVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                if (pos < rest.Length && rest[pos] == '#')
+                {
+                    partyHealthIsPercentage = false;
+                    pos++;
+                }
+                else if (pos < rest.Length && rest[pos] == '%')
+                {
+                    pos++;
+                }
+                while (pos < rest.Length && rest[pos] == ' ')
+                    pos++;
+            }
             else if (rest[pos] == 'H')
             {
                 useRule = true;
@@ -80,6 +111,15 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 if (pos > numStart)
                     healthVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                if (pos < rest.Length && rest[pos] == '#')
+                {
+                    healthIsPercentage = false;
+                    pos++;
+                }
+                else if (pos < rest.Length && rest[pos] == '%')
+                {
+                    pos++;
+                }
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
             }
@@ -189,6 +229,15 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
                 if (pos > numStart)
                     manaVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                if (pos < rest.Length && rest[pos] == '#')
+                {
+                    manaIsPercentage = false;
+                    pos++;
+                }
+                else if (pos < rest.Length && rest[pos] == '%')
+                {
+                    pos++;
+                }
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
             }
@@ -306,8 +355,13 @@ public class SkillItemViewModel : ObservableObject
             WaitUseValue = waitVal,
             HealthGreaterThanBool = healthGreater,
             HealthUseValue = healthVal,
+            HealthIsPercentage = healthIsPercentage,
             ManaGreaterThanBool = manaGreater,
             ManaUseValue = manaVal,
+            ManaIsPercentage = manaIsPercentage,
+            PartyMemberHealthGreaterThanBool = partyHealthGreater,
+            PartyMemberHealthUseValue = partyHealthVal,
+            PartyMemberHealthIsPercentage = partyHealthIsPercentage,
             AuraGreaterThanBool = auraGreater,
             AuraUseValue = multiAuraChecks.Count > 0 ? 0 : auraVal,
             AuraTargetIndex = auraTargetIndex,
@@ -361,7 +415,7 @@ public class SkillItemViewModel : ObservableObject
             bob.Append(" - [Health");
             _ = UseRules.HealthGreaterThanBool ? bob.Append(" > ") : bob.Append(" < ");
             bob.Append(UseRules.HealthUseValue);
-            bob.Append("%]");
+            bob.Append(UseRules.HealthIsPercentage ? "%]" : "#]");
         }
 
         if (UseRules.ManaUseValue != 0)
@@ -369,7 +423,15 @@ public class SkillItemViewModel : ObservableObject
             bob.Append(" - [Mana");
             _ = UseRules.ManaGreaterThanBool ? bob.Append(" > ") : bob.Append(" < ");
             bob.Append(UseRules.ManaUseValue);
-            bob.Append("%]");
+            bob.Append(UseRules.ManaIsPercentage ? "%]" : "#]");
+        }
+
+        if (UseRules.PartyMemberHealthUseValue != 0)
+        {
+            bob.Append(" - [Party HP");
+            _ = UseRules.PartyMemberHealthGreaterThanBool ? bob.Append(" > ") : bob.Append(" < ");
+            bob.Append(UseRules.PartyMemberHealthUseValue);
+            bob.Append(UseRules.PartyMemberHealthIsPercentage ? "%]" : "#]");
         }
 
         if (UseRules.MultiAuraBool && UseRules.MultiAuraChecks.Count > 0)
@@ -413,9 +475,11 @@ public class SkillItemViewModel : ObservableObject
         if (UseRules.WaitUseValue != 0)
             bob.Append($" WW{UseRules.WaitUseValue}");
         if (UseRules.HealthUseValue != 0)
-            bob.Append($" H{(UseRules.HealthGreaterThanBool ? ">" : "<")}{UseRules.HealthUseValue}");
+            bob.Append($" H{(UseRules.HealthGreaterThanBool ? ">" : "<")}{UseRules.HealthUseValue}{(UseRules.HealthIsPercentage ? "%" : "#")}");
         if (UseRules.ManaUseValue != 0)
-            bob.Append($" M{(UseRules.ManaGreaterThanBool ? ">" : "<")}{UseRules.ManaUseValue}");
+            bob.Append($" M{(UseRules.ManaGreaterThanBool ? ">" : "<")}{UseRules.ManaUseValue}{(UseRules.ManaIsPercentage ? "%" : "#")}");
+        if (UseRules.PartyMemberHealthUseValue != 0)
+            bob.Append($" PH{(UseRules.PartyMemberHealthGreaterThanBool ? ">" : "<")}{UseRules.PartyMemberHealthUseValue}{(UseRules.PartyMemberHealthIsPercentage ? "%" : "#")}");
         if (UseRules.MultiAuraBool && UseRules.MultiAuraChecks.Count > 0)
         {
             string opChar = UseRules.MultiAuraOperatorIndex switch

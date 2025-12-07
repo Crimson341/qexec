@@ -170,10 +170,13 @@ public partial class SkillRulesViewModel : ObservableRecipient
         }
 
         if (HealthUseValue != 0)
-            rules.Add(new UseRule(SkillRule.Health, HealthGreaterThanBool, HealthUseValue, SkipUseBool));
+            rules.Add(new UseRule(SkillRule.Health, HealthGreaterThanBool, HealthUseValue, SkipUseBool, HealthIsPercentage));
 
         if (ManaUseValue != 0)
-            rules.Add(new UseRule(SkillRule.Mana, ManaGreaterThanBool, ManaUseValue, SkipUseBool));
+            rules.Add(new UseRule(SkillRule.Mana, ManaGreaterThanBool, ManaUseValue, SkipUseBool, ManaIsPercentage));
+
+        if (PartyMemberHealthUseValue != 0)
+            rules.Add(new UseRule(SkillRule.PartyHealth, PartyMemberHealthGreaterThanBool, PartyMemberHealthUseValue, SkipUseBool, PartyMemberHealthIsPercentage));
 
         if (WaitUseValue != 0)
             rules.Add(new UseRule(SkillRule.Wait, true, WaitUseValue, SkipUseBool));
