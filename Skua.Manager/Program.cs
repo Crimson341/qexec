@@ -26,7 +26,7 @@ public class Program
     private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
         Exception ex = (Exception)e.ExceptionObject;
-        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "1.3.0.3";
+        var version = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
         MessageBox.Show($"Manager Crash.\r\nVersion: {version}\r\nMessage: {ex.Message}\r\nInner Exception Message: {ex.InnerException?.Message}\r\nStackTrace: {ex.StackTrace}", "Application");
     }
 

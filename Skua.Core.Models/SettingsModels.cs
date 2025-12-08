@@ -43,8 +43,8 @@ public class StringCollectionJsonConverter : JsonConverter<System.Collections.Sp
 
 public class SharedSettings
 {
-    [JsonPropertyName("DefaultBackground")]
-    public string DefaultBackground { get; set; } = "Generic2.swf";
+    [JsonPropertyName("sBG")]
+    public string sBG { get; set; } = "Generic2.swf";
 
     [JsonPropertyName("UserThemes")]
     public StringCollection UserThemes { get; set; } = new();
@@ -59,10 +59,10 @@ public class SharedSettings
     public string UserGitHubToken { get; set; } = string.Empty;
 
     [JsonPropertyName("ApplicationVersion")]
-    public string ApplicationVersion { get; set; } = "1.3.0.3";
+    public string ApplicationVersion { get; set; } = ClientFileSources.AssemblyVersion;
 
     [JsonPropertyName("CustomBackgroundPath")]
-    public string CustomBackgroundPath { get; set; } = string.Empty;
+    public string? CustomBackgroundPath { get; set; } = null;
 
     [JsonPropertyName("UpgradeRequired")]
     public bool UpgradeRequired { get; set; } = true;
@@ -75,8 +75,8 @@ public class SharedSettings
 
     public void InitializeDefaults()
     {
-        if (string.IsNullOrEmpty(DefaultBackground))
-            DefaultBackground = "Generic2.swf";
+        if (string.IsNullOrEmpty(sBG))
+            sBG = "Generic2.swf";
 
         if (UserThemes == null || UserThemes.Count == 0)
         {
@@ -99,7 +99,7 @@ public class SharedSettings
             CurrentTheme = "Skua,Dark,#FF607D8B,#FF607D8B,#FF000000,#FF000000,true,4.5,Medium,All";
 
         if (string.IsNullOrEmpty(ApplicationVersion))
-            ApplicationVersion = "1.3.0.3";
+            ApplicationVersion = ClientFileSources.AssemblyVersion;
     }
 }
 
@@ -134,9 +134,6 @@ public class ClientSettings
 
     [JsonPropertyName("HotKeys")]
     public StringCollection HotKeys { get; set; } = new();
-
-    [JsonPropertyName("CustomBackgroundPath")]
-    public string CustomBackgroundPath { get; set; } = string.Empty;
 
     [JsonPropertyName("UpgradeRequired")]
     public bool UpgradeRequired { get; set; } = true;
@@ -182,9 +179,6 @@ public class ClientSettings
                 "ToggleLagKiller|F6"
             };
         }
-
-        if (string.IsNullOrEmpty(CustomBackgroundPath))
-            CustomBackgroundPath = string.Empty;
     }
 }
 

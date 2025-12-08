@@ -49,8 +49,8 @@ public class SettingsService : ISettingsService
         return _unifiedService.GetManager();
     }
 
-    public void SetApplicationVersion(string version)
+    public void SetApplicationVersion()
     {
-        _unifiedService.SetApplicationVersion(version);
+        _unifiedService.SetApplicationVersion();
     }
 }

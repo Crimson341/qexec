@@ -22,7 +22,7 @@ public partial class ClientUpdatesViewModel : BotControlViewModelBase
         _settingsService = settingsService;
         _scriptsService = scriptsService;
         _dialogService = dialogService;
-        Current = _settingsService.Get("ApplicationVersion", "0.0.0.0");
+        Current = ClientFileSources.AssemblyVersion;
         _appVersion = Version.Parse(Current);
         _progress = new Progress<string>(p => ProgressStatus = p);
     }

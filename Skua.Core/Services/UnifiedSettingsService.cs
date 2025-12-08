@@ -317,7 +317,7 @@ public class UnifiedSettingsService
             newRoot.Shared.UserGitHubToken = val?.ToString() ?? string.Empty;
 
         if (oldData.TryGetValue("ApplicationVersion", out val))
-            newRoot.Shared.ApplicationVersion = val?.ToString() ?? "1.3.0.3";
+            newRoot.Shared.ApplicationVersion = val?.ToString() ?? ClientFileSources.AssemblyVersion;
 
         if (oldData.TryGetValue("CheckBotScriptsUpdates", out val))
             if (bool.TryParse(val?.ToString(), out bool checkScripts))
@@ -491,11 +491,11 @@ public class UnifiedSettingsService
         return null;
     }
 
-    public void SetApplicationVersion(string version)
+    public void SetApplicationVersion()
     {
         lock (_lock)
         {
-            _root.Shared.ApplicationVersion = version;
+            _root.Shared.ApplicationVersion = ClientFileSources.AssemblyVersion;
             SaveSettings();
         }
     }
