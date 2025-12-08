@@ -81,11 +81,9 @@ function Test-Prerequisites {
         $hasErrors = $true
     }
     
-    if (-not $SkipInstaller) {
-        $script:WixInstalled = Test-WixInstalled
-        if ($script:WixInstalled) { Write-Success "WiX CLI found: v$(wix --version 2>$null)" }
-        else { Write-BuildError "WiX CLI v6+ not found. Install: dotnet tool install --global wix"; $hasErrors = $true }
-    }
+    $script:WixInstalled = Test-WixInstalled
+    if ($script:WixInstalled) { Write-Success "WiX CLI found: v$(wix --version 2>$null)" }
+    else { Write-BuildError "WiX CLI v6+ not found. Install: dotnet tool install --global wix"; $hasErrors = $true }
     
     if ($hasErrors) { throw "Prerequisites check failed. Please install missing components." }
     Write-Success "All prerequisites met"
@@ -113,20 +111,10 @@ function CleanSolution {
     Write-Success "Clean completed"
 }
 
-function Restore-Projects([bool]$UseWix) {
-    if ($UseWix) {
-        Write-Info "Restoring full solution..."
-        dotnet restore Skua.sln --verbosity minimal 2>&1 | Out-Null
-        if ($LASTEXITCODE -eq 0) { return }
-        Write-Info "Solution restore failed, trying project-by-project..."
-    }
-    elseif ($SkipInstaller) { Write-Info "WiX skipped - restoring C# projects only..." }
-    else { Write-Info "WiX CLI not installed - restoring C# projects only..." }
-    
-    Get-ChildItem -Path . -Filter "*.csproj" -Recurse | ForEach-Object {
-        $result = dotnet restore $_.FullName --verbosity minimal 2>&1
-        if ($LASTEXITCODE -ne 0) { Write-BuildError "Failed to restore $($_.Name)"; Write-Host $result -ForegroundColor Red; throw "Restore failed" }
-    }
+function Restore-Projects {
+    Write-Info "Restoring full solution..."
+    $result = dotnet restore Skua.sln --verbosity minimal 2>&1
+    if ($LASTEXITCODE -ne 0) { Write-BuildError "Restore failed"; Write-Host $result -ForegroundColor Red; throw "Restore failed" }
 }
 
 function Build-Platform([string]$Platform, [string]$Config) {
@@ -134,22 +122,14 @@ function Build-Platform([string]$Platform, [string]$Config) {
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     
     try {
-        $hasWixProject = Test-Path "Skua.Installer\Skua.Installer.wixproj"
-        Restore-Projects -UseWix ($script:WixInstalled -or -not $hasWixProject)
+        Restore-Projects
         
-        $buildTargets = if (-not $script:WixInstalled -and $hasWixProject) {
-            @("Skua.App.WPF\Skua.App.WPF.csproj", "Skua.Manager\Skua.Manager.csproj") | Where-Object { Test-Path $_ }
-        } else { @("Skua.sln") }
+        Write-Info "Building Skua.sln..."
+        $buildArgs = @("build", "Skua.sln", "--configuration", $Config, "-p:Platform=$Platform", "-p:Platforms=$Platform", "--no-restore", "--verbosity", "minimal", "-p:WarningLevel=0")
+        if ($Platform -eq "x86") { $buildArgs += "-p:PlatformTarget=x86" }
         
-        foreach ($target in $buildTargets) {
-            Write-Info "Building $target..."
-            $buildArgs = @("build", $target, "--configuration", $Config, "-p:Platform=$Platform", "--no-restore", "--verbosity", "minimal", "-p:WarningLevel=0")
-            if ($target -eq "Skua.sln") { $buildArgs += "-p:Platforms=$Platform" }
-            if ($Platform -eq "x86") { $buildArgs += "-p:PlatformTarget=x86" }
-            
-            $result = & dotnet $buildArgs 2>&1
-            if ($LASTEXITCODE -ne 0) { Write-BuildError "Build failed for $target"; Write-Host $result -ForegroundColor Red; throw "Build failed" }
-        }
+        $result = & dotnet $buildArgs 2>&1
+        if ($LASTEXITCODE -ne 0) { Write-BuildError "Build failed"; Write-Host $result -ForegroundColor Red; throw "Build failed" }
         
         $stopwatch.Stop()
         Write-Success "Build completed for $Platform in $($stopwatch.Elapsed.TotalSeconds.ToString('F2'))s"
