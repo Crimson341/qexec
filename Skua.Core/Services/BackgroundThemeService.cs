@@ -1,5 +1,4 @@
 using CommunityToolkit.Mvvm.ComponentModel;
-using Newtonsoft.Json;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using System.IO;
@@ -17,7 +16,6 @@ public class BackgroundThemeService : ObservableObject
     {
         _settingsService = settingsService;
         EnsureThemesFolderExists();
-        GenerateBackgroundConfig();
     }
 
     private void EnsureThemesFolderExists()
@@ -48,14 +46,27 @@ public class BackgroundThemeService : ObservableObject
 
     public string CurrentBackground
     {
-        get => _settingsService.Get<string>("DefaultBackground", "Generic2.swf");
+        get
+        {
+            string sBG = _settingsService.Get<string>("sBG", "Generic2.swf");
+            string? customPath = _settingsService.Get<string?>("CustomBackgroundPath", null);
+            
+            if (!string.IsNullOrEmpty(customPath))
+            {
+                return Path.GetFileName(customPath.Replace("file:///", "").Replace("/", "\\"));
+            }
+            return sBG;
+        }
         set
         {
-            _settingsService.Set("DefaultBackground", value);
-            GenerateBackgroundConfig();
+            UpdateBackgroundSettings(value);
             OnPropertyChanged();
         }
     }
+
+    public string sBG => _settingsService.Get<string>("sBG", "Generic2.swf");
+    
+    public string? CustomBackgroundPath => _settingsService.Get<string?>("CustomBackgroundPath", null);
 
     public bool IsLocalBackgroundFile(string backgroundName)
     {
@@ -68,29 +79,18 @@ public class BackgroundThemeService : ObservableObject
         return defaultBackgrounds.Contains(background);
     }
 
-    private void GenerateBackgroundConfig()
+    private void UpdateBackgroundSettings(string backgroundName)
     {
-        try
+        if (IsLocalBackgroundFile(backgroundName) && !IsDefaultAQWBackground(backgroundName))
         {
-            BackgroundConfig config = new BackgroundConfig();
-            string currentBg = CurrentBackground;
-            if (IsLocalBackgroundFile(currentBg) && !IsDefaultAQWBackground(currentBg))
-            {
-                config.sBG = "hideme.swf";
-                string localPath = Path.Combine(ClientFileSources.SkuaThemesDIR, currentBg);
-                config.customBackground = $"file:///{localPath.Replace('\\', '/')}"; 
-            }
-            else
-            {
-                config.sBG = currentBg;
-                config.customBackground = null;
-            }
-
-            string json = JsonConvert.SerializeObject(config, Formatting.Indented);
-            File.WriteAllText(ClientFileSources.SkuaBGConfigFile, json);
+            _settingsService.Set("sBG", "hideme.swf");
+            string localPath = Path.Combine(ClientFileSources.SkuaThemesDIR, backgroundName);
+            _settingsService.Set("CustomBackgroundPath", $"file:///{localPath.Replace('\\', '/')}");
         }
-        catch (Exception)
+        else
         {
+            _settingsService.Set("sBG", backgroundName);
+            _settingsService.Set<string?>("CustomBackgroundPath", null);
         }
     }
 }
