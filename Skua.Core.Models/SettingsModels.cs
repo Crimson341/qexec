@@ -205,6 +205,9 @@ public class ManagerSettings
     [JsonPropertyName("ManagedAccounts")]
     public System.Collections.Specialized.StringCollection ManagedAccounts { get; set; } = new();
 
+    [JsonPropertyName("LastServer")]
+    public string LastServer { get; set; } = string.Empty;
+
     [JsonExtensionData]
     public Dictionary<string, object>? ExtensionData { get; set; }
 

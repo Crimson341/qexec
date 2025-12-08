@@ -12,6 +12,7 @@ public class Externalizer {
 
     public function init(root:Main):void {
         this.addCallback("loadClient", Main.loadGame);
+        this.addCallback("setBackgroundValues", Main.setBackgroundValues);
         this.addCallback("getGameObject", Main.getGameObject);
         this.addCallback("getGameObjectS", Main.getGameObjectS);
         this.addCallback("getGameObjectKey", Main.getGameObjectKey);
@@ -103,9 +104,6 @@ public class Externalizer {
         this.addCallback("modEnable", Modules.enable);
         this.addCallback("modDisable", Modules.disable);
 
-		// Background config path setter
-		this.addCallback("setBgConfigPath", Main.setBgConfigPath);
-		
 		this.debug("Externalizer::init done.");
         this.call("requestLoadGame");
     }

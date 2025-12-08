@@ -22,6 +22,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     private readonly TimeLimiter _limit = new();
     private readonly ILogService _logger;
     private readonly IDialogService _dialogService;
+    private readonly ISettingsService _settingsService;
 
     public bool ShouldExit => Manager.ShouldExit;
     public Version Version { get; }
@@ -137,6 +138,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         Flash = flash;
         AuraMonitor = auraMonitorService;
         UltraBossHelper = ultraBossHelper;
+        _settingsService = settingsService;
 
         Version = Version.Parse(settingsService.Get("ApplicationVersion", "0.0.0.0"));
 
@@ -363,11 +365,13 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 {
                     try
                     {
-                        Flash.Call("setBgConfigPath", "file:///" + ClientFileSources.SkuaBGConfigFile.Replace('\\', '/'));
+                        string sBG = _settingsService.Get("sBG", "Generic2.swf");
+                        string? customBackgroundPath = _settingsService.Get<string?>("CustomBackgroundPath", null);
+                        Flash.Call("setBackgroundValues", sBG, customBackgroundPath ?? "");
                     }
                     catch (Exception ex)
                     {
-                        Log($"Could not set background config path: {ex.Message}");
+                        Log($"Could not set background values: {ex.Message}");
                     }
                 });
                 break;

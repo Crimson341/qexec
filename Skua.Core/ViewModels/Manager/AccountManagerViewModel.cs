@@ -66,6 +66,12 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     [ObservableProperty]
     private Server _selectedServer;
 
+    partial void OnSelectedServerChanged(Server value)
+    {
+        if (value != null)
+            _settingsService.Set("LastServer", value.Name);
+    }
+
     [ObservableProperty]
     private bool _useNameAsDisplay;
 
@@ -263,7 +269,12 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
             _cachedServers = servers;
             ServerList.AddRange(_cachedServers);
-            SelectedServer = ServerList[0];
+
+            string lastServer = _settingsService.Get<string>("LastServer");
+            Server? serverToSelect = null;
+            if (!string.IsNullOrEmpty(lastServer))
+                serverToSelect = ServerList.FirstOrDefault(s => s.Name == lastServer);
+            SelectedServer = serverToSelect ?? ServerList[0];
         }
         catch
         {

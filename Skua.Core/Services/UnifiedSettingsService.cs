@@ -262,9 +262,6 @@ public class UnifiedSettingsService
         if (oldData.TryGetValue("HotKeys", out val))
             newRoot.Client.HotKeys = ConvertToStringCollection(val);
 
-        if (oldData.TryGetValue("CustomBackgroundPath", out val))
-            newRoot.Client.CustomBackgroundPath = val?.ToString() ?? string.Empty;
-
         if (oldData.TryGetValue("UpgradeRequired", out val))
             if (bool.TryParse(val?.ToString(), out bool upgrade))
                 newRoot.Client.UpgradeRequired = upgrade;
@@ -297,12 +294,17 @@ public class UnifiedSettingsService
 
         if (oldData.TryGetValue("ManagedAccounts", out val))
             newRoot.Manager.ManagedAccounts = ConvertToStringCollection(val);
+
+        if (oldData.TryGetValue("LastServer", out val))
+            newRoot.Manager.LastServer = val?.ToString() ?? string.Empty;
     }
 
     private void MergeSharedSettings(SettingsRoot newRoot, Dictionary<string, object> oldData)
     {
         if (oldData.TryGetValue("DefaultBackground", out var val))
-            newRoot.Shared.DefaultBackground = val?.ToString() ?? "Generic2.swf";
+            newRoot.Shared.sBG = val?.ToString() ?? "Generic2.swf";
+        else if (oldData.TryGetValue("sBG", out val))
+            newRoot.Shared.sBG = val?.ToString() ?? "Generic2.swf";
 
         if (oldData.TryGetValue("UserThemes", out val))
             newRoot.Shared.UserThemes = ConvertToStringCollection(val);
@@ -389,6 +391,9 @@ public class UnifiedSettingsService
                     _root.Shared.InitializeDefaults();
                     _root.Client.InitializeDefaults();
                     _root.Manager.InitializeDefaults();
+
+                    if (CleanupDeprecatedKeys())
+                        SaveSettings();
                 }
                 else
                 {
@@ -445,6 +450,37 @@ public class UnifiedSettingsService
         }
 
         _root.Shared.InitializeDefaults();
+    }
+
+    private bool CleanupDeprecatedKeys()
+    {
+        bool changed = false;
+
+        if (_root.Shared.ExtensionData != null)
+        {
+            if (_root.Shared.ExtensionData.ContainsKey("DefaultBackground"))
+            {
+                if (_root.Shared.ExtensionData.TryGetValue("DefaultBackground", out var oldValue))
+                {
+                    string? oldBg = oldValue?.ToString();
+                    if (!string.IsNullOrEmpty(oldBg) && string.IsNullOrEmpty(_root.Shared.sBG))
+                        _root.Shared.sBG = oldBg;
+                }
+                _root.Shared.ExtensionData.Remove("DefaultBackground");
+                changed = true;
+            }
+        }
+
+        if (_root.Client.ExtensionData != null)
+        {
+            if (_root.Client.ExtensionData.ContainsKey("CustomBackgroundPath"))
+            {
+                _root.Client.ExtensionData.Remove("CustomBackgroundPath");
+                changed = true;
+            }
+        }
+
+        return changed;
     }
 
     private void BackupCorruptFile()

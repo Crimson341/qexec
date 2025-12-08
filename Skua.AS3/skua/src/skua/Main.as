@@ -19,7 +19,6 @@ import flash.system.Security;
 import flash.text.TextField;
 import flash.utils.Timer;
 import flash.utils.getQualifiedClassName;
-import flash.utils.setTimeout;
 
 import skua.module.ModalMC;
 import skua.module.Modules;
@@ -52,8 +51,6 @@ public class Main extends MovieClip {
     private var customBGLoader:Loader;
     private var customBGReady:MovieClip = null;
     private var customBackgroundURL:String;
-    private var backgroundConfig:Object;
-    public var bgConfigPath:String;
     private var lastLoginChildCount:int = -1;
     private var lastLoginVisible:Boolean = false;
 
@@ -72,6 +69,21 @@ public class Main extends MovieClip {
     public static function loadGame():void {
         Main.instance.onAddedToStage();
         Main.instance.external.call('pre-load');
+    }
+
+    public static function setBackgroundValues(sBGValue:String, customBackground:String):void {
+        if (sBGValue && sBGValue.length > 0) {
+            instance.sBG = sBGValue;
+            if (instance.game && instance.game.params) {
+                instance.game.params.sBG = sBGValue;
+            }
+        }
+        if (customBackground && customBackground.length > 0) {
+            instance.customBackgroundURL = customBackground;
+            instance.initCustomBackground();
+        } else {
+            instance.customBackgroundURL = null;
+        }
     }
 
     private function init(e:Event = null):void {
@@ -113,7 +125,6 @@ public class Main extends MovieClip {
             this.game.params[param] = root.loaderInfo.parameters[param];
         }
 
-        this.loadBackgroundConfig();
         this.game.params.vars = this.vars;
         this.game.params.sURL = this.sURL;
         this.game.params.sBG = this.sBG;
@@ -130,6 +141,11 @@ public class Main extends MovieClip {
         this.stg.addEventListener(Event.ENTER_FRAME, this.monitorLoginScreen);
 
         this.game.stage.addEventListener(KeyboardEvent.KEY_DOWN, this.key_StageGame);
+        
+        if (this.customBackgroundURL && this.customBackgroundURL.length > 0) {
+            this.initCustomBackground();
+        }
+        
         this.external.call('loaded');
     }
 
@@ -327,59 +343,6 @@ public class Main extends MovieClip {
         } catch (e:Error) {
             this.external.debug('Custom background apply error: ' + e.message);
         }
-    }
-
-    private function loadBackgroundConfig():void {
-        try {
-            var configLoader:URLLoader = new URLLoader();
-            configLoader.addEventListener(Event.COMPLETE, onConfigLoaded);
-            configLoader.addEventListener(IOErrorEvent.IO_ERROR, onConfigError);
-
-            var configPath:String = instance.bgConfigPath;
-            if (!configPath) {
-                setTimeout(loadBackgroundConfig, 500);
-                return;
-            }
-
-            if (!configPath) {
-                this.setDefaultBackground();
-                return;
-            }
-            configLoader.load(new URLRequest(configPath));
-        } catch (e:Error) {
-            this.external.debug('Background config load error: ' + e.message);
-            this.setDefaultBackground();
-        }
-    }
-
-    private function onConfigLoaded(event:Event):void {
-        try {
-            var configLoader:URLLoader = event.target as URLLoader;
-            this.backgroundConfig = JSON.parse(configLoader.data);
-
-            if (this.backgroundConfig && this.backgroundConfig.sBG) {
-                this.sBG = this.backgroundConfig.sBG;
-                this.game.params.sBG = this.backgroundConfig.sBG;
-            }
-
-            if (this.backgroundConfig && this.backgroundConfig.customBackground) {
-                this.customBackgroundURL = this.backgroundConfig.customBackground;
-            }
-            this.initCustomBackground();
-
-        } catch (e:Error) {
-            this.external.debug('Background config parse error: ' + e.message);
-            this.setDefaultBackground();
-        }
-    }
-
-    private function onConfigError(event:IOErrorEvent):void {
-        this.setDefaultBackground();
-    }
-
-    private function setDefaultBackground():void {
-        this.sBG = 'Generic2.swf';
-        this.customBackgroundURL = null;
     }
 
     public function key_StageGame(kbArgs:KeyboardEvent):void {
@@ -1321,8 +1284,5 @@ public class Main extends MovieClip {
         return '"' + instance.game.world.myAvatar.objData.strGender.toUpperCase() + '"';
     }
 
-    public static function setBgConfigPath(path:String):void {
-        instance.bgConfigPath = path;
-    }
 }
 }

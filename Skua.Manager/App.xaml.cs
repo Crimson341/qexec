@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Skua.Core.AppStartup;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
+using Skua.Core.Utils;
 using Skua.Core.Services;
 using Skua.Core.ViewModels;
 using Skua.Core.ViewModels.Manager;
@@ -29,6 +30,7 @@ public partial class App : Application
 
         Services = ConfigureServices();
         Services.GetRequiredService<ISettingsService>().SetApplicationVersion();
+        FlashTrustManager.EnsureTrustFile();
 
         InitializeComponent();
         SingleInstanceWatcher();

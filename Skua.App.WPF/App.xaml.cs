@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Skua.App.WPF.Services;
 using Skua.Core.AppStartup;
 using Skua.Core.Interfaces;
+using Skua.Core.Utils;
 using Skua.WPF;
 using Skua.WPF.Services;
 using System;
@@ -38,6 +39,7 @@ public sealed partial class App : Application
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.InvariantCulture;
         Services = ConfigureServices();
         Services.GetRequiredService<ISettingsService>().SetApplicationVersion();
+        FlashTrustManager.EnsureTrustFile();
 
         InitializeComponent();
 
