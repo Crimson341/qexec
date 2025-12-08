@@ -1,17 +1,19 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs" xmlns:bal="http://wixtoolset.org/schemas/v4/wxs/bal">
     <Bundle
         Name="Skua Dependencies"
+        IconSourceFile="..\Skua.Installer\SkuaIcon.ico"
         Compressed="yes"
         AboutUrl="https://www.github.com/BrenoHenrike/Skua"
-        HelpUrl="https://discord.gg/CKKbk2zr3p" Version="1.0.0.0"
+        HelpUrl="https://discord.gg/CKKbk2zr3p"
+        Version="1.0.0.0"
         Manufacturer="Skua"
         UpgradeCode="6fa1b3f3-d317-458f-b1d1-32eef8ccf074">
-        <BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+        <BootstrapperApplication>
             <bal:WixStandardBootstrapperApplication
-              LicenseUrl=""
-              xmlns:bal="http://schemas.microsoft.com/wix/BalExtension" />
-        </BootstrapperApplicationRef>
+                LicenseUrl=""
+                Theme="hyperlinkLicense"
+                LogoFile="..\Skua.Installer\SkuaIcon.ico" />
+        </BootstrapperApplication>
 
         <Chain>
             <ExePackage
