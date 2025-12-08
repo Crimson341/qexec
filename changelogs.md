@@ -1,3 +1,26 @@
+# Skua 1.3.1.0
+## Released: December 08, 2025
+
+## Fixes
+1. Hopefully fixed a random crash from auras
+2. Hopefully Fixed a false positive from `Skua.WPF.dll`
+4. HP, Mana, and PartyHeal percentage/absolute check actually works and saves now
+5. Jump panel causing hitches when you jump cells
+6. Party Heal actually exists and saves now
+7. "Search Scripts" would sometimes cause hitches; this **should be fixed**
+
+## Changes
+1. Login backgrounds now saves and loads from `Skua.Settings.json` instead of the separate file "background-config.json" (you will need to re-set your background)
+2. The last server you selected in the manager will now save, and next time you open the manager, it'll re-select it
+
+### Minor changes (not important)
+1. Added a flash trust file for skua
+2. Centralized version change in `Directory.Build.props`
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.3.0.3...1.3.1.0
+
+---
+
 # Skua 1.3.0.3
 ## Released: December 03, 2025
 
