@@ -1,8 +1,8 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
 using Skua.Core.ViewModels;
 using System;
 using System.ComponentModel;
 using System.Threading.Tasks;
+using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 
@@ -13,13 +13,20 @@ namespace Skua.WPF.Views;
 /// </summary>
 public partial class ScriptRepoView : UserControl
 {
-    private readonly ICollectionView _collectionView;
+    private ICollectionView? _collectionView;
 
     public ScriptRepoView()
     {
         InitializeComponent();
-        DataContext = Ioc.Default.GetRequiredService<ScriptRepoViewModel>();
-        _collectionView = CollectionViewSource.GetDefaultView(((ScriptRepoViewModel)DataContext).Scripts);
+        DataContextChanged += OnDataContextChanged;
+    }
+
+    private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+    {
+        if (e.NewValue is ScriptRepoViewModel vm)
+        {
+            _collectionView = CollectionViewSource.GetDefaultView(vm.Scripts);
+        }
     }
 
     private bool Search(object obj)
@@ -51,6 +58,9 @@ public partial class ScriptRepoView : UserControl
 
     private async void TextBox_TextChanged(object sender, TextChangedEventArgs e)
     {
+        if (_collectionView is null)
+            return;
+
         await Task.Run(async () =>
         {
             await Dispatcher.BeginInvoke(new Action(() =>

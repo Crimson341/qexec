@@ -79,6 +79,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
         _scripts.Clear();
         if (_getScriptsService?.Scripts != null)
         {
+            var scriptViewModels = new List<ScriptInfoViewModel>();
             foreach (ScriptInfo script in _getScriptsService.Scripts)
             {
                 if (script?.Name != null && !script.Name.Equals("null"))
@@ -91,9 +92,10 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
                     else if (script.Tags == null)
                         script.Tags = new[] { "no-tags" };
 
-                    _scripts.Add(new(script));
+                    scriptViewModels.Add(new(script));
                 }
             }
+            _scripts.AddRange(scriptViewModels);
         }
 
         OnPropertyChanged(nameof(Scripts));
