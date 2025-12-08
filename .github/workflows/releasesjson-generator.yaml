@@ -1,6 +1,7 @@
 name: Update Releases JSON
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
@@ -71,8 +72,10 @@ jobs:
     - name: Upload Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: releases.json
-        path: releases.json
+        name: release-files
+        path: |
+          releases.json
+          changelogs.md
 
     - name: Commit and push changes
       if: github.ref_type == 'branch'
@@ -88,4 +91,4 @@ changelogs.md'
     - name: Delete artifact
       uses: geekyeggo/delete-artifact@v5
       with:
-        name: releases.json
+        name: release-files
