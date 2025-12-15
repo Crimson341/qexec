@@ -61,6 +61,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     private Thread? _questThread;
     private CancellationTokenSource? _questsCTS;
+    private CancellationTokenSource? _loadQuestsCTS;
     private readonly object _cacheLockObj = new();
     private volatile bool _cacheLoaded = false;
 
@@ -69,10 +70,36 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     [ObjectBinding("world.questTree", Default = "new()")]
     private Dictionary<int, Quest> _quests = new();
 
-    public List<Quest> Tree => Quests.Values.ToList() ?? new();
+    private List<Quest>? _cachedTree;
+    private int _lastTreeUpdate;
+    public List<Quest> Tree 
+    { 
+        get
+        {
+            int currentTick = Environment.TickCount;
+            if (_cachedTree == null || currentTick - _lastTreeUpdate > 100)
+            {
+                _cachedTree = Quests.Values.ToList();
+                _lastTreeUpdate = currentTick;
+            }
+            return _cachedTree;
+        }
+    }
     public List<Quest> Active => Tree.FindAll(x => x.Active);
     public List<Quest> Completed => Tree.FindAll(x => x.Status == "c");
-    public List<QuestData> Cached { get; set; } = new();
+    public List<QuestData> Cached 
+    { 
+        get => CachedDictionary.Values.ToList();
+        set
+        {
+            CachedDictionary.Clear();
+            if (value != null)
+            {
+                foreach (var quest in value)
+                    CachedDictionary[quest.ID] = quest;
+            }
+        }
+    }
     public Dictionary<int, QuestData> CachedDictionary { get; set; } = new();
     private SynchronizedList<int> _registered = new();
     private Dictionary<int, int> _registeredRewards = new();
@@ -316,11 +343,20 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         OnPropertyChanged(nameof(Registered));
         WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
         
+        // Cancel previous load task if still running
+        _loadQuestsCTS?.Cancel();
+        _loadQuestsCTS?.Dispose();
+        _loadQuestsCTS = new CancellationTokenSource();
+        var token = _loadQuestsCTS.Token;
+        
         // Load quest data and add requirements in background
         Task.Run(() =>
         {
             foreach (var (questId, rewardId) in quests)
             {
+                if (token.IsCancellationRequested)
+                    return;
+                    
                 try
                 {
                     Quest? questData = EnsureLoad(questId);
@@ -351,10 +387,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 }
                 catch { /* Quest failed to load, ignore */ }
             }
-        });
-        
-        OnPropertyChanged(nameof(Registered));
-        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
+        }, token);
         if (!_questThread?.IsAlive ?? true)
         {
             _questThread = new(async () =>
@@ -396,6 +429,12 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         _questAcceptCooldowns.Clear();
         OnPropertyChanged(nameof(Registered));
         WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
+        
+        // Cancel load quests task
+        _loadQuestsCTS?.Cancel();
+        _loadQuestsCTS?.Dispose();
+        _loadQuestsCTS = null;
+        
         if (_questThread?.IsAlive ?? false)
         {
             _questsCTS?.Cancel();
@@ -418,10 +457,29 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     private async Task _CompleteQuest(IEnumerable<int> registered, CancellationToken token)
     {
+        int currentTick = Environment.TickCount;
+        
+        // Periodic cleanup: remove stale cooldowns every 60 seconds to prevent memory bloat
+        if (currentTick - _lastComplete > 60000)
+        {
+            lock (_registeredLock)
+            {
+                var registeredSet = new HashSet<int>(_registered.Items);
+                
+                // Remove cooldowns for quests that are no longer registered
+                var staleComplete = _questCompleteCooldowns.Keys.Where(k => !registeredSet.Contains(k)).ToList();
+                var staleAccept = _questAcceptCooldowns.Keys.Where(k => !registeredSet.Contains(k)).ToList();
+                
+                foreach (var key in staleComplete)
+                    _questCompleteCooldowns.Remove(key);
+                foreach (var key in staleAccept)
+                    _questAcceptCooldowns.Remove(key);
+            }
+        }
+        
         foreach (int quest in registered)
         {
             // Check cooldown - don't try to complete if we just tried within the last 3 seconds
-            int currentTick = Environment.TickCount;
             if (_questCompleteCooldowns.TryGetValue(quest, out int lastAttempt))
             {
                 if (currentTick - lastAttempt < 3000)
@@ -494,8 +552,11 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 return;
 
             string skuaQuestFile = File.ReadAllText(ClientFileSources.SkuaQuestsFile);
-            Cached = JsonConvert.DeserializeObject<List<QuestData>>(skuaQuestFile) ?? new();
-            CachedDictionary = Cached.ToDictionary(x => x.ID, x => x);
+            var questList = JsonConvert.DeserializeObject<List<QuestData>>(skuaQuestFile);
+            if (questList != null)
+            {
+                CachedDictionary = questList.ToDictionary(x => x.ID, x => x);
+            }
             _cacheLoaded = true;
         }
     }
@@ -505,7 +566,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         if (!_cacheLoaded)
             LoadCachedQuests();
 
-        return Cached.Skip(start).Take(count).ToList();
+        return CachedDictionary.Values.Skip(start).Take(count).ToList();
     }
 
     public List<QuestData> GetCachedQuests(params int[] ids)
