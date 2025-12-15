@@ -140,7 +140,6 @@ public partial class ScriptPlayer : IScriptPlayer
 
     public void Rest(bool full = false)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.Rest);
         Flash.CallGameFunction("world.rest");
         if (full)
@@ -150,7 +149,6 @@ public partial class ScriptPlayer : IScriptPlayer
     [MethodCallBinding("walkTo", RunMethodPost = true)]
     private void _walkTo(int x, int y, int speed = 8)
     {
-        if (Options.SafeTimings)
             Wait.ForPlayerPosition(x, y);
     }
 

@@ -68,28 +68,22 @@ public partial class ScriptShop : IScriptShop
 
     public void Load(int id)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.LoadShop);
         Flash.CallGameFunction("world.sendLoadShopRequest", id);
-        if (Options.SafeTimings)
             Wait.ForTrue(() => IsLoaded && ID == id, 20);
     }
 
     public void BuyItem(string name, int quantity = -1)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.BuyItem);
         Flash.Call("buyItemByName", name, quantity);
-        if (Options.SafeTimings)
             Wait.ForItemBuy();
     }
 
     public void BuyItem(int id, int shopItemId = -1, int quantity = -1)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.BuyItem);
         Flash.Call("buyItemByID", id, shopItemId, quantity);
-        if (Options.SafeTimings)
             Wait.ForItemBuy();
     }
 
@@ -119,10 +113,8 @@ public partial class ScriptShop : IScriptShop
             return;
 
         int sellQuantity = quantity == -1 ? item!.Quantity : Math.Min(quantity, item!.Quantity);
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.SellItem);
         Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{sellQuantity}%{item!.CharItemID}%");
-        if (Options.SafeTimings)
             Wait.ForItemSell();
     }
 
@@ -132,17 +124,14 @@ public partial class ScriptShop : IScriptShop
             return;
 
         int sellQuantity = quantity == -1 ? item!.Quantity : Math.Min(quantity, item!.Quantity);
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.SellItem);
         Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{sellQuantity}%{item.CharItemID}%");
-        if (Options.SafeTimings)
             Wait.ForItemSell();
     }
 
     [MethodCallBinding("world.sendLoadHairShopRequest", RunMethodPre = true, GameFunction = true)]
     private void _loadHairShop(int id)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(Skua.Core.Models.GameActions.LoadHairShop);
     }
 

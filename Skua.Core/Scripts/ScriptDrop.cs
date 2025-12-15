@@ -93,7 +93,6 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         foreach (string name in names)
         {
             Pickup(name);
-            if (Options.SafeTimings)
                 Wait.ForPickup(name);
         }
     }
@@ -103,7 +102,6 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         foreach (int id in ids)
         {
             Pickup(id);
-            if (Options.SafeTimings)
                 Wait.ForPickup(id);
         }
     }

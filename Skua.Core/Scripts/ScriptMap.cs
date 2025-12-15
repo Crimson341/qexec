@@ -85,7 +85,6 @@ public partial class ScriptMap : IScriptMap
     private void _jump(string cell, string pad, bool autoCorrect = true, bool clientOnly = false)
     {
         Thread.Sleep(Options.ActionDelay);
-        if (Options.SafeTimings)
             Wait.ForCellChange(cell);
     }
 
@@ -105,10 +104,8 @@ public partial class ScriptMap : IScriptMap
         {
             if ((Options.PrivateRooms && !map.Contains('-')) || map.Contains("-1e9"))
                 map = $"{mapName}{(Options.PrivateNumber != -1 ? Options.PrivateNumber : "-100000")}";
-            if (Options.SafeTimings)
                 Wait.ForActionCooldown(GameActions.Transfer);
             JoinPacket(map, cell, pad);
-            if (Options.SafeTimings)
             {
                 if (!Wait.ForMapLoad(map, 20) && !Manager.ShouldExit)
                     Jump(Player.Cell, Player.Pad, autoCorrect);

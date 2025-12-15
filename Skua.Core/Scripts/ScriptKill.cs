@@ -60,7 +60,6 @@ public class ScriptKill : IScriptKill
     public void Player(string name)
     {
         Combat.AttackPlayer(name);
-        if (Options.SafeTimings)
             Wait.ForMonsterDeath();
     }
 
@@ -78,7 +77,6 @@ public class ScriptKill : IScriptKill
 
     private void _Kill(string name, CancellationToken? token)
     {
-        if (Options.SafeTimings)
             Wait.ForMonsterSpawn(name);
         if (Combat.Attack(name))
         {
@@ -94,7 +92,6 @@ public class ScriptKill : IScriptKill
 
     private void _Kill(int id, CancellationToken? token)
     {
-        if (Options.SafeTimings)
             Wait.ForMonsterSpawn(id);
         if (Combat.Attack(id))
         {

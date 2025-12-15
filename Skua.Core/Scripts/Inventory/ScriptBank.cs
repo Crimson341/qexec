@@ -93,7 +93,6 @@ public partial class ScriptBank : IScriptBank
     public bool Swap(InventoryItem invItem, InventoryItem bankItem)
     {
         Send.Packet($"%xt%zm%bankSwapInv%{Map.RoomID}%{invItem.ID}%{invItem.CharItemID}%{bankItem.ID}%{bankItem.CharItemID}%");
-        if (Options.SafeTimings)
             Wait.ForInventoryToBank(invItem.ID);
         return Inventory.Contains(bankItem.ID);
     }
@@ -131,7 +130,6 @@ public partial class ScriptBank : IScriptBank
     public bool ToInventory(InventoryItem item)
     {
         Send.Packet($"%xt%zm%bankToInv%{Map.RoomID}%{item.ID}%{item.CharItemID}%");
-        if (Options.SafeTimings)
             Wait.ForBankToInventory(item!.Name);
         return Inventory.Contains(item.ID);
     }

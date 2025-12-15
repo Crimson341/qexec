@@ -52,12 +52,10 @@ public partial class ScriptInventory : IScriptInventory
 
     public void EquipItem(int id)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.EquipItem);
         dynamic item = new ExpandoObject();
         item.ItemID = id;
         Flash.CallGameFunction("world.sendEquipItemRequest", item);
-        if (Options.SafeTimings)
             Wait.ForItemEquip(id);
     }
 
@@ -65,7 +63,6 @@ public partial class ScriptInventory : IScriptInventory
     {
         if (item is null)
             return;
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.EquipItem);
 
         dynamic dynItem = new ExpandoObject();
@@ -76,14 +73,12 @@ public partial class ScriptInventory : IScriptInventory
 
         Flash.CallGameFunction("world.equipUseableItem", dynItem);
 
-        if (Options.SafeTimings)
             Wait.ForItemEquip(item.ID);
     }
 
     public bool ToBank(InventoryItem item)
     {
         Send.Packet($"%xt%zm%bankFromInv%{Map.RoomID}%{item.ID}%{item.CharItemID}%");
-        if (Options.SafeTimings)
             Wait.ForInventoryToBank(item.Name);
         return !((IScriptInventory)this).Contains(item.Name);
     }
