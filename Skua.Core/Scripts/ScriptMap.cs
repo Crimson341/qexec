@@ -126,7 +126,22 @@ public partial class ScriptMap : IScriptMap
 
     public PlayerInfo? GetPlayer(string username)
     {
-        return Flash.GetGameObject<PlayerInfo>($"world.uoTree[\"{username.ToLower()}\"]");
+        string lowerUsername = username.ToLower();
+        
+        if (_playersDictionary.TryGetValue(lowerUsername, out PlayerInfo? cachedPlayer))
+            return cachedPlayer;
+
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            PlayerInfo? player = Flash.GetGameObject<PlayerInfo>($"world.uoTree[\"{lowerUsername}\"]");
+            if (player != null)
+                return player;
+            
+            if (attempt < 2)
+                Thread.Sleep(50);
+        }
+        
+        return null;
     }
 
     [MethodCallBinding("world.reloadCurrentMap", GameFunction = true)]

@@ -56,19 +56,37 @@
                 <wpf:ListBoxUnselectAllMenuBehavior />
             </b:Interaction.Behaviors>
         </ListBox>
-        <TextBox
-            Grid.Row="1"
-            Grid.Column="0"
-            Margin="0,3,3,3"
-            materialDesign:HintAssist.Hint="Quest ID"
-            Text="{Binding AddQuestInput, UpdateSourceTrigger=PropertyChanged}">
-            <b:Interaction.Behaviors>
-                <wpf:TextBoxSelectAllBehavior />
-            </b:Interaction.Behaviors>
-            <TextBox.InputBindings>
-                <KeyBinding Key="Return" Command="{Binding AddQuestCommand}" />
-            </TextBox.InputBindings>
-        </TextBox>
+        <Grid Grid.Row="1" Grid.Column="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+            <TextBox
+                Grid.Column="0"
+                Margin="0,3,3,3"
+                materialDesign:HintAssist.Hint="Quest ID"
+                Text="{Binding AddQuestInput, UpdateSourceTrigger=PropertyChanged}">
+                <b:Interaction.Behaviors>
+                    <wpf:TextBoxSelectAllBehavior />
+                </b:Interaction.Behaviors>
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Return" Command="{Binding AddQuestCommand}" />
+                </TextBox.InputBindings>
+            </TextBox>
+            <TextBox
+                Grid.Column="1"
+                Margin="3,3,0,3"
+                materialDesign:HintAssist.Hint="Reward ID (optional)"
+                Text="{Binding RewardIdInput, UpdateSourceTrigger=PropertyChanged}"
+                ToolTip="Item ID for quest reward choice. Leave empty or enter -1 for auto-select.">
+                <b:Interaction.Behaviors>
+                    <wpf:TextBoxSelectAllBehavior />
+                </b:Interaction.Behaviors>
+                <TextBox.InputBindings>
+                    <KeyBinding Key="Return" Command="{Binding AddQuestCommand}" />
+                </TextBox.InputBindings>
+            </TextBox>
+        </Grid>
         <Button
             Grid.Row="1"
             Grid.Column="1"

@@ -23,9 +23,17 @@ public partial class ScriptSelfAuras : IScriptSelfAuras
         get
         {
             string? auraData = Flash.Call("GetPlayerAura", Player.Username.ToLower());
-            return string.IsNullOrWhiteSpace(auraData)
-                ? new List<Aura>()
-                : JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
+            if (string.IsNullOrWhiteSpace(auraData))
+                return new List<Aura>();
+
+            try
+            {
+                return JsonConvert.DeserializeObject<List<Aura>>(auraData) ?? new List<Aura>();
+            }
+            catch (JsonException)
+            {
+                return new List<Aura>();
+            }
         }
     }
 

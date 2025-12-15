@@ -5,6 +5,7 @@
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:local="clr-namespace:Skua.WPF.UserControls"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
     xmlns:vms="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
     d:DataContext="{d:DesignInstance vms:CurrentDropsViewModel}"
     d:DesignHeight="450"
@@ -12,15 +13,24 @@
     mc:Ignorable="d">
     <Grid Margin="6">
         <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
             <RowDefinition />
             <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
+        <TextBox
+            x:Name="SearchBox"
+            Grid.Row="0"
+            Margin="0,0,0,6"
+            materialDesign:HintAssist.Hint="Search"
+            Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+            TextChanged="SearchBox_TextChanged" />
         <ListBox
             x:Name="CurrentDropsListBox"
+            Grid.Row="1"
             ItemsSource="{Binding CurrentDrops, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
             SelectedItem="{Binding SelectedDrop}"
             SelectionMode="Multiple" />
-        <Grid Grid.Row="1" Margin="0,6,0,0">
+        <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition />

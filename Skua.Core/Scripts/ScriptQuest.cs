@@ -1,4 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Messaging;
+using CommunityToolkit.Mvvm.Messaging.Messages;
 using Newtonsoft.Json;
 using Skua.Core.Flash;
 using Skua.Core.Interfaces;
@@ -19,7 +21,10 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         Lazy<IScriptSend> send,
         Lazy<IScriptInventory> inventory,
         Lazy<IScriptTempInv> tempInv,
-        Lazy<IScriptInventoryHelper> invHelper)
+        Lazy<IScriptInventoryHelper> invHelper,
+        Lazy<IScriptLite> lite,
+        Lazy<IScriptMap> map,
+        Lazy<IScriptDrop> drop)
     {
         _lazyFlash = flash;
         _lazyWait = wait;
@@ -28,6 +33,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         _lazySend = send;
         _lazyInventory = inventory;
         _lazyInvHelper = invHelper;
+        _lazyLite = lite;
+        _lazyMap = map;
+        _lazyDrop = drop;
     }
 
     private readonly Lazy<IFlashUtil> _lazyFlash;
@@ -37,6 +45,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     private readonly Lazy<IScriptSend> _lazySend;
     private readonly Lazy<IScriptInventory> _lazyInventory;
     private readonly Lazy<IScriptInventoryHelper> _lazyInvHelper;
+    private readonly Lazy<IScriptLite> _lazyLite;
+    private readonly Lazy<IScriptMap> _lazyMap;
+    private readonly Lazy<IScriptDrop> _lazyDrop;
     private IFlashUtil Flash => _lazyFlash.Value;
     private IScriptWait Wait => _lazyWait.Value;
     private IScriptOption Options => _lazyOptions.Value;
@@ -44,9 +55,14 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     private IScriptSend Send => _lazySend.Value;
     private IScriptInventory Inventory => _lazyInventory.Value;
     private IScriptInventoryHelper InvHelper => _lazyInvHelper.Value;
+    private IScriptLite Lite => _lazyLite.Value;
+    private IScriptMap Map => _lazyMap.Value;
+    private IScriptDrop Drop => _lazyDrop.Value;
 
     private Thread? _questThread;
     private CancellationTokenSource? _questsCTS;
+    private readonly object _cacheLockObj = new();
+    private volatile bool _cacheLoaded = false;
 
     public int RegisterCompleteInterval { get; set; } = 2000;
 
@@ -59,7 +75,12 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     public List<QuestData> Cached { get; set; } = new();
     public Dictionary<int, QuestData> CachedDictionary { get; set; } = new();
     private SynchronizedList<int> _registered = new();
+    private Dictionary<int, int> _registeredRewards = new();
+    private Dictionary<int, int> _questCompleteCooldowns = new();
+    private Dictionary<int, int> _questAcceptCooldowns = new();
+    private readonly object _registeredLock = new();
     public IEnumerable<int> Registered => _registered.Items;
+    public IReadOnlyDictionary<int, int> RegisteredRewards => _registeredRewards;
 
     public void Load(params int[] ids)
     {
@@ -265,11 +286,75 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public void RegisterQuests(params int[] ids)
     {
-        if (ids.Length == 0)
+        RegisterQuests(ids.Select(id => (id, -1)).ToArray());
+    }
+
+    public void RegisterQuests(params (int questId, int rewardId)[] quests)
+    {
+        if (quests.Length == 0)
             return;
-        _registered.AddRange(ids.Except(_registered.Items));
+        
+        lock (_registeredLock)
+        {
+            // Register quests immediately (without requirements)
+            foreach (var (questId, rewardId) in quests)
+            {
+                if (!_registered.Items.Contains(questId))
+                {
+                    _registered.Add(questId);
+                }
+                _registeredRewards[questId] = rewardId;
+                
+                // Add reward item to drops if specified
+                if (rewardId > 0)
+                {
+                    Drop.Add(rewardId);
+                }
+            }
+        }
+        
         OnPropertyChanged(nameof(Registered));
-        Broadcast(null, Registered, nameof(Registered));
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
+        
+        // Load quest data and add requirements in background
+        Task.Run(() =>
+        {
+            foreach (var (questId, rewardId) in quests)
+            {
+                try
+                {
+                    Quest? questData = EnsureLoad(questId);
+                    if (questData != null)
+                    {
+                        // Add Requirements
+                        if (questData.Requirements != null && questData.Requirements.Any())
+                        {
+                            int[] requirementIds = questData.Requirements
+                                .Where(r => r != null && !r.Temp)
+                                .Select(r => r.ID)
+                                .ToArray();
+                            if (requirementIds.Any())
+                                Drop.Add(requirementIds);
+                        }
+                        
+                        // Add AcceptRequirements
+                        if (questData.AcceptRequirements != null && questData.AcceptRequirements.Any())
+                        {
+                            int[] acceptReqIds = questData.AcceptRequirements
+                                .Where(r => r != null && !r.Temp)
+                                .Select(r => r.ID)
+                                .ToArray();
+                            if (acceptReqIds.Any())
+                                Drop.Add(acceptReqIds);
+                        }
+                    }
+                }
+                catch { /* Quest failed to load, ignore */ }
+            }
+        });
+        
+        OnPropertyChanged(nameof(Registered));
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
         if (!_questThread?.IsAlive ?? true)
         {
             _questThread = new(async () =>
@@ -293,15 +378,24 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     public void UnregisterQuests(params int[] ids)
     {
         _registered.Remove(ids.Contains);
+        foreach (int id in ids)
+        {
+            _registeredRewards.Remove(id);
+            _questCompleteCooldowns.Remove(id);
+            _questAcceptCooldowns.Remove(id);
+        }
         OnPropertyChanged(nameof(Registered));
-        Broadcast(null, Registered, nameof(Registered));
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
     }
 
     public void UnregisterAllQuests()
     {
         _registered.Clear();
+        _registeredRewards.Clear();
+        _questCompleteCooldowns.Clear();
+        _questAcceptCooldowns.Clear();
         OnPropertyChanged(nameof(Registered));
-        Broadcast(null, Registered, nameof(Registered));
+        WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
         if (_questThread?.IsAlive ?? false)
         {
             _questsCTS?.Cancel();
@@ -326,48 +420,89 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     {
         foreach (int quest in registered)
         {
-            // Ensure quest data is loaded before processing
-            Quest? questData = EnsureLoad(quest);
-            if (questData is null)
+            // Check cooldown - don't try to complete if we just tried within the last 3 seconds
+            int currentTick = Environment.TickCount;
+            if (_questCompleteCooldowns.TryGetValue(quest, out int lastAttempt))
             {
-                await Task.Delay(Options.ActionDelay, token);
-                continue;
+                if (currentTick - lastAttempt < 3000)
+                    continue;
             }
             
             if (!IsInProgress(quest))
-                Accept(quest);
-            await Task.Delay(Options.ActionDelay, token);
-            if (!CanComplete(quest))
             {
-                if (Environment.TickCount - _lastComplete > 10000 && CanCompleteFullCheck(quest))
+                // Check accept cooldown - don't try to accept if we just tried within the last 2 seconds
+                if (_questAcceptCooldowns.TryGetValue(quest, out int lastAccept))
                 {
-                    EnsureAccept(quest);
-                    _lastComplete = Environment.TickCount;
+                    if (currentTick - lastAccept < 2000)
+                        continue;
                 }
-                continue;
+                
+                Wait.ForActionCooldown(GameActions.AcceptQuest);
+                Accept(quest);
+                _questAcceptCooldowns[quest] = Environment.TickCount;
+                await Task.Delay(Options.ActionDelay, token);
             }
-            if (Options.SafeTimings)
-                Wait.ForActionCooldown(GameActions.TryQuestComplete);
-            Flash.CallGameFunction("world.tryQuestComplete", quest, -1, false);
-            EnsureAccept(quest);
-            _lastComplete = Environment.TickCount;
+            
+            if (!CanComplete(quest))
+                continue;
+
+            Quest? questData = Tree.Find(q => q.ID == quest);
+            if (questData == null)
+                continue;
+                
+            int turnIns = questData.Once || !string.IsNullOrEmpty(questData.Field) ? 1 :
+                Flash.CallGameFunction<int>("world.maximumQuestTurnIns", quest);
+            
+            int rewardId = _registeredRewards.TryGetValue(quest, out int reward) ? reward : -1;
+                
+            Wait.ForActionCooldown(GameActions.TryQuestComplete);
+            
+            Send.Packet($"%xt%zm%tryQuestComplete%{Map.RoomID}%{quest}%{rewardId}%false%{turnIns}%wvz%");
+            
+            // Set cooldown immediately after sending packet
+            _questCompleteCooldowns[quest] = Environment.TickCount;
+            
             await Task.Delay(Options.ActionDelay, token);
+            
+            // Only re-accept if ReacceptQuest is disabled (otherwise game will auto-accept)
+            if (!IsInProgress(quest) && !Lite.ReacceptQuest)
+            {
+                // Check accept cooldown - don't try to accept if we just tried within the last 2 seconds
+                if (_questAcceptCooldowns.TryGetValue(quest, out int lastAccept))
+                {
+                    if (Environment.TickCount - lastAccept < 2000)
+                        continue;
+                }
+                
+                Wait.ForActionCooldown(GameActions.AcceptQuest);
+                Accept(quest);
+                _questAcceptCooldowns[quest] = Environment.TickCount;
+                await Task.Delay(Options.ActionDelay, token);
+            }
+            _lastComplete = Environment.TickCount;
         }
     }
 
     public void LoadCachedQuests()
     {
-        if (Cached.Count > 0)
+        if (_cacheLoaded)
             return;
 
-        string skuaQuestFile = File.ReadAllText(ClientFileSources.SkuaQuestsFile);
-        Cached = JsonConvert.DeserializeObject<List<QuestData>>(skuaQuestFile) ?? new();
-        CachedDictionary = Cached.ToDictionary(x => x.ID, x => x);
+        lock (_cacheLockObj)
+        {
+            if (_cacheLoaded)
+                return;
+
+            string skuaQuestFile = File.ReadAllText(ClientFileSources.SkuaQuestsFile);
+            Cached = JsonConvert.DeserializeObject<List<QuestData>>(skuaQuestFile) ?? new();
+            CachedDictionary = Cached.ToDictionary(x => x.ID, x => x);
+            _cacheLoaded = true;
+        }
     }
 
     public List<QuestData> GetCachedQuests(int start, int count)
     {
-        if (Cached.Count == 0)
+        if (!_cacheLoaded)
             LoadCachedQuests();
 
         return Cached.Skip(start).Take(count).ToList();
@@ -375,7 +510,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public List<QuestData> GetCachedQuests(params int[] ids)
     {
-        if (Cached.Count == 0)
+        if (!_cacheLoaded)
             LoadCachedQuests();
 
         List<QuestData> quests = new();

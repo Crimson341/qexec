@@ -798,9 +798,9 @@ public class Main extends MovieClip {
         try {
             var userObj:* = instance.game.world.uoTree[plrUser];
             if (!userObj) {
-                return 'Error: Could get User Object Tree';
+                return 'Error: Couldn\'t get User Object Tree';
             }
-            JSON.stringify(rebuildAuraArray(userObj.auras));
+            return JSON.stringify(rebuildAuraArray(userObj.auras));
         }
         catch (e:Error) {
         }
@@ -815,7 +815,7 @@ public class Main extends MovieClip {
             }
             var monObj:* = instance.game.world.monTree[monID];
             if (!monObj) {
-                return 'Error: Could get Monster Object Tree';
+                return 'Error: Couldn\'t get Monster Object Tree';
             }
             return JSON.stringify(rebuildAuraArray(monObj.auras));
         }
@@ -836,7 +836,7 @@ public class Main extends MovieClip {
             }
             var monObj:* = instance.game.world.monTree[monID];
             if (!monObj) {
-                return 'Error: Could get Monster Object Tree';
+                return 'Error: Couldn\'t get Monster Object Tree';
             }
             return JSON.stringify(rebuildAuraArray(monObj.auras));
         }
@@ -849,7 +849,7 @@ public class Main extends MovieClip {
         try {
             var monObj:* = instance.game.world.monTree[monID];
             if (!monObj) {
-                return 'Error: Could get Monster Object Tree';
+                return 'Error: Couldn\'t get Monster Object Tree';
             }
             return JSON.stringify(rebuildAuraArray(monObj.auras));
         }

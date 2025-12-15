@@ -387,20 +387,8 @@ internal class Grabber
 
             if (!int.TryParse(dialog.DialogTextInput, out int result))
                 return;
-            if (result == 1)
-            {
-                await Task.Run(() => shop.SellItem(item.ID), t);
-                p.Report($"Sold {result} {item.Name}");
-                return;
-            }
 
-            for (int index = 0; index < result; index++)
-            {
-                await Task.Run(() => shop.SellItem(item.ID), t);
-                p.Report($"Sold {index + 1}");
-                if (index != result - 1)
-                    await Task.Delay(1000, t);
-            }
+            await Task.Run(() => shop.SellItem(item.ID, result), t);
             p.Report($"Sold {result} {item.Name}");
         }
         catch

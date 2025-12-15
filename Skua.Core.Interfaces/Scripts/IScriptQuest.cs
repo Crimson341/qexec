@@ -51,10 +51,21 @@ public interface IScriptQuest : INotifyPropertyChanged
     IEnumerable<int> Registered { get; }
 
     /// <summary>
+    /// Dictionary of registered quest IDs and their corresponding reward IDs.
+    /// </summary>
+    IReadOnlyDictionary<int, int> RegisteredRewards { get; }
+
+    /// <summary>
     /// Register quests to be completed while doing another actions, this enables the possibility to complete quests while in combat.
     /// </summary>
     /// <param name="ids">Quests to be completed.</param>
     void RegisterQuests(params int[] ids);
+
+    /// <summary>
+    /// Register quests with specific reward choices to be completed while doing another actions.
+    /// </summary>
+    /// <param name="quests">Quest ID and reward ID pairs. Use -1 for reward ID to auto-select.</param>
+    void RegisterQuests(params (int questId, int rewardId)[] quests);
 
     /// <summary>
     /// Unregister quests so they are not automatically completed.

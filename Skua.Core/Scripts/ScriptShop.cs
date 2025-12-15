@@ -113,28 +113,28 @@ public partial class ScriptShop : IScriptShop
         Wait.ForItemBuy();
     }
 
-    public void SellItem(string name)
+    public void SellItem(string name, int quantity = -1)
     {
         if (!Inventory.TryGetItem(name, out InventoryItem? item))
             return;
 
-
+        int sellQuantity = quantity == -1 ? item!.Quantity : Math.Min(quantity, item!.Quantity);
         if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.SellItem);
-        Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{item!.Quantity}%{item!.CharItemID}%");
+        Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{sellQuantity}%{item!.CharItemID}%");
         if (Options.SafeTimings)
             Wait.ForItemSell();
     }
 
-    public void SellItem(int id)
+    public void SellItem(int id, int quantity = -1)
     {
         if (!Inventory.TryGetItem(id, out InventoryItem? item))
             return;
 
-
+        int sellQuantity = quantity == -1 ? item!.Quantity : Math.Min(quantity, item!.Quantity);
         if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.SellItem);
-        Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{item.Quantity}%{item.CharItemID}%");
+        Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{sellQuantity}%{item.CharItemID}%");
         if (Options.SafeTimings)
             Wait.ForItemSell();
     }

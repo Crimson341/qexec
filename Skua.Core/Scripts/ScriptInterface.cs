@@ -457,7 +457,13 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
                         case "sellItem":
                             Stats.GetSpace();
-                            Messenger.Send<ItemSoldMessage, int>(new(data.CharItemID, data.iQty, data.iQtyNow, data.intAmount, data.bCoins == 1), (int)MessageChannels.GameEvents);
+                            Messenger.Send<ItemSoldMessage, int>(new(
+                                Convert.ToInt32(data.CharItemID), 
+                                Convert.ToInt32(data.iQty), 
+                                Convert.ToInt32(data.iQtyNow), 
+                                Convert.ToInt32(data.intAmount), 
+                                Convert.ToInt32(data.bCoins) == 1), 
+                                (int)MessageChannels.GameEvents);
                             break;
 
                         case "buyItem":

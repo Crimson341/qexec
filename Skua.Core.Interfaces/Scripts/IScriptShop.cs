@@ -125,11 +125,13 @@ public interface IScriptShop
     /// Sells the item with specified <paramref name="name"/>.
     /// </summary>
     /// <param name="name">Name of the item to sell.</param>
-    void SellItem(string name);
+    /// <param name="quantity">Quantity to sell. If -1, sells all of the item.</param>
+    void SellItem(string name, int quantity = -1);
 
     /// <summary>
     /// Sells the item with specified <paramref name="id"/>.
     /// </summary>
     /// <param name="id">ID of the item to sell.</param>
-    void SellItem(int id);
+    /// <param name="quantity">Quantity to sell. If -1, sells all of the item.</param>
+    void SellItem(int id, int quantity = -1);
 }
