@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Newtonsoft.Json;
 using Skua.Core.Flash;
 using Skua.Core.Interfaces;
+using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Items;
 using Skua.Core.Models.Quests;
@@ -36,6 +37,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         _lazyLite = lite;
         _lazyMap = map;
         _lazyDrop = drop;
+        
+        StrongReferenceMessenger.Default.Register<ScriptQuest, ScriptStoppedMessage, int>(this, (int)MessageChannels.ScriptStatus, OnScriptStopped);
+        StrongReferenceMessenger.Default.Register<ScriptQuest, LogoutMessage, int>(this, (int)MessageChannels.GameEvents, OnLogout);
     }
 
     private readonly Lazy<IFlashUtil> _lazyFlash;
@@ -137,10 +141,8 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public bool Accept(int id)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.AcceptQuest);
         Flash.CallGameFunction("world.acceptQuest", id);
-        if (Options.SafeTimings)
             Wait.ForQuestAccept(id);
         return IsInProgress(id);
     }
@@ -177,10 +179,8 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
 
     public bool Complete(int id, int itemId = -1, bool special = false)
     {
-        if (Options.SafeTimings)
             Wait.ForActionCooldown(GameActions.TryQuestComplete);
         Flash.CallGameFunction("world.tryQuestComplete", id, itemId, special);
-        if (Options.SafeTimings)
             Wait.ForQuestComplete(id);
         return !IsInProgress(id);
     }
@@ -486,9 +486,10 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                     continue;
             }
             
+            // Ensure quest is accepted
             if (!IsInProgress(quest))
             {
-                // Check accept cooldown - don't try to accept if we just tried within the last 2 seconds
+                // Check accept cooldown
                 if (_questAcceptCooldowns.TryGetValue(quest, out int lastAccept))
                 {
                     if (currentTick - lastAccept < 2000)
@@ -498,9 +499,16 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 Wait.ForActionCooldown(GameActions.AcceptQuest);
                 Accept(quest);
                 _questAcceptCooldowns[quest] = Environment.TickCount;
+                
+                // Invalidate cache to force fresh read
+                _cachedTree = null;
+                
+                // Wait for quest to be accepted
+                await Wait.ForTrueAsync(() => IsInProgress(quest), 20, token: token);
                 await Task.Delay(Options.ActionDelay, token);
             }
             
+            // Check if requirements are met
             if (!CanComplete(quest))
                 continue;
 
@@ -515,29 +523,40 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 
             Wait.ForActionCooldown(GameActions.TryQuestComplete);
             
+            // Snapshot check: ensure items still in inventory right before packet send
+            if (!CanComplete(quest))
+                continue;
+            
             Send.Packet($"%xt%zm%tryQuestComplete%{Map.RoomID}%{quest}%{rewardId}%false%{turnIns}%wvz%");
             
-            // Set cooldown immediately after sending packet
             _questCompleteCooldowns[quest] = Environment.TickCount;
             
+            // Invalidate cache to force fresh read
+            _cachedTree = null;
+            
+            // Wait for quest to be turned in (no longer in progress)
+            await Wait.ForTrueAsync(() => !IsInProgress(quest), 20, token: token);
             await Task.Delay(Options.ActionDelay, token);
             
-            // Only re-accept if ReacceptQuest is disabled (otherwise game will auto-accept)
-            if (!IsInProgress(quest) && !Lite.ReacceptQuest)
+            // Re-accept if ReacceptQuest is disabled (otherwise game auto-accepts)
+            if (!Lite.ReacceptQuest)
             {
-                // Check accept cooldown - don't try to accept if we just tried within the last 2 seconds
-                if (_questAcceptCooldowns.TryGetValue(quest, out int lastAccept))
-                {
-                    if (Environment.TickCount - lastAccept < 2000)
-                        continue;
-                }
-                
                 Wait.ForActionCooldown(GameActions.AcceptQuest);
                 Accept(quest);
                 _questAcceptCooldowns[quest] = Environment.TickCount;
+                
+                // Invalidate cache to force fresh read
+                _cachedTree = null;
+                
+                // Wait for quest to be accepted again
+                await Wait.ForTrueAsync(() => IsInProgress(quest), 20, token: token);
                 await Task.Delay(Options.ActionDelay, token);
             }
+            
             _lastComplete = Environment.TickCount;
+            
+            // Only process one quest turn-in per cycle (game can only handle one at a time)
+            break;
         }
     }
 
@@ -581,5 +600,15 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 quests.Add(value);
         }
         return quests;
+    }
+    
+    private void OnScriptStopped(ScriptQuest recipient, ScriptStoppedMessage message)
+    {
+        recipient.UnregisterAllQuests();
+    }
+    
+    private void OnLogout(ScriptQuest recipient, LogoutMessage message)
+    {
+        recipient.UnregisterAllQuests();
     }
 }
