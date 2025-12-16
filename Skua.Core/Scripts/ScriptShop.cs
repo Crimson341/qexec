@@ -5,7 +5,6 @@ using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Items;
 using Skua.Core.Models.Shops;
-using System.Xml.Linq;
 
 namespace Skua.Core.Scripts;
 
@@ -68,23 +67,23 @@ public partial class ScriptShop : IScriptShop
 
     public void Load(int id)
     {
-            Wait.ForActionCooldown(GameActions.LoadShop);
+        Wait.ForActionCooldown(GameActions.LoadShop);
         Flash.CallGameFunction("world.sendLoadShopRequest", id);
-            Wait.ForTrue(() => IsLoaded && ID == id, 20);
+        Wait.ForTrue(() => IsLoaded && ID == id, 20);
     }
 
     public void BuyItem(string name, int quantity = -1)
     {
-            Wait.ForActionCooldown(GameActions.BuyItem);
+        Wait.ForActionCooldown(GameActions.BuyItem);
         Flash.Call("buyItemByName", name, quantity);
-            Wait.ForItemBuy();
+        Wait.ForItemBuy();
     }
 
     public void BuyItem(int id, int shopItemId = -1, int quantity = -1)
     {
-            Wait.ForActionCooldown(GameActions.BuyItem);
+        Wait.ForActionCooldown(GameActions.BuyItem);
         Flash.Call("buyItemByID", id, shopItemId, quantity);
-            Wait.ForItemBuy();
+        Wait.ForItemBuy();
     }
 
     public void EnsureLoadAndBuyItem(int shopId, string itemName, int quantity = -1)
@@ -113,9 +112,9 @@ public partial class ScriptShop : IScriptShop
             return;
 
         int sellQuantity = quantity == -1 ? item!.Quantity : Math.Min(quantity, item!.Quantity);
-            Wait.ForActionCooldown(GameActions.SellItem);
+        Wait.ForActionCooldown(GameActions.SellItem);
         Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{sellQuantity}%{item!.CharItemID}%");
-            Wait.ForItemSell();
+        Wait.ForItemSell();
     }
 
     public void SellItem(int id, int quantity = -1)
@@ -124,15 +123,15 @@ public partial class ScriptShop : IScriptShop
             return;
 
         int sellQuantity = quantity == -1 ? item!.Quantity : Math.Min(quantity, item!.Quantity);
-            Wait.ForActionCooldown(GameActions.SellItem);
+        Wait.ForActionCooldown(GameActions.SellItem);
         Send.Packet($"%xt%zm%sellItem%{Map.RoomID}%{item!.ID}%{sellQuantity}%{item.CharItemID}%");
-            Wait.ForItemSell();
+        Wait.ForItemSell();
     }
 
     [MethodCallBinding("world.sendLoadHairShopRequest", RunMethodPre = true, GameFunction = true)]
     private void _loadHairShop(int id)
     {
-            Wait.ForActionCooldown(Skua.Core.Models.GameActions.LoadHairShop);
+        Wait.ForActionCooldown(Skua.Core.Models.GameActions.LoadHairShop);
     }
 
     [MethodCallBinding("openArmorCustomize", GameFunction = true)]

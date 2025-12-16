@@ -60,7 +60,7 @@ public class ScriptKill : IScriptKill
     public void Player(string name)
     {
         Combat.AttackPlayer(name);
-            Wait.ForMonsterDeath();
+        Wait.ForMonsterDeath();
     }
 
     public void Monster(string name) => _Kill(name, null);
@@ -77,7 +77,7 @@ public class ScriptKill : IScriptKill
 
     private void _Kill(string name, CancellationToken? token)
     {
-            Wait.ForMonsterSpawn(name);
+        Wait.ForMonsterSpawn(name);
         if (Combat.Attack(name))
         {
             Thread.Sleep(Options.ActionDelay);
@@ -92,7 +92,7 @@ public class ScriptKill : IScriptKill
 
     private void _Kill(int id, CancellationToken? token)
     {
-            Wait.ForMonsterSpawn(id);
+        Wait.ForMonsterSpawn(id);
         if (Combat.Attack(id))
         {
             Thread.Sleep(Options.ActionDelay);
