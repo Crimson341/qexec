@@ -5,20 +5,20 @@ public class ExtractedFuncs {
         super();
     }
 
-    public static function actionTimeCheck(param1:*):Boolean {
+    public static function actionTimeCheck(skill:*):Boolean {
         var finalCD:* = 0;
         var currentTime:* = new Date().getTime();
         var hasteMultiplier:* = 1 - Math.min(Math.max(Main.instance.getGame().world.myAvatar.dataLeaf.sta.$tha, -1), 0.5);
         if (currentTime - Main.instance.getGame().world.GCDTS < Main.instance.getGame().world.GCD) {
             return false;
         }
-        if (param1.OldCD != null) {
-            finalCD = Math.round(param1.OldCD * hasteMultiplier);
+        if (skill.OldCD != null) {
+            finalCD = Math.round(skill.OldCD * hasteMultiplier);
         } else {
-            finalCD = Math.round(param1.cd * hasteMultiplier);
+            finalCD = Math.round(skill.cd * hasteMultiplier);
         }
-        if (currentTime - param1.ts >= finalCD) {
-            delete param1.OldCD;
+        if (currentTime - skill.ts >= finalCD) {
+            delete skill.OldCD;
             return true;
         }
         return false;
