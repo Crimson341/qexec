@@ -324,6 +324,9 @@ public class UnifiedSettingsService
         if (oldData.TryGetValue("CheckBotScriptsUpdates", out val))
             if (bool.TryParse(val?.ToString(), out bool checkScripts))
                 newRoot.Shared.CheckBotScriptsUpdates = checkScripts;
+
+        if (oldData.TryGetValue("CustomBackgroundPath", out val))
+            newRoot.Shared.CustomBackgroundPath = val?.ToString();
     }
 
     private System.Collections.Specialized.StringCollection ConvertToStringCollection(object? value)
@@ -475,6 +478,12 @@ public class UnifiedSettingsService
         {
             if (_root.Client.ExtensionData.ContainsKey("CustomBackgroundPath"))
             {
+                if (_root.Client.ExtensionData.TryGetValue("CustomBackgroundPath", out var oldCustomPath))
+                {
+                    string? customPath = oldCustomPath?.ToString();
+                    if (!string.IsNullOrEmpty(customPath) && string.IsNullOrEmpty(_root.Shared.CustomBackgroundPath))
+                        _root.Shared.CustomBackgroundPath = customPath;
+                }
                 _root.Client.ExtensionData.Remove("CustomBackgroundPath");
                 changed = true;
             }
