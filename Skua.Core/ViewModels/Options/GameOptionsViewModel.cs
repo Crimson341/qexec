@@ -29,7 +29,7 @@ public class GameOptionsViewModel : BotControlViewModelBase
     }
 
     public List<DisplayOptionItemViewModelBase> GameOptions { get; }
-    public List<string> ServersList => _servers.CachedServers.Select(s => s.Name).ToList();
+    public List<string> ServersList => _servers.CachedServers.ConvertAll(s => s.Name);
     private string? _selectedServer;
 
     public string? SelectedServer
