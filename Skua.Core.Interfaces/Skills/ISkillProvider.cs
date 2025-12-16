@@ -12,6 +12,11 @@
 public interface ISkillProvider
 {
     /// <summary>
+    /// Gets the number of skills loaded in this provider.
+    /// </summary>
+    int SkillCount { get; }
+
+    /// <summary>
     /// Gets or sets a value indicating whether the state should be reset when the target is changed.
     /// </summary>
     bool ResetOnTarget { get; set; }

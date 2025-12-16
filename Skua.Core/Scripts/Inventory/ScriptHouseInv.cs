@@ -51,7 +51,7 @@ public partial class ScriptHouseInv : IScriptHouseInv
     public bool ToBank(InventoryItem item)
     {
         Send.Packet($"%xt%zm%bankFromInv%{Map.RoomID}%{item.ID}%{item.CharItemID}%");
-            Wait.ForHouseInventoryToBank(item.Name);
+        Wait.ForHouseInventoryToBank(item.Name);
         return !((IScriptHouseInv)this).Contains(item.Name);
     }
 

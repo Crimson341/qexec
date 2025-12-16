@@ -18,8 +18,13 @@ public class AdvancedSkillCommand
     public List<UseRule[]> UseRules { get; set; } = new();
     private int _index = 0;
 
+    public int SkillCount => Skills.Count;
+
     public (int, int) GetNextSkill()
     {
+        if (Skills.Count == 0)
+            return (-1, -1);
+
         int skill = Skills[_index];
         int index = _index;
         ++_index;
@@ -30,6 +35,9 @@ public class AdvancedSkillCommand
 
     public bool? ShouldUse(IScriptPlayer player, IScriptSelfAuras self , IScriptTargetAuras target, int skillIndex, bool canUse)
     {
+        if (skillIndex < 0 || skillIndex >= UseRules.Count)
+            return true;
+
         if (UseRules.Count == 0 || UseRules[skillIndex].First().Rule == SkillRule.None)
             return true;
 
@@ -212,7 +220,7 @@ public class AdvancedSkillCommand
             if (self.Auras != null && self.Auras.Count > 0)
             {
                 return self.Auras
-                    .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
+                    .Where(a => a.Name != null && a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
                     .Sum(a => a.Value);
             }
         }
@@ -224,7 +232,7 @@ public class AdvancedSkillCommand
             if (target.Auras != null && target.Auras.Count > 0)
             {
                 return target.Auras
-                    .Where(a => a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
+                    .Where(a => a.Name != null && a.Name.Equals(auraName, StringComparison.OrdinalIgnoreCase))
                     .Sum(a => a.Value);
             }
         }

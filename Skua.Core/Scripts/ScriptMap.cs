@@ -85,7 +85,7 @@ public partial class ScriptMap : IScriptMap
     private void _jump(string cell, string pad, bool autoCorrect = true, bool clientOnly = false)
     {
         Thread.Sleep(Options.ActionDelay);
-            Wait.ForCellChange(cell);
+        Wait.ForCellChange(cell);
     }
 
     public void Join(string map, string cell = "Enter", string pad = "Spawn", bool ignoreCheck = false, bool autoCorrect = true)
@@ -104,15 +104,13 @@ public partial class ScriptMap : IScriptMap
         {
             if ((Options.PrivateRooms && !map.Contains('-')) || map.Contains("-1e9"))
                 map = $"{mapName}{(Options.PrivateNumber != -1 ? Options.PrivateNumber : "-100000")}";
-                Wait.ForActionCooldown(GameActions.Transfer);
+            Wait.ForActionCooldown(GameActions.Transfer);
             JoinPacket(map, cell, pad);
-            {
-                if (!Wait.ForMapLoad(map, 20) && !Manager.ShouldExit)
-                    Jump(Player.Cell, Player.Pad, autoCorrect);
-                else
-                    Jump(cell, pad, autoCorrect);
-                Thread.Sleep(Options.ActionDelay);
-            }
+            if (!Wait.ForMapLoad(map, 20) && !Manager.ShouldExit)
+                Jump(Player.Cell, Player.Pad, autoCorrect);
+            else
+                Jump(cell, pad, autoCorrect);
+            Thread.Sleep(Options.ActionDelay);
         }
     }
 
@@ -124,7 +122,7 @@ public partial class ScriptMap : IScriptMap
     public PlayerInfo? GetPlayer(string username)
     {
         string lowerUsername = username.ToLower();
-        
+
         if (_playersDictionary.TryGetValue(lowerUsername, out PlayerInfo? cachedPlayer))
             return cachedPlayer;
 
@@ -133,11 +131,11 @@ public partial class ScriptMap : IScriptMap
             PlayerInfo? player = Flash.GetGameObject<PlayerInfo>($"world.uoTree[\"{lowerUsername}\"]");
             if (player != null)
                 return player;
-            
+
             if (attempt < 2)
                 Thread.Sleep(50);
         }
-        
+
         return null;
     }
 
@@ -148,11 +146,8 @@ public partial class ScriptMap : IScriptMap
     [MethodCallBinding("world.getMapItem", RunMethodPre = true, GameFunction = true)]
     private void _getMapItem(int id)
     {
-        if (Options.SafeTimings)
-        {
-            Wait.ForActionCooldown(Skua.Core.Models.GameActions.GetMapItem);
-            Thread.Sleep(Options.ActionDelay);
-        }
+        Wait.ForActionCooldown(Skua.Core.Models.GameActions.GetMapItem);
+        Thread.Sleep(Options.ActionDelay);
     }
 
     private Dictionary<string, List<MapItem>>? LoadSavedMapItems()
@@ -187,7 +182,7 @@ public partial class ScriptMap : IScriptMap
         List<string> files = new();
         files = Directory.GetFiles(_cachePath).ToList();
         var sw = Stopwatch.StartNew();
-        
+
         // Always decompile when forcing refresh, even if SWF exists
         if (files.Count > 0 && files.Contains(Path.Combine(_cachePath, FileName)))
             return !DecompileSWF(FileName) ? null : ParseMapSWFData();

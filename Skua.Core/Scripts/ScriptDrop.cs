@@ -93,7 +93,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         foreach (string name in names)
         {
             Pickup(name);
-                Wait.ForPickup(name);
+            Wait.ForPickup(name);
         }
     }
 
@@ -102,7 +102,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         foreach (int id in ids)
         {
             Pickup(id);
-                Wait.ForPickup(id);
+            Wait.ForPickup(id);
         }
     }
 
@@ -117,7 +117,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         _currentDropInfos.Clear();
         OnPropertyChanged(nameof(CurrentDropInfos));
         OnPropertyChanged(nameof(CurrentDrops));
-        if (Options.SafeTimings && !skipWait)
+        if (!skipWait)
             Wait.ForPickup("*");
     }
 

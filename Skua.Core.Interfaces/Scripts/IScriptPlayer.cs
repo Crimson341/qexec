@@ -132,6 +132,11 @@ public interface IScriptPlayer
     int Gold { get; }
 
     /// <summary>
+    /// Gets the player's adventure coins. (AC)
+    /// </summary>
+    int Coins { get; }
+
+    /// <summary>
     /// A reference object of the player's current class.
     /// </summary>
     InventoryItem? CurrentClass { get; }

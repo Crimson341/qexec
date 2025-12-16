@@ -27,6 +27,7 @@ public class AdvancedSkillProvider : ISkillProvider
     private readonly UseRule[] _none = new[] { new UseRule(SkillRule.None) };
 
     public bool ResetOnTarget { get; set; } = false;
+    public int SkillCount => _currentCommand.SkillCount;
 
     public (int, int) GetNextSkill()
     {
@@ -49,10 +50,13 @@ public class AdvancedSkillProvider : ISkillProvider
 
     private UseRule[] ParseUseRule(string useRule)
     {
+        if (string.IsNullOrWhiteSpace(useRule))
+            return new[] { new UseRule(SkillRule.None) };
+
         List<UseRule> rules = new();
         List<AuraCheck> multiAuraChecks = new();
         int multiAuraOp = 0;
-        bool shouldSkip = useRule.Last() == 's';
+        bool shouldSkip = useRule.Length > 0 && useRule[^1] == 's';
         
         int pos = 0;
         while (pos < useRule.Length)

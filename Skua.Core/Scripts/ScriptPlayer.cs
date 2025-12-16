@@ -93,6 +93,9 @@ public partial class ScriptPlayer : IScriptPlayer
     [ObjectBinding("world.myAvatar.objData.intGold")]
     private int _gold;
 
+    [ObjectBinding("world.myAvatar.objData.intCoins")]
+    private int _coins;
+
     [ObjectBinding("world.myAvatar.objData.iRank")]
     private int _currentClassRank;
 
@@ -140,7 +143,7 @@ public partial class ScriptPlayer : IScriptPlayer
 
     public void Rest(bool full = false)
     {
-            Wait.ForActionCooldown(GameActions.Rest);
+        Wait.ForActionCooldown(GameActions.Rest);
         Flash.CallGameFunction("world.rest");
         if (full)
             Wait.ForTrue(() => Health >= MaxHealth && Mana >= MaxMana, 20);
@@ -149,7 +152,7 @@ public partial class ScriptPlayer : IScriptPlayer
     [MethodCallBinding("walkTo", RunMethodPost = true)]
     private void _walkTo(int x, int y, int speed = 8)
     {
-            Wait.ForPlayerPosition(x, y);
+        Wait.ForPlayerPosition(x, y);
     }
 
     [MethodCallBinding("world.setSpawnPoint", GameFunction = true)]

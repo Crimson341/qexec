@@ -252,19 +252,25 @@ public partial class ScriptSkill : IScriptSkill
     {
         // if the current player has skills and the current class rank is different from the last rank
         // then update the skills since classes will enable a certain skill base on the rank
-        if (Player.CurrentClassRank > _lastRank)
+        // Also refresh if _playerSkills is null
+        if (Player.CurrentClassRank > _lastRank || _playerSkills is null)
         {
             // Update the player skills skills
             SkillInfo[]? playerSkills = Player.Skills;
             if (playerSkills is not null && playerSkills.Length > 0)
                 _playerSkills = playerSkills;
 
-            int k = 0;
-            using FlashArray<object> skills = (FlashArray<object>)Flash.CreateFlashObject<object>("world.actions.active").ToArray();
-            foreach (FlashObject<object> skill in skills)
+            if (_playerSkills is not null)
             {
-                using FlashObject<long> ts = (FlashObject<long>)skill.GetChild<long>("ts");
-                ts.Value = _playerSkills[k++]?.LastUse ?? 0;
+                int k = 0;
+                using FlashArray<object> skills = (FlashArray<object>)Flash.CreateFlashObject<object>("world.actions.active").ToArray();
+                foreach (FlashObject<object> skill in skills)
+                {
+                    if (k >= _playerSkills.Length)
+                        break;
+                    using FlashObject<long> ts = (FlashObject<long>)skill.GetChild<long>("ts");
+                    ts.Value = _playerSkills[k++]?.LastUse ?? 0;
+                }
             }
         }
 
@@ -275,18 +281,27 @@ public partial class ScriptSkill : IScriptSkill
 
         (int index, int skillS) = _provider!.GetNextSkill();
 
+        if (index == -1 || skillS == -1)
+            return;
+
         switch (_provider?.ShouldUseSkill(index, CanUseSkill(skillS)))
         {
             case true:
-                if (skillS != -1 && !_playerSkills![skillS].IsOk)
+                if (_playerSkills is not null && skillS < _playerSkills.Length && !_playerSkills[skillS].IsOk)
+                {
                     break;
+                }
                 UseSkill(skillS);
                 break;
 
             case null:
                 (int indexS, int skill) = _provider!.GetNextSkill();
-                if (skill != -1 && !_playerSkills![skill].IsOk)
+                if (indexS == -1 || skill == -1)
                     break;
+                if (_playerSkills is not null && skill < _playerSkills.Length && !_playerSkills[skill].IsOk)
+                {
+                    break;
+                }
                 UseSkill(skill);
                 break;
 
@@ -307,7 +322,7 @@ public partial class ScriptSkill : IScriptSkill
                         this.UseSkill(skill);
                     break;
 
-                // if SkillUseMode is UseIfAvailable then use skills with waiting for cooldown
+                // if SkillUseMode is WaitForCooldown then use skills with waiting for cooldown
                 case SkillUseMode.WaitForCooldown:
                     if (Options.AttackWithoutTarget || (skill != -1 && Wait.ForTrue(() => CanUseSkill(skill), null, SkillTimeout, SkillInterval) && !Combat.StopAttacking))
                         this.UseSkill(skill);
