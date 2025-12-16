@@ -85,7 +85,7 @@ public class BackgroundThemeService : ObservableObject
         {
             _settingsService.Set("sBG", "hideme.swf");
             string localPath = Path.Combine(ClientFileSources.SkuaThemesDIR, backgroundName);
-            _settingsService.Set("CustomBackgroundPath", $"file:///{localPath.Replace('\\', '/')}");
+            _settingsService.Set<string>("CustomBackgroundPath", $"file:///{localPath.Replace('\\', '/')}");
         }
         else
         {
