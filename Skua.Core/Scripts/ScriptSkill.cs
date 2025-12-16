@@ -67,8 +67,10 @@ public partial class ScriptSkill : IScriptSkill
     public ISkillProvider BaseProvider { get; private set; }
     public bool TimerRunning { get; private set; } = false;
     public bool IsPaused { get; private set; } = false;
-    public int SkillInterval { get; set; } = 100;
+    public int SkillInterval { get; set; } = 50;
+
     public int SkillTimeout { get; set; } = -1;
+
     public SkillUseMode SkillUseMode { get; set; } = SkillUseMode.UseIfAvailable;
     private ManualResetEvent _pauseEvent = new(true);
 
