@@ -26,14 +26,16 @@ public interface IScriptAuto : INotifyPropertyChanged
     /// </summary>
     /// <param name="className">The name of the class to use.</param>
     /// <param name="classUseMode">The <see cref="ClassUseMode"/> to use the class.</param>
-    void StartAutoAttack(string? className = null, ClassUseMode classUseMode = ClassUseMode.Base);
+    /// <param name="manualMapIDs">Optional array of MapIDs to target with priority order.</param>
+    void StartAutoAttack(string? className = null, ClassUseMode classUseMode = ClassUseMode.Base, int[]? manualMapIDs = null);
 
     /// <summary>
     /// Starts the Auto Hunt function. The player will hunt the current target or all the monsters in the current room throughout the map.
     /// </summary>
     /// <param name="className">The name of the class to use.</param>
     /// <param name="classUseMode">The <see cref="ClassUseMode"/> to use the class.</param>
-    void StartAutoHunt(string? className = null, ClassUseMode classUseMode = ClassUseMode.Base);
+    /// <param name="manualMapIDs">Optional array of MapIDs to target with priority order.</param>
+    void StartAutoHunt(string? className = null, ClassUseMode classUseMode = ClassUseMode.Base, int[]? manualMapIDs = null);
 
     /// <summary>
     /// Stops the Auto Attack/Hunt.

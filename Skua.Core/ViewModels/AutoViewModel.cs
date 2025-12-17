@@ -34,6 +34,9 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
     [ObservableProperty]
     private string? _selectedClassModeString;
 
+    [ObservableProperty]
+    private string? _manualMapIDs;
+
     async partial void OnSelectedClassStringChanged(string? value)
     {
         await EquipSelectedClassAsync();
@@ -134,10 +137,22 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         _autoCts?.Dispose();
         _autoCts = new CancellationTokenSource();
 
+        // Parse ManualMapIDs
+        int[]? manualMapIDs = null;
+        if (!string.IsNullOrWhiteSpace(ManualMapIDs))
+        {
+            var mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(s => int.TryParse(s.Trim(), out _))
+                .Select(s => int.Parse(s.Trim()))
+                .ToArray();
+            if (mapIds.Length > 0)
+                manualMapIDs = mapIds;
+        }
+
         if (_selectedClassString is not null && _selectedClassMode is not null)
         {
             await Task.Factory.StartNew(
-                () => Auto.StartAutoHunt(_selectedClassString, (ClassUseMode)_selectedClassMode),
+                () => Auto.StartAutoHunt(_selectedClassString, (ClassUseMode)_selectedClassMode, manualMapIDs),
                 _autoCts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
@@ -145,7 +160,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         }
 
         await Task.Factory.StartNew(
-            () => Auto.StartAutoHunt(),
+            () => Auto.StartAutoHunt(null, ClassUseMode.Base, manualMapIDs),
             _autoCts.Token,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
@@ -158,10 +173,22 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         _autoCts?.Dispose();
         _autoCts = new CancellationTokenSource();
 
+        // Parse ManualMapIDs
+        int[]? manualMapIDs = null;
+        if (!string.IsNullOrWhiteSpace(ManualMapIDs))
+        {
+            var mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                .Where(s => int.TryParse(s.Trim(), out _))
+                .Select(s => int.Parse(s.Trim()))
+                .ToArray();
+            if (mapIds.Length > 0)
+                manualMapIDs = mapIds;
+        }
+
         if (_selectedClassString is not null && _selectedClassMode is not null)
         {
             await Task.Factory.StartNew(
-                () => Auto.StartAutoAttack(_selectedClassString, (ClassUseMode)_selectedClassMode),
+                () => Auto.StartAutoAttack(_selectedClassString, (ClassUseMode)_selectedClassMode, manualMapIDs),
                 _autoCts.Token,
                 TaskCreationOptions.LongRunning,
                 TaskScheduler.Default);
@@ -169,7 +196,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         }
 
         await Task.Factory.StartNew(
-            () => Auto.StartAutoAttack(),
+            () => Auto.StartAutoAttack(null, ClassUseMode.Base, manualMapIDs),
             _autoCts.Token,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);

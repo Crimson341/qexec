@@ -18,6 +18,7 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
         </Grid.RowDefinitions>
 
         <!--#region Auto-->
@@ -69,6 +70,17 @@
                 ItemsSource="{Binding CurrentClassModeStrings}"
                 SelectedItem="{Binding SelectedClassModeString}" />
         </Grid>
+        <!--#endregion-->
+
+        <!--#region Manual MapID-->
+        <TextBox
+            Grid.Row="2"
+            Grid.Column="0"
+            Grid.ColumnSpan="2"
+            Margin="0,6,0,0"
+            materialDesign:HintAssist.Hint="Manual MapIDs (optional)"
+            Text="{Binding ManualMapIDs, UpdateSourceTrigger=PropertyChanged}"
+            ToolTip="Enter MapIDs separated by commas for priority targeting (e.g., 12345, 67890). First available monster in the list will be attacked. If it dies, switches to next available, but returns to first when it respawns." />
         <!--#endregion-->
     </Grid>
 </UserControl>

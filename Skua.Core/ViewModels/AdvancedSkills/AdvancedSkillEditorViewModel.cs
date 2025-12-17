@@ -19,7 +19,8 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
             "Def",
             "Farm",
             "Solo",
-            "Supp"
+            "Supp",
+            "Dodge"
         };
         UseRules = new();
         ClearSkillsCommand = new RelayCommand(CurrentSkillsList.Clear);
