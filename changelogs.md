@@ -10,7 +10,7 @@
 7. "Search Scripts" would sometimes cause hitches; this **should be fixed**
 
 ## Changes
-1. Login backgrounds now saves and loads from `Skua.Settings.json` instead of the separate file "background-config.json" (you will need to re-set your background)
+1. Login backgrounds now saves and loads from `Skua.Settings.json` instead of the separate file `background-config.json` (you will need to re-set your background)
 2. The last server you selected in the manager will now save, and next time you open the manager, it'll re-select it
 
 ### Minor changes (not important)
