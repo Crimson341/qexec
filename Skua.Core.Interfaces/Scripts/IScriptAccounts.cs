@@ -64,6 +64,34 @@ public interface IScriptAccounts
     bool RemoveTag(string username, string tag);
 
     /// <summary>
+    /// Adds multiple tags to the current logged-in account.
+    /// </summary>
+    /// <param name="tags">The tags to add.</param>
+    void AddTags(params string[] tags);
+
+    /// <summary>
+    /// Adds multiple tags to a specific account.
+    /// </summary>
+    /// <param name="username">The username of the account.</param>
+    /// <param name="tags">The tags to add.</param>
+    /// <returns>True if any tags were added, false if account not found.</returns>
+    bool AddTags(string username, params string[] tags);
+
+    /// <summary>
+    /// Removes multiple tags from the current logged-in account.
+    /// </summary>
+    /// <param name="tags">The tags to remove.</param>
+    void RemoveTags(params string[] tags);
+
+    /// <summary>
+    /// Removes multiple tags from a specific account.
+    /// </summary>
+    /// <param name="username">The username of the account.</param>
+    /// <param name="tags">The tags to remove.</param>
+    /// <returns>True if any tags were removed, false if account not found.</returns>
+    bool RemoveTags(string username, params string[] tags);
+
+    /// <summary>
     /// Sets all tags for the current logged-in account, replacing any existing tags.
     /// </summary>
     /// <param name="tags">The tags to set.</param>

@@ -104,6 +104,75 @@ public class ScriptAccounts : IScriptAccounts
         return true;
     }
 
+    public void AddTags(params string[] tags)
+    {
+        string? username = Player.Username;
+        if (string.IsNullOrEmpty(username))
+            return;
+
+        AddTags(username, tags);
+    }
+
+    public bool AddTags(string username, params string[] tags)
+    {
+        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        if (accounts == null)
+            accounts = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+
+        if (!accounts.TryGetValue(username, out var accountData))
+            return false;
+
+        bool anyAdded = false;
+        foreach (var tag in tags)
+        {
+            if (!accountData.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
+            {
+                accountData.Tags.Add(tag);
+                anyAdded = true;
+            }
+        }
+
+        if (anyAdded)
+            _settingsService.Set("ManagedAccounts", accounts);
+
+        return anyAdded;
+    }
+
+    public void RemoveTags(params string[] tags)
+    {
+        string? username = Player.Username;
+        if (string.IsNullOrEmpty(username))
+            return;
+
+        RemoveTags(username, tags);
+    }
+
+    public bool RemoveTags(string username, params string[] tags)
+    {
+        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        if (accounts == null)
+            return false;
+
+        if (!accounts.TryGetValue(username, out var accountData))
+            return false;
+
+        bool anyRemoved = false;
+        foreach (var tag in tags)
+        {
+            var existingTag = accountData.Tags.FirstOrDefault(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
+            if (existingTag != null)
+            {
+                accountData.Tags.Remove(existingTag);
+                anyRemoved = true;
+            }
+        }
+
+        if (anyRemoved)
+            _settingsService.Set("ManagedAccounts", accounts);
+
+        return anyRemoved;
+    }
+
     public void SetTags(params string[] tags)
     {
         string? username = Player.Username;
