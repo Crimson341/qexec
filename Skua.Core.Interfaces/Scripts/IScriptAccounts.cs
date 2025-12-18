@@ -1,6 +1,11 @@
 namespace Skua.Core.Interfaces;
 
 /// <summary>
+/// Represents a managed account with its credentials and tags.
+/// </summary>
+public record ManagedAccount(string Username, string Password, string DisplayName, List<string> Tags);
+
+/// <summary>
 /// Provides methods for scripts to access and manage account tags.
 /// </summary>
 public interface IScriptAccounts
@@ -116,4 +121,10 @@ public interface IScriptAccounts
     /// <param name="username">The username of the account.</param>
     /// <returns>True if successful, false if account not found.</returns>
     bool ClearTags(string username);
+
+    /// <summary>
+    /// Gets all managed accounts.
+    /// </summary>
+    /// <returns>List of managed accounts with their credentials and tags.</returns>
+    List<ManagedAccount> GetAllAccounts();
 }

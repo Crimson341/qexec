@@ -1,5 +1,6 @@
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
+using System.Collections.Generic;
 
 namespace Skua.Core.Scripts;
 
@@ -217,5 +218,19 @@ public class ScriptAccounts : IScriptAccounts
         accountData.Tags.Clear();
         _settingsService.Set("ManagedAccounts", accounts);
         return true;
+    }
+
+    public List<ManagedAccount> GetAllAccounts()
+    {
+        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        if (accounts == null)
+            return new List<ManagedAccount>();
+
+        return accounts.Select(kvp => new ManagedAccount(
+            kvp.Key,
+            kvp.Value.Password,
+            kvp.Value.DisplayName,
+            kvp.Value.Tags.ToList()
+        )).ToList();
     }
 }
