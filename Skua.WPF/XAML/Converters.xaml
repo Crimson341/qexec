@@ -4,6 +4,7 @@
     xmlns:converters="clr-namespace:Skua.WPF.Converters">
     <converters:EnumConverter x:Key="EnumConverter" />
     <converters:IntToBooleanConverter x:Key="IntToBooleanConverter" />
+    <converters:IntToVisibilityConverter x:Key="IntToVisibilityConverter" />
     <converters:StringToFloatConverter x:Key="StringToFloatConverter" />
     <converters:StringToIntConverter x:Key="StringToIntConverter" />
     <converters:StringToBoolConverter x:Key="StringToBoolConverter" />

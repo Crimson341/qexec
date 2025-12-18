@@ -83,6 +83,7 @@ public static class Services
         services.AddSingleton<IScriptBotStats, ScriptBotStats>();
         services.AddSingleton<IScriptHandlers, ScriptHandlers>();
         services.AddSingleton<IScriptWait, ScriptWait>();
+        services.AddSingleton<IScriptAccounts, ScriptAccounts>();
 
         services.AddSingleton<ICaptureProxy, CaptureProxy>();
 

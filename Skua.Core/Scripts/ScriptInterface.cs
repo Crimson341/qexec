@@ -61,6 +61,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     public IScriptServers Servers { get; }
     public IScriptHandlers Handlers { get; }
     public ICaptureProxy GameProxy { get; }
+    public IScriptAccounts Accounts { get; }
     public IScriptOptionContainer? Config => Manager.Config;
     public Random Random { get; set; } = new Random();
 
@@ -100,7 +101,8 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         IDialogService dialogService,
         ISettingsService settingsService,
         IAuraMonitorService auraMonitorService,
-        IUltraBossHelper ultraBossHelper)
+        IUltraBossHelper ultraBossHelper,
+        IScriptAccounts accounts)
     {
         _logger = logger;
         Manager = manager;
@@ -138,6 +140,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         Flash = flash;
         AuraMonitor = auraMonitorService;
         UltraBossHelper = ultraBossHelper;
+        Accounts = accounts;
         _settingsService = settingsService;
 
         Version = Version.Parse(settingsService.Get("ApplicationVersion", "0.0.0.0"));

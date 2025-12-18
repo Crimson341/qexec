@@ -103,7 +103,7 @@
                 </ItemsControl.ItemTemplate>
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <UniformGrid d:Columns="1" Columns="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.Columns}" />
+                        <StackPanel />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
             </ItemsControl>

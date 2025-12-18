@@ -9,7 +9,6 @@ using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Servers;
 using Skua.Core.Utils;
-using System.Collections.Specialized;
 using System.Diagnostics;
 
 namespace Skua.Core.ViewModels.Manager;
@@ -21,7 +20,6 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     {
         Messenger.Register<AccountManagerViewModel, RemoveAccountMessage>(this, (r, m) => r._RemoveAccount(m.Account));
         Messenger.Register<AccountManagerViewModel, AccountSelectedMessage>(this, AccountSelected);
-        // Register to receive LoadScriptMessage from ScriptRepoManagerViewModel
         StrongReferenceMessenger.Default.Register<AccountManagerViewModel, LoadScriptMessage, int>(this,
             (int)MessageChannels.ScriptStatus, (r, m) => r.HandleLoadScript(m));
         _settingsService = settingsService;
@@ -32,11 +30,8 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         Accounts = new();
         _GetSavedAccounts();
         _syncThemes = _settingsService.Get("syncTheme", false);
-        // TODO different clients path
     }
 
-    private const string _separator = "{=}";
-    private readonly string[] _arrSeparator = { _separator };
     private readonly string _exePath = Path.Combine(AppContext.BaseDirectory, "Skua.exe");
 
     private readonly ISettingsService _settingsService;
@@ -108,14 +103,15 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
             return;
         }
 
-        Accounts.Add(new AccountItemViewModel()
+        var newAccount = new AccountItemViewModel()
         {
             Username = UsernameInput,
             Password = PasswordInput,
             DisplayName = string.IsNullOrEmpty(DisplayNameInput) && !UseNameAsDisplay
                 ? $"{Accounts.Count + 1}"
                 : UseNameAsDisplay ? UsernameInput : DisplayNameInput
-        });
+        };
+        Accounts.Add(newAccount);
 
         UsernameInput = string.Empty;
         DisplayNameInput = string.Empty;
@@ -184,9 +180,16 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
     private void _SaveAccounts()
     {
-        StringCollection accs = new();
+        var accs = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
         foreach (var account in Accounts)
-            accs.Add($"{account.DisplayName}{_separator}{account.Username}{_separator}{account.Password}");
+        {
+            accs[account.Username] = new AccountData
+            {
+                DisplayName = account.DisplayName,
+                Password = account.Password,
+                Tags = account.Tags.ToList()
+            };
+        }
 
         _settingsService.Set("ManagedAccounts", accs);
     }
@@ -238,21 +241,21 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     private void _GetSavedAccounts()
     {
         Accounts.Clear();
-        var accs = _settingsService.Get<StringCollection>("ManagedAccounts");
+        var accs = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
         if (accs is null)
             return;
 
-        foreach (var acc in accs)
+        foreach (var kvp in accs)
         {
-            if (acc is null)
-                continue;
-            string[] info = acc.Split(_arrSeparator, StringSplitOptions.None);
-            Accounts.Add(new AccountItemViewModel()
+            var accountVm = new AccountItemViewModel()
             {
-                DisplayName = info[0],
-                Username = info[1],
-                Password = info[2]
-            });
+                Username = kvp.Key,
+                DisplayName = kvp.Value.DisplayName,
+                Password = kvp.Value.Password
+            };
+            foreach (var tag in kvp.Value.Tags)
+                accountVm.Tags.Add(tag);
+            Accounts.Add(accountVm);
         }
     }
 

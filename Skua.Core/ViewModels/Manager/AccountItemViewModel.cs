@@ -1,12 +1,18 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Messaging;
+using System.Collections.ObjectModel;
 
 namespace Skua.Core.ViewModels;
 
 public partial class AccountItemViewModel : ObservableObject
 {
+    public AccountItemViewModel()
+    {
+        Tags = new ObservableCollection<string>();
+    }
+
     [ObservableProperty]
     private string _displayName;
 
@@ -15,6 +21,11 @@ public partial class AccountItemViewModel : ObservableObject
 
     [ObservableProperty]
     private string _password;
+
+    public ObservableCollection<string> Tags { get; }
+
+    [ObservableProperty]
+    private bool _isExpanded;
 
     private bool _useCheck;
 

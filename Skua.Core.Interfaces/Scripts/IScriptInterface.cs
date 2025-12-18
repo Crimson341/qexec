@@ -205,6 +205,11 @@ public interface IScriptInterface
     ICaptureProxy GameProxy { get; }
 
     /// <summary>
+    /// Class to access and manage account tags.
+    /// </summary>
+    IScriptAccounts Accounts { get; }
+
+    /// <summary>
     /// Options within the compiled script.
     /// </summary>
     IScriptOptionContainer? Config { get; }

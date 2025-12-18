@@ -4,6 +4,86 @@ using System.Text.Json.Serialization;
 
 namespace Skua.Core.Models;
 
+public class AccountData
+{
+    [JsonPropertyName("DisplayName")]
+    public string DisplayName { get; set; } = string.Empty;
+
+    [JsonPropertyName("Password")]
+    public string Password { get; set; } = string.Empty;
+
+    [JsonPropertyName("Tags")]
+    public List<string> Tags { get; set; } = new();
+}
+
+public class AccountDataDictionaryJsonConverter : JsonConverter<Dictionary<string, AccountData>>
+{
+    private const string LegacySeparator = "{=}";
+    private static readonly string[] LegacyArrSeparator = { LegacySeparator };
+
+    public override Dictionary<string, AccountData> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var dictionary = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+
+        if (reader.TokenType == JsonTokenType.StartObject)
+        {
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndObject)
+            {
+                if (reader.TokenType == JsonTokenType.PropertyName)
+                {
+                    string? key = reader.GetString();
+                    reader.Read();
+                    if (key != null)
+                    {
+                        var accountData = JsonSerializer.Deserialize<AccountData>(ref reader, options);
+                        if (accountData != null)
+                            dictionary[key] = accountData;
+                    }
+                }
+            }
+        }
+        else if (reader.TokenType == JsonTokenType.StartArray)
+        {
+            while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
+            {
+                if (reader.TokenType == JsonTokenType.String)
+                {
+                    string? item = reader.GetString();
+                    if (item != null && item.Contains(LegacySeparator))
+                    {
+                        string[] info = item.Split(LegacyArrSeparator, StringSplitOptions.None);
+                        if (info.Length >= 3)
+                        {
+                            string displayName = info[0];
+                            string username = info[1];
+                            string password = info[2];
+                            dictionary[username] = new AccountData
+                            {
+                                DisplayName = displayName,
+                                Password = password,
+                                Tags = new List<string>()
+                            };
+                        }
+                    }
+                }
+            }
+        }
+
+        return dictionary;
+    }
+
+    public override void Write(Utf8JsonWriter writer, Dictionary<string, AccountData> value, JsonSerializerOptions options)
+    {
+        writer.WriteStartObject();
+        foreach (var kvp in value)
+        {
+            writer.WritePropertyName(kvp.Key);
+            JsonSerializer.Serialize(writer, kvp.Value, options);
+        }
+        writer.WriteEndObject();
+    }
+}
+
 public enum AppRole
 {
     Client,
@@ -203,7 +283,8 @@ public class ManagerSettings
     public bool SyncTheme { get; set; } = true;
 
     [JsonPropertyName("ManagedAccounts")]
-    public System.Collections.Specialized.StringCollection ManagedAccounts { get; set; } = new();
+    [JsonConverter(typeof(AccountDataDictionaryJsonConverter))]
+    public Dictionary<string, AccountData> ManagedAccounts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
 
     [JsonPropertyName("LastServer")]
     public string LastServer { get; set; } = string.Empty;
@@ -216,7 +297,7 @@ public class ManagerSettings
         if (string.IsNullOrEmpty(ClientDownloadPath))
             ClientDownloadPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "Skua");
 
-        ManagedAccounts ??= new();
+        ManagedAccounts ??= new(StringComparer.OrdinalIgnoreCase);
     }
 }
 

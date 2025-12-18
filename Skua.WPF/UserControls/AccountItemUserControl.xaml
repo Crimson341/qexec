@@ -18,18 +18,72 @@
             <ColumnDefinition />
             <ColumnDefinition Width="auto" />
         </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
         <CheckBox
+            Grid.Row="0"
             Grid.Column="0"
             Margin="0,0,6,0"
             HorizontalAlignment="Center"
             VerticalAlignment="Center"
             materialDesign:CheckBoxAssist.CheckBoxSize="24"
             IsChecked="{Binding UseCheck}" />
+        <Expander
+            Grid.Row="0"
+            Grid.Column="1"
+            Padding="0"
+            Background="Transparent"
+            HorizontalAlignment="Stretch"
+            HorizontalContentAlignment="Stretch"
+            ExpandDirection="Down"
+            materialDesign:ExpanderAssist.HorizontalHeaderPadding="0"
+            Visibility="{Binding Tags.Count, Converter={StaticResource IntToVisibilityConverter}}">
+            <Expander.Header>
+                <DockPanel HorizontalAlignment="Stretch">
+                    <TextBlock
+                        DockPanel.Dock="Left"
+                        VerticalAlignment="Center"
+                        Text="{Binding DisplayName, FallbackValue=Test1}" />
+                </DockPanel>
+            </Expander.Header>
+            <DockPanel Margin="24,0,0,0">
+                <TextBlock Text="Tags:"
+                    Foreground="#919191"
+                    Margin="0,0,5,0"
+                    VerticalAlignment="Top" />
+                <ItemsControl ItemsSource="{Binding Tags}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                                BorderBrush="{DynamicResource PrimaryHueMidBrush}"
+                                BorderThickness="1"
+                                CornerRadius="5"
+                                Padding="5,0,5,2"
+                                Margin="0,1,5,3">
+                                <TextBlock
+                                    Foreground="{DynamicResource PrimaryHueMidBrush}"
+                                    Text="{Binding}" />
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </DockPanel>
+        </Expander>
         <TextBlock
+            Grid.Row="0"
             Grid.Column="1"
             VerticalAlignment="Center"
-            Text="{Binding DisplayName, FallbackValue=Test1}" />
+            Text="{Binding DisplayName, FallbackValue=Test1}"
+            Visibility="{Binding Tags.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=Inverse}" />
         <Button
+            Grid.Row="0"
             Grid.Column="2"
             VerticalAlignment="Center"
             Command="{Binding RemoveCommand}"

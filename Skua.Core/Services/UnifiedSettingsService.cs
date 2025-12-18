@@ -293,7 +293,7 @@ public class UnifiedSettingsService
                 newRoot.Manager.SyncTheme = syncTheme;
 
         if (oldData.TryGetValue("ManagedAccounts", out val))
-            newRoot.Manager.ManagedAccounts = ConvertToStringCollection(val);
+            newRoot.Manager.ManagedAccounts = ConvertToAccountDataDictionary(val);
 
         if (oldData.TryGetValue("LastServer", out val))
             newRoot.Manager.LastServer = val?.ToString() ?? string.Empty;
@@ -357,7 +357,7 @@ public class UnifiedSettingsService
                         collection.Add(item);
                 }
             }
-            catch { }
+            catch { /* ignored */ }
             return collection;
         }
 
@@ -369,6 +369,88 @@ public class UnifiedSettingsService
         }
 
         return collection;
+    }
+
+    private const string _legacySeparator = "{=}";
+    private readonly string[] _legacyArrSeparator = { _legacySeparator };
+
+    private Dictionary<string, AccountData> ConvertToAccountDataDictionary(object? value)
+    {
+        var dictionary = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+
+        if (value == null)
+            return dictionary;
+
+        if (value is Dictionary<string, AccountData> existing)
+            return existing;
+
+        if (value is JsonElement je)
+        {
+            try
+            {
+                if (je.ValueKind == JsonValueKind.Array)
+                {
+                    var list = JsonSerializer.Deserialize<List<string>>(je.GetRawText());
+                    if (list != null)
+                    {
+                        foreach (var item in list)
+                        {
+                            if (item.Contains(_legacySeparator))
+                            {
+                                string[] info = item.Split(_legacyArrSeparator, StringSplitOptions.None);
+                                if (info.Length >= 3)
+                                {
+                                    string displayName = info[0];
+                                    string username = info[1];
+                                    string password = info[2];
+                                    dictionary[username] = new AccountData
+                                    {
+                                        DisplayName = displayName,
+                                        Password = password,
+                                        Tags = new List<string>()
+                                    };
+                                }
+                            }
+                        }
+                    }
+                }
+                else if (je.ValueKind == JsonValueKind.Object)
+                {
+                    var options = GetJsonOptions();
+                    var dict = JsonSerializer.Deserialize<Dictionary<string, AccountData>>(je.GetRawText(), options);
+                    if (dict != null)
+                        return dict;
+                }
+            }
+            catch { /* ignored */ }
+            return dictionary;
+        }
+
+        if (value is StringCollection sc)
+        {
+            foreach (string item in sc)
+            {
+                if (item.Contains(_legacySeparator))
+                {
+                    string[] info = item.Split(_legacyArrSeparator, StringSplitOptions.None);
+                    if (info.Length >= 3)
+                    {
+                        string displayName = info[0];
+                        string username = info[1];
+                        string password = info[2];
+                        dictionary[username] = new AccountData
+                        {
+                            DisplayName = displayName,
+                            Password = password,
+                            Tags = new List<string>()
+                        };
+                    }
+                }
+            }
+            return dictionary;
+        }
+
+        return dictionary;
     }
 
     private void LoadSettings()
