@@ -1,3 +1,31 @@
+# Skua 1.3.2.0
+## Released: December 18, 2025
+
+### Fixes
+ - Auto > Attack/Hunt;
+   - Targeting now works properly to what you click on and doesn't stray from it.
+ - More Aura Fixes for the same issue as last time ( hopefully we're good now)
+ - Some fixes to Advanced skills
+### Additions
+ - Tools > Grabber > Inventory > Sell button; 
+   - Fixed it selling "all" of [item]
+ - Helpers > runtime;
+   - Quests can now have an optional `RewardID` ( for those "choose reward" quests), reward + accept/requirement's id will also be added.
+   - Turn-ins will now use multi-turn-in. ( more turn-ins at once, before it did it one at a time)
+ - `Bot.Quests.RegisterQuests();` can now also accept reward ids alongside the id... 
+ E.G.:
+ ```cs
+ Bot.Quests.RegisterQuests((1,1), (2,3));
+ ```
+ - Helpers > Current Drops;
+   - Search function added.
+ - Faster AA[0] for CSH/CSS/other
+ - Auto > Attack/Hunt;
+   - Faster target swapping
+   - You can insert a `MonsterMapID` array ( e.g., 1,2,3), and it'll attack them in order, going back to the beginning of the order if and when it respawns.
+
+---
+
 # Skua 1.3.1.0
 ## Released: December 08, 2025
 
