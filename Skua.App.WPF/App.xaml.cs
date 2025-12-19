@@ -106,7 +106,10 @@ public sealed partial class App : Application
                     && (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateBotScripts") || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your scripts?", "Script Update", true) == true))
                 {
                     int count = await getScripts.DownloadAllWhereAsync(s => !s.Downloaded || s.Outdated);
-                    Services.GetRequiredService<IDialogService>().ShowMessageBox($"Downloaded {count} scripts.\r\nYou can disable auto script updates in Options > Application.", "Script Update");
+                    if (count > 0)
+                    {
+                        Services.GetRequiredService<IDialogService>().ShowMessageBox($"Downloaded {count} scripts.\r\nYou can disable auto script updates in Options > Application.", "Script Update");
+                    }
                 }
             });
         }
