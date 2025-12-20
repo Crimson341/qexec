@@ -631,6 +631,19 @@ public class Main extends MovieClip {
 
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
+            
+            if (!aura || aura == null) {
+                continue;
+            }
+            
+            if (!aura.hasOwnProperty("nam") || aura.nam == null || aura.nam == "") {
+                continue;
+            }
+            
+            if (aura.hasOwnProperty("e") && aura.e == 1) {
+                continue;
+            }
+            
             if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
                 var actualValue:int = (aura.val == undefined || aura.val == null) ? 1 : parseInt(aura.val);
                 if (operator == 'Greater' && actualValue > auraValue) {
@@ -678,6 +691,19 @@ public class Main extends MovieClip {
         
         for (var i:int = 0; i < auras.length; i++) {
             var aura:Object = auras[i];
+            
+            if (!aura || aura == null) {
+                continue;
+            }
+            
+            if (!aura.hasOwnProperty("nam") || aura.nam == null || aura.nam == "") {
+                continue;
+            }
+            
+            if (aura.hasOwnProperty("e") && aura.e == 1) {
+                continue;
+            }
+            
             var rebuiltAura:Object = {};
             var hasVal:Boolean = false;
             

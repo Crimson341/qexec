@@ -7,5 +7,6 @@ public enum ClassUseMode
     Def,
     Farm,
     Solo,
-    Supp
+    Supp,
+    Dodge
 }
