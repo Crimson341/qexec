@@ -1,3 +1,21 @@
+# Skua 1.3.3.0
+## Released: December 20, 2025
+
+### Changes
+ - [***"Downloaded 1 Scripts" popup***](https://imgur.com/2GnQUbI) will no longer appear when *no* scripts are actually downloaded.
+   - Minor Skill improvements ( don't ask, I don't remember).
+   - Added "Dodge" class Use Mode back, as before this, it was crashing the client when trying to save as a non-existent mode.
+ - Auras returning `NULL` during long sessions
+   - Flash function `rebuildAuraArray` - filters out null/invalid auras for all the "get aura" functions
+- Helpers > Runtime;
+   - If a quest is registered, automatically enable `Pick Drops`
+### ***__New Feature:__***
+ - [Account Tags](https://imgur.com/x4FpfUz) & conditional checks to go along with it (for us coders).
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.3.2.0...1.3.3.0
+
+---
+
 # Skua 1.3.2.0
 ## Released: December 18, 2025
 
