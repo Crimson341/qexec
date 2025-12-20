@@ -343,6 +343,10 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         OnPropertyChanged(nameof(Registered));
         WeakReferenceMessenger.Default.Send(new PropertyChangedMessage<IEnumerable<int>>(this, nameof(Registered), Registered, Registered));
         
+        // Enable pick drops when quests are registered
+        if (!Drop.Enabled)
+            Drop.Start();
+        
         // Cancel previous load task if still running
         _loadQuestsCTS?.Cancel();
         _loadQuestsCTS?.Dispose();
