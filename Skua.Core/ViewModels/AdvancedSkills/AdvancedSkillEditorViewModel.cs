@@ -12,16 +12,7 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
 {
     public AdvancedSkillEditorViewModel(IDialogService dialogService)
     {
-        ClassUseModes = new[]
-        {
-            "Base",
-            "Atk",
-            "Def",
-            "Farm",
-            "Solo",
-            "Supp",
-            "Dodge"
-        };
+        ClassUseModes = ClassUseModeExtensions.ToArray();
         UseRules = new();
         ClearSkillsCommand = new RelayCommand(CurrentSkillsList.Clear);
         _dialogService = dialogService;

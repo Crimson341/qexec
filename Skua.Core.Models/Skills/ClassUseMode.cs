@@ -8,5 +8,11 @@ public enum ClassUseMode
     Farm,
     Solo,
     Supp,
-    Dodge
+    Dodge,
+    Ultra
+}
+
+public static class ClassUseModeExtensions
+{
+    public static string[] ToArray() => Enum.GetNames(typeof(ClassUseMode));
 }
