@@ -13,7 +13,10 @@ public class ClassModeItem
 {
     public string ClassName { get; set; } = "";
     public string Mode { get; set; } = "";
-    public override string ToString() => $"{ClassName} ({Mode})";
+    public override string ToString()
+    {
+        return $"{ClassName} ({Mode})";
+    }
 }
 
 public partial class SavedAdvancedSkillsViewModel : ObservableRecipient

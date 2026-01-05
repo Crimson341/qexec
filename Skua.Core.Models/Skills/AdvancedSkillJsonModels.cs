@@ -1,6 +1,7 @@
-namespace Skua.Core.Models.Skills;
 
 using System.Text.Json.Serialization;
+
+namespace Skua.Core.Models.Skills;
 
 public class AdvancedSkillJson
 {

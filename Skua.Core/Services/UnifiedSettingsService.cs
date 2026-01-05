@@ -116,14 +116,12 @@ public class UnifiedSettingsService
                 else if (_currentRole == AppRole.Client)
                 {
                     PropertyInfo? clientProp = FindPropertyByJsonName(_root.Client.GetType(), key);
-                    if (clientProp != null)
-                        clientProp.SetValue(_root.Client, value);
+                    clientProp?.SetValue(_root.Client, value);
                 }
                 else if (_currentRole == AppRole.Manager)
                 {
                     PropertyInfo? managerProp = FindPropertyByJsonName(_root.Manager.GetType(), key);
-                    if (managerProp != null)
-                        managerProp.SetValue(_root.Manager, value);
+                    managerProp?.SetValue(_root.Manager, value);
                 }
 
                 SaveSettings();
@@ -135,11 +133,20 @@ public class UnifiedSettingsService
         }
     }
 
-    public SharedSettings GetShared() => _root.Shared;
+    public SharedSettings GetShared()
+    {
+        return _root.Shared;
+    }
 
-    public ClientSettings GetClient() => _root.Client;
+    public ClientSettings GetClient()
+    {
+        return _root.Client;
+    }
 
-    public ManagerSettings GetManager() => _root.Manager;
+    public ManagerSettings GetManager()
+    {
+        return _root.Manager;
+    }
 
     private bool MigrateOldSettings()
     {
@@ -610,10 +617,8 @@ public class UnifiedSettingsService
         PropertyInfo[] properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
         foreach (PropertyInfo prop in properties)
         {
-            JsonPropertyNameAttribute? jsonAttr = prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
-                .FirstOrDefault() as System.Text.Json.Serialization.JsonPropertyNameAttribute;
-
-            if (jsonAttr != null && jsonAttr.Name == jsonName)
+            if (prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
+                .FirstOrDefault() is System.Text.Json.Serialization.JsonPropertyNameAttribute jsonAttr && jsonAttr.Name == jsonName)
                 return prop;
         }
         return null;

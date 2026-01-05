@@ -10,20 +10,12 @@ namespace Skua.WPF;
 [ContentProperty("DataTemplates")]
 public class PropertyGridDataTemplateSelector : DataTemplateSelector
 {
-    private PropertyGrid _propertyGrid;
-
     public PropertyGridDataTemplateSelector()
     {
         DataTemplates = new ObservableCollection<PropertyGridDataTemplate>();
     }
 
-    public PropertyGrid PropertyGrid
-    {
-        get
-        {
-            return _propertyGrid;
-        }
-    }
+    public PropertyGrid PropertyGrid { get; private set; }
 
     protected virtual bool Filter(PropertyGridDataTemplate template, PropertyGridProperty property)
     {
@@ -59,27 +51,7 @@ public class PropertyGridDataTemplateSelector : DataTemplateSelector
             return true;
         }
 
-        if (template.IsValid.HasValue && template.IsValid.Value != property.IsValid)
-        {
-            return true;
-        }
-
-        if (template.IsFlagsEnum.HasValue && template.IsFlagsEnum.Value != property.IsFlagsEnum)
-        {
-            return true;
-        }
-
-        if (template.Category != null && !property.Category.EqualsIgnoreCase(template.Category))
-        {
-            return true;
-        }
-
-        if (template.Name != null && !property.Name.EqualsIgnoreCase(template.Name))
-        {
-            return true;
-        }
-
-        return false;
+        return template.IsValid.HasValue && template.IsValid.Value != property.IsValid || (template.IsFlagsEnum.HasValue && template.IsFlagsEnum.Value != property.IsFlagsEnum) || (template.Category != null && !property.Category.EqualsIgnoreCase(template.Category)) || (template.Name != null && !property.Name.EqualsIgnoreCase(template.Name));
     }
 
     public virtual bool IsAssignableFrom(Type type, Type propertyType, PropertyGridDataTemplate template, PropertyGridProperty property)
@@ -105,9 +77,7 @@ public class PropertyGridDataTemplateSelector : DataTemplateSelector
 
         if (type == PropertyGridDataTemplate.NullableEnumType)
         {
-            Type enumType;
-            bool nullable;
-            PropertyGridProperty.IsEnumOrNullableEnum(propertyType, out enumType, out nullable);
+            PropertyGridProperty.IsEnumOrNullableEnum(propertyType, out Type enumType, out bool nullable);
             if (nullable)
                 return true;
         }
@@ -136,22 +106,18 @@ public class PropertyGridDataTemplateSelector : DataTemplateSelector
         if (container == null)
             throw new ArgumentNullException("container");
 
-        PropertyGridProperty? property = item as PropertyGridProperty;
-        if (property == null)
+        if (item is not PropertyGridProperty property)
             return base.SelectTemplate(item, container);
 
         DataTemplate propTemplate = PropertyGridOptionsAttribute.SelectTemplate(property, item, container);
         if (propTemplate != null)
             return propTemplate;
 
-        if (_propertyGrid == null)
-        {
-            _propertyGrid = container.GetVisualSelfOrParent<PropertyGrid>();
-        }
+        PropertyGrid ??= container.GetVisualSelfOrParent<PropertyGrid>();
 
-        if (_propertyGrid.ValueEditorTemplateSelector != null && _propertyGrid.ValueEditorTemplateSelector != this)
+        if (PropertyGrid.ValueEditorTemplateSelector != null && PropertyGrid.ValueEditorTemplateSelector != this)
         {
-            DataTemplate template = _propertyGrid.ValueEditorTemplateSelector.SelectTemplate(item, container);
+            DataTemplate template = PropertyGrid.ValueEditorTemplateSelector.SelectTemplate(item, container);
             if (template != null)
                 return template;
         }

@@ -77,18 +77,13 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         if (_scripts.Count != 0 && !refresh)
             return _scripts.ToList();
 
-        using (HttpResponseMessage response = await ValidatedHttpExtensions.GetAsync(HttpClients.GitHubRaw, _rawScriptsJsonUrl, token))
-        {
-            string content = await response.Content.ReadAsStringAsync(token);
-            if (string.IsNullOrWhiteSpace(content))
-                throw new InvalidDataException("scripts.json is empty or null");
+        using HttpResponseMessage response = await ValidatedHttpExtensions.GetAsync(HttpClients.GitHubRaw, _rawScriptsJsonUrl, token);
+        string content = await response.Content.ReadAsStringAsync(token);
+        if (string.IsNullOrWhiteSpace(content))
+            throw new InvalidDataException("scripts.json is empty or null");
 
-            List<ScriptInfo>? scripts = JsonConvert.DeserializeObject<List<ScriptInfo>>(content);
-            if (scripts == null || !scripts.Any())
-                throw new InvalidDataException("scripts.json contains no valid scripts");
-
-            return scripts;
-        }
+        List<ScriptInfo>? scripts = JsonConvert.DeserializeObject<List<ScriptInfo>>(content);
+        return scripts == null || !scripts.Any() ? throw new InvalidDataException("scripts.json contains no valid scripts") : scripts;
     }
 
     public async Task DownloadScriptAsync(ScriptInfo info)
@@ -183,10 +178,9 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
             string content = await response.Content.ReadAsStringAsync(token);
             GitHubCompare? compare = JsonConvert.DeserializeObject<GitHubCompare>(content);
 
-            if (compare?.Files == null)
-                return new HashSet<string>();
-
-            return compare.Files
+            return compare?.Files == null
+                ? new HashSet<string>()
+                : compare.Files
                 .Where(f => f.Status != "removed")
                 .Select(f => f.FileName)
                 .ToHashSet();

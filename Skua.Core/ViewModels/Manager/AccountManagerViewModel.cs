@@ -164,10 +164,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         }
 
         IWindowService? windowService = Ioc.Default.GetService<IWindowService>();
-        if (windowService != null)
-        {
-            windowService.ShowManagedWindow("Script Repo");
-        }
+        windowService?.ShowManagedWindow("Script Repo");
     }
 
     private void _RemoveAccount(AccountItemViewModel account)

@@ -173,7 +173,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         List<string> ruleParts = new();
         List<SkillRuleJson> multiAuraRules = isMultiAura ? rules.Where(r => r.Type == "MultiAura").ToList() : new List<SkillRuleJson>();
         List<SkillRuleJson> singleAuraRules = !isMultiAura ? rules.Where(r => r.Type == "Aura").ToList() : new List<SkillRuleJson>();
-        List<SkillRuleJson> otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura" && r.Type != "Skip").ToList();
+        List<SkillRuleJson> otherRules = rules.Where(r => r.Type is not "MultiAura" and not "Aura" and not "Skip").ToList();
 
         foreach (SkillRuleJson? rule in otherRules)
         {

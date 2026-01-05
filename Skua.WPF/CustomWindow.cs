@@ -27,8 +27,7 @@ public partial class CustomWindow : Window
     /// </summary>
     public bool FixedSize
     {
-        get { return (bool)GetValue(FixedSizeProperty); }
-        set { SetValue(FixedSizeProperty, value); }
+        get => (bool)GetValue(FixedSizeProperty); set => SetValue(FixedSizeProperty, value);
     }
 
     public static readonly DependencyProperty FixedSizeProperty =
@@ -39,8 +38,7 @@ public partial class CustomWindow : Window
     /// </summary>
     public bool HideWindow
     {
-        get { return (bool)GetValue(HideWindowProperty); }
-        set { SetValue(HideWindowProperty, value); }
+        get => (bool)GetValue(HideWindowProperty); set => SetValue(HideWindowProperty, value);
     }
 
     public static readonly DependencyProperty HideWindowProperty =
@@ -48,8 +46,7 @@ public partial class CustomWindow : Window
 
     public string TitleText
     {
-        get { return (string)GetValue(TitleTextProperty); }
-        set { SetValue(TitleTextProperty, value); }
+        get => (string)GetValue(TitleTextProperty); set => SetValue(TitleTextProperty, value);
     }
 
     public static readonly DependencyProperty TitleTextProperty =

@@ -19,10 +19,7 @@ internal static class Extensions
 
     public static string ToHexa(byte[] bytes)
     {
-        if (bytes == null)
-            return null;
-
-        return ToHexa(bytes, 0, bytes.Length);
+        return bytes == null ? null : ToHexa(bytes, 0, bytes.Length);
     }
 
     public static string ToHexa(byte[] bytes, int offset, int count)
@@ -71,22 +68,18 @@ internal static class Extensions
         if (underlyingType == typeof(int))
             return Enum.ToObject(enumType, ConversionService.ChangeType<int>(value));
 
-        if ((underlyingType == typeof(uint)))
+        if (underlyingType == typeof(uint))
             return Enum.ToObject(enumType, ConversionService.ChangeType<uint>(value));
 
-        if (underlyingType == typeof(short))
-            return Enum.ToObject(enumType, ConversionService.ChangeType<short>(value));
-
-        if (underlyingType == typeof(ushort))
-            return Enum.ToObject(enumType, ConversionService.ChangeType<ushort>(value));
-
-        if (underlyingType == typeof(byte))
-            return Enum.ToObject(enumType, ConversionService.ChangeType<byte>(value));
-
-        if (underlyingType == typeof(sbyte))
-            return Enum.ToObject(enumType, ConversionService.ChangeType<sbyte>(value));
-
-        throw new ArgumentException(null, "enumType");
+        return underlyingType == typeof(short)
+            ? Enum.ToObject(enumType, ConversionService.ChangeType<short>(value))
+            : underlyingType == typeof(ushort)
+            ? Enum.ToObject(enumType, ConversionService.ChangeType<ushort>(value))
+            : underlyingType == typeof(byte)
+            ? Enum.ToObject(enumType, ConversionService.ChangeType<byte>(value))
+            : underlyingType == typeof(sbyte)
+            ? Enum.ToObject(enumType, ConversionService.ChangeType<sbyte>(value))
+            : throw new ArgumentException(null, "enumType");
     }
 
     public static string Format(object obj, string format, IFormatProvider formatProvider)
@@ -97,8 +90,8 @@ internal static class Extensions
         if (string.IsNullOrEmpty(format))
             return obj.ToString();
 
-        if ((format.StartsWith("*")) ||
-            (format.StartsWith("#")))
+        if (format.StartsWith("*") ||
+            format.StartsWith("#"))
         {
             char sep1 = ' ';
             char sep2 = ':';
@@ -156,22 +149,11 @@ internal static class Extensions
         {
             string enumExpression;
             int exprPos = format.IndexOf(']', 5);
-            if (exprPos < 0)
-            {
-                enumExpression = string.Empty;
-            }
-            else
-            {
-                enumExpression = format.Substring(5, exprPos - 5).Trim();
-                // enumExpression is a lambda like expression with index as the variable
-                // ex: {0: Item[index < 10]} will enum all objects with index < 10
-                // errrhh... so far, since lambda cannot be parsed at runtime, we do nothing...
-            }
+            enumExpression = exprPos < 0 ? string.Empty : format[5..exprPos].Trim();
 
-            IEnumerable? enumerable = obj as IEnumerable;
-            if (enumerable != null)
+            if (obj is IEnumerable enumerable)
             {
-                format = format.Substring(6 + enumExpression.Length);
+                format = format[(6 + enumExpression.Length)..];
                 string expression;
                 string separator;
                 if (format.Length == 0)
@@ -186,12 +168,12 @@ internal static class Extensions
                     {
                         separator = ",";
                         // skip '.'
-                        expression = format.Substring(1);
+                        expression = format[1..];
                     }
                     else
                     {
-                        separator = format.Substring(pos + 1);
-                        expression = format.Substring(1, pos - 1);
+                        separator = format[(pos + 1)..];
+                        expression = format[1..pos];
                     }
                 }
                 return ConcatenateCollection(enumerable, expression, separator, formatProvider);
@@ -232,11 +214,8 @@ internal static class Extensions
         int pos2 = format.IndexOf(':');
         if (pos2 > 0)
         {
-            object inner = DataBindingEvaluator.Eval(obj, format.Substring(0, pos2), false);
-            if (inner == null)
-                return string.Empty;
-
-            return string.Format(formatProvider, "{0:" + format.Substring(pos2 + 1) + "}", inner);
+            object inner = DataBindingEvaluator.Eval(obj, format[..pos2], false);
+            return inner == null ? string.Empty : string.Format(formatProvider, "{0:" + format[(pos2 + 1)..] + "}", inner);
         }
         return DataBindingEvaluator.Eval(obj, format, formatProvider, null, false);
     }
@@ -319,19 +298,13 @@ internal static class Extensions
         if (underlyingType == null)
             throw new ArgumentNullException("underlyingType");
 
-        if (underlyingType == typeof(long) || underlyingType == typeof(ulong))
-            return 64;
-
-        if (underlyingType == typeof(int) || underlyingType == typeof(uint))
-            return 32;
-
-        if (underlyingType == typeof(short) || underlyingType == typeof(ushort))
-            return 16;
-
-        if (underlyingType == typeof(byte) || underlyingType == typeof(sbyte))
-            return 8;
-
-        throw new ArgumentException(null, "underlyingType");
+        return underlyingType == typeof(long) || underlyingType == typeof(ulong)
+            ? 64
+            : underlyingType == typeof(int) || underlyingType == typeof(uint)
+            ? 32
+            : underlyingType == typeof(short) || underlyingType == typeof(ushort)
+            ? 16
+            : underlyingType == typeof(byte) || underlyingType == typeof(sbyte) ? 8 : throw new ArgumentException(null, "underlyingType");
     }
 
     public static ulong EnumToUInt64(object value)
@@ -340,35 +313,18 @@ internal static class Extensions
             throw new ArgumentNullException("value");
 
         TypeCode typeCode = Convert.GetTypeCode(value);
-        switch (typeCode)
+        return typeCode switch
         {
-            case TypeCode.SByte:
-            case TypeCode.Int16:
-            case TypeCode.Int32:
-            case TypeCode.Int64:
-                return (ulong)Convert.ToInt64(value, CultureInfo.InvariantCulture);
-
-            case TypeCode.Byte:
-            case TypeCode.UInt16:
-            case TypeCode.UInt32:
-            case TypeCode.UInt64:
-                return Convert.ToUInt64(value, CultureInfo.InvariantCulture);
-
+            TypeCode.SByte or TypeCode.Int16 or TypeCode.Int32 or TypeCode.Int64 => (ulong)Convert.ToInt64(value, CultureInfo.InvariantCulture),
+            TypeCode.Byte or TypeCode.UInt16 or TypeCode.UInt32 or TypeCode.UInt64 => Convert.ToUInt64(value, CultureInfo.InvariantCulture),
             //case TypeCode.String:
-            default:
-                return ConversionService.ChangeType<ulong>(value);
-        }
+            _ => ConversionService.ChangeType<ulong>(value),
+        };
     }
 
     public static bool IsFlagsEnum(Type type)
     {
-        if (type == null)
-            throw new ArgumentNullException("type");
-
-        if (!type.IsEnum)
-            return false;
-
-        return type.IsDefined(typeof(FlagsAttribute), true);
+        return type == null ? throw new ArgumentNullException("type") : type.IsEnum && type.IsDefined(typeof(FlagsAttribute), true);
     }
 
     public static List<T> SplitToList<T>(this string thisString, params char[] separators)
@@ -392,10 +348,7 @@ internal static class Extensions
 
     public static string Nullify(this string thisString, bool trim)
     {
-        if (string.IsNullOrWhiteSpace(thisString))
-            return null;
-
-        return trim ? thisString.Trim() : thisString;
+        return string.IsNullOrWhiteSpace(thisString) ? null : trim ? thisString.Trim() : thisString;
     }
 
     public static bool EqualsIgnoreCase(this string thisString, string text)
@@ -411,16 +364,9 @@ internal static class Extensions
             text = Nullify(text, true);
         }
 
-        if (thisString == null)
-            return text == null;
-
-        if (text == null)
-            return false;
-
-        if (thisString.Length != text.Length)
-            return false;
-
-        return string.Compare(thisString, text, StringComparison.OrdinalIgnoreCase) == 0;
+        return thisString == null
+            ? text == null
+            : text != null && thisString.Length == text.Length && string.Compare(thisString, text, StringComparison.OrdinalIgnoreCase) == 0;
     }
 
     public static IEnumerable<DependencyObject> EnumerateVisualChildren(this DependencyObject obj)
@@ -544,16 +490,11 @@ internal static class Extensions
 
     public static T GetVisualSelfOrParent<T>(this DependencyObject source) where T : DependencyObject
     {
-        if (source == null)
-            return default(T);
-
-        if (source is T)
-            return (T)source;
-
-        if (!(source is Visual) && !(source is Visual3D))
-            return default(T);
-
-        return VisualTreeHelper.GetParent(source).GetVisualSelfOrParent<T>();
+        return source == null
+            ? default
+            : source is T
+            ? (T)source
+            : source is not Visual and not Visual3D ? default : VisualTreeHelper.GetParent(source).GetVisualSelfOrParent<T>();
     }
 
     public static T FindFocusableVisualChild<T>(this DependencyObject obj, string name) where T : FrameworkElement
@@ -579,8 +520,7 @@ internal static class Extensions
             if (item is T)
                 yield return (T)item;
 
-            DependencyObject? dep = item as DependencyObject;
-            if (dep != null)
+            if (item is DependencyObject dep)
             {
                 foreach (T child in dep.GetChildren<T>())
                 {
@@ -595,7 +535,7 @@ internal static class Extensions
         while (true)
         {
             if (source == null)
-                return default(T);
+                return default;
 
             if (source is T)
                 return (T)source;
@@ -625,7 +565,7 @@ internal static class Extensions
             return;
 
         // this one is not interesting...
-        if (!(e is TargetInvocationException))
+        if (e is not TargetInvocationException)
         {
             if (sb.Length > 0)
             {
@@ -642,18 +582,12 @@ internal static class Extensions
             return null;
 
         object[] o = provider.GetCustomAttributes(typeof(T), true);
-        if (o == null || o.Length == 0)
-            return null;
-
-        return (T)o[0];
+        return o == null || o.Length == 0 ? null : (T)o[0];
     }
 
     public static T GetAttribute<T>(this MemberDescriptor descriptor) where T : Attribute
     {
-        if (descriptor == null)
-            return null;
-
-        return GetAttribute<T>(descriptor.Attributes);
+        return descriptor == null ? null : GetAttribute<T>(descriptor.Attributes);
     }
 
     public static T GetAttribute<T>(this AttributeCollection attributes) where T : Attribute
@@ -676,9 +610,6 @@ internal static class Extensions
 
     public static bool IsNullable(this Type type)
     {
-        if (type == null)
-            return false;
-
-        return type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
+        return type != null && type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Nullable<>);
     }
 }

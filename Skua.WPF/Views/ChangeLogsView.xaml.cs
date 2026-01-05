@@ -19,7 +19,7 @@ public partial class ChangeLogsView : UserControl
         _viewModel = Ioc.Default.GetRequiredService<ChangeLogsViewModel>();
         DataContext = _viewModel;
         Markdownview.MarkdownStyle = MarkdownStyle.SasabuneStandard;
-        this.IsVisibleChanged += OnVisibilityChanged;
+        IsVisibleChanged += OnVisibilityChanged;
     }
 
     private void OnVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)

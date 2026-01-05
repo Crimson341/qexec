@@ -15,5 +15,5 @@ public interface IScriptSelfAuras : IScriptAuras
     /// </summary>
     /// <param name="playerName">The name of the aura to retrieve. This value is case-sensitive and cannot be null or empty.</param>
     /// <returns>A string representing the value of the specified aura if it is active on the player; otherwise, null.</returns>
-    public string GetPlayerAura(string playerName);
+    string GetPlayerAura(string playerName);
 }

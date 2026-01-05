@@ -89,8 +89,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
 
                     if (script.Tags?.Contains("null") == true && (script.Tags.Length == 1))
                         script.Tags = new[] { "no-tags" };
-                    else if (script.Tags == null)
-                        script.Tags = new[] { "no-tags" };
+                    else script.Tags ??= new[] { "no-tags" };
 
                     scriptViewModels.Add(new(script));
                 }

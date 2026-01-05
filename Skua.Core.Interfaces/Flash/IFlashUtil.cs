@@ -77,7 +77,7 @@ public interface IFlashUtil : IDisposable
     /// </summary>
     /// <param name="path">The path of the object to check.</param>
     /// <returns>True if the object at the given path is null (unset).</returns>
-    public bool IsNull(string path)
+    bool IsNull(string path)
     {
         return Call<bool>("isNull", path);
     }
@@ -87,7 +87,7 @@ public interface IFlashUtil : IDisposable
     /// </summary>
     /// <param name="path">The path of the object to get.</param>
     /// <returns>The value of the object at the given path as a serialzied JSON string.</returns>
-    public string? GetGameObject(string path)
+    string? GetGameObject(string path)
     {
         if (path.Contains('['))
         {
@@ -105,7 +105,7 @@ public interface IFlashUtil : IDisposable
     /// <param name="path">The path of the object to get (i.e. world.myAvatar.sta.$tha will get your haste stat).</param>
     /// <param name="def">The default value to return if the call/deserialization fails.</param>
     /// <returns>The deserialized value of the object at the given path.</returns>
-    public T? GetGameObject<T>(string path, T? def = default)
+    T? GetGameObject<T>(string path, T? def = default)
     {
         try
         {
@@ -122,7 +122,7 @@ public interface IFlashUtil : IDisposable
     /// </summary>
     /// <param name="path">The path of the object to get.</param>
     /// <returns>The value of the object at the given path as a serialzied JSON string.</returns>
-    public string? GetGameObjectStatic(string path)
+    string? GetGameObjectStatic(string path)
     {
         return Call("getGameObjectS", path);
     }
@@ -134,7 +134,7 @@ public interface IFlashUtil : IDisposable
     /// <param name="path">The path of the object to get.</param>
     /// <param name="def">The default value to return if the call/deserialization fails.</param>
     /// <returns>The deserialized value of the object at the given path.</returns>
-    public T? GetGameObjectStatic<T>(string path, T? def = default)
+    T? GetGameObjectStatic<T>(string path, T? def = default)
     {
         try
         {
@@ -151,7 +151,7 @@ public interface IFlashUtil : IDisposable
     /// </summary>
     /// <param name="path">The path of the object to set.</param>
     /// <param name="value">The value to set the object to. This can be a string, any number type or a bool.</param>
-    public void SetGameObject(string path, object value)
+    void SetGameObject(string path, object value)
     {
         if (path.Contains('['))
         {
@@ -169,7 +169,7 @@ public interface IFlashUtil : IDisposable
     /// <param name="path">The path to the object and its function name.</param>
     /// <param name="args">The arguments to pass to the function.</param>
     /// <returns>The value of the object returned by calling the function as a serialzied JSON string.</returns>
-    public string? CallGameFunction(string path, params object[] args)
+    string? CallGameFunction(string path, params object[] args)
     {
         return args.Length > 0 ? Call("callGameFunction", new object[] { path }.Concat(args).ToArray()) : Call("callGameFunction0", path);
     }
@@ -181,7 +181,7 @@ public interface IFlashUtil : IDisposable
     /// <param name="path">The path to the object and its function name.</param>
     /// <param name="args">The arguments to pass to the function.</param>
     /// <returns>The deserialized value of the object returned by the function.</returns>
-    public T? CallGameFunction<T>(string path, params object[] args)
+    T? CallGameFunction<T>(string path, params object[] args)
     {
         try
         {
@@ -199,7 +199,7 @@ public interface IFlashUtil : IDisposable
     /// <param name="path">The path to the array.</param>
     /// <param name="index">The index in the array to get the object from.</param>
     /// <returns>The value of the object at the given index in the array as a serialzied JSON string.</returns>
-    public string? GetArrayObject(string path, int index)
+    string? GetArrayObject(string path, int index)
     {
         return Call("getArrayObject", path, index);
     }
@@ -212,7 +212,7 @@ public interface IFlashUtil : IDisposable
     /// <param name="index">The index in the array to get the object from.</param>
     /// <param name="def">The default value to return if the call/deserialization fails.</param>
     /// <returns>The deserialized value of the object at the given index in the array.</returns>
-    public T? GetArrayObject<T>(string path, int index, T? def = default)
+    T? GetArrayObject<T>(string path, int index, T? def = default)
     {
         try
         {
@@ -231,7 +231,7 @@ public interface IFlashUtil : IDisposable
     /// <param name="path">The path to the array.</param>
     /// <param name="selector">The name of the field to use to populate the new array.</param>
     /// <returns>A list of deserialized objects from the selected array.</returns>
-    public List<T> SelectArrayObjects<T>(string path, string selector)
+    List<T> SelectArrayObjects<T>(string path, string selector)
     {
         try
         {

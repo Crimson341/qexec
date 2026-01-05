@@ -64,13 +64,7 @@ public class Monster
     /// <summary>
     /// Indicates if this monster is alive.
     /// </summary>
-    public bool Alive
-    {
-        get
-        {
-            return HP > 0 && State > 0;
-        }
-    }
+    public bool Alive => HP > 0 && State > 0;
 
     public override string ToString()
     {

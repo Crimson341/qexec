@@ -25,10 +25,7 @@ public partial class GameOptionsView : UserControl
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrEmpty(SearchBox.Text))
-            return true;
-
-        return obj is DisplayOptionItemViewModelBase optionItem && optionItem.Content.Contains(SearchBox.Text);
+        return string.IsNullOrEmpty(SearchBox.Text) || (obj is DisplayOptionItemViewModelBase optionItem && optionItem.Content.Contains(SearchBox.Text));
     }
 
     private void TextBox_TextChanged(object sender, TextChangedEventArgs e)

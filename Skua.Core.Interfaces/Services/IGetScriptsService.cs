@@ -14,17 +14,17 @@ public interface IGetScriptsService : INotifyPropertyChanged
 
     ValueTask<List<ScriptInfo>> GetScriptsAsync(IProgress<string>? progress, CancellationToken token);
 
-    public Task RefreshScriptsAsync(IProgress<string>? progress, CancellationToken token);
+    Task RefreshScriptsAsync(IProgress<string>? progress, CancellationToken token);
 
-    public Task<int> IncrementalUpdateScriptsAsync(IProgress<string>? progress, CancellationToken token);
+    Task<int> IncrementalUpdateScriptsAsync(IProgress<string>? progress, CancellationToken token);
 
-    public Task<long> CheckAdvanceSkillSetsUpdates();
+    Task<long> CheckAdvanceSkillSetsUpdates();
 
-    public Task DownloadScriptAsync(ScriptInfo info);
+    Task DownloadScriptAsync(ScriptInfo info);
 
-    public Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred);
+    Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred);
 
-    public Task DeleteScriptAsync(ScriptInfo info);
+    Task DeleteScriptAsync(ScriptInfo info);
 
-    public Task<bool> UpdateSkillSetsFile();
+    Task<bool> UpdateSkillSetsFile();
 }

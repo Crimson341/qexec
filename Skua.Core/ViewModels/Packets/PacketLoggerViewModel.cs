@@ -28,7 +28,7 @@ public partial class PacketLoggerViewModel : BotControlViewModelBase
 
     public bool IsReceivingPackets
     {
-        get { return _isReceivingPackets; }
+        get => _isReceivingPackets;
         set
         {
             if (SetProperty(ref _isReceivingPackets, value))

@@ -75,13 +75,25 @@ public static class ScrollViewerHelper
         args.Handled = true;
     }
 
-    public static void SetShiftScrollHorizontally(UIElement element, bool value) => element.SetValue(ShiftScrollHorizontallyProperty, value);
+    public static void SetShiftScrollHorizontally(UIElement element, bool value)
+    {
+        element.SetValue(ShiftScrollHorizontallyProperty, value);
+    }
 
-    public static bool GetShiftScrollHorizontally(UIElement element) => (bool)element.GetValue(ShiftScrollHorizontallyProperty);
+    public static bool GetShiftScrollHorizontally(UIElement element)
+    {
+        return (bool)element.GetValue(ShiftScrollHorizontallyProperty);
+    }
 
-    public static void SetScrollHorizontally(UIElement element, bool value) => element.SetValue(ScrollHorizontallyProperty, value);
+    public static void SetScrollHorizontally(UIElement element, bool value)
+    {
+        element.SetValue(ScrollHorizontallyProperty, value);
+    }
 
-    public static bool GetScrollHorizontally(UIElement element) => (bool)element.GetValue(ScrollHorizontallyProperty);
+    public static bool GetScrollHorizontally(UIElement element)
+    {
+        return (bool)element.GetValue(ScrollHorizontallyProperty);
+    }
 
     private static T? FindDescendant<T>(this DependencyObject d) where T : DependencyObject
     {

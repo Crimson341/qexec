@@ -45,7 +45,7 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
 
     public bool IsLogging
     {
-        get { return _isLogging; }
+        get => _isLogging;
         set
         {
             if (SetProperty(ref _isLogging, value))

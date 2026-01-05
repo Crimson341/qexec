@@ -223,8 +223,7 @@ public class ClientSettings
 
     public void InitializeDefaults()
     {
-        if (UserOptions == null)
-            UserOptions = new();
+        UserOptions ??= new();
 
         if (FastTravels == null || FastTravels.Count == 0)
         {

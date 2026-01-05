@@ -31,10 +31,7 @@ public partial class LoaderView : UserControl
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrEmpty(SearchBox.Text))
-            return true;
-
-        return obj is QuestData item && item.ToString().Contains(SearchBox.Text);
+        return string.IsNullOrEmpty(SearchBox.Text) || (obj is QuestData item && item.ToString().Contains(SearchBox.Text));
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)

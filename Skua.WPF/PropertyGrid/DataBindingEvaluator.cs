@@ -43,14 +43,10 @@ public static class DataBindingEvaluator
     /// </returns>
     public static string Eval(object container, string expression, IFormatProvider provider, string format, bool throwOnError)
     {
-        if (format == null)
-        {
-            format = "{0}";
-        }
-        if (provider == null)
-            return string.Format(format, Eval(container, expression, throwOnError));
-
-        return string.Format(provider, format, Eval(container, expression));
+        format ??= "{0}";
+        return provider == null
+            ? string.Format(format, Eval(container, expression, throwOnError))
+            : string.Format(provider, format, Eval(container, expression));
     }
 
     /// <summary>
@@ -97,14 +93,9 @@ public static class DataBindingEvaluator
         for (int i = 0; (i < expressionParts.Length) && (propertyValue != null); i++)
         {
             string propName = expressionParts[i];
-            if (propName.IndexOfAny(indexExprStartChars) < 0)
-            {
-                propertyValue = GetPropertyValue(propertyValue, propName, throwOnError);
-            }
-            else
-            {
-                propertyValue = GetIndexedPropertyValue(propertyValue, propName, throwOnError);
-            }
+            propertyValue = propName.IndexOfAny(indexExprStartChars) < 0
+                ? GetPropertyValue(propertyValue, propName, throwOnError)
+                : GetIndexedPropertyValue(propertyValue, propName, throwOnError);
         }
         return propertyValue;
     }
@@ -139,14 +130,11 @@ public static class DataBindingEvaluator
             throw new ArgumentException(null, "propName");
 
         PropertyDescriptor descriptor = TypeDescriptor.GetProperties(container).Find(propName, true);
-        if (descriptor == null)
-        {
-            if (throwOnError)
-                throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' does not contain a property with the name '{1}'.", new object[] { container.GetType().FullName, propName }), "propName");
-
-            return null;
-        }
-        return descriptor.GetValue(container);
+        return descriptor == null
+            ? throwOnError
+                ? throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' does not contain a property with the name '{1}'.", new object[] { container.GetType().FullName, propName }), "propName")
+                : null
+            : descriptor.GetValue(container);
     }
 
     /// <summary>
@@ -183,10 +171,9 @@ public static class DataBindingEvaluator
         int idx2 = expression.IndexOfAny(indexExprEndChars, idx1 + 1);
         if (idx1 < 0 || idx2 < 0 || idx2 == (idx1 + 1))
         {
-            if (throwOnError)
-                throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' is not a valid indexed expression.", new object[] { expression }));
-
-            return null;
+            return throwOnError
+                ? throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' is not a valid indexed expression.", new object[] { expression }))
+                : null;
         }
 
         string propName = null;
@@ -194,27 +181,19 @@ public static class DataBindingEvaluator
         string s = expression.Substring(idx1 + 1, idx2 - idx1 - 1).Trim();
         if (idx1 != 0)
         {
-            propName = expression.Substring(0, idx1);
+            propName = expression[..idx1];
         }
 
         if (s.Length != 0)
         {
-            if ((s[0] == '"' && s[s.Length - 1] == '"') || (s[0] == '\'' && s[s.Length - 1] == '\''))
+            if ((s[0] == '"' && s[^1] == '"') || (s[0] == '\'' && s[^1] == '\''))
             {
-                index = s.Substring(1, s.Length - 2);
+                index = s[1..^1];
             }
             else if (char.IsDigit(s[0]))
             {
-                int nums;
-                numberIndex = int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out nums);
-                if (numberIndex)
-                {
-                    index = nums;
-                }
-                else
-                {
-                    index = s;
-                }
+                numberIndex = int.TryParse(s, NumberStyles.Integer, CultureInfo.InvariantCulture, out int nums);
+                index = numberIndex ? nums : s;
             }
             else
             {
@@ -223,40 +202,26 @@ public static class DataBindingEvaluator
         }
         if (index == null)
         {
-            if (throwOnError)
-                throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' is not a valid indexed expression.", new object[] { expression }));
-
-            return null;
+            return throwOnError
+                ? throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' is not a valid indexed expression.", new object[] { expression }))
+                : null;
         }
 
-        object propertyValue;
-        if (!string.IsNullOrEmpty(propName))
-        {
-            propertyValue = GetPropertyValue(container, propName);
-        }
-        else
-        {
-            propertyValue = container;
-        }
-
+        object propertyValue = !string.IsNullOrEmpty(propName) ? GetPropertyValue(container, propName) : container;
         if (propertyValue == null)
             return null;
 
-        Array? array = propertyValue as Array;
-        if (array != null && numberIndex)
+        if (propertyValue is Array array && numberIndex)
             return array.GetValue((int)index);
 
         if ((propertyValue is IList) && numberIndex)
             return ((IList)propertyValue)[(int)index];
 
         PropertyInfo info = propertyValue.GetType().GetProperty("Item", BindingFlags.Public | BindingFlags.Instance, null, null, new[] { index.GetType() }, null);
-        if (info == null)
-        {
-            if (throwOnError)
-                throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' does not allow indexed access.", new object[] { propertyValue.GetType().FullName }));
-
-            return null;
-        }
-        return info.GetValue(propertyValue, new[] { index });
+        return info == null
+            ? throwOnError
+                ? throw new ArgumentException(string.Format(@"DataBindingEvaluator: '{0}' does not allow indexed access.", new object[] { propertyValue.GetType().FullName }))
+                : null
+            : info.GetValue(propertyValue, new[] { index });
     }
 }

@@ -91,15 +91,12 @@ public class ScriptEvent : IScriptEvent, IDisposable
 
     private void PublishStateChange(string category, object? data)
     {
-        if (_stateChannel != null)
+        _stateChannel?.Publish(new GameStateChange
         {
-            _stateChannel.Publish(new GameStateChange
-            {
-                Category = category,
-                Data = data,
-                Timestamp = DateTime.UtcNow
-            });
-        }
+            Category = category,
+            Data = data,
+            Timestamp = DateTime.UtcNow
+        });
     }
 
     public void ClearHandlers()

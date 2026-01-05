@@ -51,8 +51,7 @@ public class InputDialogViewModel : DialogViewModelBase
 
     public string DialogTextInput
     {
-        get { return _dialogTextInput; }
-        set { SetProperty(ref _dialogTextInput, value); }
+        get => _dialogTextInput; set => SetProperty(ref _dialogTextInput, value);
     }
 
     public string DialogHint { get; } = string.Empty;

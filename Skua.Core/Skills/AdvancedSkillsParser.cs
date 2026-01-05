@@ -1,7 +1,8 @@
-namespace Skua.Core.Skills;
 
 using Skua.Core.Models.Skills;
 using System.Text.Json;
+
+namespace Skua.Core.Skills;
 
 public static class AdvancedSkillsParser
 {
@@ -126,7 +127,7 @@ public static class AdvancedSkillsParser
 
                 if (pos > numStart)
                 {
-                    int timeout = int.Parse(rulesPart.Substring(numStart, pos - numStart));
+                    int timeout = int.Parse(rulesPart[numStart..pos]);
                     SkillRuleJson waitRule = new()
                     {
                         Type = "Wait"
@@ -159,7 +160,7 @@ public static class AdvancedSkillsParser
 
                 if (pos > numStart)
                 {
-                    int value = int.Parse(rulesPart.Substring(numStart, pos - numStart));
+                    int value = int.Parse(rulesPart[numStart..pos]);
                     bool isPercentage = true;
                     if (pos < rulesPart.Length && rulesPart[pos] == '#')
                     {
@@ -202,7 +203,7 @@ public static class AdvancedSkillsParser
 
                 if (pos > numStart)
                 {
-                    int value = int.Parse(rulesPart.Substring(numStart, pos - numStart));
+                    int value = int.Parse(rulesPart[numStart..pos]);
                     bool isPercentage = true;
                     if (pos < rulesPart.Length && rulesPart[pos] == '#')
                     {
@@ -253,7 +254,7 @@ public static class AdvancedSkillsParser
                         else
                             pos++;
                     }
-                    string rawName = rulesPart.Substring(nameStart, pos - nameStart);
+                    string rawName = rulesPart[nameStart..pos];
                     auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rulesPart.Length && rulesPart[pos] == '"')
                         pos++;
@@ -265,7 +266,7 @@ public static class AdvancedSkillsParser
                 int valueStart = pos;
                 while (pos < rulesPart.Length && (char.IsDigit(rulesPart[pos]) || rulesPart[pos] == '.'))
                     pos++;
-                if (valueStart < pos && float.TryParse(rulesPart.Substring(valueStart, pos - valueStart), out float parsedValue))
+                if (valueStart < pos && float.TryParse(rulesPart[valueStart..pos], out float parsedValue))
                     auraValue = parsedValue;
 
                 while (pos < rulesPart.Length && rulesPart[pos] == ' ')
@@ -278,7 +279,7 @@ public static class AdvancedSkillsParser
                     while (pos < rulesPart.Length && char.IsLetter(rulesPart[pos]))
                         pos++;
 
-                    string targetStr = rulesPart.Substring(targetStart, pos - targetStart);
+                    string targetStr = rulesPart[targetStart..pos];
                     if (targetStr.Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTarget = "target";
                 }
@@ -331,7 +332,7 @@ public static class AdvancedSkillsParser
 
                 if (pos > numStart)
                 {
-                    int value = int.Parse(rulesPart.Substring(numStart, pos - numStart));
+                    int value = int.Parse(rulesPart[numStart..pos]);
                     bool isPercentage = true;
                     if (pos < rulesPart.Length && rulesPart[pos] == '#')
                     {
@@ -382,7 +383,7 @@ public static class AdvancedSkillsParser
                         else
                             pos++;
                     }
-                    string rawName = rulesPart.Substring(nameStart, pos - nameStart);
+                    string rawName = rulesPart[nameStart..pos];
                     auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rulesPart.Length && rulesPart[pos] == '"')
                         pos++;
@@ -393,7 +394,7 @@ public static class AdvancedSkillsParser
                     int valueStart = pos;
                     while (pos < rulesPart.Length && (char.IsDigit(rulesPart[pos]) || rulesPart[pos] == '.'))
                         pos++;
-                    if (valueStart < pos && float.TryParse(rulesPart.Substring(valueStart, pos - valueStart), out float parsedValue))
+                    if (valueStart < pos && float.TryParse(rulesPart[valueStart..pos], out float parsedValue))
                         auraValue = parsedValue;
                 }
                 else
@@ -426,13 +427,13 @@ public static class AdvancedSkillsParser
 
                     if (lastDigitStart >= 0 && lastDigitEnd > lastDigitStart)
                     {
-                        auraName = rulesPart.Substring(nameStart, lastDigitStart - nameStart).Trim();
-                        if (float.TryParse(rulesPart.Substring(lastDigitStart, lastDigitEnd - lastDigitStart), out float val1))
+                        auraName = rulesPart[nameStart..lastDigitStart].Trim();
+                        if (float.TryParse(rulesPart[lastDigitStart..lastDigitEnd], out float val1))
                             auraValue = val1;
                     }
-                    else if (valueStart < pos && float.TryParse(rulesPart.Substring(valueStart, pos - valueStart), out float val2))
+                    else if (valueStart < pos && float.TryParse(rulesPart[valueStart..pos], out float val2))
                     {
-                        auraName = rulesPart.Substring(nameStart, valueStart - nameStart).Trim();
+                        auraName = rulesPart[nameStart..valueStart].Trim();
                         auraValue = val2;
                     }
                 }
@@ -447,7 +448,7 @@ public static class AdvancedSkillsParser
                     while (pos < rulesPart.Length && char.IsLetter(rulesPart[pos]))
                         pos++;
 
-                    string targetStr = rulesPart.Substring(targetStart, pos - targetStart);
+                    string targetStr = rulesPart[targetStart..pos];
                     if (targetStr.Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTarget = "target";
                 }

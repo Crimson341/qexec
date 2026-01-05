@@ -59,7 +59,7 @@ public class SkillItemViewModel : ObservableObject
                 while (pos < rest.Length && char.IsDigit(rest[pos]))
                     pos++;
                 if (pos > numStart)
-                    waitVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                    waitVal = int.Parse(rest[numStart..pos]);
                 while (pos < rest.Length && rest[pos] == ' ')
                     pos++;
             }
@@ -80,7 +80,7 @@ public class SkillItemViewModel : ObservableObject
                 while (pos < rest.Length && char.IsDigit(rest[pos]))
                     pos++;
                 if (pos > numStart)
-                    partyHealthVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                    partyHealthVal = int.Parse(rest[numStart..pos]);
                 if (pos < rest.Length && rest[pos] == '#')
                 {
                     partyHealthIsPercentage = false;
@@ -110,7 +110,7 @@ public class SkillItemViewModel : ObservableObject
                 while (pos < rest.Length && char.IsDigit(rest[pos]))
                     pos++;
                 if (pos > numStart)
-                    healthVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                    healthVal = int.Parse(rest[numStart..pos]);
                 if (pos < rest.Length && rest[pos] == '#')
                 {
                     healthIsPercentage = false;
@@ -153,7 +153,7 @@ public class SkillItemViewModel : ObservableObject
                         else
                             pos++;
                     }
-                    string rawName = rest.Substring(nameStart, pos - nameStart);
+                    string rawName = rest[nameStart..pos];
                     mauraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rest.Length && rest[pos] == '"')
                         pos++;
@@ -163,9 +163,9 @@ public class SkillItemViewModel : ObservableObject
                     pos++;
 
                 int valueStart = pos;
-                while (pos < rest.Length && (char.IsDigit(rest[pos]) || pos < rest.Length && rest[pos] == '.'))
+                while (pos < rest.Length && (char.IsDigit(rest[pos]) || (pos < rest.Length && rest[pos] == '.')))
                     pos++;
-                if (valueStart < pos && float.TryParse(rest.Substring(valueStart, pos - valueStart), out float mauraValParsed))
+                if (valueStart < pos && float.TryParse(rest[valueStart..pos], out float mauraValParsed))
                     mauraVal = mauraValParsed;
 
                 while (pos < rest.Length && rest[pos] == ' ')
@@ -176,7 +176,7 @@ public class SkillItemViewModel : ObservableObject
                     int targetEnd = pos;
                     while (targetEnd < rest.Length && char.IsLetter(rest[targetEnd]))
                         targetEnd++;
-                    if (rest.Substring(pos, targetEnd - pos).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                    if (rest[pos..targetEnd].Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         mauraTargetIndex = 1;
                     pos = targetEnd;
                 }
@@ -228,7 +228,7 @@ public class SkillItemViewModel : ObservableObject
                 while (pos < rest.Length && char.IsDigit(rest[pos]))
                     pos++;
                 if (pos > numStart)
-                    manaVal = int.Parse(rest.Substring(numStart, pos - numStart));
+                    manaVal = int.Parse(rest[numStart..pos]);
                 if (pos < rest.Length && rest[pos] == '#')
                 {
                     manaIsPercentage = false;
@@ -266,7 +266,7 @@ public class SkillItemViewModel : ObservableObject
                         else
                             pos++;
                     }
-                    string rawName = rest.Substring(nameStart, pos - nameStart);
+                    string rawName = rest[nameStart..pos];
                     auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rest.Length && rest[pos] == '"')
                         pos++;
@@ -275,9 +275,9 @@ public class SkillItemViewModel : ObservableObject
                         pos++;
 
                     int valueStart = pos;
-                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || pos < rest.Length && rest[pos] == '.'))
+                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || (pos < rest.Length && rest[pos] == '.')))
                         pos++;
-                    if (valueStart < pos && float.TryParse(rest.Substring(valueStart, pos - valueStart), out float auraValParsed))
+                    if (valueStart < pos && float.TryParse(rest[valueStart..pos], out float auraValParsed))
                         auraVal = auraValParsed;
                 }
                 else
@@ -305,18 +305,18 @@ public class SkillItemViewModel : ObservableObject
                         pos++;
 
                     int valueStart = pos;
-                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || pos < rest.Length && rest[pos] == '.'))
+                    while (pos < rest.Length && (char.IsDigit(rest[pos]) || (pos < rest.Length && rest[pos] == '.')))
                         pos++;
 
                     if (lastDigitStart >= 0 && lastDigitEnd > lastDigitStart)
                     {
-                        auraName = rest.Substring(nameStart, lastDigitStart - nameStart).Trim();
-                        if (float.TryParse(rest.Substring(lastDigitStart, lastDigitEnd - lastDigitStart), out float auraValParsed1))
+                        auraName = rest[nameStart..lastDigitStart].Trim();
+                        if (float.TryParse(rest[lastDigitStart..lastDigitEnd], out float auraValParsed1))
                             auraVal = auraValParsed1;
                     }
-                    else if (valueStart < pos && float.TryParse(rest.Substring(valueStart, pos - valueStart), out float auraValParsed2))
+                    else if (valueStart < pos && float.TryParse(rest[valueStart..pos], out float auraValParsed2))
                     {
-                        auraName = rest.Substring(nameStart, valueStart - nameStart).Trim();
+                        auraName = rest[nameStart..valueStart].Trim();
                         auraVal = auraValParsed2;
                     }
                 }
@@ -329,7 +329,7 @@ public class SkillItemViewModel : ObservableObject
                     int targetEnd = pos;
                     while (targetEnd < rest.Length && char.IsLetter(rest[targetEnd]))
                         targetEnd++;
-                    if (rest.Substring(pos, targetEnd - pos).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                    if (rest[pos..targetEnd].Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTargetIndex = 1;
                     pos = targetEnd;
                 }

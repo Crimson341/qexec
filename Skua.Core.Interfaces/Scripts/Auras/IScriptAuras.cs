@@ -47,7 +47,7 @@ public interface IScriptAuras
     /// </summary>
     /// <param name="auraNames">An array of aura names to check for activity. Each name represents an aura to be evaluated. Cannot be null.</param>
     /// <returns>true if at least one of the specified auras is active; otherwise, false.</returns>
-    public bool HasAnyActiveAura(params string[] auraNames);
+    bool HasAnyActiveAura(params string[] auraNames);
 
     /// <summary>
     /// Tried to get the aura of a subject type with the specified aura name.

@@ -70,16 +70,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
         if (_properties.Find(x => x.Name == name) != null)
             throw new ArgumentException("Property '" + name + "' is already defined", "name");
 
-        List<Attribute> newAtts;
-        if (attributes != null)
-        {
-            newAtts = new List<Attribute>(attributes);
-        }
-        else
-        {
-            newAtts = new List<Attribute>();
-        }
-
+        List<Attribute> newAtts = attributes != null ? new List<Attribute>(attributes) : new List<Attribute>();
         newAtts.RemoveAll(a => a is ReadOnlyAttribute);
         newAtts.RemoveAll(a => a is DefaultValueAttribute);
 
@@ -123,11 +114,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
             throw new ArgumentNullException("type");
 
         defaultValue = ConversionService.ChangeType(defaultValue, type);
-        object obj;
-        if (_values.TryGetValue(name, out obj))
-            return ConversionService.ChangeType(obj, type, defaultValue);
-
-        return defaultValue;
+        return _values.TryGetValue(name, out object obj) ? ConversionService.ChangeType(obj, type, defaultValue) : defaultValue;
     }
 
     /// <summary>
@@ -139,14 +126,9 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     /// <returns>The property value or the default value.</returns>
     public virtual T GetPropertyValue<T>(string name, T defaultValue)
     {
-        if (name == null)
-            throw new ArgumentNullException("name");
-
-        object obj;
-        if (_values.TryGetValue(name, out obj))
-            return ConversionService.ChangeType(obj, defaultValue);
-
-        return defaultValue;
+        return name == null
+            ? throw new ArgumentNullException("name")
+            : _values.TryGetValue(name, out object obj) ? ConversionService.ChangeType(obj, defaultValue) : defaultValue;
     }
 
     /// <summary>
@@ -159,10 +141,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     /// </returns>
     public virtual bool TryGetPropertyValue(string name, out object value)
     {
-        if (name == null)
-            throw new ArgumentNullException("name");
-
-        return _values.TryGetValue(name, out value);
+        return name == null ? throw new ArgumentNullException("name") : _values.TryGetValue(name, out value);
     }
 
     /// <summary>
@@ -173,14 +152,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     /// <returns>The property value or the default value.</returns>
     public virtual object GetPropertyValue(string name, object defaultValue)
     {
-        if (name == null)
-            throw new ArgumentNullException("name");
-
-        object obj;
-        if (_values.TryGetValue(name, out obj))
-            return obj;
-
-        return defaultValue;
+        return name == null ? throw new ArgumentNullException("name") : _values.TryGetValue(name, out object obj) ? obj : defaultValue;
     }
 
     /// <summary>
@@ -193,8 +165,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
         if (name == null)
             throw new ArgumentNullException("name");
 
-        object existing;
-        bool exists = _values.TryGetValue(name, out existing);
+        bool exists = _values.TryGetValue(name, out object existing);
         if (!exists)
         {
             _values.Add(name, value);
@@ -225,10 +196,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     /// </returns>
     protected virtual DynamicObjectProperty CreateProperty(string name, Type type, IEnumerable<Attribute> attributes)
     {
-        if (name == null)
-            throw new ArgumentNullException("name");
-
-        return new DynamicObjectProperty(name, type, attributes);
+        return name == null ? throw new ArgumentNullException("name") : new DynamicObjectProperty(name, type, attributes);
     }
 
     /// <summary>
@@ -241,10 +209,10 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     public virtual string ToStringName { get; set; }
 
     /// <summary>
-    /// Returns a <see cref="System.String" /> that represents this instance.
+    /// Returns a <see cref="string" /> that represents this instance.
     /// </summary>
     /// <returns>
-    /// A <see cref="System.String" /> that represents this instance.
+    /// A <see cref="string" /> that represents this instance.
     /// </returns>
     public override string ToString()
     {
@@ -252,32 +220,23 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     }
 
     /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
+    /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
     /// <param name="format">The format.</param>
     /// <param name="formatProvider">The format provider.</param>
     /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
+    /// A <see cref="string"/> that represents this instance.
     /// </returns>
     public virtual string ToString(string format, IFormatProvider formatProvider)
     {
-        if (string.IsNullOrEmpty(format))
-            return ToString();
-
-        return Extensions.Format(this, format, formatProvider);
+        return string.IsNullOrEmpty(format) ? ToString() : Extensions.Format(this, format, formatProvider);
     }
 
     /// <summary>
     /// Gets the attributes.
     /// </summary>
     /// <value>The attributes.</value>
-    public virtual IList<Attribute> Attributes
-    {
-        get
-        {
-            return _attributes;
-        }
-    }
+    public virtual IList<Attribute> Attributes => _attributes;
 
     AttributeCollection ICustomTypeDescriptor.GetAttributes()
     {
@@ -358,37 +317,20 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     /// Gets the editors.
     /// </summary>
     /// <value>The editors.</value>
-    public virtual IDictionary<Type, object> Editors
-    {
-        get
-        {
-            return _editors;
-        }
-    }
+    public virtual IDictionary<Type, object> Editors => _editors;
 
     object ICustomTypeDescriptor.GetEditor(Type editorBaseType)
     {
-        if (editorBaseType == null)
-            throw new ArgumentNullException("editorBaseType");
-
-        object editor;
-        if (_editors.TryGetValue(editorBaseType, out editor))
-            return editor;
-
-        return null;
+        return editorBaseType == null
+            ? throw new ArgumentNullException("editorBaseType")
+            : _editors.TryGetValue(editorBaseType, out object editor) ? editor : null;
     }
 
     /// <summary>
     /// Gets the events.
     /// </summary>
     /// <value>The events.</value>
-    public virtual IList<EventDescriptor> Events
-    {
-        get
-        {
-            return _events;
-        }
-    }
+    public virtual IList<EventDescriptor> Events => _events;
 
     EventDescriptorCollection ICustomTypeDescriptor.GetEvents(Attribute[] attributes)
     {
@@ -422,10 +364,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     private static bool HasMatchingAttribute(MemberDescriptor member, Attribute attribute)
     {
         Attribute? att = member.Attributes[attribute.GetType()];
-        if (att == null)
-            return attribute.IsDefaultAttribute();
-
-        return attribute.Match(att);
+        return att == null ? attribute.IsDefaultAttribute() : attribute.Match(att);
     }
 
     EventDescriptorCollection ICustomTypeDescriptor.GetEvents()
@@ -468,24 +407,14 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     /// <param name="name">The property name.</param>
     protected virtual void OnPropertyChanged(string name)
     {
-        PropertyChangedEventHandler handler = PropertyChanged;
-        if (handler != null)
-        {
-            handler(this, new PropertyChangedEventArgs(name));
-        }
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
     }
 
     /// <summary>
     /// Gets the properties.
     /// </summary>
     /// <value>The properties.</value>
-    public virtual IList<PropertyDescriptor> Properties
-    {
-        get
-        {
-            return _properties;
-        }
-    }
+    public virtual IList<PropertyDescriptor> Properties => _properties;
 
     PropertyDescriptorCollection ICustomTypeDescriptor.GetProperties()
     {
@@ -554,15 +483,9 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
     /// <returns>A text describing the error or null if there was no error.</returns>
     public virtual string ValidateMember(CultureInfo culture, string memberName, string separator)
     {
-        if (culture == null)
-        {
-            culture = Thread.CurrentThread.CurrentUICulture;
-        }
+        culture ??= Thread.CurrentThread.CurrentUICulture;
 
-        if (separator == null)
-        {
-            separator = Environment.NewLine;
-        }
+        separator ??= Environment.NewLine;
 
         List<ValidationException> list = new();
         ValidateMember(culture, list, memberName);
@@ -593,19 +516,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
             throw new ArgumentNullException("list");
     }
 
-    string IDataErrorInfo.Error
-    {
-        get
-        {
-            return Validate();
-        }
-    }
+    string IDataErrorInfo.Error => Validate();
 
-    string IDataErrorInfo.this[string columnName]
-    {
-        get
-        {
-            return ValidateMember(columnName);
-        }
-    }
+    string IDataErrorInfo.this[string columnName] => ValidateMember(columnName);
 }

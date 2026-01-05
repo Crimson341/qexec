@@ -19,8 +19,7 @@ public class AboutViewModel : BotControlViewModelBase
 
     public string MarkdownDoc
     {
-        get { return _markDownContent; }
-        set { SetProperty(ref _markDownContent, value); }
+        get => _markDownContent; set => SetProperty(ref _markDownContent, value);
     }
 
     public IRelayCommand NavigateCommand { get; }

@@ -24,10 +24,7 @@ public class Decamelizer : IDecamelizer
         if (string.IsNullOrEmpty(text))
             return text;
 
-        if (options == null)
-        {
-            options = _options;
-        }
+        options ??= _options;
 
         StringBuilder sb = new(text.Length);
 
@@ -40,12 +37,12 @@ public class Decamelizer : IDecamelizer
         }
 
         int i = 0;
-        bool firstIsStillUnderscore = (text[0] == '_');
-        if (((options.TextOptions & DecamelizeTextOptions.UnescapeUnicode) == DecamelizeTextOptions.UnescapeUnicode) && (CanUnicodeEscape(text, 0)))
+        bool firstIsStillUnderscore = text[0] == '_';
+        if (((options.TextOptions & DecamelizeTextOptions.UnescapeUnicode) == DecamelizeTextOptions.UnescapeUnicode) && CanUnicodeEscape(text, 0))
         {
             sb.Append(GetUnicodeEscape(text, ref i));
         }
-        else if (((options.TextOptions & DecamelizeTextOptions.UnescapeHexadecimal) == DecamelizeTextOptions.UnescapeHexadecimal) && (CanHexadecimalEscape(text, 0)))
+        else if (((options.TextOptions & DecamelizeTextOptions.UnescapeHexadecimal) == DecamelizeTextOptions.UnescapeHexadecimal) && CanHexadecimalEscape(text, 0))
         {
             sb.Append(GetHexadecimalEscape(text, ref i));
         }
@@ -66,12 +63,12 @@ public class Decamelizer : IDecamelizer
         for (i++; i < text.Length; i++)
         {
             char c = text[i];
-            if (((options.TextOptions & DecamelizeTextOptions.UnescapeUnicode) == DecamelizeTextOptions.UnescapeUnicode) && (CanUnicodeEscape(text, i)))
+            if (((options.TextOptions & DecamelizeTextOptions.UnescapeUnicode) == DecamelizeTextOptions.UnescapeUnicode) && CanUnicodeEscape(text, i))
             {
                 sb.Append(GetUnicodeEscape(text, ref i));
                 separated = true;
             }
-            else if (((options.TextOptions & DecamelizeTextOptions.UnescapeHexadecimal) == DecamelizeTextOptions.UnescapeHexadecimal) && (CanHexadecimalEscape(text, i)))
+            else if (((options.TextOptions & DecamelizeTextOptions.UnescapeHexadecimal) == DecamelizeTextOptions.UnescapeHexadecimal) && CanHexadecimalEscape(text, i))
             {
                 sb.Append(GetHexadecimalEscape(text, ref i));
                 separated = true;
@@ -106,7 +103,7 @@ public class Decamelizer : IDecamelizer
                     case UnicodeCategory.ParagraphSeparator:
                     case UnicodeCategory.SpaceSeparator:
                     case UnicodeCategory.SpacingCombiningMark:
-                        if ((keepFormat) && (c == '{'))
+                        if (keepFormat && (c == '{'))
                         {
                             while (c != '}')
                             {
@@ -120,7 +117,7 @@ public class Decamelizer : IDecamelizer
 
                         if ((options.TextOptions & DecamelizeTextOptions.ForceRestLower) == DecamelizeTextOptions.ForceRestLower)
                         {
-                            sb.Append(Char.ToLower(c));
+                            sb.Append(char.ToLower(c));
                         }
                         else
                         {
@@ -148,7 +145,7 @@ public class Decamelizer : IDecamelizer
                     case UnicodeCategory.PrivateUse:
                     case UnicodeCategory.TitlecaseLetter:
                     case UnicodeCategory.UppercaseLetter:
-                        if (((category != lastCategory) && (c != ' ')) && (IsNewCategory(category, options)))
+                        if ((category != lastCategory) && (c != ' ') && IsNewCategory(category, options))
                         {
                             if ((!separated) && (prevCategory != UnicodeCategory.UppercaseLetter) &&
                                 ((!firstIsStillUnderscore) || ((options.TextOptions & DecamelizeTextOptions.KeepFirstUnderscores) != DecamelizeTextOptions.KeepFirstUnderscores)))
@@ -158,14 +155,14 @@ public class Decamelizer : IDecamelizer
 
                             if ((options.TextOptions & DecamelizeTextOptions.ForceRestLower) != 0)
                             {
-                                sb.Append(Char.ToLower(c));
+                                sb.Append(char.ToLower(c));
                             }
                             else
                             {
-                                sb.Append(Char.ToUpper(c));
+                                sb.Append(char.ToUpper(c));
                             }
 
-                            char upper = Char.ToUpper(c);
+                            char upper = char.ToUpper(c);
                             category = CharUnicodeInfo.GetUnicodeCategory(upper);
                             lastCategory = category == UnicodeCategory.UppercaseLetter ? UnicodeCategory.LowercaseLetter : category;
                         }
@@ -173,7 +170,7 @@ public class Decamelizer : IDecamelizer
                         {
                             if ((options.TextOptions & DecamelizeTextOptions.ForceRestLower) == DecamelizeTextOptions.ForceRestLower)
                             {
-                                sb.Append(Char.ToLower(c));
+                                sb.Append(char.ToLower(c));
                             }
                             else
                             {
@@ -188,16 +185,13 @@ public class Decamelizer : IDecamelizer
             }
         }
 
-        if ((options.TextOptions & DecamelizeTextOptions.ReplaceSpacesByUnderscore) == DecamelizeTextOptions.ReplaceSpacesByUnderscore)
-            return sb.Replace(' ', '_').ToString();
-
-        if ((options.TextOptions & DecamelizeTextOptions.ReplaceSpacesByMinus) == DecamelizeTextOptions.ReplaceSpacesByMinus)
-            return sb.Replace(' ', '-').ToString();
-
-        if ((options.TextOptions & DecamelizeTextOptions.ReplaceSpacesByDot) == DecamelizeTextOptions.ReplaceSpacesByDot)
-            return sb.Replace(' ', '.').ToString();
-
-        return sb.ToString();
+        return (options.TextOptions & DecamelizeTextOptions.ReplaceSpacesByUnderscore) == DecamelizeTextOptions.ReplaceSpacesByUnderscore
+            ? sb.Replace(' ', '_').ToString()
+            : (options.TextOptions & DecamelizeTextOptions.ReplaceSpacesByMinus) == DecamelizeTextOptions.ReplaceSpacesByMinus
+            ? sb.Replace(' ', '-').ToString()
+            : (options.TextOptions & DecamelizeTextOptions.ReplaceSpacesByDot) == DecamelizeTextOptions.ReplaceSpacesByDot
+            ? sb.Replace(' ', '.').ToString()
+            : sb.ToString();
     }
 
     // format is _xXXXX_
@@ -213,7 +207,7 @@ public class Decamelizer : IDecamelizer
     private static bool IsHexNumber(char c)
     {
         // note: we don't want to use Char.IsDigit nor Char.IsNumber
-        return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F');
+        return c is (>= '0' and <= '9') or (>= 'a' and <= 'f') or (>= 'A' and <= 'F');
     }
 
     private static char GetHexadecimalEscape(string text, ref int i)
@@ -251,16 +245,16 @@ public class Decamelizer : IDecamelizer
     private static bool IsPureNumber(char c)
     {
         // note: we don't want to use Char.IsDigit nor Char.IsNumber
-        return c >= '0' && c <= '9';
+        return c is >= '0' and <= '9';
     }
 
     private static bool IsNewCategory(UnicodeCategory category, DecamelizeOptions options)
     {
         if ((options.TextOptions & DecamelizeTextOptions.DontDecamelizeNumbers) == DecamelizeTextOptions.DontDecamelizeNumbers)
         {
-            if (category == UnicodeCategory.LetterNumber ||
-                category == UnicodeCategory.DecimalDigitNumber ||
-                category == UnicodeCategory.OtherNumber)
+            if (category is UnicodeCategory.LetterNumber or
+                UnicodeCategory.DecimalDigitNumber or
+                UnicodeCategory.OtherNumber)
                 return false;
         }
         return true;

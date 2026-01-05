@@ -53,28 +53,9 @@ public class CBOptionsViewModel : ObservableObject, IManageCBOptions
             {
                 try
                 {
-                    if (option.DisplayType == typeof(int))
-                    {
-                        if (long.TryParse(value, out long longValue))
-                        {
-                            if (longValue > int.MaxValue || longValue < int.MinValue)
-                            {
-                                option.Value = 100000;
-                            }
-                            else
-                            {
-                                option.Value = (int)longValue;
-                            }
-                        }
-                        else
-                        {
-                            option.Value = 100000;
-                        }
-                    }
-                    else
-                    {
-                        option.Value = Convert.ChangeType(value, option.DisplayType);
-                    }
+                    option.Value = option.DisplayType == typeof(int)
+                        ? long.TryParse(value, out long longValue) ? longValue is > int.MaxValue or < int.MinValue ? 100000 : (int)longValue : 100000
+                        : Convert.ChangeType(value, option.DisplayType);
                 }
                 catch (Exception)
                 {

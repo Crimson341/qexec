@@ -42,11 +42,8 @@ public class ScriptInventoryHelper : IScriptInventoryHelper
         if (moveToInventory)
             Bank.ToInventory(name);
 
-        if ((moveToInventory && Inventory.GetQuantity(name) >= quantity) ||
-            (!moveToInventory && Bank.GetQuantity(name) >= quantity))
-            return true;
-
-        return HouseInv.Contains(name);
+        return (moveToInventory && Inventory.GetQuantity(name) >= quantity) ||
+            (!moveToInventory && Bank.GetQuantity(name) >= quantity) || HouseInv.Contains(name);
     }
 
     public bool Check(int id, int quantity = 1, bool moveToInventory = true)

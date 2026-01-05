@@ -14,9 +14,15 @@ public class TextBoxSelectAllBehavior : Behavior<TextBox>
         AssociatedObject.MouseDoubleClick += AssociatedObject_MouseDoubleClick;
     }
 
-    private void AssociatedObject_MouseDoubleClick(object sender, MouseButtonEventArgs e) => SelectAll();
+    private void AssociatedObject_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+    {
+        SelectAll();
+    }
 
-    private void AssociatedObject_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e) => SelectAll();
+    private void AssociatedObject_GotKeyboardFocus(object sender, KeyboardFocusChangedEventArgs e)
+    {
+        SelectAll();
+    }
 
     private void SelectAll()
     {

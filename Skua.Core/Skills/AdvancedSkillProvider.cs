@@ -92,7 +92,7 @@ public class AdvancedSkillProvider : ISkillProvider
                         else
                             pos++;
                     }
-                    string rawName = useRule.Substring(nameStart, pos - nameStart);
+                    string rawName = useRule[nameStart..pos];
                     auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < useRule.Length && useRule[pos] == '"')
                         pos++;
@@ -104,7 +104,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 int numStart = pos;
                 while (pos < useRule.Length && (char.IsDigit(useRule[pos]) || useRule[pos] == '.'))
                     pos++;
-                if (pos > numStart && float.TryParse(useRule.Substring(numStart, pos - numStart), out float parsed))
+                if (pos > numStart && float.TryParse(useRule[numStart..pos], out float parsed))
                     auraValue = parsed;
 
                 while (pos < useRule.Length && useRule[pos] == ' ')
@@ -116,7 +116,7 @@ public class AdvancedSkillProvider : ISkillProvider
                     int targetStart = pos;
                     while (pos < useRule.Length && char.IsLetter(useRule[pos]))
                         pos++;
-                    if (useRule.Substring(targetStart, pos - targetStart).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                    if (useRule[targetStart..pos].Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTarget = "target";
                 }
 
@@ -157,7 +157,7 @@ public class AdvancedSkillProvider : ISkillProvider
                     pos++;
                 if (pos > numStart)
                 {
-                    int value = int.Parse(useRule.Substring(numStart, pos - numStart));
+                    int value = int.Parse(useRule[numStart..pos]);
                     bool isPercentage = true;
                     if (pos < useRule.Length && useRule[pos] == '#')
                     {
@@ -173,7 +173,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 continue;
             }
 
-            if (useRule[pos] == 'h' || useRule[pos] == 'H')
+            if (useRule[pos] is 'h' or 'H')
             {
                 pos++;
                 bool isGreater = pos < useRule.Length && useRule[pos] == '>';
@@ -184,7 +184,7 @@ public class AdvancedSkillProvider : ISkillProvider
                     pos++;
                 if (pos > numStart)
                 {
-                    int value = int.Parse(useRule.Substring(numStart, pos - numStart));
+                    int value = int.Parse(useRule[numStart..pos]);
                     bool isPercentage = true;
                     if (pos < useRule.Length && useRule[pos] == '#')
                     {
@@ -200,7 +200,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 continue;
             }
 
-            if (useRule[pos] == 'm' || useRule[pos] == 'M')
+            if (useRule[pos] is 'm' or 'M')
             {
                 pos++;
                 bool isGreater = pos < useRule.Length && useRule[pos] == '>';
@@ -211,7 +211,7 @@ public class AdvancedSkillProvider : ISkillProvider
                     pos++;
                 if (pos > numStart)
                 {
-                    int value = int.Parse(useRule.Substring(numStart, pos - numStart));
+                    int value = int.Parse(useRule[numStart..pos]);
                     bool isPercentage = true;
                     if (pos < useRule.Length && useRule[pos] == '#')
                     {
@@ -227,7 +227,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 continue;
             }
 
-            if (useRule[pos] == 'a' || useRule[pos] == 'A')
+            if (useRule[pos] is 'a' or 'A')
             {
                 pos++;
                 bool isGreater = false;
@@ -255,7 +255,7 @@ public class AdvancedSkillProvider : ISkillProvider
                         else
                             pos++;
                     }
-                    string rawName = useRule.Substring(nameStart, pos - nameStart);
+                    string rawName = useRule[nameStart..pos];
                     auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < useRule.Length && useRule[pos] == '"')
                         pos++;
@@ -265,7 +265,7 @@ public class AdvancedSkillProvider : ISkillProvider
                     int nameStart = pos;
                     while (pos < useRule.Length && useRule[pos] != ' ' && !char.IsDigit(useRule[pos]) && useRule[pos] != '.')
                         pos++;
-                    auraName = useRule.Substring(nameStart, pos - nameStart);
+                    auraName = useRule[nameStart..pos];
                 }
 
                 while (pos < useRule.Length && useRule[pos] == ' ')
@@ -274,7 +274,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 int numStart = pos;
                 while (pos < useRule.Length && (char.IsDigit(useRule[pos]) || useRule[pos] == '.'))
                     pos++;
-                if (pos > numStart && float.TryParse(useRule.Substring(numStart, pos - numStart), out float parsed))
+                if (pos > numStart && float.TryParse(useRule[numStart..pos], out float parsed))
                     auraValue = parsed;
 
                 while (pos < useRule.Length && useRule[pos] == ' ')
@@ -286,7 +286,7 @@ public class AdvancedSkillProvider : ISkillProvider
                     int targetStart = pos;
                     while (pos < useRule.Length && char.IsLetter(useRule[pos]))
                         pos++;
-                    if (useRule.Substring(targetStart, pos - targetStart).Contains("TARGET", StringComparison.OrdinalIgnoreCase))
+                    if (useRule[targetStart..pos].Contains("TARGET", StringComparison.OrdinalIgnoreCase))
                         auraTarget = "target";
                 }
 
@@ -297,7 +297,7 @@ public class AdvancedSkillProvider : ISkillProvider
                 continue;
             }
 
-            if (useRule[pos] == 'w' || useRule[pos] == 'W')
+            if (useRule[pos] is 'w' or 'W')
             {
                 pos++;
                 if (pos < useRule.Length && useRule[pos] == 'w')
@@ -306,11 +306,11 @@ public class AdvancedSkillProvider : ISkillProvider
                 while (pos < useRule.Length && char.IsDigit(useRule[pos]))
                     pos++;
                 if (pos > numStart)
-                    rules.Add(new UseRule(SkillRule.Wait, true, int.Parse(useRule.Substring(numStart, pos - numStart)), shouldSkip));
+                    rules.Add(new UseRule(SkillRule.Wait, true, int.Parse(useRule[numStart..pos]), shouldSkip));
                 continue;
             }
 
-            if (useRule[pos] == 's' || useRule[pos] == 'S')
+            if (useRule[pos] is 's' or 'S')
             {
                 pos++;
                 continue;

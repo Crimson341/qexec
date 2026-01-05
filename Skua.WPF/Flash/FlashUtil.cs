@@ -52,16 +52,14 @@ public class FlashUtil : IFlashUtil
             flash.EndInit();
             Flash = flash;
             byte[] swf = File.ReadAllBytes("skua.swf");
-            using (MemoryStream stream = new())
-            using (BinaryWriter writer = new(stream))
-            {
-                writer.Write(8 + swf.Length);
-                writer.Write(1432769894);
-                writer.Write(swf.Length);
-                writer.Write(swf);
-                writer.Seek(0, SeekOrigin.Begin);
-                flash.OcxState = new AxHost.State(stream, 1, false, null);
-            }
+            using MemoryStream stream = new();
+            using BinaryWriter writer = new(stream);
+            writer.Write(8 + swf.Length);
+            writer.Write(1432769894);
+            writer.Write(swf.Length);
+            writer.Write(swf);
+            writer.Seek(0, SeekOrigin.Begin);
+            flash.OcxState = new AxHost.State(stream, 1, false, null);
         }
         catch
         {
@@ -126,9 +124,7 @@ public class FlashUtil : IFlashUtil
         try
         {
             object o = Call(function, typeof(T), args);
-            if (o is not null)
-                return (T)o;
-            return (T)DefaultProvider.GetDefault<T>(typeof(T));
+            return o is not null ? (T)o : (T)DefaultProvider.GetDefault<T>(typeof(T));
         }
         catch
         {

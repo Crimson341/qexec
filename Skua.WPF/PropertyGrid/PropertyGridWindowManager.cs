@@ -12,10 +12,9 @@ public class PropertyGridWindowManager
     [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
     public static PropertyGridWindowOptions GetOptions(DependencyObject element)
     {
-        if (element is null)
-            throw new ArgumentNullException(nameof(element));
-
-        return (PropertyGridWindowOptions)element.GetValue(OptionsProperty);
+        return element is null
+            ? throw new ArgumentNullException(nameof(element))
+            : (PropertyGridWindowOptions)element.GetValue(OptionsProperty);
     }
 
     public static void SetOptions(DependencyObject element, PropertyGridWindowOptions value)

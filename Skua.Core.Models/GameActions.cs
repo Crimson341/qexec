@@ -78,7 +78,7 @@ public enum GameActions
     Transfer
 }
 
-public struct GameActionLock
+public readonly struct GameActionLock
 {
     [JsonProperty("cd")]
     public long CD { get; }

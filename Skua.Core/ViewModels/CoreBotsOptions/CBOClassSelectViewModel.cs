@@ -24,7 +24,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     public string? SelectedSoloClass
     {
-        get { return _selectedSoloClass; }
+        get => _selectedSoloClass;
         set
         {
             if (SetProperty(ref _selectedSoloClass, value) && value is not null)
@@ -67,8 +67,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
                 OnPropertyChanged(nameof(SoloUseModes));
                 OnPropertyChanged(nameof(SoloModeStrings));
-                if (SelectedSoloUseMode is null)
-                    SelectedSoloUseMode = SoloUseModes.FirstOrDefault();
+                SelectedSoloUseMode ??= SoloUseModes.FirstOrDefault();
                 if (SelectedSoloModeString is null && SoloModeStrings.Count > 0)
                     SelectedSoloModeString = SoloModeStrings.FirstOrDefault();
             }
@@ -105,7 +104,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     public string? SelectedFarmClass
     {
-        get { return _selectedFarmClass; }
+        get => _selectedFarmClass;
         set
         {
             if (SetProperty(ref _selectedFarmClass, value) && value is not null)
@@ -148,8 +147,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
                 OnPropertyChanged(nameof(FarmUseModes));
                 OnPropertyChanged(nameof(FarmModeStrings));
-                if (SelectedFarmUseMode is null)
-                    SelectedFarmUseMode = FarmUseModes.FirstOrDefault();
+                SelectedFarmUseMode ??= FarmUseModes.FirstOrDefault();
                 if (SelectedFarmModeString is null && FarmModeStrings.Count > 0)
                     SelectedFarmModeString = FarmModeStrings.FirstOrDefault();
             }
@@ -186,7 +184,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     public string? SelectedDodgeClass
     {
-        get { return _selectedDodgeClass; }
+        get => _selectedDodgeClass;
         set
         {
             if (SetProperty(ref _selectedDodgeClass, value) && value is not null)
@@ -229,8 +227,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
                 OnPropertyChanged(nameof(DodgeUseModes));
                 OnPropertyChanged(nameof(DodgeModeStrings));
-                if (SelectedDodgeUseMode is null)
-                    SelectedDodgeUseMode = DodgeUseModes.FirstOrDefault();
+                SelectedDodgeUseMode ??= DodgeUseModes.FirstOrDefault();
                 if (SelectedDodgeModeString is null && DodgeModeStrings.Count > 0)
                     SelectedDodgeModeString = DodgeModeStrings.FirstOrDefault();
             }
@@ -267,7 +264,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     public string? SelectedBossClass
     {
-        get { return _selectedBossClass; }
+        get => _selectedBossClass;
         set
         {
             if (SetProperty(ref _selectedBossClass, value) && value is not null)
@@ -310,8 +307,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
                 OnPropertyChanged(nameof(BossUseModes));
                 OnPropertyChanged(nameof(BossModeStrings));
-                if (SelectedBossUseMode is null)
-                    SelectedBossUseMode = BossUseModes.FirstOrDefault();
+                SelectedBossUseMode ??= BossUseModes.FirstOrDefault();
                 if (SelectedBossModeString is null && BossModeStrings.Count > 0)
                     SelectedBossModeString = BossModeStrings.FirstOrDefault();
             }
@@ -420,18 +416,10 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                 OnPropertyChanged(nameof(PlayerClasses));
             }
             SelectedSoloClass = soloClassValue;
-            if (values.TryGetValue("SoloEquipCheck", out string? check))
-            {
-                UseSoloEquipment = Convert.ToBoolean(check);
-            }
-            else
-                UseSoloEquipment = false;
-            if (values.TryGetValue("SoloModeSelect", out string? mode) && !string.IsNullOrWhiteSpace(mode))
-            {
-                SelectedSoloUseMode = Enum.TryParse(typeof(ClassUseMode), mode, true, out object? result) ? (ClassUseMode)result! : ClassUseMode.Base;
-            }
-            else
-                SelectedSoloUseMode = ClassUseMode.Base;
+            UseSoloEquipment = values.TryGetValue("SoloEquipCheck", out string? check) && Convert.ToBoolean(check);
+            SelectedSoloUseMode = values.TryGetValue("SoloModeSelect", out string? mode) && !string.IsNullOrWhiteSpace(mode)
+                ? Enum.TryParse(typeof(ClassUseMode), mode, true, out object? result) ? (ClassUseMode)result! : ClassUseMode.Base
+                : ClassUseMode.Base;
         }
         else
         {

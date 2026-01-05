@@ -25,14 +25,18 @@ public class WindowService : IWindowService, IDisposable
     {
         if (typeof(TViewModel) == typeof(BotWindowViewModel))
         {
-            BotWindow botWindow = new();
-            botWindow.DataContext = _services.GetService<TViewModel>();
+            BotWindow botWindow = new()
+            {
+                DataContext = _services.GetService<TViewModel>()
+            };
             botWindow.Show();
             return;
         }
 
-        HostWindow hostWindow = new();
-        hostWindow.DataContext = _services.GetService<TViewModel>();
+        HostWindow hostWindow = new()
+        {
+            DataContext = _services.GetService<TViewModel>()
+        };
         hostWindow.Show();
     }
 
@@ -52,8 +56,10 @@ public class WindowService : IWindowService, IDisposable
     public void ShowWindow<TViewModel>(TViewModel viewModel)
         where TViewModel : class
     {
-        HostWindow window = new();
-        window.DataContext = viewModel;
+        HostWindow window = new()
+        {
+            DataContext = viewModel
+        };
         window.Show();
     }
 

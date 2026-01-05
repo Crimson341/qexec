@@ -12,10 +12,7 @@ public class PropertyGridConverter : IValueConverter
             return null;
 
         string typeName = string.Format("{0}", parameter);
-        if (string.IsNullOrWhiteSpace(typeName))
-            return null;
-
-        return TypeResolutionService.ResolveType(typeName);
+        return string.IsNullOrWhiteSpace(typeName) ? null : TypeResolutionService.ResolveType(typeName);
     }
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)

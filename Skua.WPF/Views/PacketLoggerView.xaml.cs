@@ -27,18 +27,12 @@ public partial class PacketLoggerView : UserControl
 
     private bool SearchPackets(object obj)
     {
-        if (string.IsNullOrEmpty(txtLogSearchBox.Text))
-            return true;
-
-        return obj is string packet && packet.Contains(txtLogSearchBox.Text);
+        return string.IsNullOrEmpty(txtLogSearchBox.Text) || (obj is string packet && packet.Contains(txtLogSearchBox.Text));
     }
 
     private bool SearchFilters(object obj)
     {
-        if (string.IsNullOrEmpty(txtFilterSearchBox.Text))
-            return true;
-
-        return obj is PacketLogFilterViewModel filter && filter.Content.Contains(txtFilterSearchBox.Text);
+        return string.IsNullOrEmpty(txtFilterSearchBox.Text) || (obj is PacketLogFilterViewModel filter && filter.Content.Contains(txtFilterSearchBox.Text));
     }
 
     private void UnselectAllLogs(object sender, RoutedEventArgs e)

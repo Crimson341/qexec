@@ -63,17 +63,35 @@ public class ScriptKill : IScriptKill
         Wait.ForMonsterDeath();
     }
 
-    public void Monster(string name) => _Kill(name, null);
+    public void Monster(string name)
+    {
+        _Kill(name, null);
+    }
 
-    public void Monster(string name, CancellationToken? token) => _Kill(name, token);
+    public void Monster(string name, CancellationToken? token)
+    {
+        _Kill(name, token);
+    }
 
-    public void Monster(Monster monster) => _Kill(monster.MapID, null);
+    public void Monster(Monster monster)
+    {
+        _Kill(monster.MapID, null);
+    }
 
-    public void Monster(Monster monster, CancellationToken? token) => _Kill(monster.MapID, token);
+    public void Monster(Monster monster, CancellationToken? token)
+    {
+        _Kill(monster.MapID, token);
+    }
 
-    public void Monster(int id) => _Kill(id, null);
+    public void Monster(int id)
+    {
+        _Kill(id, null);
+    }
 
-    public void Monster(int id, CancellationToken? token) => _Kill(id, token);
+    public void Monster(int id, CancellationToken? token)
+    {
+        _Kill(id, token);
+    }
 
     private void _Kill(string name, CancellationToken? token)
     {

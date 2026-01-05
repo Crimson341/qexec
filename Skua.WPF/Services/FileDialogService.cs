@@ -13,8 +13,10 @@ public class FileDialogService : IFileDialogService
 
     public string? OpenFile()
     {
-        OpenFileDialog opf = new();
-        opf.InitialDirectory = ClientFileSources.SkuaDIR;
+        OpenFileDialog opf = new()
+        {
+            InitialDirectory = ClientFileSources.SkuaDIR
+        };
         return opf.ShowDialog() == true ? opf.FileName : null;
     }
 

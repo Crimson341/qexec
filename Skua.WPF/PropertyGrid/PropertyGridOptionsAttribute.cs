@@ -48,8 +48,7 @@ public class PropertyGridOptionsAttribute : Attribute
                     return dt;
             }
 
-            FrameworkElement? fe = container as FrameworkElement;
-            if (fe != null)
+            if (container is FrameworkElement fe)
             {
                 DataTemplate dt = (DataTemplate)fe.TryFindResource(att.EditorDataTemplateResourceKey);
                 if (dt != null)
@@ -65,14 +64,13 @@ public class PropertyGridOptionsAttribute : Attribute
             if (att.EditorDataTemplateSelectorPropertyPath != null)
             {
                 DataTemplateSelector dts = (DataTemplateSelector)DataBindingEvaluator.GetPropertyValue(editor, att.EditorDataTemplateSelectorPropertyPath);
-                return dts != null ? dts.SelectTemplate(item, container) : null;
+                return dts?.SelectTemplate(item, container);
             }
 
             if (att.EditorDataTemplatePropertyPath != null)
                 return (DataTemplate)DataBindingEvaluator.GetPropertyValue(editor, att.EditorDataTemplatePropertyPath);
 
-            ContentControl? cc = editor as ContentControl;
-            if (cc != null)
+            if (editor is ContentControl cc)
             {
                 if (cc.ContentTemplateSelector != null)
                 {
@@ -84,8 +82,7 @@ public class PropertyGridOptionsAttribute : Attribute
                 return cc.ContentTemplate;
             }
 
-            ContentPresenter? cp = editor as ContentPresenter;
-            if (cp != null)
+            if (editor is ContentPresenter cp)
             {
                 if (cp.ContentTemplateSelector != null)
                 {

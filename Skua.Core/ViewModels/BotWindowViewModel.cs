@@ -20,7 +20,7 @@ public partial class BotWindowViewModel : ObservableObject
 
     public BotControlViewModelBase SelectedItem
     {
-        get { return _selectedItem; }
+        get => _selectedItem;
         set
         {
             BotControlViewModelBase lastView = _selectedItem;

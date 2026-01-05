@@ -113,15 +113,9 @@ public class ItemBase
 
     private ItemCategory? _category = null;
 
-    public virtual ItemCategory Category
-    {
-        get
-        {
-            return _category is not null
+    public virtual ItemCategory Category => _category is not null
                 ? (ItemCategory)_category
                 : (ItemCategory)(_category = Enum.TryParse(CategoryString, true, out ItemCategory result) ? result : ItemCategory.Unknown);
-        }
-    }
 
     /// <summary>
     /// Indicates if the item is a temporary item.
@@ -161,7 +155,7 @@ public class ItemBase
         tag += Coins ? "AC " : string.Empty;
         tag += Upgrade ? "Member" : string.Empty;
 
-        string itemGroup = (ItemGroup) switch
+        string itemGroup = ItemGroup switch
         {
             "co" => "(Armor)",
             "ba" => "(Cape)",

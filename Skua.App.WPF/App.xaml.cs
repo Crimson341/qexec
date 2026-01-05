@@ -26,7 +26,7 @@ public sealed partial class App : Application
     /// <summary>
     /// Gets the current <see cref="App"/> instance in use
     /// </summary>
-    public new static App Current => (App)Application.Current;
+    public static new App Current => (App)Application.Current;
 
     public IServiceProvider Services { get; }
     private readonly IScriptInterface _bot;

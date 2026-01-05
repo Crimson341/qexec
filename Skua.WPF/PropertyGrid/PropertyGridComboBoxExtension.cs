@@ -58,8 +58,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
             if (names[i] == null)
                 continue;
 
-            ulong ul;
-            if (!ulong.TryParse(string.Format("{0}", names[i]), out ul))
+            if (!ulong.TryParse(string.Format("{0}", names[i]), out ulong ul))
                 continue;
 
             if (ul == value)
@@ -83,10 +82,9 @@ public class PropertyGridComboBoxExtension : MarkupExtension
             return ConversionService.ChangeType(value, property.PropertyType);
 
         PropertyGridOptionsAttribute options = PropertyGridOptionsAttribute.FromProperty(property);
-        if (options == null)
-            return ConversionService.ChangeType(value, property.PropertyType);
-
-        return EnumToObject(options, property.PropertyType, value);
+        return options == null
+            ? ConversionService.ChangeType(value, property.PropertyType)
+            : EnumToObject(options, property.PropertyType, value);
     }
 
     public static object EnumToObject(PropertyGridOptionsAttribute options, Type propertyType, object value)
@@ -114,8 +112,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
 
         StringBuilder sb = new();
         string svalue = string.Format("{0}", value);
-        ulong ul;
-        if (!ulong.TryParse(svalue, out ul))
+        if (!ulong.TryParse(svalue, out ulong ul))
         {
             List<string> enums = ParseEnum(svalue);
             if (enums.Count == 0)
@@ -225,8 +222,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
             return 0;
 
         string svalue = string.Format("{0}", value);
-        ulong ul;
-        if (ulong.TryParse(svalue, out ul))
+        if (ulong.TryParse(svalue, out ulong ul))
             return ul;
 
         List<string> enums = ParseEnum(svalue);
@@ -247,16 +243,13 @@ public class PropertyGridComboBoxExtension : MarkupExtension
 
     public static int GetEnumMaxPower(PropertyGridOptionsAttribute options)
     {
-        if (options == null)
-            throw new ArgumentNullException("options");
-
-        return options.EnumMaxPower <= 0 ? 32 : options.EnumMaxPower;
+        return options == null ? throw new ArgumentNullException("options") : options.EnumMaxPower <= 0 ? 32 : options.EnumMaxPower;
     }
 
     internal static bool TryGetDefaultValue(PropertyGridOptionsAttribute options, out string value)
     {
         value = null;
-        if (options == null || !options.IsEnum && !options.IsFlagsEnum)
+        if (options == null || (!options.IsEnum && !options.IsFlagsEnum))
             return false;
 
         if (options.EnumNames != null && options.EnumNames.Length > 0)
@@ -272,9 +265,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
         if (property == null)
             throw new ArgumentNullException("property");
 
-        Type enumType;
-        bool nullable;
-        bool isEnumOrNullableEnum = PropertyGridProperty.IsEnumOrNullableEnum(property.PropertyType, out enumType, out nullable);
+        bool isEnumOrNullableEnum = PropertyGridProperty.IsEnumOrNullableEnum(property.PropertyType, out Type enumType, out bool nullable);
 
         PropertyGridItem zero = null;
         PropertyGridOptionsAttribute att = PropertyGridOptionsAttribute.FromProperty(property);
@@ -301,8 +292,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
                 {
                     string name = names[i];
                     ulong nameValue = EnumToUInt64(property, values.GetValue(i));
-                    string displayName;
-                    if (!ShowEnumField(property, enumType, names[i], out displayName))
+                    if (!ShowEnumField(property, enumType, names[i], out string displayName))
                         continue;
 
                     PropertyGridItem item = CreateItem();
@@ -358,8 +348,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
             {
                 for (int i = 0; i < names.Length; i++)
                 {
-                    string displayName;
-                    if (!ShowEnumField(property, enumType, names[i], out displayName))
+                    if (!ShowEnumField(property, enumType, names[i], out string displayName))
                         continue;
 
                     PropertyGridItem item = CreateItem();
@@ -415,23 +404,17 @@ public class PropertyGridComboBoxExtension : MarkupExtension
                 }
 
                 // items value must of a compatible type with property.Value
-                Func<object, object> valueConverter = (v) =>
+                object valueConverter(object v)
                 {
                     Type propType = property.Value != null ? property.Value.GetType() : property.PropertyType;
                     if (v == null)
                     {
-                        if (!propType.IsValueType)
-                            return null;
-
-                        return Activator.CreateInstance(propType);
+                        return !propType.IsValueType ? null : Activator.CreateInstance(propType);
                     }
 
                     Type vType = v.GetType();
-                    if (propType.IsAssignableFrom(vType))
-                        return v;
-
-                    return ConversionService.ChangeType(v, propType);
-                };
+                    return propType.IsAssignableFrom(vType) ? v : ConversionService.ChangeType(v, propType);
+                }
 
                 if (att.IsFlagsEnum)
                 {
@@ -445,14 +428,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
                         item.Property = property;
                         item.Name = att.EnumNames[i];
                         item.Value = valueConverter(att.EnumValues[i]);
-                        if (manualFlags)
-                        {
-                            item.IsZero = i == 0;
-                        }
-                        else
-                        {
-                            item.IsZero = nameValue == 0;
-                        }
+                        item.IsZero = manualFlags ? i == 0 : nameValue == 0;
                         bool isChecked = true;
 
                         if (nameValue == 0)
@@ -508,8 +484,10 @@ public class PropertyGridComboBoxExtension : MarkupExtension
             }
         }
 
-        Dictionary<string, object> ctx = new();
-        ctx["items"] = items;
+        Dictionary<string, object> ctx = new()
+        {
+            ["items"] = items
+        };
         property.OnEvent(this, ActivatorService.CreateInstance<PropertyGridEventArgs>(property, ctx));
         return items;
     }
@@ -550,11 +528,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
 
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            PropertyGridProperty? property = value as PropertyGridProperty;
-            if (property != null)
-                return Extension.BuildItems(property, targetType, parameter, culture);
-
-            return value;
+            return value is PropertyGridProperty property ? Extension.BuildItems(property, targetType, parameter, culture) : value;
         }
 
         public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

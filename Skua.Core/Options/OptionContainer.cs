@@ -39,20 +39,15 @@ public class OptionContainer : ObservableObject, IOptionContainer
 
     public T? Get<T>(IOption? option) where T : IConvertible
     {
-        if (option is null)
-            return default;
-
-        if (OptionValues.TryGetValue(option, out string? value))
-        {
-            if (string.IsNullOrEmpty(value))
-                return default;
-
-            return typeof(T).IsEnum
+        return option is null
+            ? default
+            : OptionValues.TryGetValue(option, out string? value)
+            ? string.IsNullOrEmpty(value)
+                ? default
+                : typeof(T).IsEnum
                 ? (T)Enum.Parse(typeof(T), value.Replace(' ', '_'))
-                : (T)Convert.ChangeType(value, typeof(T));
-        }
-
-        return default;
+                : (T)Convert.ChangeType(value, typeof(T))
+            : default;
     }
 
     public string GetDirect(IOption? option)

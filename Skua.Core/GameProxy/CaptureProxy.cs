@@ -84,8 +84,10 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
                 if (localClient == null)
                     break;
                 localClient.NoDelay = true;
-                localForwarder = new TcpClient();
-                localForwarder.NoDelay = true;
+                localForwarder = new TcpClient
+                {
+                    NoDelay = true
+                };
                 localForwarder.Connect(Destination!);
 
                 _client = localClient;

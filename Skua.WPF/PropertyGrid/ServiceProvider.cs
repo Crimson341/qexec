@@ -8,7 +8,6 @@ namespace Skua.WPF;
 public class PropertyGridServiceProvider : IServiceProvider
 {
     private readonly ConcurrentDictionary<Type, object> _services = new();
-    private static readonly PropertyGridServiceProvider _current = new();
 
     public PropertyGridServiceProvider()
     {
@@ -38,13 +37,7 @@ public class PropertyGridServiceProvider : IServiceProvider
         }
     }
 
-    public static PropertyGridServiceProvider Current
-    {
-        get
-        {
-            return _current;
-        }
-    }
+    public static PropertyGridServiceProvider Current { get; } = new();
 
     public T GetService<T>()
     {
@@ -58,8 +51,7 @@ public class PropertyGridServiceProvider : IServiceProvider
 
         // service can be null, it will reset to the default one
 
-        object previous;
-        _services.TryGetValue(serviceType, out previous);
+        _services.TryGetValue(serviceType, out object previous);
         _services[serviceType] = service;
         ResetDefaultServices();
         return previous;
@@ -70,8 +62,7 @@ public class PropertyGridServiceProvider : IServiceProvider
         if (serviceType == null)
             throw new ArgumentNullException("serviceType");
 
-        object value;
-        _services.TryGetValue(serviceType, out value);
+        _services.TryGetValue(serviceType, out object value);
         return value;
     }
 }

@@ -56,10 +56,16 @@ public partial class ScriptSkill : IScriptSkill
     private CancellationTokenSource? _skillsCTS;
 
     [MethodCallBinding("canUseSkill")]
-    private bool _canUseSkill(int index) => false;
+    private bool _canUseSkill(int index)
+    {
+        return false;
+    }
 
     [MethodCallBinding("useSkill")]
-    private bool _useSkill(int index) => false;
+    private bool _useSkill(int index)
+    {
+        return false;
+    }
 
     public ISkillProvider? OverrideProvider { get; set; } = null;
     public ISkillProvider BaseProvider { get; private set; }
@@ -99,9 +105,10 @@ public partial class ScriptSkill : IScriptSkill
                 _skillsCTS = null;
                 TimerRunning = false;
             }
-        });
-
-        _skillThread.Name = "Skill Timer";
+        })
+        {
+            Name = "Skill Timer"
+        };
         _skillThread.Start();
         TimerRunning = true;
     }

@@ -14,5 +14,8 @@ public enum ClassUseMode
 
 public static class ClassUseModeExtensions
 {
-    public static string[] ToArray() => Enum.GetNames(typeof(ClassUseMode));
+    public static string[] ToArray()
+    {
+        return Enum.GetNames(typeof(ClassUseMode));
+    }
 }

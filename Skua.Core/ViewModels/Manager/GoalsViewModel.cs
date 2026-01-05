@@ -50,8 +50,7 @@ public class GoalsViewModel : BotControlViewModelBase
 
     public string Status
     {
-        get { return _status; }
-        set { SetProperty(ref _status, value); }
+        get => _status; set => SetProperty(ref _status, value);
     }
 
     public RangedObservableCollection<GoalObject> Goals { get; } = new();

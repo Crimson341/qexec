@@ -232,7 +232,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 }
                 Thread.Sleep(Options.ActionDelay);
             }
-            else if (_target != "*" && _target != "")
+            else if (_target is not "*" and not "")
             {
                 // Target is a player (like yourself)
                 Combat.AttackPlayer(_target);

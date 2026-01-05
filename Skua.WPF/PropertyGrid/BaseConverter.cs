@@ -32,13 +32,9 @@ public class BaseConverter : IConverter
         List<byte> list = new();
         bool lo = false;
         byte prev = 0;
-        int offset;
+        int offset = text.Length >= 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X') ? 2 : 0;
 
         // handle 0x or 0X notation
-        if (text.Length >= 2 && text[0] == '0' && (text[1] == 'x' || text[1] == 'X'))
-            offset = 2;
-        else
-            offset = 0;
 
         for (int i = 0; i < text.Length - offset; i++)
         {
@@ -68,9 +64,9 @@ public class BaseConverter : IConverter
 
         if (s.Length > 0)
         {
-            if (s[0] == 'x' || s[0] == 'X')
+            if (s[0] is 'x' or 'X')
             {
-                s = s.Substring(1);
+                s = s[1..];
                 return true;
             }
 
@@ -78,7 +74,7 @@ public class BaseConverter : IConverter
             {
                 if (s[0] == '0' && (s[1] == 'x' || s[1] == 'X'))
                 {
-                    s = s.Substring(2);
+                    s = s[2..];
                     return true;
                 }
             }
@@ -112,8 +108,7 @@ public class BaseConverter : IConverter
         if (DateTimeOffset.TryParse(Convert.ToString(input, provider), provider, DateTimeStyles.None, out value))
             return true;
 
-        DateTime dt;
-        if (TryConvert(input, provider, out dt))
+        if (TryConvert(input, provider, out DateTime dt))
         {
             value = new DateTimeOffset(dt);
             return true;
@@ -127,8 +122,7 @@ public class BaseConverter : IConverter
         if (TimeSpan.TryParse(Convert.ToString(input, provider), provider, out value))
             return true;
 
-        long l;
-        if (TryConvert(input, provider, out l))
+        if (TryConvert(input, provider, out long l))
         {
             value = new TimeSpan(l);
             return true;
@@ -145,8 +139,7 @@ public class BaseConverter : IConverter
 
         if (IntPtr.Size == 4)
         {
-            int i;
-            if (TryConvert(input, provider, out i))
+            if (TryConvert(input, provider, out int i))
             {
                 value = new IntPtr(i);
                 return true;
@@ -154,8 +147,7 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        long l;
-        if (TryConvert(input, provider, out l))
+        if (TryConvert(input, provider, out long l))
         {
             value = new IntPtr(l);
             return true;
@@ -171,8 +163,7 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        byte[] inputBytes = input as byte[];
-        if (inputBytes != null)
+        if (input is byte[] inputBytes)
         {
             if (inputBytes.Length != 16)
             {
@@ -189,25 +180,15 @@ public class BaseConverter : IConverter
 
     public static bool IsNumberType(Type type)
     {
-        if (type == null)
-            return false;
-
-        return type == typeof(int) || type == typeof(long) || type == typeof(short) ||
+        return type != null && (type == typeof(int) || type == typeof(long) || type == typeof(short) ||
             type == typeof(uint) || type == typeof(ulong) || type == typeof(ushort) ||
             type == typeof(bool) || type == typeof(double) || type == typeof(float) ||
-            type == typeof(decimal) || type == typeof(byte) || type == typeof(sbyte);
+            type == typeof(decimal) || type == typeof(byte) || type == typeof(sbyte));
     }
 
     public static bool IsNullOrEmptyString(object input)
     {
-        if (input == null)
-            return true;
-
-        string s = input as string;
-        if (s == null)
-            return false;
-
-        return string.IsNullOrWhiteSpace(s);
+        return input == null || (input is string s && string.IsNullOrWhiteSpace(s));
     }
 
     private static bool TryConvert(object input, IFormatProvider provider, out ulong value)
@@ -218,10 +199,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -251,10 +231,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -284,10 +263,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -317,10 +295,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -352,10 +329,9 @@ public class BaseConverter : IConverter
 
         value = 0;
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -385,10 +361,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -413,10 +388,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -441,10 +415,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -474,10 +447,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -507,10 +479,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -541,8 +512,7 @@ public class BaseConverter : IConverter
         }
 
         value = 0;
-        byte[] inputBytes = input as byte[];
-        if (inputBytes != null)
+        if (input is byte[] inputBytes)
         {
             if (inputBytes.Length == 2)
             {
@@ -552,10 +522,9 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -586,8 +555,7 @@ public class BaseConverter : IConverter
         }
 
         value = 0;
-        byte[] inputBytes = input as byte[];
-        if (inputBytes != null)
+        if (input is byte[] inputBytes)
         {
             if (inputBytes.Length == 4)
             {
@@ -603,10 +571,9 @@ public class BaseConverter : IConverter
             return true;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -637,8 +604,7 @@ public class BaseConverter : IConverter
         }
 
         value = 0;
-        byte[] inputBytes = input as byte[];
-        if (inputBytes != null)
+        if (input is byte[] inputBytes)
         {
             if (inputBytes.Length == 8)
             {
@@ -654,10 +620,9 @@ public class BaseConverter : IConverter
             return true;
         }
 
-        if (!(input is string))
+        if (input is not string)
         {
-            IConvertible? ic = input as IConvertible;
-            if (ic != null)
+            if (input is IConvertible ic)
             {
                 try
                 {
@@ -682,8 +647,7 @@ public class BaseConverter : IConverter
     private static bool TryConvert(object input, IFormatProvider provider, out bool value)
     {
         value = false;
-        byte[] inputBytes = input as byte[];
-        if (inputBytes != null)
+        if (input is byte[] inputBytes)
         {
             if (inputBytes.Length == 1)
             {
@@ -693,8 +657,7 @@ public class BaseConverter : IConverter
             return false;
         }
 
-        object b;
-        if (TryConvert(input, typeof(long), provider, out b))
+        if (TryConvert(input, typeof(long), provider, out object b))
         {
             value = ((long)b) != 0;
             return true;
@@ -711,10 +674,7 @@ public class BaseConverter : IConverter
             return true;
         }
 
-        if (bools == "n" || bools == "no" || bools == "f" || bools.StartsWith("false"))
-            return true;
-
-        return false;
+        return bools == "n" || bools == "no" || bools == "f" || bools.StartsWith("false");
     }
 
     private static readonly MethodInfo _enumTryParse = typeof(Enum).GetMethods(BindingFlags.Public | BindingFlags.Static).First(m => m.Name == "TryParse" && m.GetParameters().Length == 3);
@@ -781,9 +741,8 @@ public class BaseConverter : IConverter
                 return true;
             }
 
-            object vtValue;
             Type vtType = conversionType.GetGenericArguments()[0];
-            if (TryConvert(input, vtType, provider, out vtValue))
+            if (TryConvert(input, vtType, provider, out object vtValue))
             {
                 Type nt = typeof(Nullable<>).MakeGenericType(vtType);
                 value = Activator.CreateInstance(nt, vtValue);
@@ -815,8 +774,7 @@ public class BaseConverter : IConverter
         switch (conversionCode)
         {
             case TypeCode.Boolean:
-                bool boolValue;
-                if (TryConvert(input, provider, out boolValue))
+                if (TryConvert(input, provider, out bool boolValue))
                 {
                     value = boolValue;
                     return true;
@@ -824,8 +782,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.Byte:
-                byte byteValue;
-                if (TryConvert(input, provider, out byteValue))
+                if (TryConvert(input, provider, out byte byteValue))
                 {
                     value = byteValue;
                     return true;
@@ -833,8 +790,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.Char:
-                char charValue;
-                if (TryConvert(input, provider, out charValue))
+                if (TryConvert(input, provider, out char charValue))
                 {
                     value = charValue;
                     return true;
@@ -842,8 +798,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.DateTime:
-                DateTime dtValue;
-                if (TryConvert(input, provider, out dtValue))
+                if (TryConvert(input, provider, out DateTime dtValue))
                 {
                     value = dtValue;
                     return true;
@@ -855,8 +810,7 @@ public class BaseConverter : IConverter
                 return false;
 
             case TypeCode.Decimal:
-                decimal decValue;
-                if (TryConvert(input, provider, out decValue))
+                if (TryConvert(input, provider, out decimal decValue))
                 {
                     value = decValue;
                     return true;
@@ -864,8 +818,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.Double:
-                double dblValue;
-                if (TryConvert(input, provider, out dblValue))
+                if (TryConvert(input, provider, out double dblValue))
                 {
                     value = dblValue;
                     return true;
@@ -873,8 +826,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.Int16:
-                short i16Value;
-                if (TryConvert(input, provider, out i16Value))
+                if (TryConvert(input, provider, out short i16Value))
                 {
                     value = i16Value;
                     return true;
@@ -882,8 +834,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.Int32:
-                int i32Value;
-                if (TryConvert(input, provider, out i32Value))
+                if (TryConvert(input, provider, out int i32Value))
                 {
                     value = i32Value;
                     return true;
@@ -891,8 +842,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.Int64:
-                long i64Value;
-                if (TryConvert(input, provider, out i64Value))
+                if (TryConvert(input, provider, out long i64Value))
                 {
                     value = i64Value;
                     return true;
@@ -900,8 +850,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.SByte:
-                sbyte sbyteValue;
-                if (TryConvert(input, provider, out sbyteValue))
+                if (TryConvert(input, provider, out sbyte sbyteValue))
                 {
                     value = sbyteValue;
                     return true;
@@ -909,8 +858,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.Single:
-                float fltValue;
-                if (TryConvert(input, provider, out fltValue))
+                if (TryConvert(input, provider, out float fltValue))
                 {
                     value = fltValue;
                     return true;
@@ -918,28 +866,21 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.String:
-                byte[] inputBytes = input as byte[];
-                if (inputBytes != null)
+                if (input is byte[] inputBytes)
                 {
                     value = Extensions.ToHexa(inputBytes);
                 }
                 else
                 {
                     TypeConverter tc = TypeDescriptor.GetConverter(inputType);
-                    if (tc != null && tc.CanConvertTo(typeof(string)))
-                    {
-                        value = (string)tc.ConvertTo(input, typeof(string));
-                    }
-                    else
-                    {
-                        value = Convert.ToString(input, provider);
-                    }
+                    value = tc != null && tc.CanConvertTo(typeof(string))
+                        ? (string)tc.ConvertTo(input, typeof(string))
+                        : Convert.ToString(input, provider);
                 }
                 return true;
 
             case TypeCode.UInt16:
-                ushort u16Value;
-                if (TryConvert(input, provider, out u16Value))
+                if (TryConvert(input, provider, out ushort u16Value))
                 {
                     value = u16Value;
                     return true;
@@ -947,8 +888,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.UInt32:
-                uint u32Value;
-                if (TryConvert(input, provider, out u32Value))
+                if (TryConvert(input, provider, out uint u32Value))
                 {
                     value = u32Value;
                     return true;
@@ -956,8 +896,7 @@ public class BaseConverter : IConverter
                 break;
 
             case TypeCode.UInt64:
-                ulong u64Value;
-                if (TryConvert(input, provider, out u64Value))
+                if (TryConvert(input, provider, out ulong u64Value))
                 {
                     value = u64Value;
                     return true;
@@ -967,8 +906,7 @@ public class BaseConverter : IConverter
             case TypeCode.Object:
                 if (conversionType == typeof(Guid))
                 {
-                    Guid gValue;
-                    if (TryConvert(input, provider, out gValue))
+                    if (TryConvert(input, provider, out Guid gValue))
                     {
                         value = gValue;
                         return true;
@@ -977,8 +915,7 @@ public class BaseConverter : IConverter
 
                 if (conversionType == typeof(IntPtr))
                 {
-                    IntPtr ptr;
-                    if (TryConvert(input, provider, out ptr))
+                    if (TryConvert(input, provider, out IntPtr ptr))
                     {
                         value = ptr;
                         return true;
@@ -987,8 +924,7 @@ public class BaseConverter : IConverter
 
                 if (conversionType == typeof(Version))
                 {
-                    Version version;
-                    if (Version.TryParse(Convert.ToString(input, provider), out version))
+                    if (Version.TryParse(Convert.ToString(input, provider), out Version version))
                     {
                         value = version;
                         return true;
@@ -997,8 +933,7 @@ public class BaseConverter : IConverter
 
                 if (conversionType == typeof(IPAddress))
                 {
-                    IPAddress address;
-                    if (IPAddress.TryParse(Convert.ToString(input, provider), out address))
+                    if (IPAddress.TryParse(Convert.ToString(input, provider), out IPAddress address))
                     {
                         value = address;
                         return true;
@@ -1007,8 +942,7 @@ public class BaseConverter : IConverter
 
                 if (conversionType == typeof(DateTimeOffset))
                 {
-                    DateTimeOffset dto;
-                    if (TryConvert(input, provider, out dto))
+                    if (TryConvert(input, provider, out DateTimeOffset dto))
                     {
                         value = dto;
                         return true;
@@ -1017,8 +951,7 @@ public class BaseConverter : IConverter
 
                 if (conversionType == typeof(TimeSpan))
                 {
-                    TimeSpan ts;
-                    if (TryConvert(input, provider, out ts))
+                    if (TryConvert(input, provider, out TimeSpan ts))
                     {
                         value = ts;
                         return true;
@@ -1095,8 +1028,7 @@ public class BaseConverter : IConverter
                             }
                             catch
                             {
-                                byte[] ib;
-                                if (TryConvert((string)input, out ib))
+                                if (TryConvert((string)input, out byte[] ib))
                                 {
                                     value = ib;
                                     return true;
@@ -1176,7 +1108,7 @@ public class BaseConverter : IConverter
 
         try
         {
-            if (ctConverter != null && !(input is string) && ctConverter.CanConvertFrom(typeof(string)))
+            if (ctConverter != null && input is not string && ctConverter.CanConvertFrom(typeof(string)))
             {
                 value = ctConverter.ConvertFrom(null, provider as CultureInfo, Convert.ToString(input, provider));
                 return true;

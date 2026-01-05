@@ -30,11 +30,7 @@ public partial class SavedAdvancedSkillsUserControl : UserControl
         ICollectionView view = CollectionViewSource.GetDefaultView(SkillsList.ItemsSource);
         view.Filter = o =>
         {
-            if (o is AdvancedSkill skill)
-            {
-                return skill.ClassName.Contains(SearchBox.Text, StringComparison.OrdinalIgnoreCase);
-            }
-            return false;
+            return o is AdvancedSkill skill && skill.ClassName.Contains(SearchBox.Text, StringComparison.OrdinalIgnoreCase);
         };
     }
 

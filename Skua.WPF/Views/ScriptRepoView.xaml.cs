@@ -101,7 +101,7 @@ public partial class ScriptRepoView : UserControl
                 if (j != 0)
                     j = lps[j - 1];
                 else
-                    i = i + 1;
+                    i++;
             }
         }
         return false;

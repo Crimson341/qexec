@@ -107,7 +107,7 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
     private void ToPickupIDsChanged(ToPickupDropsViewModel recipient, PropertyChangedMessage<IEnumerable<int>> message)
     {
         // Check for both the interface name and the property name
-        if (message.PropertyName == nameof(IScriptDrop.ToPickupIDs) || message.PropertyName == "ToPickupIDs")
+        if (message.PropertyName is (nameof(IScriptDrop.ToPickupIDs)) or "ToPickupIDs")
             recipient.OnPropertyChanged(nameof(recipient.ToPickup));
     }
 
@@ -119,7 +119,7 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
 
     private void OnDropsPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(IScriptDrop.ToPickup) || e.PropertyName == nameof(IScriptDrop.ToPickupIDs))
+        if (e.PropertyName is (nameof(IScriptDrop.ToPickup)) or (nameof(IScriptDrop.ToPickupIDs)))
             OnPropertyChanged(nameof(ToPickup));
     }
 }

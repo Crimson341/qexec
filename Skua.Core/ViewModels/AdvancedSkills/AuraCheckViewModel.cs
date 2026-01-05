@@ -24,7 +24,7 @@ public partial class AuraCheckViewModel : ObservableRecipient
 
     public float StackCount
     {
-        get { return _stackCount; }
+        get => _stackCount;
         set
         {
             if (value < 0)

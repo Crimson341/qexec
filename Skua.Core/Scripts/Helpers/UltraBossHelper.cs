@@ -14,8 +14,6 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
     private readonly IMessenger _messenger;
     private readonly Lazy<IScriptPlayer> _lazyPlayer;
     private readonly Lazy<IScriptCombat> _lazyCombat;
-    private bool _isEnabled;
-    private bool _isCounterAttackActive;
     private Monster? _previousTarget;
     private bool _disposed;
     public UltraBossHelper(
@@ -31,26 +29,26 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
     private IScriptPlayer Player => _lazyPlayer.Value;
     private IScriptCombat Combat => _lazyCombat.Value;
 
-    public bool IsCounterAttackEnabled => _isEnabled;
-    public bool IsCounterAttackActive => _isCounterAttackActive;
+    public bool IsCounterAttackEnabled { get; private set; }
+    public bool IsCounterAttackActive { get; private set; }
 
 
     public void EnableCounterAttack()
     {
-        if (_isEnabled)
+        if (IsCounterAttackEnabled)
             return;
 
-        _isEnabled = true;
+        IsCounterAttackEnabled = true;
         Combat.EnableCounterHandler = true;
     }
 
     public void DisableCounterAttack()
     {
-        if (!_isEnabled)
+        if (!IsCounterAttackEnabled)
             return;
 
-        _isEnabled = false;
-        _isCounterAttackActive = false;
+        IsCounterAttackEnabled = false;
+        IsCounterAttackActive = false;
         Combat.EnableCounterHandler = false;
     }
 
@@ -62,7 +60,7 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
             return;
         }
 
-        _isCounterAttackActive = false;
+        IsCounterAttackActive = false;
         _previousTarget = null;
     }
 

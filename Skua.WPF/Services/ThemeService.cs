@@ -109,8 +109,7 @@ public class ThemeService : ObservableObject, IThemeService
 
     public ColorScheme ActiveScheme
     {
-        get { return _activeScheme; }
-        set { SetProperty(ref _activeScheme, value); }
+        get => _activeScheme; set => SetProperty(ref _activeScheme, value);
     }
 
     private object? _selectedColor;

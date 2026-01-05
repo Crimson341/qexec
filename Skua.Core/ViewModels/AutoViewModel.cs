@@ -58,7 +58,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
 
     public string? SelectedClass
     {
-        get { return _selectedClassString; }
+        get => _selectedClassString;
         set
         {
             if (SetProperty(ref _selectedClassString, value) && value is not null)

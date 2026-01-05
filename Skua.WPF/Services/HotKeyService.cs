@@ -37,8 +37,7 @@ public class HotKeyService : IHotKeyService, IDisposable
             return;
 
         StringCollection? hotkeys = _settingsService.Get<StringCollection>("HotKeys");
-        if (hotkeys is null)
-            hotkeys = new StringCollection();
+        hotkeys ??= new StringCollection();
 
         EnsureAllBindingsExist(hotkeys);
         _settingsService.Set("HotKeys", hotkeys);
@@ -102,9 +101,9 @@ public class HotKeyService : IHotKeyService, IDisposable
     public HotKey? ParseToHotKey(string keyGesture)
     {
         KeyBinding? kb = ParseToKeyBinding(keyGesture);
-        if (kb is null)
-            return null;
-        return new HotKey(kb.Key.ToString(), kb.Modifiers.HasFlag(ModifierKeys.Control), kb.Modifiers.HasFlag(ModifierKeys.Alt), kb.Modifiers.HasFlag(ModifierKeys.Shift));
+        return kb is null
+            ? null
+            : new HotKey(kb.Key.ToString(), kb.Modifiers.HasFlag(ModifierKeys.Control), kb.Modifiers.HasFlag(ModifierKeys.Alt), kb.Modifiers.HasFlag(ModifierKeys.Shift));
     }
 
     private KeyBinding? ParseToKeyBinding(string keyGesture)
@@ -133,10 +132,7 @@ public class HotKeyService : IHotKeyService, IDisposable
             kb.Key = (Key)k.ConvertFromString(key);
         }
 
-        if (kb.Key == Key.None)
-            return null;
-
-        return kb;
+        return kb.Key == Key.None ? null : kb;
     }
 
     private void EnsureAllBindingsExist(StringCollection hotkeys)

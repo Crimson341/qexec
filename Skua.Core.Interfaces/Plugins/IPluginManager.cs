@@ -45,14 +45,14 @@ public interface IPluginManager
     /// </summary>
     /// <param name="plugin">The plugin to get the container for.</param>
     /// <returns>The plugin's container.</returns>
-    public IPluginContainer? GetContainer(ISkuaPlugin plugin);
+    IPluginContainer? GetContainer(ISkuaPlugin plugin);
 
     /// <summary>
     /// Gets the container for the given plugin name.
     /// </summary>
     /// <param name="pluginName">Name of the plugin to get the container for.</param>
     /// <returns>The plugin's container</returns>
-    public IPluginContainer? GetContainer(string pluginName);
+    IPluginContainer? GetContainer(string pluginName);
 
     /// <summary>
     /// Gets the container for the plugin with the given type.

@@ -46,18 +46,14 @@ internal class Options
 
         return new GameOptionsViewModel(options, s.GetService<IScriptServers>()!, scriptOpt);
 
-        static RelayCommand<bool> CreateBoolCommand(Action<bool> action)
-        {
-            return new RelayCommand<bool>(action);
-        }
-        static BindingOptionItemViewModel<T, ScriptOption> CreateOptionItem<T>(IServiceProvider s, string binding, string tag, IRelayCommand command)
-        {
-            return new BindingOptionItemViewModel<T, ScriptOption>(s.GetRequiredService<IDecamelizer>().Decamelize(binding, null), tag, binding, (ScriptOption)s.GetRequiredService<IScriptOption>(), command);
-        }
+        static RelayCommand<bool> CreateBoolCommand(Action<bool> action) => new(action);
+        static BindingOptionItemViewModel<T, ScriptOption> CreateOptionItem<T>(IServiceProvider s, string binding, string tag, IRelayCommand command) => new(s.GetRequiredService<IDecamelizer>().Decamelize(binding, null), tag, binding, (ScriptOption)s.GetRequiredService<IScriptOption>(), command);
         static BindingOptionItemViewModel<T, ScriptOption> CreateOptionItemWithSuffix<T>(IServiceProvider s, string binding, string tag, string? suffixText, IRelayCommand command)
         {
-            var item = new BindingOptionItemViewModel<T, ScriptOption>(s.GetRequiredService<IDecamelizer>().Decamelize(binding, null), tag, binding, (ScriptOption)s.GetRequiredService<IScriptOption>(), command);
-            item.SuffixText = suffixText;
+            global::Skua.Core.ViewModels.BindingOptionItemViewModel<T, global::Skua.Core.Scripts.ScriptOption> item = new(s.GetRequiredService<IDecamelizer>().Decamelize(binding, null), tag, binding, (ScriptOption)s.GetRequiredService<IScriptOption>(), command)
+            {
+                SuffixText = suffixText
+            };
             return item;
         }
     }
@@ -90,13 +86,7 @@ internal class Options
 
         return new ApplicationOptionsViewModel(appOptions);
 
-        static RelayCommand<T> CreateSettingCommand<T>(string key)
-        {
-            return new RelayCommand<T>(b => Ioc.Default.GetRequiredService<ISettingsService>().Set(key, b));
-        }
-        static CommandOptionItemViewModel<T> CreateSettingOptionItem<T>(string content, string description, string key)
-        {
-            return new(content, description, key, CreateSettingCommand<T>(key), Ioc.Default.GetRequiredService<ISettingsService>().Get<T>(key));
-        }
+        static RelayCommand<T> CreateSettingCommand<T>(string key) => new(b => Ioc.Default.GetRequiredService<ISettingsService>().Set(key, b));
+        static CommandOptionItemViewModel<T> CreateSettingOptionItem<T>(string content, string description, string key) => new(content, description, key, CreateSettingCommand<T>(key), Ioc.Default.GetRequiredService<ISettingsService>().Get<T>(key));
     }
 }

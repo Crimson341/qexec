@@ -21,8 +21,7 @@ public class ChangeLogsViewModel : BotControlViewModelBase
 
     public string MarkdownDoc
     {
-        get { return _markDownContent; }
-        set { SetProperty(ref _markDownContent, value); }
+        get => _markDownContent; set => SetProperty(ref _markDownContent, value);
     }
 
     private async Task GetChangeLogsContent()

@@ -223,7 +223,10 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
     }
 
     [MethodCallBinding("world.isQuestInProgress", GameFunction = true)]
-    private bool _isInProgress(int id) => false;
+    private bool _isInProgress(int id)
+    {
+        return false;
+    }
 
     public bool UpdateQuest(int id)
     {
@@ -260,9 +263,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         List<ItemBase> requirements = new();
         requirements.AddRange(quest.Requirements);
         requirements.AddRange(quest.AcceptRequirements);
-        if (requirements.Count == 0)
-            return true;
-        return requirements.All(item => InvHelper.Check(item.ID, item.Quantity, false));
+        return requirements.Count == 0 || requirements.All(item => InvHelper.Check(item.ID, item.Quantity, false));
     }
 
     public bool IsDailyComplete(int id)

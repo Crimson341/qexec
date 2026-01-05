@@ -61,29 +61,65 @@ public class ScriptHunt : IScriptHunt
 
     private int _lastHuntTick;
 
-    public void Monster(string name) => _Hunt(name, null);
+    public void Monster(string name)
+    {
+        _Hunt(name, null);
+    }
 
-    public void Monster(string name, CancellationToken? token) => _Hunt(name, token);
+    public void Monster(string name, CancellationToken? token)
+    {
+        _Hunt(name, token);
+    }
 
-    public void Monster(int id) => _Hunt(id, null);
+    public void Monster(int id)
+    {
+        _Hunt(id, null);
+    }
 
-    public void Monster(int id, CancellationToken? token) => _Hunt(id, token);
+    public void Monster(int id, CancellationToken? token)
+    {
+        _Hunt(id, token);
+    }
 
-    public void Monster(Monster monster) => _Hunt(monster.ID, null);
+    public void Monster(Monster monster)
+    {
+        _Hunt(monster.ID, null);
+    }
 
-    public void Monster(Monster monster, CancellationToken? token) => _Hunt(monster.ID, token);
+    public void Monster(Monster monster, CancellationToken? token)
+    {
+        _Hunt(monster.ID, token);
+    }
 
-    public void WithPriority(string name, HuntPriorities priority) => _HuntWithPriority(name, priority, null);
+    public void WithPriority(string name, HuntPriorities priority)
+    {
+        _HuntWithPriority(name, priority, null);
+    }
 
-    public void WithPriority(string name, HuntPriorities priority, CancellationToken? token) => _HuntWithPriority(name, priority, token);
+    public void WithPriority(string name, HuntPriorities priority, CancellationToken? token)
+    {
+        _HuntWithPriority(name, priority, token);
+    }
 
-    public void WithPriority(Monster monster, HuntPriorities priority) => _HuntWithPriority(monster.ID, priority, null);
+    public void WithPriority(Monster monster, HuntPriorities priority)
+    {
+        _HuntWithPriority(monster.ID, priority, null);
+    }
 
-    public void WithPriority(Monster monster, HuntPriorities priority, CancellationToken? token) => _HuntWithPriority(monster.ID, priority, token);
+    public void WithPriority(Monster monster, HuntPriorities priority, CancellationToken? token)
+    {
+        _HuntWithPriority(monster.ID, priority, token);
+    }
 
-    public void WithPriority(int id, HuntPriorities priority) => _HuntWithPriority(id, priority, null);
+    public void WithPriority(int id, HuntPriorities priority)
+    {
+        _HuntWithPriority(id, priority, null);
+    }
 
-    public void WithPriority(int id, HuntPriorities priority, CancellationToken? token) => _HuntWithPriority(id, priority, token);
+    public void WithPriority(int id, HuntPriorities priority, CancellationToken? token)
+    {
+        _HuntWithPriority(id, priority, token);
+    }
 
     private void _Hunt(string name, CancellationToken? token)
     {

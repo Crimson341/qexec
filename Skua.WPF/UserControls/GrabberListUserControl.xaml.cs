@@ -37,10 +37,7 @@ public partial class GrabberListUserControl : UserControl
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrWhiteSpace(SearchBox.Text))
-            return true;
-
-        return obj.ToString()?.Contains(SearchBox.Text) ?? false;
+        return string.IsNullOrWhiteSpace(SearchBox.Text) || (obj.ToString()?.Contains(SearchBox.Text) ?? false);
     }
 
     private void MenuItem_Click(object sender, RoutedEventArgs e)

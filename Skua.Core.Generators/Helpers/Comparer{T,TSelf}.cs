@@ -19,22 +19,7 @@ public abstract class Comparer<T, TSelf> : IEqualityComparer<T>
     /// <inheritdoc/>
     public bool Equals(T? x, T? y)
     {
-        if (x is null && y is null)
-        {
-            return true;
-        }
-
-        if (x is null || y is null)
-        {
-            return false;
-        }
-
-        if (ReferenceEquals(x, y))
-        {
-            return true;
-        }
-
-        return AreEqual(x, y);
+        return (x is null && y is null) || (x is not null && y is not null && (ReferenceEquals(x, y) || AreEqual(x, y)));
     }
 
     /// <inheritdoc/>

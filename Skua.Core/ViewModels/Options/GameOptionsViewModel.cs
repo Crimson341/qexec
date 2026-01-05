@@ -34,7 +34,7 @@ public class GameOptionsViewModel : BotControlViewModelBase
 
     public string? SelectedServer
     {
-        get { return _selectedServer; }
+        get => _selectedServer;
         set
         {
             if (SetProperty(ref _selectedServer, value) && value is not null && _options.ReloginServer != value)
@@ -46,8 +46,7 @@ public class GameOptionsViewModel : BotControlViewModelBase
 
     public int Columns
     {
-        get { return _columns; }
-        set { SetProperty(ref _columns, value); }
+        get => _columns; set => SetProperty(ref _columns, value);
     }
 
     public IRelayCommand ResetOptionsCommand { get; }

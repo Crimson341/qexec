@@ -85,9 +85,7 @@ public partial class ScriptBank : IScriptBank
 
     public bool Swap(int invItem, int bankItem)
     {
-        if (((IScriptBank)this).TryGetItem(bankItem, out InventoryItem? bank) && Inventory.TryGetItem(invItem, out InventoryItem? inv))
-            return Swap(inv!, bank!);
-        return false;
+        return ((IScriptBank)this).TryGetItem(bankItem, out InventoryItem? bank) && Inventory.TryGetItem(invItem, out InventoryItem? inv) && Swap(inv!, bank!);
     }
 
     public bool Swap(InventoryItem invItem, InventoryItem bankItem)

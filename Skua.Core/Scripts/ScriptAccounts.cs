@@ -18,19 +18,15 @@ public class ScriptAccounts : IScriptAccounts
     public List<string> GetTags()
     {
         string? username = Player.Username;
-        if (string.IsNullOrEmpty(username))
-            return new List<string>();
-
-        return GetTags(username);
+        return string.IsNullOrEmpty(username) ? new List<string>() : GetTags(username);
     }
 
     public List<string> GetTags(string username)
     {
         Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
-        if (accounts == null)
-            return new List<string>();
-
-        return accounts.TryGetValue(username, out AccountData? accountData) ? accountData.Tags.ToList() : new List<string>();
+        return accounts == null
+            ? new List<string>()
+            : accounts.TryGetValue(username, out AccountData? accountData) ? accountData.Tags.ToList() : new List<string>();
     }
 
     public bool HasTag(string tag)

@@ -26,8 +26,10 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
         _settingsService = settingsService;
         _dispatcherService = dispatcherService;
 
-        _timer = new Timer();
-        _timer.Interval = 1000;
+        _timer = new Timer
+        {
+            Interval = 1000
+        };
         _timer.Elapsed += RemoveStoppedCurrentProcess!;
         _timer.AutoReset = true;
         _timer.Start();
@@ -101,7 +103,7 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
         });
     }
 
-    private void RemoveStoppedCurrentProcess(Object source, System.Timers.ElapsedEventArgs e)
+    private void RemoveStoppedCurrentProcess(object source, System.Timers.ElapsedEventArgs e)
     {
         foreach (ProcessInfo? procInfo in SkuaProcesses.ToList())
         {

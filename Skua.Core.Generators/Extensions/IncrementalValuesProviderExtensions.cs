@@ -94,16 +94,16 @@ internal static class IncrementalValuesProviderExtensions
         public bool Equals((TLeft Left, TRight Right) x, (TLeft Left, TRight Right) y)
         {
             return
-                this.comparerLeft.Equals(x.Left, y.Left) &&
-                this.comparerRight.Equals(x.Right, y.Right);
+                comparerLeft.Equals(x.Left, y.Left) &&
+                comparerRight.Equals(x.Right, y.Right);
         }
 
         /// <inheritdoc/>
         public int GetHashCode((TLeft Left, TRight Right) obj)
         {
             return HashCode.Combine(
-                this.comparerLeft.GetHashCode(obj.Left),
-                this.comparerRight.GetHashCode(obj.Right));
+                comparerLeft.GetHashCode(obj.Left),
+                comparerRight.GetHashCode(obj.Right));
         }
     }
 }

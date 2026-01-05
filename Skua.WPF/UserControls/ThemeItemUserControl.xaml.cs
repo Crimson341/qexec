@@ -10,8 +10,7 @@ public partial class ThemeItemUserControl : UserControl
 {
     public bool CanRemove
     {
-        get { return (bool)GetValue(CanRemoveProperty); }
-        set { SetValue(CanRemoveProperty, value); }
+        get => (bool)GetValue(CanRemoveProperty); set => SetValue(CanRemoveProperty, value);
     }
 
     public static readonly DependencyProperty CanRemoveProperty =

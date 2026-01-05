@@ -13,18 +13,10 @@ internal class Default
             return DefaultString;
 
         Type? type = Type.GetType(typeName);
-        if (type == null)
-            return DefaultString;
-
-        if (type.IsArray)
-            return $"Array.Empty<{type.FullName}>()";
-
-        if (type == typeof(string))
-            return string.Empty;
-
-        if (typeof(IEnumerable<>).IsAssignableFrom(type))
-            return "new()";
-
-        return DefaultString;
+        return type == null
+            ? DefaultString
+            : type.IsArray
+            ? $"Array.Empty<{type.FullName}>()"
+            : type == typeof(string) ? string.Empty : typeof(IEnumerable<>).IsAssignableFrom(type) ? "new()" : DefaultString;
     }
 }

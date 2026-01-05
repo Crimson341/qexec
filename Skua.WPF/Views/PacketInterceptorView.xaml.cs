@@ -24,10 +24,7 @@ public partial class PacketInterceptorView : UserControl
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrWhiteSpace(SearchBox.Text))
-            return true;
-
-        return obj is InterceptedPacketViewModel pkt && pkt.Packet.Contains(SearchBox.Text, StringComparison.OrdinalIgnoreCase);
+        return string.IsNullOrWhiteSpace(SearchBox.Text) || (obj is InterceptedPacketViewModel pkt && pkt.Packet.Contains(SearchBox.Text, StringComparison.OrdinalIgnoreCase));
     }
 
     private void TextBox_TextChanged(object sender, TextChangedEventArgs e)

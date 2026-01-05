@@ -16,7 +16,6 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
     private readonly ConcurrentDictionary<string, AuraState> _selfAuraStates = new();
     private readonly ConcurrentDictionary<string, AuraState> _targetAuraStates = new();
     private readonly object _lockObject = new();
-    private bool _isMonitoring;
     private bool _disposed;
 
 
@@ -28,7 +27,7 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
 
     public event Action<string, float, float, SubjectType>? AuraStackChanged;
 
-    public bool IsMonitoring => _isMonitoring;
+    public bool IsMonitoring { get; private set; }
 
     public int SubscriberCount =>
         (AuraActivated?.GetInvocationList().Length ?? 0) +
@@ -57,14 +56,14 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
     {
         lock (_lockObject)
         {
-            switch (_isMonitoring)
+            switch (IsMonitoring)
             {
                 case false when SubscriberCount > 0:
-                    _isMonitoring = true;
+                    IsMonitoring = true;
                     _pollTimer.Change(0, pollIntervalMs);
                     break;
                 case true when SubscriberCount == 0:
-                    _isMonitoring = false;
+                    IsMonitoring = false;
                     _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
                     _selfAuraStates.Clear();
                     _targetAuraStates.Clear();
@@ -75,22 +74,22 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
 
     public void StartMonitoring(int pollIntervalMs = 100)
     {
-        if (_isMonitoring) return;
+        if (IsMonitoring) return;
 
         lock (_lockObject)
         {
-            _isMonitoring = true;
+            IsMonitoring = true;
             _pollTimer.Change(0, pollIntervalMs);
         }
     }
 
     public void StopMonitoring()
     {
-        if (!_isMonitoring) return;
+        if (!IsMonitoring) return;
 
         lock (_lockObject)
         {
-            _isMonitoring = false;
+            IsMonitoring = false;
             _pollTimer.Change(Timeout.Infinite, Timeout.Infinite);
         }
     }
@@ -105,7 +104,7 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
             return;
         }
 
-        if (!_isMonitoring) return;
+        if (!IsMonitoring) return;
 
         try
         {

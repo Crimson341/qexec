@@ -75,13 +75,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     /// Gets the properties default values.
     /// </summary>
     /// <value>The default values.</value>
-    protected IDictionary<string, object> DefaultValues
-    {
-        get
-        {
-            return _defaultValues;
-        }
-    }
+    protected IDictionary<string, object> DefaultValues => _defaultValues;
 
     /// <summary>
     /// Gets the changed properties and their original values.
@@ -91,10 +85,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     {
         get
         {
-            if (_changedProperties == null)
-            {
-                _changedProperties = CreatePropertiesDictionary();
-            }
+            _changedProperties ??= CreatePropertiesDictionary();
             return _changedProperties;
         }
     }
@@ -107,10 +98,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     {
         get
         {
-            if (_properties == null)
-            {
-                _properties = CreatePropertiesDictionary();
-            }
+            _properties ??= CreatePropertiesDictionary();
             return _properties;
         }
     }
@@ -142,10 +130,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     {
         List<string> errors = new();
         Validate(errors, memberName);
-        if (errors.Count == 0)
-            return null;
-
-        return string.Join(Environment.NewLine, errors);
+        return errors.Count == 0 ? null : string.Join(Environment.NewLine, errors);
     }
 
     /// <summary>
@@ -155,25 +140,13 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     /// <returns>
     /// An error message indicating what is wrong with this object. The default is an empty string ("").
     /// </returns>
-    string IDataErrorInfo.Error
-    {
-        get
-        {
-            return Validate(null);
-        }
-    }
+    string IDataErrorInfo.Error => Validate(null);
 
     /// <summary>
-    /// Gets the <see cref="System.String"/> with the specified column name.
+    /// Gets the <see cref="string"/> with the specified column name.
     /// </summary>
     /// <value></value>
-    string IDataErrorInfo.this[string columnName]
-    {
-        get
-        {
-            return Validate(columnName);
-        }
-    }
+    string IDataErrorInfo.this[string columnName] => Validate(columnName);
 
     /// <summary>
     /// Gets a value indicating whether this instance is valid.
@@ -183,13 +156,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     /// </value>
     [XmlIgnore]
     [Browsable(false)]
-    public virtual bool IsValid
-    {
-        get
-        {
-            return Validate(null) == null;
-        }
-    }
+    public virtual bool IsValid => Validate(null) == null;
 
     /// <summary>
     /// Sets a property value.
@@ -239,8 +206,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     protected virtual T GetProperty<T>([CallerMemberName] string name = null)
     {
         T defaultValue;
-        object obj;
-        if (_defaultValues.TryGetValue(name, out obj))
+        if (_defaultValues.TryGetValue(name, out object obj))
         {
             defaultValue = ConversionService.ChangeType<T>(obj);
         }
@@ -255,7 +221,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
                 att = Attribute.GetCustomAttribute(pi, typeof(DefaultValueAttribute), true) as DefaultValueAttribute;
             }
 
-            defaultValue = att != null ? ConversionService.ChangeType(att.Value, default(T)) : default(T);
+            defaultValue = att != null ? ConversionService.ChangeType(att.Value, default(T)) : default;
             _defaultValues[name] = defaultValue;
         }
 
@@ -275,18 +241,13 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
         PropertyInfo pi = GetType().GetProperty(propertyName);
         if (pi == null)
         {
-            if (ThrowOnInvalidProperty)
-                throw new InvalidOperationException($"Object of type '{GetType().FullName}' does not have a property named '{propertyName}'.");
-
-            return null;
+            return ThrowOnInvalidProperty
+                ? throw new InvalidOperationException($"Object of type '{GetType().FullName}' does not have a property named '{propertyName}'.")
+                : null;
         }
 
         object defaultValue = pi.PropertyType.IsValueType ? Activator.CreateInstance(pi.PropertyType) : null;
-        DefaultValueAttribute att = Attribute.GetCustomAttribute(pi, typeof(DefaultValueAttribute), true) as DefaultValueAttribute;
-        if (att != null)
-            return ConversionService.ChangeType(att.Value, defaultValue);
-
-        return defaultValue;
+        return Attribute.GetCustomAttribute(pi, typeof(DefaultValueAttribute), true) is DefaultValueAttribute att ? ConversionService.ChangeType(att.Value, defaultValue) : defaultValue;
     }
 
     /// <summary>
@@ -300,10 +261,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
             throw new ArgumentNullException("name");
 
         PropertyInfo pi = GetType().GetProperty(name);
-        if (pi == null)
-            throw new ArgumentException(null, "name");
-
-        return pi.PropertyType;
+        return pi == null ? throw new ArgumentException(null, "name") : pi.PropertyType;
     }
 
     /// <summary>
@@ -314,10 +272,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     /// <returns>true if the values are equal.</returns>
     protected virtual bool ArePropertiesEqual(object value1, object value2)
     {
-        if (value1 == null)
-            return value2 == null;
-
-        return value1.Equals(value2);
+        return value1 == null ? value2 == null : value1.Equals(value2);
     }
 
     /// <summary>
@@ -390,8 +345,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
         if (name == null)
             throw new ArgumentNullException("name");
 
-        object oldValue;
-        bool hasOldValue = Properties.TryGetValue(name, out oldValue);
+        bool hasOldValue = Properties.TryGetValue(name, out object oldValue);
         if (hasOldValue && ArePropertiesEqual(value, oldValue))
             return false;
 
@@ -460,14 +414,9 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     /// <returns></returns>
     protected virtual T GetProperty<T>(T defaultValue, [CallerMemberName] string name = null)
     {
-        if (name == null)
-            throw new ArgumentNullException("name");
-
-        object obj;
-        if (!Properties.TryGetValue(name, out obj))
-            return defaultValue;
-
-        return ConversionService.ChangeType(obj, defaultValue);
+        return name == null
+            ? throw new ArgumentNullException("name")
+            : !Properties.TryGetValue(name, out object obj) ? defaultValue : ConversionService.ChangeType(obj, defaultValue);
     }
 
     /// <summary>
@@ -511,12 +460,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
 
         if (!RaisePropertyChanged && !forceRaise)
             return false;
-
-        PropertyChangedEventHandler handler = PropertyChanged;
-        if (handler != null)
-        {
-            handler(this, new PropertyChangedEventArgs(name));
-        }
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
         return true;
     }
 }

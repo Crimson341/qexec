@@ -13,12 +13,7 @@ public class UnixDateTimeConverter : JsonConverter
 
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
     {
-        long t;
-        if (reader.Value!.GetType() != typeof(long))
-            t = long.Parse((string)reader.Value);
-        else
-            t = (long)reader.Value;
-
+        long t = reader.Value!.GetType() != typeof(long) ? long.Parse((string)reader.Value) : (long)reader.Value;
         return _epoch.AddMilliseconds(t);
     }
 

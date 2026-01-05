@@ -59,7 +59,7 @@ public partial class ManagerMainViewModel : ObservableRecipient
 
     public TabItemViewModel SelectedTab
     {
-        get { return _selectedTab; }
+        get => _selectedTab;
         set
         {
             ObservableObject lastTab = _selectedTab.Content;

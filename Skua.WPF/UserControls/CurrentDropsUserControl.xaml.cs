@@ -59,10 +59,7 @@ public partial class CurrentDropsUserControl : UserControl
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrEmpty(SearchBox.Text))
-            return true;
-
-        return obj is ItemBase item && item.ToString().Contains(SearchBox.Text, StringComparison.OrdinalIgnoreCase);
+        return string.IsNullOrEmpty(SearchBox.Text) || (obj is ItemBase item && item.ToString().Contains(SearchBox.Text, StringComparison.OrdinalIgnoreCase));
     }
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)

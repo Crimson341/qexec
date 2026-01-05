@@ -93,7 +93,10 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
     [ObjectBinding("sfc.isConnected", RequireNotNull = "sfc", Default = "false")]
     private bool _isConnected;
 
-    public void Login() => Login(Player.Username, Player.Password);
+    public void Login()
+    {
+        Login(Player.Username, Player.Password);
+    }
 
     public async ValueTask<List<Server>> GetServers(bool forceUpdate = false)
     {
@@ -142,13 +145,9 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
 
     public bool Relogin(Server? server = null)
     {
-        if (server is null)
-        {
-            if (Options.AutoReloginAny)
-                server = ServerList.Find(x => x.IP != LastIP)!;
-            else
-                server = CachedServers.First(s => s.Name == Options.ReloginServer) ?? ServerList[0];
-        }
+        server ??= Options.AutoReloginAny
+                ? ServerList.Find(x => x.IP != LastIP)!
+                : CachedServers.First(s => s.Name == Options.ReloginServer) ?? ServerList[0];
 
         return ReloginIP(server.IP);
     }
@@ -212,10 +211,9 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
     {
         Server server;
         await GetServers(true);
-        if (Options.AutoReloginAny)
-            server = ServerList.Find(x => x.IP != LastIP)!;
-        else
-            server = CachedServers.FirstOrDefault(s => s.Name == Options.ReloginServer) ?? ServerList[0];
+        server = Options.AutoReloginAny
+            ? ServerList.Find(x => x.IP != LastIP)!
+            : CachedServers.FirstOrDefault(s => s.Name == Options.ReloginServer) ?? ServerList[0];
 
         return await EnsureLogin(server, token);
     }

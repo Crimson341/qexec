@@ -69,10 +69,10 @@ public class DynamicObjectProperty : PropertyDescriptor
     }
 
     /// <summary>
-    /// Returns a <see cref="System.String"/> that represents this instance.
+    /// Returns a <see cref="string"/> that represents this instance.
     /// </summary>
     /// <returns>
-    /// A <see cref="System.String"/> that represents this instance.
+    /// A <see cref="string"/> that represents this instance.
     /// </returns>
     public override string ToString()
     {
@@ -85,14 +85,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// <value>The default value.</value>
     public virtual object DefaultValue
     {
-        get
-        {
-            return _defaultValue;
-        }
-        set
-        {
-            _defaultValue = ConversionService.ChangeType(value, _type);
-        }
+        get => _defaultValue; set => _defaultValue = ConversionService.ChangeType(value, _type);
     }
 
     /// <summary>
@@ -134,13 +127,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// <returns>
     /// A <see cref="T:System.Type"/> that represents the type of component this property is bound to. When the <see cref="M:System.ComponentModel.PropertyDescriptor.GetValue(System.Object)"/> or <see cref="M:System.ComponentModel.PropertyDescriptor.SetValue(System.Object,System.Object)"/> methods are invoked, the object specified might be an instance of this type.
     /// </returns>
-    public override Type ComponentType
-    {
-        get
-        {
-            return typeof(DynamicObject);
-        }
-    }
+    public override Type ComponentType => typeof(DynamicObject);
 
     /// <summary>
     /// When overridden in a derived class, gets the current value of the property on a component.
@@ -151,11 +138,9 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// </returns>
     public override object GetValue(object component)
     {
-        DynamicObject? obj = component as DynamicObject;
-        if (obj != null)
-            return obj.GetPropertyValue(Name, _defaultValue);
-
-        throw new ArgumentException("Component is not of the DynamicObject type", "component");
+        return component is DynamicObject obj
+            ? obj.GetPropertyValue(Name, _defaultValue)
+            : throw new ArgumentException("Component is not of the DynamicObject type", "component");
     }
 
     /// <summary>
@@ -164,13 +149,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// <value></value>
     /// <returns>true if the property is read-only; otherwise, false.
     /// </returns>
-    public override bool IsReadOnly
-    {
-        get
-        {
-            return _isReadOnly;
-        }
-    }
+    public override bool IsReadOnly => _isReadOnly;
 
     /// <summary>
     /// When overridden in a derived class, gets the type of the property.
@@ -179,13 +158,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// <returns>
     /// A <see cref="T:System.Type"/> that represents the type of the property.
     /// </returns>
-    public override Type PropertyType
-    {
-        get
-        {
-            return _type;
-        }
-    }
+    public override Type PropertyType => _type;
 
     /// <summary>
     /// When overridden in a derived class, resets the value for this property of the component to the default value.
@@ -206,8 +179,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// <param name="value">The new value.</param>
     public override void SetValue(object component, object value)
     {
-        DynamicObject? obj = component as DynamicObject;
-        if (obj != null)
+        if (component is DynamicObject obj)
         {
             obj.SetPropertyValue(Name, value);
             return;

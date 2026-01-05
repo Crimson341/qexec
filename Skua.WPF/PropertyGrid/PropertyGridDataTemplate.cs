@@ -42,16 +42,8 @@ public class PropertyGridDataTemplate
                     if (string.IsNullOrWhiteSpace(name))
                         continue;
 
-                    Type type;
+                    Type type = name == "System.Nullable`1[System.Enum]" ? NullableEnumType : TypeResolutionService.ResolveType(name);
                     // a hack to handle nullable enum in a general way
-                    if (name == "System.Nullable`1[System.Enum]")
-                    {
-                        type = NullableEnumType;
-                    }
-                    else
-                    {
-                        type = TypeResolutionService.ResolveType(name);
-                    }
                     if (type != null)
                     {
                         _resolvedPropertyTypes.Add(type);

@@ -49,7 +49,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
 
     public int HealthUseValue
     {
-        get { return _healthUseValue; }
+        get => _healthUseValue;
         set
         {
             if (value < 0)
@@ -68,7 +68,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
 
     public int ManaUseValue
     {
-        get { return _manaUseValue; }
+        get => _manaUseValue;
         set
         {
             if (value < 0)
@@ -93,11 +93,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
 
     public float AuraUseValue
     {
-        get { return _auraUseValue; }
-        set
-        {
-            SetProperty(ref _auraUseValue, value);
-        }
+        get => _auraUseValue; set => SetProperty(ref _auraUseValue, value);
     }
 
     [ObservableProperty]
@@ -113,7 +109,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
 
     public int PartyMemberHealthUseValue
     {
-        get { return _partyMemberHealthUseValue; }
+        get => _partyMemberHealthUseValue;
         set
         {
             if (value < 0)

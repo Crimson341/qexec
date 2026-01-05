@@ -6,25 +6,10 @@ public static class ConversionService
 {
     public static bool TryChangeType<T>(object input, IFormatProvider provider, out T value)
     {
-        object v;
-        bool b = PropertyGridServiceProvider.Current.GetService<IConverter>().TryChangeType(input, typeof(T), provider, out v);
+        bool b = PropertyGridServiceProvider.Current.GetService<IConverter>().TryChangeType(input, typeof(T), provider, out object v);
         if (!b)
         {
-            if (v == null)
-            {
-                if (typeof(T).IsValueType)
-                {
-                    value = (T)Activator.CreateInstance(typeof(T));
-                }
-                else
-                {
-                    value = default(T);
-                }
-            }
-            else
-            {
-                value = (T)v;
-            }
+            value = v == null ? typeof(T).IsValueType ? (T)Activator.CreateInstance(typeof(T)) : default : (T)v;
             return false;
         }
         value = (T)v;
@@ -66,11 +51,7 @@ public static class ConversionService
             defaultValue = Activator.CreateInstance(conversionType);
         }
 
-        object value;
-        if (TryChangeType(input, conversionType, provider, out value))
-            return value;
-
-        return defaultValue;
+        return TryChangeType(input, conversionType, provider, out object value) ? value : defaultValue;
     }
 
     public static T ChangeType<T>(object input)
@@ -85,10 +66,6 @@ public static class ConversionService
 
     public static T ChangeType<T>(object input, T defaultValue, IFormatProvider provider)
     {
-        T value;
-        if (TryChangeType(input, provider, out value))
-            return value;
-
-        return defaultValue;
+        return TryChangeType(input, provider, out T value) ? value : defaultValue;
     }
 }

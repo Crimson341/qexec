@@ -152,10 +152,9 @@ public partial class ScriptMap : IScriptMap
 
     private Dictionary<string, List<MapItem>>? LoadSavedMapItems()
     {
-        if (!File.Exists(_savedCacheFilePath))
-            return null;
-
-        return _savedMapItems = JsonConvert.DeserializeObject<Dictionary<string, List<MapItem>>>(File.ReadAllText(_savedCacheFilePath))!;
+        return !File.Exists(_savedCacheFilePath)
+            ? null
+            : (_savedMapItems = JsonConvert.DeserializeObject<Dictionary<string, List<MapItem>>>(File.ReadAllText(_savedCacheFilePath))!);
     }
 
     private readonly string _cachePath = Path.Combine(ClientFileSources.SkuaDIR, "cache");
@@ -184,10 +183,9 @@ public partial class ScriptMap : IScriptMap
         Stopwatch sw = Stopwatch.StartNew();
 
         // Always decompile when forcing refresh, even if SWF exists
-        if (files.Count > 0 && files.Contains(Path.Combine(_cachePath, FileName)))
-            return !DecompileSWF(FileName) ? null : ParseMapSWFData();
-        return !DownloadMapSWF(FileName) ? null : !DecompileSWF(FileName) ? null : ParseMapSWFData();
-
+        return files.Count > 0 && files.Contains(Path.Combine(_cachePath, FileName))
+            ? !DecompileSWF(FileName) ? null : ParseMapSWFData()
+            : !DownloadMapSWF(FileName) ? null : !DecompileSWF(FileName) ? null : ParseMapSWFData();
         void SaveMapItemInfo(List<MapItem> info)
         {
             if (_savedMapItems.ContainsKey(FileName))

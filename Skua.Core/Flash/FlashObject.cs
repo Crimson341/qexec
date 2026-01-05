@@ -27,10 +27,8 @@ public class FlashObject<T> : IFlashObject<T>, IDisposable
                 return default;
             }
         }
-        set
-        {
-            FlashUtil.Call("lnkSetValue", ID, value!);
-        }
+
+        set => FlashUtil.Call("lnkSetValue", ID, value!);
     }
 
     public IFlashObject<R> GetChild<R>(string path)

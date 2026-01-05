@@ -19,7 +19,7 @@ public partial class GrabberViewModel : BotControlViewModelBase
 
     public GrabberListViewModel SelectedTab
     {
-        get { return _selectedTab; }
+        get => _selectedTab;
         set
         {
             GrabberListViewModel lastTab = _selectedTab;

@@ -671,12 +671,8 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                 }
                 ScriptInterfaceCTS?.Dispose();
                 ScriptInterfaceCTS = null;
-
-                if (_apiWrapper != null)
-                {
-                    _apiWrapper.StopAsync().GetAwaiter().GetResult();
-                    _apiWrapper = null;
-                }
+                _apiWrapper?.StopAsync().GetAwaiter().GetResult();
+                _apiWrapper = null;
 
                 if (_stateChannel != null)
                 {

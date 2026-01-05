@@ -33,10 +33,7 @@ public partial class BotWindow : CustomWindow
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrEmpty(BotControlsSearchBox.Text))
-            return true;
-
-        return obj is BotControlViewModelBase vm && vm.Title.Contains(BotControlsSearchBox.Text);
+        return string.IsNullOrEmpty(BotControlsSearchBox.Text) || (obj is BotControlViewModelBase vm && vm.Title.Contains(BotControlsSearchBox.Text));
     }
 
     private void BotControlsSearchBox_TextChanged(object sender, TextChangedEventArgs e)

@@ -37,7 +37,7 @@ public class ManagerOptionsViewModel : ObservableObject
 
     public string DownloadPath
     {
-        get { return _downloadPath; }
+        get => _downloadPath;
         set
         {
             if (SetProperty(ref _downloadPath, value))

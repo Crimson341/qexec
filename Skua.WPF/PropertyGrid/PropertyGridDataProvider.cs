@@ -71,11 +71,7 @@ public class PropertyGridDataProvider : IListSource
     {
         if (property == null)
             throw new ArgumentNullException("property");
-
-        if (descriptor == null)
-            throw new ArgumentNullException("descriptor");
-
-        property.Descriptor = descriptor;
+        property.Descriptor = descriptor ?? throw new ArgumentNullException("descriptor");
         property.Name = descriptor.Name;
         property.PropertyType = descriptor.PropertyType;
 
@@ -121,8 +117,7 @@ public class PropertyGridDataProvider : IListSource
             }
             else
             {
-                string defaultValue;
-                if (PropertyGridComboBoxExtension.TryGetDefaultValue(options, out defaultValue))
+                if (PropertyGridComboBoxExtension.TryGetDefaultValue(options, out string defaultValue))
                 {
                     property.DefaultValue = defaultValue;
                     property.HasDefaultValue = true;
@@ -182,10 +177,7 @@ public class PropertyGridDataProvider : IListSource
             }
         }
 
-        if (property == null)
-        {
-            property = CreateProperty();
-        }
+        property ??= CreateProperty();
 
         Describe(property, descriptor);
         if (forceReadWrite)
@@ -214,10 +206,7 @@ public class PropertyGridDataProvider : IListSource
         }
 
         IPropertyGridObject? pga = Data as IPropertyGridObject;
-        if (pga != null)
-        {
-            pga.FinalizeProperties(this, props);
-        }
+        pga?.FinalizeProperties(this, props);
 
         props.Sort();
         foreach (PropertyGridProperty property in props)
@@ -226,10 +215,7 @@ public class PropertyGridDataProvider : IListSource
         }
     }
 
-    bool IListSource.ContainsListCollection
-    {
-        get { return false; }
-    }
+    bool IListSource.ContainsListCollection => false;
 
     IList IListSource.GetList()
     {

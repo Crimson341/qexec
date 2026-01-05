@@ -25,10 +25,7 @@ public partial class CBOptionsUserControl : UserControl
 
     private bool Search(object obj)
     {
-        if (string.IsNullOrWhiteSpace(SearchBox.Text))
-            return true;
-
-        return obj is DisplayOptionItemViewModelBase opt && opt.Content.Contains(SearchBox.Text);
+        return string.IsNullOrWhiteSpace(SearchBox.Text) || (obj is DisplayOptionItemViewModelBase opt && opt.Content.Contains(SearchBox.Text));
     }
 
     private void TextBox_TextChanged(object sender, TextChangedEventArgs e)

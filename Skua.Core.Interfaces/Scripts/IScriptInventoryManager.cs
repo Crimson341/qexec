@@ -19,7 +19,7 @@ public interface IScriptInventoryHelper
     /// <param name="quantity">Desired quantity.</param>
     /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Whether the item exists in the desired quantity in the bank, player, temporary and house inventory.</returns>
-    public bool Check(string name, int quantity = 1, bool moveToInventory = true);
+    bool Check(string name, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
     /// Check the bank, player, temporary and house inventory for the item
@@ -28,7 +28,7 @@ public interface IScriptInventoryHelper
     /// <param name="quantity">Desired quantity</param>
     /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Whether the item exists in the desired quantity in the bank, player, temporary and house inventory.</returns>
-    public bool Check(int id, int quantity = 1, bool moveToInventory = true);
+    bool Check(int id, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
     /// Check if the bank/inventory has all listed items.
@@ -37,7 +37,7 @@ public interface IScriptInventoryHelper
     /// <param name="quantity">Desired quantity.</param>
     /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Returns whether all the items exist in the bank or player inventory.</returns>
-    public bool HasAll(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true);
+    bool HasAll(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
     /// Check if the bank/inventory has at least 1 of all listed items.
@@ -46,7 +46,7 @@ public interface IScriptInventoryHelper
     /// <param name="quantity">Desired quantity.</param>
     /// <param name="moveToInventory">Whether send the item to Inventory</param>
     /// <returns>Returns whether at-least 1 of the items exist in the bank or player inventory.</returns>
-    public bool HasAny(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true);
+    bool HasAny(IEnumerable<string> itemNames, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
     /// Check if the bank/inventory has all listed items.
@@ -55,7 +55,7 @@ public interface IScriptInventoryHelper
     /// <param name="quantity">Desired quantity.</param>
     /// <param name="moveToInventory">Whether send the item to Inventory.</param>
     /// <returns>Returns whether all the items exist in the bank or player inventory.</returns>
-    public bool HasAll(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true);
+    bool HasAll(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true);
 
     /// <summary>
     /// Check if the bank/inventory has at least 1 of all listed items.
@@ -64,5 +64,5 @@ public interface IScriptInventoryHelper
     /// <param name="quantity">Desired quantity.</param>
     /// <param name="moveToInventory">Whether send the item to Inventory</param>
     /// <returns>Returns whether at-least 1 of the items exist in the bank or player inventory.</returns>
-    public bool HasAny(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true);
+    bool HasAny(IEnumerable<int> itemIds, int quantity = 1, bool moveToInventory = true);
 }

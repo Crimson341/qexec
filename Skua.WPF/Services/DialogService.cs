@@ -26,9 +26,9 @@ public class DialogService : IDialogService
         {
             HostDialog dialog = new()
             {
-                DataContext = viewModel
+                DataContext = viewModel,
+                Title = title
             };
-            dialog.Title = title;
             return dialog.ShowDialog();
         });
     }

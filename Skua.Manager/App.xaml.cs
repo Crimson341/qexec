@@ -131,7 +131,7 @@ public partial class App : Application
         Application.Current.Shutdown();
     }
 
-    public new static App Current => (App)Application.Current;
+    public static new App Current => (App)Application.Current;
 
     public IServiceProvider Services { get; }
 

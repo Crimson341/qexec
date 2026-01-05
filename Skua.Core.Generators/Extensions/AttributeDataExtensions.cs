@@ -41,12 +41,7 @@ internal static class AttributeDataExtensions
     /// <returns>The argument named <paramref name="name"/>, or a fallback value.</returns>
     public static T? GetNamedArgument<T>(this AttributeData attributeData, string name, T? fallback = default)
     {
-        if (attributeData.TryGetNamedArgument(name, out T? value))
-        {
-            return value;
-        }
-
-        return fallback;
+        return attributeData.TryGetNamedArgument(name, out T? value) ? value : fallback;
     }
 
     /// <summary>

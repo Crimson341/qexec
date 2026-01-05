@@ -44,7 +44,7 @@ internal static class IEqualityComparerExtensions
         {
             return
                 x == y ||
-                x.SequenceEqual(y, this.comparer);
+                x.SequenceEqual(y, comparer);
         }
 
         /// <inheritdoc/>
@@ -52,7 +52,7 @@ internal static class IEqualityComparerExtensions
         {
             HashCode hashCode = default;
 
-            hashCode.AddRange(obj, this.comparer);
+            hashCode.AddRange(obj, comparer);
 
             return hashCode.ToHashCode();
         }

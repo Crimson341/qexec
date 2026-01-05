@@ -11,8 +11,7 @@ public partial class StatItemUserControl : UserControl
 {
     public string Label
     {
-        get { return (string)GetValue(LabelProperty); }
-        set { SetValue(LabelProperty, value); }
+        get => (string)GetValue(LabelProperty); set => SetValue(LabelProperty, value);
     }
 
     public static readonly DependencyProperty LabelProperty =
@@ -20,8 +19,7 @@ public partial class StatItemUserControl : UserControl
 
     public PackIconKind Icon
     {
-        get { return (PackIconKind)GetValue(IconProperty); }
-        set { SetValue(IconProperty, value); }
+        get => (PackIconKind)GetValue(IconProperty); set => SetValue(IconProperty, value);
     }
 
     public static readonly DependencyProperty IconProperty =
@@ -29,8 +27,7 @@ public partial class StatItemUserControl : UserControl
 
     public string Value
     {
-        get { return (string)GetValue(ValueProperty); }
-        set { SetValue(ValueProperty, value); }
+        get => (string)GetValue(ValueProperty); set => SetValue(ValueProperty, value);
     }
 
     public static readonly DependencyProperty ValueProperty =
