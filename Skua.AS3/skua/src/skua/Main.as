@@ -566,6 +566,37 @@ public class Main extends MovieClip {
         return true.toString();
     }
 
+    public function equipLoadout(setName:String, changeColors:Boolean = false): void
+    {
+        if(!instance.game.world.coolDown("equipLoadout") || setName == null || setName == "")
+        {
+            return;
+        }
+        instance.game.sfc.sendXtMessage("zm","equipLoadout",["cmd",setName,!changeColors],"str",instance.game.world.curRoom);
+    }
+
+    public function onNewSet() : void
+    {
+        var curItem:* = undefined;
+        var itemsArray:Array = ["he","ba","ar","co","Weapon","pe","am","mi"];
+        for each(curItem in itemsArray)
+        {
+            if(instance.game.world.myAvatar.objData.eqp[curItem] != null)
+            {
+                instance.game.world.myAvatar.loadMovieAtES(curItem,instance.game.world.myAvatar.objData.eqp[curItem].sFile,instance.game.world.myAvatar.objData.eqp[curItem].sLink);
+            }
+            else
+            {
+                instance.game.world.myAvatar.unloadMovieAtES(curItem);
+            }
+        }
+    }
+
+    public static function getLoadouts():String {
+        var loadouts:Object = instance.game.world.objInfo["customs"].loadouts;
+        return JSON.stringify(loadouts);
+    }
+
     private static function connectServer(server:Object, objLoginData:Object):* {
         var _loc2_:ModalMC = null;
         var _loc3_:Object = null;

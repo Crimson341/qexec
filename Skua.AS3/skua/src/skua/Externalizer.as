@@ -40,6 +40,8 @@ public class Externalizer {
         this.addCallback("walkTo", Main.walkTo);
         this.addCallback("jumpCorrectRoom", Main.jumpCorrectRoom);
 
+        this.addCallback("getLoadouts", Main.getLoadouts);
+
         this.addCallback("availableMonsters", Main.availableMonstersInCell);
         this.addCallback("getMonsters", Main.getMonsters);
         this.addCallback("getTargetMonster", Main.getTargetMonster);
