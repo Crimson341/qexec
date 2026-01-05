@@ -60,6 +60,14 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         {
             progress?.Report("Task Cancelled.");
         }
+        catch (HttpRequestException ex) when (ex.InnerException is System.Net.Sockets.SocketException)
+        {
+            _dialogService.ShowMessageBox(
+                "Unable to connect to GitHub.\r\n" +
+                "Please check your internet connection and try again.\r\n\r\n" +
+                "If the problem persists, GitHub may be temporarily unavailable.",
+                "Network Error");
+        }
         catch (Exception ex)
         {
             _dialogService.ShowMessageBox($"Something went wrong when retrieving scripts.\r\nPlease, try again later.\r\n Error: {ex}", "Search Scripts Error");

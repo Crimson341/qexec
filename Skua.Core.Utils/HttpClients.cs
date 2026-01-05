@@ -161,7 +161,7 @@ public static class HttpClients
     /// <returns>Client Type</returns>
     public static HttpClient GetGHClient()
     {
-        return UserGitHubClient is not null ? UserGitHubClient : GitHubClient;
+        return UserGitHubClient ?? GitHubClient;
     }
 }
 
@@ -215,15 +215,24 @@ public static class ValidatedHttpExtensions
                 response.EnsureSuccessStatusCode();
                 return response;
             }
-            catch (HttpRequestException ex) when (attempt < MaxRetries - 1)
+            catch (HttpRequestException ex) when (attempt < MaxRetries - 1 && !cancellationToken.IsCancellationRequested)
             {
                 lastException = ex;
                 await Task.Delay(delayMs, cancellationToken);
                 delayMs *= 2;
             }
-            catch (TaskCanceledException ex) when (attempt < MaxRetries - 1)
+            catch (TaskCanceledException ex) when (attempt < MaxRetries - 1 && !ex.CancellationToken.IsCancellationRequested)
             {
                 lastException = ex;
+                await Task.Delay(delayMs, cancellationToken);
+                delayMs *= 2;
+            }
+            catch (Exception ex)
+            {
+                lastException = ex;
+                if (attempt >= MaxRetries - 1)
+                    break;
+
                 await Task.Delay(delayMs, cancellationToken);
                 delayMs *= 2;
             }
