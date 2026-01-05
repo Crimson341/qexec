@@ -27,45 +27,36 @@ public class ScriptAccounts : IScriptAccounts
 
     public List<string> GetTags(string username)
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        var accounts = GetAccountsDictionary();
         if (accounts == null)
             return new List<string>();
 
-        if (accounts.TryGetValue(username, out var accountData))
-            return accountData.Tags.ToList();
-
-        return new List<string>();
+        return accounts.TryGetValue(username, out var accountData) ? accountData.Tags.ToList() : new List<string>();
     }
 
     public bool HasTag(string tag)
     {
         string? username = Player.Username;
-        if (string.IsNullOrEmpty(username))
-            return false;
-
-        return HasTag(username, tag);
+        return !string.IsNullOrEmpty(username) && HasTag(username, tag);
     }
 
     public bool HasTag(string username, string tag)
     {
-        var tags = GetTags(username);
+        List<string> tags = GetTags(username);
         return tags.Contains(tag, StringComparer.OrdinalIgnoreCase);
     }
 
     public bool AddTag(string tag)
     {
         string? username = Player.Username;
-        if (string.IsNullOrEmpty(username))
-            return false;
-
-        return AddTag(username, tag);
+        return !string.IsNullOrEmpty(username) && AddTag(username, tag);
     }
 
     public bool AddTag(string username, string tag)
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
         if (accounts == null)
-            accounts = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+            return false;
 
         if (!accounts.TryGetValue(username, out var accountData))
             return false;
@@ -81,22 +72,19 @@ public class ScriptAccounts : IScriptAccounts
     public bool RemoveTag(string tag)
     {
         string? username = Player.Username;
-        if (string.IsNullOrEmpty(username))
-            return false;
-
-        return RemoveTag(username, tag);
+        return !string.IsNullOrEmpty(username) && RemoveTag(username, tag);
     }
 
     public bool RemoveTag(string username, string tag)
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
         if (accounts == null)
             return false;
 
         if (!accounts.TryGetValue(username, out var accountData))
             return false;
 
-        var existingTag = accountData.Tags.FirstOrDefault(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
+        string? existingTag = accountData.Tags.FirstOrDefault(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
         if (existingTag == null)
             return false;
 
@@ -116,9 +104,9 @@ public class ScriptAccounts : IScriptAccounts
 
     public bool AddTags(string username, params string[] tags)
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
         if (accounts == null)
-            accounts = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+            return false;
 
         if (!accounts.TryGetValue(username, out var accountData))
             return false;
@@ -150,7 +138,7 @@ public class ScriptAccounts : IScriptAccounts
 
     public bool RemoveTags(string username, params string[] tags)
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        var accounts = GetAccountsDictionary();
         if (accounts == null)
             return false;
 
@@ -185,11 +173,11 @@ public class ScriptAccounts : IScriptAccounts
 
     public bool SetTags(string username, params string[] tags)
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
         if (accounts == null)
-            accounts = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+            return false;
 
-        if (!accounts.TryGetValue(username, out var accountData))
+        if (!accounts.TryGetValue(username, out AccountData? accountData))
             return false;
 
         accountData.Tags = tags.ToList();
@@ -208,11 +196,11 @@ public class ScriptAccounts : IScriptAccounts
 
     public bool ClearTags(string username)
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
         if (accounts == null)
             return false;
 
-        if (!accounts.TryGetValue(username, out var accountData))
+        if (!accounts.TryGetValue(username, out AccountData? accountData))
             return false;
 
         accountData.Tags.Clear();
@@ -222,15 +210,27 @@ public class ScriptAccounts : IScriptAccounts
 
     public List<ManagedAccount> GetAllAccounts()
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
-        if (accounts == null)
-            return new List<ManagedAccount>();
-
-        return accounts.Select(kvp => new ManagedAccount(
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
+        return accounts == null
+            ? new List<ManagedAccount>()
+            : accounts.Select(kvp => new ManagedAccount(
             kvp.Key,
             kvp.Value.Password,
             kvp.Value.DisplayName,
             kvp.Value.Tags.ToList()
         )).ToList();
+    }
+
+    private Dictionary<string, AccountData>? GetAccountsDictionary()
+    {
+        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        if (accounts == null)
+            return null;
+
+        if (accounts.Comparer == StringComparer.OrdinalIgnoreCase)
+            return accounts;
+
+        var caseInsensitiveDict = new Dictionary<string, AccountData>(accounts, StringComparer.OrdinalIgnoreCase);
+        return caseInsensitiveDict;
     }
 }
