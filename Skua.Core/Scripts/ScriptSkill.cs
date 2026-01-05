@@ -183,13 +183,13 @@ public partial class ScriptSkill : IScriptSkill
 
     public void LoadAdvanced(string className, string mode, bool autoEquip = true)
     {
-        if (Enum.TryParse<ClassUseMode>(mode, ignoreCase: true, out var classMode))
+        if (Enum.TryParse<ClassUseMode>(mode, ignoreCase: true, out ClassUseMode classMode))
         {
             LoadAdvanced(className, autoEquip, classMode);
         }
         else
         {
-            var skill = AdvancedSkillContainer.GetClassModeSkills(className, mode);
+            AdvancedSkill? skill = AdvancedSkillContainer.GetClassModeSkills(className, mode);
             if (skill != null)
             {
                 if (autoEquip)

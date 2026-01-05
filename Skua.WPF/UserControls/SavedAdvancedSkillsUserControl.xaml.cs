@@ -58,7 +58,7 @@ public partial class SavedAdvancedSkillsUserControl : UserControl
     private void CopySelected()
     {
         _clipboard.Clear();
-        foreach (var item in SkillsList.SelectedItems)
+        foreach (object? item in SkillsList.SelectedItems)
         {
             if (item is AdvancedSkill skill)
             {

@@ -56,7 +56,7 @@ public class ConcurrentScriptExecutor : IDisposable
 
     public async Task StopScriptAsync(string scriptId)
     {
-        if (_activeScripts.TryGetValue(scriptId, out var context))
+        if (_activeScripts.TryGetValue(scriptId, out ScriptExecutionContext? context))
         {
             context.Cancel();
             await context.WaitForCompletionAsync();
@@ -66,7 +66,7 @@ public class ConcurrentScriptExecutor : IDisposable
     public IReadOnlyDictionary<string, ScriptExecutionContext> GetActiveScripts()
     {
         var dict = new Dictionary<string, ScriptExecutionContext>();
-        foreach (var kvp in _activeScripts)
+        foreach (KeyValuePair<string, ScriptExecutionContext> kvp in _activeScripts)
         {
             dict.Add(kvp.Key, kvp.Value);
         }
@@ -75,7 +75,7 @@ public class ConcurrentScriptExecutor : IDisposable
 
     public void Dispose()
     {
-        foreach (var kvp in _activeScripts)
+        foreach (KeyValuePair<string, ScriptExecutionContext> kvp in _activeScripts)
         {
             kvp.Value.Cancel();
         }

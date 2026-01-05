@@ -23,7 +23,7 @@ public class TypeDataTemplateSelector : DataTemplateSelector
     {
         foreach (DataTemplate dt in DataTemplates.Where(dt => dt.DataType is Type))
         {
-            var type = (Type)dt.DataType;
+            Type type = (Type)dt.DataType;
             if (item == null)
             {
                 if (!type.IsValueType)

@@ -87,7 +87,7 @@ internal class HotKeys
 
     private static void ToggleLagKiller()
     {
-        var options = Ioc.Default.GetRequiredService<IScriptOption>();
+        IScriptOption options = Ioc.Default.GetRequiredService<IScriptOption>();
         options.LagKiller = !options.LagKiller;
     }
 }

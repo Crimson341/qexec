@@ -50,7 +50,7 @@ public class BaseConverter : IConverter
             }
 
             if (lo)
-                list.Add((byte)(prev * 16 + b));
+                list.Add((byte)((prev * 16) + b));
             else
                 prev = b;
 
@@ -253,7 +253,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -286,7 +286,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -319,7 +319,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -354,7 +354,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -387,7 +387,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -415,7 +415,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -443,7 +443,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -476,7 +476,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -509,7 +509,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -554,7 +554,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -605,7 +605,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -656,7 +656,7 @@ public class BaseConverter : IConverter
 
         if (!(input is string))
         {
-            var ic = input as IConvertible;
+            IConvertible? ic = input as IConvertible;
             if (ic != null)
             {
                 try
@@ -1078,7 +1078,7 @@ public class BaseConverter : IConverter
                             return true;
 
                         case TypeCode.Decimal:
-                            var decBytes = new byte[16];
+                            byte[] decBytes = new byte[16];
                             GetBytes((decimal)input, decBytes);
                             value = decBytes;
                             return true;

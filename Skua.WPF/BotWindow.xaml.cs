@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.ViewModels;
 using System;
+using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
-using System.ComponentModel;
 using System.Windows.Data;
 
 namespace Skua.WPF;
@@ -25,7 +25,7 @@ public partial class BotWindow : CustomWindow
     private void BotWindow_Loaded(object sender, RoutedEventArgs e)
     {
         Loaded -= BotWindow_Loaded;
-        var cvs = FindResource("BotViewsSource") as CollectionViewSource;
+        CollectionViewSource? cvs = FindResource("BotViewsSource") as CollectionViewSource;
         _collectionView = cvs?.View ?? null;
         if (_collectionView is not null)
             _collectionView.Filter = Search;

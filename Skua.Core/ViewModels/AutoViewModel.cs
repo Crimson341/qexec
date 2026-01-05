@@ -67,8 +67,8 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
                 CurrentClassModeStrings = new List<string>();
                 CurrentClassModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedClassString).Select(s => s.ClassUseMode));
 
-                var classModes = _advancedSkills.GetAvailableClassModes();
-                if (classModes.TryGetValue(_selectedClassString, out var modes))
+                Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(_selectedClassString, out List<string>? modes))
                 {
                     CurrentClassModeStrings = new List<string>(modes.OrderBy(x => x));
                 }
@@ -123,7 +123,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         if (string.IsNullOrEmpty(SelectedClassModeString))
             return;
 
-        var skill = _advancedSkills.GetClassModeSkills(_selectedClassString, SelectedClassModeString);
+        AdvancedSkill? skill = _advancedSkills.GetClassModeSkills(_selectedClassString, SelectedClassModeString);
         if (skill != null)
         {
             SelectedClassMode = skill.ClassUseMode;
@@ -141,7 +141,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         int[]? manualMapIDs = null;
         if (!string.IsNullOrWhiteSpace(ManualMapIDs))
         {
-            var mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
+            int[] mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(s => int.TryParse(s.Trim(), out _))
                 .Select(s => int.Parse(s.Trim()))
                 .ToArray();
@@ -177,7 +177,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         int[]? manualMapIDs = null;
         if (!string.IsNullOrWhiteSpace(ManualMapIDs))
         {
-            var mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
+            int[] mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
                 .Where(s => int.TryParse(s.Trim(), out _))
                 .Select(s => int.Parse(s.Trim()))
                 .ToArray();

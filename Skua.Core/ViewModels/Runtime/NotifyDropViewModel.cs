@@ -86,7 +86,7 @@ public sealed partial class NotifyDropViewModel : BotControlViewModelBase
 
     private void ItemDropped(NotifyDropViewModel recipient, ItemDroppedMessage message)
     {
-        foreach (var item in recipient.NotifyDropList.ToList())
+        foreach (string? item in recipient.NotifyDropList.ToList())
         {
             if (item == message.Item.Name)
             {

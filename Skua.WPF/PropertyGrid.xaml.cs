@@ -207,7 +207,7 @@ public partial class PropertyGrid : UserControl
         string resourceKey = string.Format("{0}", parameter);
         if (string.IsNullOrWhiteSpace(resourceKey))
         {
-            var att = PropertyGridOptionsAttribute.FromProperty(property);
+            PropertyGridOptionsAttribute att = PropertyGridOptionsAttribute.FromProperty(property);
             if (att != null)
             {
                 resourceKey = att.EditorResourceKey;
@@ -223,7 +223,7 @@ public partial class PropertyGrid : UserControl
             }
         }
 
-        var editor = TryFindResource(resourceKey) as Window;
+        Window? editor = TryFindResource(resourceKey) as Window;
         if (editor != null)
         {
             editor.Owner = this.GetVisualSelfOrParent<Window>();
@@ -282,7 +282,7 @@ public partial class PropertyGrid : UserControl
                 }
             }
 
-            var pge = editor as IPropertyGridEditor;
+            IPropertyGridEditor? pge = editor as IPropertyGridEditor;
             if (pge != null)
             {
                 if (!pge.SetContext(property, parameter))
@@ -306,7 +306,7 @@ public partial class PropertyGrid : UserControl
         if (property == null)
             throw new ArgumentNullException("property");
 
-        var att = PropertyGridOptionsAttribute.FromProperty(property);
+        PropertyGridOptionsAttribute att = PropertyGridOptionsAttribute.FromProperty(property);
         if (att != null)
             return att.CollectionEditorHasOnlyOneColumn;
 
@@ -337,7 +337,7 @@ public partial class PropertyGrid : UserControl
         if (editor != null)
         {
             bool? ret;
-            var go = property.DataProvider.Data as IPropertyGridObject;
+            IPropertyGridObject? go = property.DataProvider.Data as IPropertyGridObject;
             if (go != null)
             {
                 if (go.TryShowEditor(property, editor, out ret))
@@ -366,12 +366,12 @@ public partial class PropertyGrid : UserControl
 
     protected virtual void OnBrowseCommandExecuted(object sender, ExecutedRoutedEventArgs e)
     {
-        var browse = new RoutedEventArgs(BrowseEvent, e.OriginalSource);
+        RoutedEventArgs browse = new RoutedEventArgs(BrowseEvent, e.OriginalSource);
         RaiseEvent(browse);
         if (browse.Handled)
             return;
 
-        var property = PropertyGridProperty.FromEvent(e);
+        PropertyGridProperty property = PropertyGridProperty.FromEvent(e);
         if (property != null)
         {
             property.Executed(sender, e);
@@ -384,7 +384,7 @@ public partial class PropertyGrid : UserControl
 
     protected virtual void OnGuidCommandExecuted(object sender, ExecutedRoutedEventArgs e)
     {
-        var tb = e.OriginalSource as TextBox;
+        TextBox? tb = e.OriginalSource as TextBox;
         if (tb != null)
         {
             if (NewGuidCommand.Equals(e.Command))
@@ -423,7 +423,7 @@ public partial class PropertyGrid : UserControl
 
     protected virtual void OnGuidCommandCanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        var property = PropertyGridProperty.FromEvent(e);
+        PropertyGridProperty property = PropertyGridProperty.FromEvent(e);
         if (property != null && (property.PropertyType == typeof(Guid) || property.PropertyType == typeof(Guid?)))
         {
             e.CanExecute = true;
@@ -454,7 +454,7 @@ public partial class PropertyGrid : UserControl
 
     private static void IsReadOnlyPropertyChanged(DependencyObject source, DependencyPropertyChangedEventArgs e)
     {
-        var grid = (PropertyGrid)source;
+        PropertyGrid grid = (PropertyGrid)source;
         grid.PropertiesSource.Source = grid.PropertiesSource.Source;
     }
 
@@ -493,10 +493,10 @@ public partial class PropertyGrid : UserControl
 
     private static void SelectedObjectPropertyChanged(DependencyObject source, DependencyPropertyChangedEventArgs e)
     {
-        var grid = (PropertyGrid)source;
+        PropertyGrid grid = (PropertyGrid)source;
 
         // Always try to unsubscribe from old value
-        var oldPc = e.OldValue as INotifyPropertyChanged;
+        INotifyPropertyChanged? oldPc = e.OldValue as INotifyPropertyChanged;
         if (oldPc != null)
         {
             try
@@ -523,7 +523,7 @@ public partial class PropertyGrid : UserControl
         }
 
         // Subscribe to new value
-        var newPc = e.NewValue as INotifyPropertyChanged;
+        INotifyPropertyChanged? newPc = e.NewValue as INotifyPropertyChanged;
         if (newPc != null)
         {
             // Use weak event pattern to prevent leaks
@@ -581,7 +581,7 @@ public partial class PropertyGrid : UserControl
         if (property != null)
         {
             bool forceRaise = false;
-            var options = PropertyGridOptionsAttribute.FromProperty(property);
+            PropertyGridOptionsAttribute options = PropertyGridOptionsAttribute.FromProperty(property);
             if (options != null)
             {
                 forceRaise = options.ForcePropertyChanged;
@@ -594,10 +594,10 @@ public partial class PropertyGrid : UserControl
 
     public virtual void OnToggleButtonIsCheckedChanged(object sender, RoutedEventArgs e)
     {
-        var button = e.OriginalSource as ToggleButton;
+        ToggleButton? button = e.OriginalSource as ToggleButton;
         if (button != null)
         {
-            var item = button.DataContext as PropertyGridItem;
+            PropertyGridItem? item = button.DataContext as PropertyGridItem;
             if (item != null && item.Property != null && item.Property.IsEnum && item.Property.IsFlagsEnum)
             {
                 if (button.IsChecked.HasValue)
@@ -662,10 +662,10 @@ public partial class PropertyGrid : UserControl
     {
         if (e.Key == Key.Space)
         {
-            var item = e.OriginalSource as ListBoxItem;
+            ListBoxItem? item = e.OriginalSource as ListBoxItem;
             if (item != null)
             {
-                var gridItem = item.DataContext as PropertyGridItem;
+                PropertyGridItem? gridItem = item.DataContext as PropertyGridItem;
                 if (gridItem != null)
                 {
                     if (gridItem.IsChecked.HasValue)
@@ -679,8 +679,8 @@ public partial class PropertyGrid : UserControl
 
     protected virtual void OnEditorWindowSaveExecuted(object sender, ExecutedRoutedEventArgs e)
     {
-        var window = (Window)sender;
-        var prop = window.DataContext as PropertyGridProperty;
+        Window window = (Window)sender;
+        PropertyGridProperty? prop = window.DataContext as PropertyGridProperty;
         if (prop != null)
         {
             prop.Executed(sender, e);
@@ -689,8 +689,8 @@ public partial class PropertyGrid : UserControl
 
     protected virtual void OnEditorWindowSaveCanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        var window = (Window)sender;
-        var prop = window.DataContext as PropertyGridProperty;
+        Window window = (Window)sender;
+        PropertyGridProperty? prop = window.DataContext as PropertyGridProperty;
         if (prop != null)
         {
             prop.CanExecute(sender, e);
@@ -702,8 +702,8 @@ public partial class PropertyGrid : UserControl
 
     protected virtual void OnEditorWindowCloseExecuted(object sender, ExecutedRoutedEventArgs e)
     {
-        var window = (Window)sender;
-        var prop = window.DataContext as PropertyGridProperty;
+        Window window = (Window)sender;
+        PropertyGridProperty? prop = window.DataContext as PropertyGridProperty;
         if (prop != null)
         {
             prop.Executed(sender, e);
@@ -715,8 +715,8 @@ public partial class PropertyGrid : UserControl
 
     protected virtual void OnEditorWindowCloseCanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        var window = (Window)sender;
-        var prop = window.DataContext as PropertyGridProperty;
+        Window window = (Window)sender;
+        PropertyGridProperty? prop = window.DataContext as PropertyGridProperty;
         if (prop != null)
         {
             prop.CanExecute(sender, e);
@@ -743,13 +743,13 @@ public partial class PropertyGrid : UserControl
 
         if (e.AddedItems.Count > 0)
         {
-            var obj = sender as FrameworkElement;
+            FrameworkElement? obj = sender as FrameworkElement;
             if (obj != null)
             {
                 var window = obj.GetSelfOrParent<Window>();
                 if (window != null)
                 {
-                    var pg = LogicalTreeHelper.FindLogicalNode(window, childPropertyGridName) as PropertyGrid;
+                    PropertyGrid? pg = LogicalTreeHelper.FindLogicalNode(window, childPropertyGridName) as PropertyGrid;
                     if (pg != null)
                     {
                         if (parentGrid != null)

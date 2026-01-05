@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
+using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.Auras;
-using Skua.Core.Flash;
 
 namespace Skua.Core.Scripts;
 

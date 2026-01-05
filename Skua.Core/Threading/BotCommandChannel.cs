@@ -87,13 +87,13 @@ public class BotCommandChannel : IDisposable
     {
         try
         {
-            await foreach (var request in _commandChannel.Reader.ReadAllAsync(ct))
+            await foreach (BotCommandRequest request in _commandChannel.Reader.ReadAllAsync(ct))
             {
-                if (_handlers.TryGetValue(request.CommandName, out var handler))
+                if (_handlers.TryGetValue(request.CommandName, out IBotCommandHandler? handler))
                 {
                     try
                     {
-                        var result = await handler.HandleAsync(request.CommandData, ct).ConfigureAwait(false);
+                        object? result = await handler.HandleAsync(request.CommandData, ct).ConfigureAwait(false);
                         request.ResponseTask.SetResult(new()
                         {
                             CommandId = request.CommandId,

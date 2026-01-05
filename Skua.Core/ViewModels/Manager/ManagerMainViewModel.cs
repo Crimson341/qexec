@@ -62,7 +62,7 @@ public partial class ManagerMainViewModel : ObservableRecipient
         get { return _selectedTab; }
         set
         {
-            var lastTab = _selectedTab.Content;
+            ObservableObject lastTab = _selectedTab.Content;
             if (SetProperty(ref _selectedTab, value))
             {
                 if (lastTab is ObservableRecipient previous)

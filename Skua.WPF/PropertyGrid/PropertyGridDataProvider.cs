@@ -200,7 +200,7 @@ public class PropertyGridDataProvider : IListSource
     protected virtual void ScanProperties()
     {
         Properties.Clear();
-        var props = new List<PropertyGridProperty>();
+        List<PropertyGridProperty> props = new List<PropertyGridProperty>();
         foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(Data))
         {
             if (!descriptor.IsBrowsable)
@@ -213,7 +213,7 @@ public class PropertyGridDataProvider : IListSource
             }
         }
 
-        var pga = Data as IPropertyGridObject;
+        IPropertyGridObject? pga = Data as IPropertyGridObject;
         if (pga != null)
         {
             pga.FinalizeProperties(this, props);

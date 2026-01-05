@@ -101,7 +101,7 @@ public partial class ClientUpdatesViewModel : BotControlViewModelBase
                 Latest = latest;
 
             Releases.Clear();
-            foreach (var release in _updateService.Releases)
+            foreach (UpdateInfo release in _updateService.Releases)
             {
                 if (checkPrereleases || !release.Prerelease)
                     Releases.Add(new(release));
@@ -145,7 +145,7 @@ public partial class ClientUpdatesViewModel : BotControlViewModelBase
     public async Task ResetScripts(CancellationToken token)
     {
         IsBusy = true;
-        var skuaPath = ClientFileSources.SkuaScriptsDIR;
+        string skuaPath = ClientFileSources.SkuaScriptsDIR;
         if (Directory.Exists(skuaPath))
             Directory.Delete(skuaPath, true);
 

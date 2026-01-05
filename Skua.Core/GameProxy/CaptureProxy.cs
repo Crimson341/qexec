@@ -145,7 +145,7 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
 
                     MessageInfo message = new(Encoding.UTF8.GetString(data, 0, data.Length));
                     if (interceptors != null)
-                        foreach (var interceptor in interceptors)
+                        foreach (IInterceptor interceptor in interceptors)
                             interceptor.Intercept(message, outbound);
 
                     if (message.Send)

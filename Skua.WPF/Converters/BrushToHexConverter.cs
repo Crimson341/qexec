@@ -11,8 +11,8 @@ public class BrushToHexConverter : IValueConverter
     {
         if (value is null) return null;
         string lowerHexString(int i) => i.ToString("X2").ToLower();
-        var brush = (SolidColorBrush)value;
-        var hex = lowerHexString(brush.Color.R) +
+        SolidColorBrush brush = (SolidColorBrush)value;
+        string hex = lowerHexString(brush.Color.R) +
                   lowerHexString(brush.Color.G) +
                   lowerHexString(brush.Color.B);
         return "#" + hex;

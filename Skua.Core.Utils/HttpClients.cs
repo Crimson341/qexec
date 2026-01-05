@@ -116,7 +116,7 @@ public static class HttpClients
 
             if (response.Headers.TryGetValues("X-RateLimit-Remaining", out var remainingValues))
             {
-                if (int.TryParse(remainingValues.FirstOrDefault(), out var remaining) && remaining < 10)
+                if (int.TryParse(remainingValues.FirstOrDefault(), out int remaining) && remaining < 10)
                 {
                     await Task.Delay(TimeSpan.FromSeconds(1));
                 }
@@ -195,7 +195,7 @@ public static class ValidatedHttpExtensions
     public static async Task<string> GetStringAsync(this HttpClient client, string requestUri)
     {
         using var response = await GetAsync(client, requestUri);
-        var content = await response.Content.ReadAsStringAsync();
+        string content = await response.Content.ReadAsStringAsync();
         return string.IsNullOrWhiteSpace(content) ? throw new InvalidDataException("Response content is empty or null") : content;
     }
 

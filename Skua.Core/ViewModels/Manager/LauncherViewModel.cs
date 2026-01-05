@@ -35,7 +35,7 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
 
     private async void TerminateProcesses(LauncherViewModel recipient, UpdateStartedMessage message)
     {
-        foreach (var procInfo in recipient.SkuaProcesses.ToList())
+        foreach (ProcessInfo? procInfo in recipient.SkuaProcesses.ToList())
         {
             await StopProcess(procInfo);
         }
@@ -82,7 +82,7 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
             }
             catch
             {
-                var dialogService = Ioc.Default.GetService<IDialogService>()!;
+                IDialogService dialogService = Ioc.Default.GetService<IDialogService>()!;
 
                 dialogService.ShowMessageBox("Failed to launch Skua. Make sure Skua.exe is in the same folder as Skua.Manager.exe.", "Error");
             }
@@ -93,7 +93,7 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
     {
         Task.Factory.StartNew(() =>
         {
-            foreach (var procInfo in SkuaProcesses)
+            foreach (ProcessInfo procInfo in SkuaProcesses)
             {
                 procInfo.Process.Kill();
                 _dispatcherService.Invoke(() => SkuaProcesses.Remove(procInfo));
@@ -103,7 +103,7 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
 
     private void RemoveStoppedCurrentProcess(Object source, System.Timers.ElapsedEventArgs e)
     {
-        foreach (var procInfo in SkuaProcesses.ToList())
+        foreach (ProcessInfo? procInfo in SkuaProcesses.ToList())
         {
             if (procInfo.HasExited)
             {
@@ -154,7 +154,7 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
                 StrongReferenceMessenger.Default.Unregister<AddProcessMessage>(this);
 
                 // Clear and kill any remaining processes
-                foreach (var procInfo in SkuaProcesses)
+                foreach (ProcessInfo procInfo in SkuaProcesses)
                 {
                     try
                     {

@@ -112,7 +112,7 @@ public sealed partial class App : Application
                     
                     int missingAfter = getScripts.Missing;
                     int outdatedAfter = getScripts.Outdated;
-                    int actuallyDownloaded = (missingBefore - missingAfter) + (outdatedBefore - outdatedAfter);
+                    int actuallyDownloaded = missingBefore - missingAfter + (outdatedBefore - outdatedAfter);
                     
                     if (actuallyDownloaded > 0)
                     {

@@ -127,7 +127,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         // TODO manage ids for sync in the future
 
         _syncThemes = _settingsService.Get("syncTheme", false);
-        foreach (var acc in Accounts.Where(a => a.UseCheck))
+        foreach (AccountItemViewModel? acc in Accounts.Where(a => a.UseCheck))
         {
             _LaunchAcc(acc.Username, acc.Password, acc.DisplayName);
             await Task.Delay(1000);
@@ -138,7 +138,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     public async Task StartAllAccounts()
     {
         _syncThemes = _settingsService.Get("syncTheme", false);
-        foreach (var acc in Accounts)
+        foreach (AccountItemViewModel acc in Accounts)
         {
             _LaunchAcc(acc.Username, acc.Password, acc.DisplayName);
             await Task.Delay(1000);
@@ -148,7 +148,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     [RelayCommand]
     public async Task RemoveAccounts()
     {
-        foreach (var acc in Accounts.Where(a => a.UseCheck).ToList())
+        foreach (AccountItemViewModel? acc in Accounts.Where(a => a.UseCheck).ToList())
             _RemoveAccount(acc);
 
         _SaveAccounts();
@@ -157,13 +157,13 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     [RelayCommand]
     public void OpenGetScripts()
     {
-        var services = Ioc.Default.GetService<IServiceProvider>();
+        IServiceProvider? services = Ioc.Default.GetService<IServiceProvider>();
         if (services != null)
         {
             ManagedWindows.RegisterForManager(services);
         }
 
-        var windowService = Ioc.Default.GetService<IWindowService>();
+        IWindowService? windowService = Ioc.Default.GetService<IWindowService>();
         if (windowService != null)
         {
             windowService.ShowManagedWindow("Script Repo");
@@ -181,7 +181,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     private void _SaveAccounts()
     {
         var accs = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
-        foreach (var account in Accounts)
+        foreach (AccountItemViewModel account in Accounts)
         {
             accs[account.Username] = new AccountData
             {
@@ -241,11 +241,11 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     private void _GetSavedAccounts()
     {
         Accounts.Clear();
-        var accs = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        Dictionary<string, AccountData>? accs = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
         if (accs is null)
             return;
 
-        foreach (var kvp in accs)
+        foreach (KeyValuePair<string, AccountData> kvp in accs)
         {
             var accountVm = new AccountItemViewModel()
             {
@@ -253,7 +253,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
                 DisplayName = kvp.Value.DisplayName,
                 Password = kvp.Value.Password
             };
-            foreach (var tag in kvp.Value.Tags)
+            foreach (string tag in kvp.Value.Tags)
                 accountVm.Tags.Add(tag);
             Accounts.Add(accountVm);
         }
@@ -266,7 +266,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
             string response = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GetGHClient()
 , $"http://content.aq.com/game/api/data/servers");
 
-            var servers = JsonConvert.DeserializeObject<List<Server>>(response);
+            List<Server>? servers = JsonConvert.DeserializeObject<List<Server>>(response);
             if (servers == null || !servers.Any())
                 return;
 

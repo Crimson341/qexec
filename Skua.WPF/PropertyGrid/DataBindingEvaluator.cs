@@ -191,7 +191,7 @@ public static class DataBindingEvaluator
 
         string propName = null;
         object index = null;
-        string s = expression.Substring(idx1 + 1, (idx2 - idx1) - 1).Trim();
+        string s = expression.Substring(idx1 + 1, idx2 - idx1 - 1).Trim();
         if (idx1 != 0)
         {
             propName = expression.Substring(0, idx1);
@@ -242,7 +242,7 @@ public static class DataBindingEvaluator
         if (propertyValue == null)
             return null;
 
-        var array = propertyValue as Array;
+        Array? array = propertyValue as Array;
         if (array != null && numberIndex)
             return array.GetValue((int)index);
 

@@ -17,7 +17,7 @@ public partial class OptionContainerUserControl : UserControl
 
     private void DataGrid_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
     {
-        var dep = (DependencyObject)e.OriginalSource;
+        DependencyObject? dep = (DependencyObject)e.OriginalSource;
         while (dep is not null and not DataGridCell)
         {
             dep = VisualTreeHelper.GetParent(dep);

@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using System.Collections.ObjectModel;
 using Skua.Core.Skills;
+using System.Collections.ObjectModel;
 
 namespace Skua.Core.ViewModels;
 
@@ -30,7 +30,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
         PartyMemberHealthIsPercentage = rules.PartyMemberHealthIsPercentage;
         MultiAuraBool = rules.MultiAuraBool;
         MultiAuraOperatorIndex = rules.MultiAuraOperatorIndex;
-        foreach (var check in rules.MultiAuraChecks)
+        foreach (AuraCheckViewModel check in rules.MultiAuraChecks)
         {
             MultiAuraChecks.Add(new AuraCheckViewModel(check));
         }
@@ -152,7 +152,7 @@ public partial class SkillRulesViewModel : ObservableRecipient
         if (MultiAuraChecks.Count > 0 && MultiAuraBool)
         {
             List<AuraCheck> auraChecks = new();
-            foreach (var check in MultiAuraChecks)
+            foreach (AuraCheckViewModel check in MultiAuraChecks)
             {
                 auraChecks.Add(check.ToAuraCheck());
             }

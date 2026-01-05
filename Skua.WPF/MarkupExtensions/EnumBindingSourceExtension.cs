@@ -18,7 +18,7 @@ public class EnumBindingSourceExtension : MarkupExtension
 
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
-        var names = Enum.GetNames(EnumType);
+        string[] names = Enum.GetNames(EnumType);
         return names.Select(n => n.ToString().Replace('_', ' '));
     }
 }

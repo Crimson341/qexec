@@ -30,7 +30,7 @@ public partial class App : Application
         currentDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssemblies);
         currentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-        var args = Environment.GetCommandLineArgs();
+        string[] args = Environment.GetCommandLineArgs();
 
         for (int i = 0; i < args.Length; i++)
         {

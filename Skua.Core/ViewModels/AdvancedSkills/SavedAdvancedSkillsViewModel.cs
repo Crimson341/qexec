@@ -71,8 +71,8 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     private void LoadAvailableClasses()
     {
         AvailableClasses.Clear();
-        var classModeDictionary = _advancedSkillContainer.GetAvailableClassModes();
-        foreach (var className in classModeDictionary.Keys.OrderBy(x => x))
+        Dictionary<string, List<string>> classModeDictionary = _advancedSkillContainer.GetAvailableClassModes();
+        foreach (string? className in classModeDictionary.Keys.OrderBy(x => x))
         {
             AvailableClasses.Add(className);
         }
@@ -104,7 +104,7 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
         if (string.IsNullOrEmpty(SelectedClassName) || string.IsNullOrEmpty(SelectedMode))
             return;
 
-        var skill = _advancedSkillContainer.GetClassModeSkills(SelectedClassName, SelectedMode);
+        AdvancedSkill? skill = _advancedSkillContainer.GetClassModeSkills(SelectedClassName, SelectedMode);
         if (skill != null)
         {
             SelectedSkill = skill;

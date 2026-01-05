@@ -127,7 +127,7 @@ public class ScriptKill : IScriptKill
             {
                 while (!Manager.ShouldExit && !_ctsKill.IsCancellationRequested)
                 {
-                    foreach (var mon in Monsters.CurrentAvailableMonsters)
+                    foreach (Monster mon in Monsters.CurrentAvailableMonsters)
                     {
                         if (_ctsKill.IsCancellationRequested)
                             break;

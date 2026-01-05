@@ -20,7 +20,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     public DynamicObjectProperty(PropertyDescriptor descriptor)
         : base(descriptor)
     {
-        var atts = new List<Attribute>();
+        List<Attribute> atts = new List<Attribute>();
         foreach (Attribute att in descriptor.Attributes)
         {
             atts.Add(att);
@@ -151,7 +151,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// </returns>
     public override object GetValue(object component)
     {
-        var obj = component as DynamicObject;
+        DynamicObject? obj = component as DynamicObject;
         if (obj != null)
             return obj.GetPropertyValue(Name, _defaultValue);
 
@@ -206,7 +206,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     /// <param name="value">The new value.</param>
     public override void SetValue(object component, object value)
     {
-        var obj = component as DynamicObject;
+        DynamicObject? obj = component as DynamicObject;
         if (obj != null)
         {
             obj.SetPropertyValue(Name, value);

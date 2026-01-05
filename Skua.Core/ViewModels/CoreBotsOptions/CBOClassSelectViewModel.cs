@@ -59,8 +59,8 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     SoloUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
                 }
 
-                var classModes = _advancedSkills.GetAvailableClassModes();
-                if (classModes.TryGetValue(classToUse, out var modes))
+                Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out List<string>? modes))
                 {
                     SoloModeStrings.AddRange(modes.OrderBy(x => x));
                 }
@@ -140,8 +140,8 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     FarmUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
                 }
 
-                var classModes = _advancedSkills.GetAvailableClassModes();
-                if (classModes.TryGetValue(classToUse, out var modes))
+                Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out List<string>? modes))
                 {
                     FarmModeStrings.AddRange(modes.OrderBy(x => x));
                 }
@@ -221,8 +221,8 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     DodgeUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
                 }
 
-                var classModes = _advancedSkills.GetAvailableClassModes();
-                if (classModes.TryGetValue(classToUse, out var modes))
+                Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out List<string>? modes))
                 {
                     DodgeModeStrings.AddRange(modes.OrderBy(x => x));
                 }
@@ -302,8 +302,8 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     BossUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
                 }
 
-                var classModes = _advancedSkills.GetAvailableClassModes();
-                if (classModes.TryGetValue(classToUse, out var modes))
+                Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
+                if (classModes.TryGetValue(classToUse, out List<string>? modes))
                 {
                     BossModeStrings.AddRange(modes.OrderBy(x => x));
                 }

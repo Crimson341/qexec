@@ -48,7 +48,7 @@ public class HotKeyService : IHotKeyService, IDisposable
             if (string.IsNullOrEmpty(hk))
                 continue;
 
-            var split = hk.Split('|');
+            string[] split = hk.Split('|');
             if (_hotKeys.ContainsKey(split[0]))
             {
                 if (split.Length < 2 || string.IsNullOrWhiteSpace(split[1]))
@@ -92,7 +92,7 @@ public class HotKeyService : IHotKeyService, IDisposable
         {
             if (string.IsNullOrEmpty(hk))
                 continue;
-            var split = hk.Split('|');
+            string[] split = hk.Split('|');
             string gesture = split.Length > 1 ? split[1] : string.Empty;
             parsed.Add(new() { Binding = split[0], Title = _decamelizer.Decamelize(split[0], null), KeyGesture = gesture });
         }
@@ -147,14 +147,14 @@ public class HotKeyService : IHotKeyService, IDisposable
         {
             if (string.IsNullOrWhiteSpace(hk))
                 continue;
-            var split = hk.Split('|');
+            string[] split = hk.Split('|');
             if (split.Length > 0 && !string.IsNullOrWhiteSpace(split[0]))
                 existing.Add(split[0]);
             if (split.Length > 1 && !string.IsNullOrWhiteSpace(split[1]))
                 usedGestures.Add(split[1]);
         }
 
-        foreach (var key in _hotKeys.Keys)
+        foreach (string key in _hotKeys.Keys)
         {
             if (existing.Contains(key))
                 continue;

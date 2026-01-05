@@ -356,7 +356,7 @@ internal class Grabber
 
     private static async Task SellItem(IList<object>? i, IProgress<string> p, CancellationToken t)
     {
-        var dialogService = Ioc.Default.GetService<IDialogService>()!;
+        IDialogService dialogService = Ioc.Default.GetService<IDialogService>()!;
         if (i is null || i.Count == 0)
         {
             p.Report("No items found/selected.");
@@ -375,7 +375,7 @@ internal class Grabber
             return;
         }
         p.Report($"Selling {item.Name}, input quantity...");
-        var shop = Ioc.Default.GetService<IScriptShop>()!;
+        IScriptShop shop = Ioc.Default.GetService<IScriptShop>()!;
         try
         {
             InputDialogViewModel dialog = new($"Selling {item.Name}", $"Sell quantity (Currently has: {(item.Category == ItemCategory.Class ? 1 : item.Quantity)})");

@@ -156,7 +156,7 @@ public class ItemBase
 
     public override string ToString()
     {
-        var tag = string.Empty;
+        string tag = string.Empty;
 
         tag += Coins ? "AC " : string.Empty;
         tag += Upgrade ? "Member" : string.Empty;

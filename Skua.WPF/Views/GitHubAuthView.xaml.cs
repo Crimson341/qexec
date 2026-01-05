@@ -15,7 +15,7 @@ public partial class GitHubAuthView : UserControl
 
     private void Button_Click(object sender, RoutedEventArgs e)
     {
-        var window = Window.GetWindow(this);
+        Window window = Window.GetWindow(this);
         window.DialogResult = false;
         window.Close();
     }

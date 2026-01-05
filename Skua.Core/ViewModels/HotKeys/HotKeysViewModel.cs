@@ -25,7 +25,7 @@ public partial class HotKeysViewModel : BotControlViewModelBase, IManagedWindow
     protected override void OnActivated()
     {
         StrongReferenceMessenger.Default.Register<HotKeysViewModel, EditHotKeyMessage>(this, EditHotKey);
-        foreach (var hk in HotKeys)
+        foreach (HotKeyItemViewModel hk in HotKeys)
             StrongReferenceMessenger.Default.Register<HotKeyItemViewModel, HotKeyErrorMessage>(hk, HandleError);
     }
 
@@ -39,7 +39,7 @@ public partial class HotKeysViewModel : BotControlViewModelBase, IManagedWindow
     {
         base.OnDeactivated();
         StrongReferenceMessenger.Default.UnregisterAll(this);
-        foreach (var hk in HotKeys)
+        foreach (HotKeyItemViewModel hk in HotKeys)
             StrongReferenceMessenger.Default.UnregisterAll(hk);
     }
 
@@ -48,7 +48,7 @@ public partial class HotKeysViewModel : BotControlViewModelBase, IManagedWindow
     private void Save()
     {
         StringCollection hotkeys = new();
-        foreach (var hk in HotKeys)
+        foreach (HotKeyItemViewModel hk in HotKeys)
             hotkeys.Add($"{hk.Binding}|{hk.KeyGesture}");
 
         _settingsService.Set("HotKeys", hotkeys);
@@ -60,7 +60,7 @@ public partial class HotKeysViewModel : BotControlViewModelBase, IManagedWindow
         AssignHotKeyDialogViewModel diag = hotKey is null ? new(message.Title) : new(message.Title, hotKey);
         if (recipient._dialogService.ShowDialog(diag) == true)
         {
-            var hk = recipient.HotKeys.Find(hk => hk.Title == message.Title);
+            HotKeyItemViewModel? hk = recipient.HotKeys.Find(hk => hk.Title == message.Title);
             if (hk != null)
             {
                 hk.KeyGesture = diag.KeyGesture;

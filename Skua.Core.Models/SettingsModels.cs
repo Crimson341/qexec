@@ -23,7 +23,7 @@ public class AccountDataDictionaryJsonConverter : JsonConverter<Dictionary<strin
 
     public override Dictionary<string, AccountData> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var dictionary = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, AccountData> dictionary = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
 
         if (reader.TokenType == JsonTokenType.StartObject)
         {
@@ -94,7 +94,7 @@ public class StringCollectionJsonConverter : JsonConverter<System.Collections.Sp
 {
     public override System.Collections.Specialized.StringCollection Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        var collection = new System.Collections.Specialized.StringCollection();
+        StringCollection collection = new System.Collections.Specialized.StringCollection();
         if (reader.TokenType == JsonTokenType.StartArray)
         {
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
@@ -320,7 +320,7 @@ public class SettingsRoot
 
     public static SettingsRoot CreateDefaults()
     {
-        var root = new SettingsRoot
+        SettingsRoot root = new SettingsRoot
         {
             FormatVersion = 1,
             Shared = new SharedSettings(),

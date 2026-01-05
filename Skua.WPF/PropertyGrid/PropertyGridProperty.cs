@@ -35,7 +35,7 @@ public class PropertyGridProperty : AutoObject, IComparable, IComparable<Propert
 
     public virtual void CanExecute(object sender, CanExecuteRoutedEventArgs e)
     {
-        var handler = Value as IPropertyGridCommandHandler;
+        IPropertyGridCommandHandler? handler = Value as IPropertyGridCommandHandler;
         if (handler != null)
         {
             handler.CanExecute(this, sender, e);
@@ -44,7 +44,7 @@ public class PropertyGridProperty : AutoObject, IComparable, IComparable<Propert
 
     public virtual void Executed(object sender, ExecutedRoutedEventArgs e)
     {
-        var handler = Value as IPropertyGridCommandHandler;
+        IPropertyGridCommandHandler? handler = Value as IPropertyGridCommandHandler;
         if (handler != null)
         {
             handler.Executed(this, sender, e);
@@ -107,7 +107,7 @@ public class PropertyGridProperty : AutoObject, IComparable, IComparable<Propert
         if (e == null)
             return null;
 
-        var fe = e.OriginalSource as FrameworkElement;
+        FrameworkElement? fe = e.OriginalSource as FrameworkElement;
         if (fe == null)
             return null;
 
@@ -244,7 +244,7 @@ public class PropertyGridProperty : AutoObject, IComparable, IComparable<Propert
     {
         get
         {
-            var enumerable = Value as IEnumerable;
+            IEnumerable? enumerable = Value as IEnumerable;
             if (enumerable != null)
                 return enumerable.Cast<object>().Count();
 
@@ -367,7 +367,7 @@ public class PropertyGridProperty : AutoObject, IComparable, IComparable<Propert
         if (_valueCloned && !refresh)
             return;
 
-        var c = Value as ICloneable;
+        ICloneable? c = Value as ICloneable;
         _clonedValue = c != null ? c.Clone() : Value;
         _valueCloned = true;
     }

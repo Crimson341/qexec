@@ -40,7 +40,7 @@ public class ConcurrentLoggingService : IDisposable
             {
                 await _queueSemaphore.WaitAsync(ct);
 
-                while (_logQueue.TryDequeue(out var entry))
+                while (_logQueue.TryDequeue(out LogEntry? entry))
                 {
                     try
                     {

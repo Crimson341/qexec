@@ -30,12 +30,12 @@ public class ConcurrentEventHandler<TEventArgs> : IDisposable where TEventArgs :
     {
         while (!ct.IsCancellationRequested)
         {
-            while (_eventQueue.TryDequeue(out var eventData))
+            while (_eventQueue.TryDequeue(out (object? sender, TEventArgs args) eventData))
             {
-                var (sender, args) = eventData;
+                (object? sender, TEventArgs? args) = eventData;
                 await Task.Run(() =>
                 {
-                    foreach (var handler in _handlers)
+                    foreach (Delegate handler in _handlers)
                     {
                         try
                         {
@@ -92,7 +92,7 @@ public class ConcurrentEventAggregator : IDisposable
 
     public void PublishEvent<TEventArgs>(string eventName, object? sender, TEventArgs args) where TEventArgs : EventArgs
     {
-        if (_eventHandlers.TryGetValue(eventName, out var handler) && handler is EventHandler<TEventArgs> typedHandler)
+        if (_eventHandlers.TryGetValue(eventName, out object? handler) && handler is EventHandler<TEventArgs> typedHandler)
         {
             Task.Run(() =>
             {

@@ -36,7 +36,7 @@ public class TimeLimiter
     private void CleanupOldEntries()
     {
         int currentTick = Environment.TickCount;
-        var keysToRemove = new List<string>();
+        List<string> keysToRemove = new List<string>();
 
         foreach (var kvp in _last)
         {

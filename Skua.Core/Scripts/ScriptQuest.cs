@@ -99,7 +99,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
             CachedDictionary.Clear();
             if (value != null)
             {
-                foreach (var quest in value)
+                foreach (QuestData quest in value)
                     CachedDictionary[quest.ID] = quest;
             }
         }
@@ -324,7 +324,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         lock (_registeredLock)
         {
             // Register quests immediately (without requirements)
-            foreach (var (questId, rewardId) in quests)
+            foreach ((int questId, int rewardId) in quests)
             {
                 if (!_registered.Items.Contains(questId))
                 {
@@ -351,12 +351,12 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
         _loadQuestsCTS?.Cancel();
         _loadQuestsCTS?.Dispose();
         _loadQuestsCTS = new CancellationTokenSource();
-        var token = _loadQuestsCTS.Token;
+        CancellationToken token = _loadQuestsCTS.Token;
         
         // Load quest data and add requirements in background
         Task.Run(() =>
         {
-            foreach (var (questId, rewardId) in quests)
+            foreach ((int questId, int rewardId) in quests)
             {
                 if (token.IsCancellationRequested)
                     return;
@@ -474,9 +474,9 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 var staleComplete = _questCompleteCooldowns.Keys.Where(k => !registeredSet.Contains(k)).ToList();
                 var staleAccept = _questAcceptCooldowns.Keys.Where(k => !registeredSet.Contains(k)).ToList();
                 
-                foreach (var key in staleComplete)
+                foreach (int key in staleComplete)
                     _questCompleteCooldowns.Remove(key);
-                foreach (var key in staleAccept)
+                foreach (int key in staleAccept)
                     _questAcceptCooldowns.Remove(key);
             }
         }
@@ -575,7 +575,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 return;
 
             string skuaQuestFile = File.ReadAllText(ClientFileSources.SkuaQuestsFile);
-            var questList = JsonConvert.DeserializeObject<List<QuestData>>(skuaQuestFile);
+            List<QuestData>? questList = JsonConvert.DeserializeObject<List<QuestData>>(skuaQuestFile);
             if (questList != null)
             {
                 CachedDictionary = questList.ToDictionary(x => x.ID, x => x);

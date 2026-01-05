@@ -18,10 +18,10 @@ public partial class CBOClassSelectUserControl : UserControl
     {
         if (DataContext is CBOClassSelectViewModel vm)
         {
-            var soloClass = vm.SelectedSoloClass;
-            var farmClass = vm.SelectedFarmClass;
-            var dodgeClass = vm.SelectedDodgeClass;
-            var bossClass = vm.SelectedBossClass;
+            string? soloClass = vm.SelectedSoloClass;
+            string? farmClass = vm.SelectedFarmClass;
+            string? dodgeClass = vm.SelectedDodgeClass;
+            string? bossClass = vm.SelectedBossClass;
             vm.ReloadClassesCommand.Execute(null);
             vm.SelectedSoloClass = soloClass;
             vm.SelectedFarmClass = farmClass;

@@ -76,7 +76,7 @@ public class GameStateChannel : IDisposable
     {
         try
         {
-            await foreach (var stateChange in _stateChannel.Reader.ReadAllAsync(ct))
+            await foreach (GameStateChange stateChange in _stateChannel.Reader.ReadAllAsync(ct))
             {
                 try
                 {

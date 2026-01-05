@@ -1,15 +1,15 @@
-﻿using System;
+﻿using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Skua.Core.Generators.Extensions;
+using Skua.Core.Generators.Models;
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Skua.Core.Generators.Extensions;
-using Skua.Core.Generators.Models;
 using static Skua.Core.Generators.Diagnostics.DiagnosticDescriptors;
 
 namespace Skua.Core.Generators;

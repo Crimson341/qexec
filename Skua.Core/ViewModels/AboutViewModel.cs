@@ -1,7 +1,7 @@
 using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Utils;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 using System.Diagnostics;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.ViewModels;
 

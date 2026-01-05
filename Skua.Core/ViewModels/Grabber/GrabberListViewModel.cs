@@ -103,7 +103,7 @@ public partial class GrabberListViewModel : ObservableRecipient
 
     protected override void OnActivated()
     {
-        foreach (var task in GrabberCommands)
+        foreach (GrabberTaskViewModel task in GrabberCommands)
             task.IsActive = true;
 
         Messenger.Register<GrabberListViewModel, PropertyChangedMessage<bool>>(this, IsBusyChanged);
@@ -112,7 +112,7 @@ public partial class GrabberListViewModel : ObservableRecipient
 
     protected override void OnDeactivated()
     {
-        foreach (var task in GrabberCommands)
+        foreach (GrabberTaskViewModel task in GrabberCommands)
             task.IsActive = false;
 
         base.OnDeactivated();

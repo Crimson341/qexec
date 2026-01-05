@@ -4,9 +4,9 @@ using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 using System.Diagnostics;
 using System.IO.Compression;
+using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.Services;
 

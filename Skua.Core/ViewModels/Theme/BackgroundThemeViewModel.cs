@@ -47,14 +47,14 @@ public class BackgroundThemeViewModel : ObservableObject
 
     private async Task BrowseBackgroundAsync()
     {
-        var selectedFilePath = _fileDialogService.OpenFile(
+        string? selectedFilePath = _fileDialogService.OpenFile(
             ClientFileSources.SkuaThemesDIR,
             "SWF files (*.swf)|*.swf|All files (*.*)|*.*");
 
         if (!string.IsNullOrEmpty(selectedFilePath))
         {
-            var fileName = Path.GetFileName(selectedFilePath);
-            var destinationPath = Path.Combine(ClientFileSources.SkuaThemesDIR, fileName);
+            string fileName = Path.GetFileName(selectedFilePath);
+            string destinationPath = Path.Combine(ClientFileSources.SkuaThemesDIR, fileName);
 
             if (selectedFilePath != destinationPath)
             {

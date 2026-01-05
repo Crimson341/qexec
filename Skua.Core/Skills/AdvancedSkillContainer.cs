@@ -127,13 +127,13 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             if (_jsonConfig == null)
                 return;
 
-            foreach (var classEntry in _jsonConfig)
+            foreach (KeyValuePair<string, Dictionary<string, SkillModeJson>> classEntry in _jsonConfig)
             {
                 string className = classEntry.Key;
-                foreach (var modeEntry in classEntry.Value)
+                foreach (KeyValuePair<string, SkillModeJson> modeEntry in classEntry.Value)
                 {
                     string classUseMode = modeEntry.Key;
-                    var skillMode = modeEntry.Value;
+                    SkillModeJson skillMode = modeEntry.Value;
 
                     string skillsStr = ConvertSkillsToString(skillMode.Skills);
 
@@ -153,9 +153,9 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     private string ConvertSkillsToString(List<AdvancedSkillJson> skills)
     {
         var parts = new List<string>();
-        foreach (var skill in skills)
+        foreach (AdvancedSkillJson skill in skills)
         {
-            var skillStr = skill.SkillId.ToString();
+            string skillStr = skill.SkillId.ToString();
             if (skill.Rules?.Count > 0)
             {
                 skillStr += " " + ConvertRulesToString(skill.Rules, skill.MultiAura, skill.MultiAuraOperator);
@@ -172,11 +172,11 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     private string ConvertRulesToString(List<SkillRuleJson> rules, bool isMultiAura, string? multiAuraOperator)
     {
         var ruleParts = new List<string>();
-        var multiAuraRules = isMultiAura ? rules.Where(r => r.Type == "MultiAura").ToList() : new List<SkillRuleJson>();
-        var singleAuraRules = !isMultiAura ? rules.Where(r => r.Type == "Aura").ToList() : new List<SkillRuleJson>();
+        List<SkillRuleJson> multiAuraRules = isMultiAura ? rules.Where(r => r.Type == "MultiAura").ToList() : new List<SkillRuleJson>();
+        List<SkillRuleJson> singleAuraRules = !isMultiAura ? rules.Where(r => r.Type == "Aura").ToList() : new List<SkillRuleJson>();
         var otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura" && r.Type != "Skip").ToList();
 
-        foreach (var rule in otherRules)
+        foreach (SkillRuleJson? rule in otherRules)
         {
             string percentIndicator = (rule.IsPercentage ?? true) ? "%" : "#";
             switch (rule.Type)
@@ -213,7 +213,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
             for (int i = 0; i < multiAuraRules.Count; i++)
             {
-                var rule = multiAuraRules[i];
+                SkillRuleJson rule = multiAuraRules[i];
                 string suffix = i < multiAuraRules.Count - 1 ? opChar : "";
                 ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{suffix}");
             }
@@ -222,14 +222,14 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         {
             for (int i = 0; i < singleAuraRules.Count; i++)
             {
-                var rule = singleAuraRules[i];
+                SkillRuleJson rule = singleAuraRules[i];
                 string suffix = i < singleAuraRules.Count - 1 ? "&" : "";
                 ruleParts.Add($"MA{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}{suffix}");
             }
         }
         else if (singleAuraRules.Count == 1)
         {
-            var rule = singleAuraRules[0];
+            SkillRuleJson rule = singleAuraRules[0];
             ruleParts.Add($"A{(rule.Comparison == "greater" ? ">" : "<")}\"{rule.AuraName}\" {rule.Value}{(rule.AuraTarget == "target" ? " TARGET" : "")}");
         }
 
@@ -251,7 +251,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         var result = new Dictionary<string, List<string>>();
         if (_jsonConfig != null)
         {
-            foreach (var classEntry in _jsonConfig)
+            foreach (KeyValuePair<string, Dictionary<string, SkillModeJson>> classEntry in _jsonConfig)
             {
                 result[classEntry.Key] = classEntry.Value.Keys.ToList();
             }
@@ -300,7 +300,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     {
         var config = new AdvancedSkillsConfigJson();
 
-        foreach (var skill in _loadedSkills)
+        foreach (AdvancedSkill skill in _loadedSkills)
         {
             if (!config.ContainsKey(skill.ClassName))
                 config[skill.ClassName] = new Dictionary<string, SkillModeJson>();

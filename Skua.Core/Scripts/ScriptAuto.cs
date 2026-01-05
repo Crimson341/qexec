@@ -1,10 +1,10 @@
-﻿using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using System.Numerics;
-using CommunityToolkit.Mvvm.ComponentModel;
+﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.Monsters;
 using Skua.Core.Models.Skills;
+using System.Diagnostics;
+using System.Diagnostics.Contracts;
+using System.Numerics;
 
 namespace Skua.Core.Scripts;
 
@@ -184,9 +184,9 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             {
                 // Priority MapID targeting - kill first target completely before switching
                 int? currentTarget = null;
-                
+
                 // Always prefer the first priority if it exists
-                var firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
+                Monster? firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
                 bool firstAlive = firstMonster != null && firstMonster.Alive;
                 _logger.ScriptLog($"[Priority Debug] Checking MapID {_priorityMapIDs[0]}: Monster={firstMonster?.Name}, Alive={firstAlive}");
                 
@@ -201,7 +201,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                     // First priority is dead, find next available
                     for (int i = 1; i < _priorityMapIDs.Length; i++)
                     {
-                        var altMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
+                        Monster? altMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
                         bool altAlive = altMonster != null && altMonster.Alive;
                         _logger.ScriptLog($"[Priority Debug] Checking alternative MapID {_priorityMapIDs[i]}: Monster={altMonster?.Name}, Alive={altAlive}");
                         if (altAlive)
@@ -245,7 +245,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 if (fastWildcard)
                 {
                     // Fast wildcard: only alive monsters, break after first successful engage
-                    foreach (var monster in Monsters.MapMonsters)
+                    foreach (Monster monster in Monsters.MapMonsters)
                     {
                         if (token.IsCancellationRequested)
                             return;
@@ -311,9 +311,9 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             {
                 // Find highest priority available monster - first priority takes precedence
                 int? currentTarget = null;
-                
+
                 // Always prefer the first priority if it exists AND is alive
-                var firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
+                Monster? firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
                 bool firstAlive = firstMonster != null && firstMonster.Alive;
                 _logger.ScriptLog($"[Hunt Priority Debug] Checking MapID {_priorityMapIDs[0]}: Monster={firstMonster?.Name}, Alive={firstAlive}");
                 
@@ -328,7 +328,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                     // First priority is dead, find next available
                     for (int i = 1; i < _priorityMapIDs.Length; i++)
                     {
-                        var altMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
+                        Monster? altMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
                         bool altAlive = altMonster != null && altMonster.Alive;
                         _logger.ScriptLog($"[Hunt Priority Debug] Checking alternative MapID {_priorityMapIDs[i]}: Monster={altMonster?.Name}, Alive={altAlive}");
                         if (altAlive)

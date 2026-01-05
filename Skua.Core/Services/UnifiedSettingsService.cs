@@ -1,5 +1,6 @@
 using Skua.Core.Models;
 using System.Collections.Specialized;
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -72,17 +73,17 @@ public class UnifiedSettingsService
         {
             try
             {
-                var clientProp = FindPropertyByJsonName(_root.Client.GetType(), key);
+                PropertyInfo? clientProp = FindPropertyByJsonName(_root.Client.GetType(), key);
                 if (clientProp?.GetValue(_root.Client) is object clientVal)
                     if (typeof(T).IsAssignableFrom(clientVal.GetType()))
                         return (T)clientVal;
 
-                var managerProp = FindPropertyByJsonName(_root.Manager.GetType(), key);
+                PropertyInfo? managerProp = FindPropertyByJsonName(_root.Manager.GetType(), key);
                 if (managerProp?.GetValue(_root.Manager) is object managerVal)
                     if (typeof(T).IsAssignableFrom(managerVal.GetType()))
                         return (T)managerVal;
 
-                var sharedProp = FindPropertyByJsonName(_root.Shared.GetType(), key);
+                PropertyInfo? sharedProp = FindPropertyByJsonName(_root.Shared.GetType(), key);
                 if (sharedProp?.GetValue(_root.Shared) is object sharedVal)
                     if (typeof(T).IsAssignableFrom(sharedVal.GetType()))
                         return (T)sharedVal;
@@ -107,20 +108,20 @@ public class UnifiedSettingsService
         {
             try
             {
-                var sharedProp = FindPropertyByJsonName(_root.Shared.GetType(), key);
+                PropertyInfo? sharedProp = FindPropertyByJsonName(_root.Shared.GetType(), key);
                 if (sharedProp != null)
                 {
                     sharedProp.SetValue(_root.Shared, value);
                 }
                 else if (_currentRole == AppRole.Client)
                 {
-                    var clientProp = FindPropertyByJsonName(_root.Client.GetType(), key);
+                    PropertyInfo? clientProp = FindPropertyByJsonName(_root.Client.GetType(), key);
                     if (clientProp != null)
                         clientProp.SetValue(_root.Client, value);
                 }
                 else if (_currentRole == AppRole.Manager)
                 {
-                    var managerProp = FindPropertyByJsonName(_root.Manager.GetType(), key);
+                    PropertyInfo? managerProp = FindPropertyByJsonName(_root.Manager.GetType(), key);
                     if (managerProp != null)
                         managerProp.SetValue(_root.Manager, value);
                 }
@@ -154,8 +155,8 @@ public class UnifiedSettingsService
 
             if (clientExists && managerExists)
             {
-                var clientData = LoadOldFile(_clientSettingsFile);
-                var managerData = LoadOldFile(_managerSettingsFile);
+                Dictionary<string, object> clientData = LoadOldFile(_clientSettingsFile);
+                Dictionary<string, object> managerData = LoadOldFile(_managerSettingsFile);
 
                 MergeClientSettings(newRoot, clientData);
                 MergeManagerSettings(newRoot, managerData);
@@ -163,13 +164,13 @@ public class UnifiedSettingsService
             }
             else if (clientExists)
             {
-                var clientData = LoadOldFile(_clientSettingsFile);
+                Dictionary<string, object> clientData = LoadOldFile(_clientSettingsFile);
                 MergeClientSettings(newRoot, clientData);
                 MergeSharedSettings(newRoot, clientData);
             }
             else
             {
-                var managerData = LoadOldFile(_managerSettingsFile);
+                Dictionary<string, object> managerData = LoadOldFile(_managerSettingsFile);
                 MergeManagerSettings(newRoot, managerData);
                 MergeSharedSettings(newRoot, managerData);
             }
@@ -208,7 +209,7 @@ public class UnifiedSettingsService
             if (File.Exists(filePath))
             {
                 string json = File.ReadAllText(filePath);
-                var options = GetJsonOptions();
+                JsonSerializerOptions options = GetJsonOptions();
                 return JsonSerializer.Deserialize<Dictionary<string, object>>(json, options) ?? new();
             }
         }
@@ -222,7 +223,7 @@ public class UnifiedSettingsService
 
     private void MergeClientSettings(SettingsRoot newRoot, Dictionary<string, object> oldData)
     {
-        if (oldData.TryGetValue("AnimationFrameRate", out var val))
+        if (oldData.TryGetValue("AnimationFrameRate", out object? val))
             if (int.TryParse(val?.ToString(), out int framerate))
                 newRoot.Client.AnimationFrameRate = framerate;
 
@@ -269,7 +270,7 @@ public class UnifiedSettingsService
 
     private void MergeManagerSettings(SettingsRoot newRoot, Dictionary<string, object> oldData)
     {
-        if (oldData.TryGetValue("CheckClientUpdates", out var val))
+        if (oldData.TryGetValue("CheckClientUpdates", out object? val))
             if (bool.TryParse(val?.ToString(), out bool check))
                 newRoot.Manager.CheckClientUpdates = check;
 
@@ -301,7 +302,7 @@ public class UnifiedSettingsService
 
     private void MergeSharedSettings(SettingsRoot newRoot, Dictionary<string, object> oldData)
     {
-        if (oldData.TryGetValue("DefaultBackground", out var val))
+        if (oldData.TryGetValue("DefaultBackground", out object? val))
             newRoot.Shared.sBG = val?.ToString() ?? "Generic2.swf";
         else if (oldData.TryGetValue("sBG", out val))
             newRoot.Shared.sBG = val?.ToString() ?? "Generic2.swf";
@@ -350,10 +351,10 @@ public class UnifiedSettingsService
         {
             try
             {
-                var list = JsonSerializer.Deserialize<List<string>>(je.GetRawText());
+                List<string>? list = JsonSerializer.Deserialize<List<string>>(je.GetRawText());
                 if (list != null)
                 {
-                    foreach (var item in list)
+                    foreach (string item in list)
                         collection.Add(item);
                 }
             }
@@ -363,7 +364,7 @@ public class UnifiedSettingsService
 
         if (value is IEnumerable<string> enumerable)
         {
-            foreach (var item in enumerable)
+            foreach (string item in enumerable)
                 collection.Add(item);
             return collection;
         }
@@ -390,10 +391,10 @@ public class UnifiedSettingsService
             {
                 if (je.ValueKind == JsonValueKind.Array)
                 {
-                    var list = JsonSerializer.Deserialize<List<string>>(je.GetRawText());
+                    List<string>? list = JsonSerializer.Deserialize<List<string>>(je.GetRawText());
                     if (list != null)
                     {
-                        foreach (var item in list)
+                        foreach (string item in list)
                         {
                             if (item.Contains(_legacySeparator))
                             {
@@ -416,8 +417,8 @@ public class UnifiedSettingsService
                 }
                 else if (je.ValueKind == JsonValueKind.Object)
                 {
-                    var options = GetJsonOptions();
-                    var dict = JsonSerializer.Deserialize<Dictionary<string, AccountData>>(je.GetRawText(), options);
+                    JsonSerializerOptions options = GetJsonOptions();
+                    Dictionary<string, AccountData>? dict = JsonSerializer.Deserialize<Dictionary<string, AccountData>>(je.GetRawText(), options);
                     if (dict != null)
                         return dict;
                 }
@@ -460,8 +461,8 @@ public class UnifiedSettingsService
             if (File.Exists(ClientFileSources.SkuaSettingsDIR))
             {
                 string json = File.ReadAllText(ClientFileSources.SkuaSettingsDIR);
-                var options = GetJsonOptions();
-                var loaded = JsonSerializer.Deserialize<SettingsRoot>(json, options);
+                JsonSerializerOptions options = GetJsonOptions();
+                SettingsRoot? loaded = JsonSerializer.Deserialize<SettingsRoot>(json, options);
 
                 if (loaded != null)
                 {
@@ -502,7 +503,7 @@ public class UnifiedSettingsService
 
             string tempFile = ClientFileSources.SkuaSettingsDIR + ".tmp";
 
-            var options = GetJsonOptions();
+            JsonSerializerOptions options = GetJsonOptions();
             string json = JsonSerializer.Serialize(_root, options);
             File.WriteAllText(tempFile, json);
 
@@ -545,7 +546,7 @@ public class UnifiedSettingsService
         {
             if (_root.Shared.ExtensionData.ContainsKey("DefaultBackground"))
             {
-                if (_root.Shared.ExtensionData.TryGetValue("DefaultBackground", out var oldValue))
+                if (_root.Shared.ExtensionData.TryGetValue("DefaultBackground", out object? oldValue))
                 {
                     string? oldBg = oldValue?.ToString();
                     if (!string.IsNullOrEmpty(oldBg) && string.IsNullOrEmpty(_root.Shared.sBG))
@@ -560,7 +561,7 @@ public class UnifiedSettingsService
         {
             if (_root.Client.ExtensionData.ContainsKey("CustomBackgroundPath"))
             {
-                if (_root.Client.ExtensionData.TryGetValue("CustomBackgroundPath", out var oldCustomPath))
+                if (_root.Client.ExtensionData.TryGetValue("CustomBackgroundPath", out object? oldCustomPath))
                 {
                     string? customPath = oldCustomPath?.ToString();
                     if (!string.IsNullOrEmpty(customPath) && string.IsNullOrEmpty(_root.Shared.CustomBackgroundPath))
@@ -606,8 +607,8 @@ public class UnifiedSettingsService
 
     private System.Reflection.PropertyInfo? FindPropertyByJsonName(Type type, string jsonName)
     {
-        var properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-        foreach (var prop in properties)
+        PropertyInfo[] properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
+        foreach (PropertyInfo prop in properties)
         {
             var jsonAttr = prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
                 .FirstOrDefault() as System.Text.Json.Serialization.JsonPropertyNameAttribute;

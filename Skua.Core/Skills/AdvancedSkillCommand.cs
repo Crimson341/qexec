@@ -177,7 +177,7 @@ public class AdvancedSkillCommand
         if (checks == null || checks.Count == 0)
             return true;
 
-        foreach (var check in checks)
+        foreach (AuraCheck check in checks)
         {
             float stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
             if (!(check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount))
@@ -193,7 +193,7 @@ public class AdvancedSkillCommand
 
         if (op == MultiAuraOperator.Or)
         {
-            foreach (var check in checks)
+            foreach (AuraCheck check in checks)
             {
                 float stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
                 if (check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount)
@@ -203,7 +203,7 @@ public class AdvancedSkillCommand
         }
         else
         {
-            foreach (var check in checks)
+            foreach (AuraCheck check in checks)
             {
                 float stacks = GetAuraStacks(player, self, target, check.AuraTarget, check.AuraName);
                 if (!(check.Greater ? stacks >= check.StackCount : stacks <= check.StackCount))

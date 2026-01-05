@@ -27,11 +27,11 @@ public class ScriptAccounts : IScriptAccounts
 
     public List<string> GetTags(string username)
     {
-        var accounts = GetAccountsDictionary();
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
         if (accounts == null)
             return new List<string>();
 
-        return accounts.TryGetValue(username, out var accountData) ? accountData.Tags.ToList() : new List<string>();
+        return accounts.TryGetValue(username, out AccountData? accountData) ? accountData.Tags.ToList() : new List<string>();
     }
 
     public bool HasTag(string tag)
@@ -58,7 +58,7 @@ public class ScriptAccounts : IScriptAccounts
         if (accounts == null)
             return false;
 
-        if (!accounts.TryGetValue(username, out var accountData))
+        if (!accounts.TryGetValue(username, out AccountData? accountData))
             return false;
 
         if (accountData.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
@@ -81,7 +81,7 @@ public class ScriptAccounts : IScriptAccounts
         if (accounts == null)
             return false;
 
-        if (!accounts.TryGetValue(username, out var accountData))
+        if (!accounts.TryGetValue(username, out AccountData? accountData))
             return false;
 
         string? existingTag = accountData.Tags.FirstOrDefault(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
@@ -108,11 +108,11 @@ public class ScriptAccounts : IScriptAccounts
         if (accounts == null)
             return false;
 
-        if (!accounts.TryGetValue(username, out var accountData))
+        if (!accounts.TryGetValue(username, out AccountData? accountData))
             return false;
 
         bool anyAdded = false;
-        foreach (var tag in tags)
+        foreach (string tag in tags)
         {
             if (!accountData.Tags.Contains(tag, StringComparer.OrdinalIgnoreCase))
             {
@@ -138,17 +138,17 @@ public class ScriptAccounts : IScriptAccounts
 
     public bool RemoveTags(string username, params string[] tags)
     {
-        var accounts = GetAccountsDictionary();
+        Dictionary<string, AccountData>? accounts = GetAccountsDictionary();
         if (accounts == null)
             return false;
 
-        if (!accounts.TryGetValue(username, out var accountData))
+        if (!accounts.TryGetValue(username, out AccountData? accountData))
             return false;
 
         bool anyRemoved = false;
-        foreach (var tag in tags)
+        foreach (string tag in tags)
         {
-            var existingTag = accountData.Tags.FirstOrDefault(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
+            string? existingTag = accountData.Tags.FirstOrDefault(t => t.Equals(tag, StringComparison.OrdinalIgnoreCase));
             if (existingTag != null)
             {
                 accountData.Tags.Remove(existingTag);
@@ -223,7 +223,7 @@ public class ScriptAccounts : IScriptAccounts
 
     private Dictionary<string, AccountData>? GetAccountsDictionary()
     {
-        var accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
+        Dictionary<string, AccountData>? accounts = _settingsService.Get<Dictionary<string, AccountData>>("ManagedAccounts");
         if (accounts == null)
             return null;
 

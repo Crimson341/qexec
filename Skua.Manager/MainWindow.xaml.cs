@@ -33,7 +33,7 @@ public partial class MainWindow : CustomWindow
 
     private void ExitWindow_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        var launcher = Ioc.Default.GetRequiredService<LauncherViewModel>();
+        LauncherViewModel launcher = Ioc.Default.GetRequiredService<LauncherViewModel>();
         launcher.KillAllSkuaProcesses();
         Application.Current.Shutdown();
         WindowChrome.SetWindowChrome(this, null);
@@ -41,7 +41,7 @@ public partial class MainWindow : CustomWindow
 
     private void LaunchNewSkuaBotClient_Click(object sender, System.Windows.RoutedEventArgs e)
     {
-        var launcher = Ioc.Default.GetRequiredService<LauncherViewModel>();
+        LauncherViewModel launcher = Ioc.Default.GetRequiredService<LauncherViewModel>();
         launcher.LaunchSkua().ConfigureAwait(false);
     }
 

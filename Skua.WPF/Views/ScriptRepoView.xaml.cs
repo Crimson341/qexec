@@ -31,20 +31,20 @@ public partial class ScriptRepoView : UserControl
 
     private bool Search(object obj)
     {
-        var flag = false;
-        var searchScript = SearchBox.Text.ToLower();
+        bool flag = false;
+        string searchScript = SearchBox.Text.ToLower();
         if (string.IsNullOrWhiteSpace(searchScript))
             return true;
 
-        var script = (ScriptInfoViewModel)obj;
+        ScriptInfoViewModel? script = (ScriptInfoViewModel)obj;
         if (script is null)
             return false;
 
-        var scriptName = script.Info.Name.ToLower();
+        string scriptName = script.Info.Name.ToLower();
         if (KMPSearch(scriptName, searchScript))
             flag = true;
 
-        foreach (var tag in script.InfoTags)
+        foreach (string tag in script.InfoTags)
         {
             if (KMPSearch(tag, searchScript))
             {

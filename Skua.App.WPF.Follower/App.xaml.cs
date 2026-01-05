@@ -26,7 +26,7 @@ public partial class App : Application
         currentDomain.AssemblyResolve += new ResolveEventHandler(ResolveAssemblies);
         currentDomain.UnhandledException += CurrentDomain_UnhandledException;
 
-        var args = Environment.GetCommandLineArgs();
+        string[] args = Environment.GetCommandLineArgs();
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -47,22 +47,22 @@ public partial class App : Application
         if (!string.IsNullOrEmpty(username) && !string.IsNullOrEmpty(password))
         {
             Ioc.Default.GetRequiredService<IScriptServers>().SetLoginInfo(username, password);
-            var path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
+            string path = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-            var userPrefFile = Path.Combine(path, "Macromedia\\Flash Player\\#SharedObjects\\HFK9B8XK\\game.aq.com\\AQWUserPref.sol");
+            string userPrefFile = Path.Combine(path, "Macromedia\\Flash Player\\#SharedObjects\\HFK9B8XK\\game.aq.com\\AQWUserPref.sol");
 
-            var quality = "MEDIUM";
+            string quality = "MEDIUM";
 
-            var userLenghtHex = Convert.ToByte((username.Length * 2) + 1).ToString("X2");
-            var passwordLenghtHex = Convert.ToByte((password.Length * 2) + 1).ToString("X2");
-            var qualityLenghtHex = Convert.ToByte((quality.Length * 2) + 1).ToString("X2");
-            var totalLenghtHex = Convert.ToByte(username.Length + password.Length + quality.Length + 132).ToString("X2");
+            string userLenghtHex = Convert.ToByte((username.Length * 2) + 1).ToString("X2");
+            string passwordLenghtHex = Convert.ToByte((password.Length * 2) + 1).ToString("X2");
+            string qualityLenghtHex = Convert.ToByte((quality.Length * 2) + 1).ToString("X2");
+            string totalLenghtHex = Convert.ToByte(username.Length + password.Length + quality.Length + 132).ToString("X2");
 
-            var passwordHex = Convert.ToHexString(Encoding.UTF8.GetBytes(password));
-            var usernameHex = Convert.ToHexString(Encoding.UTF8.GetBytes(username));
-            var qualityHex = Convert.ToHexString(Encoding.UTF8.GetBytes(quality));
+            string passwordHex = Convert.ToHexString(Encoding.UTF8.GetBytes(password));
+            string usernameHex = Convert.ToHexString(Encoding.UTF8.GetBytes(username));
+            string qualityHex = Convert.ToHexString(Encoding.UTF8.GetBytes(quality));
 
-            var AQWUserPref = $"00BF000000{totalLenghtHex}5443534F000400000000000B4151575573657250726566000000030F7175616C69747906{qualityLenghtHex}{qualityHex}0025626974436865636B6564557365726E616D6503001162536F756E644F6E030025626974436865636B656450617373776F7264030017737472557365726E616D6506{userLenghtHex}{usernameHex}0011624465617468416403001773747250617373776F726406{passwordLenghtHex}{passwordHex}00";
+            string AQWUserPref = $"00BF000000{totalLenghtHex}5443534F000400000000000B4151575573657250726566000000030F7175616C69747906{qualityLenghtHex}{qualityHex}0025626974436865636B6564557365726E616D6503001162536F756E644F6E030025626974436865636B656450617373776F7264030017737472557365726E616D6506{userLenghtHex}{usernameHex}0011624465617468416403001773747250617373776F726406{passwordLenghtHex}{passwordHex}00";
 
             File.WriteAllBytes(userPrefFile, Convert.FromHexString(AQWUserPref));
         }

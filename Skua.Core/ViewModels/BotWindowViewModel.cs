@@ -23,7 +23,7 @@ public partial class BotWindowViewModel : ObservableObject
         get { return _selectedItem; }
         set
         {
-            var lastView = _selectedItem;
+            BotControlViewModelBase lastView = _selectedItem;
             if (SetProperty(ref _selectedItem, value))
             {
                 lastView.IsActive = false;

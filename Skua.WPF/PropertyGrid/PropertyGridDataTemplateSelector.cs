@@ -112,7 +112,7 @@ public class PropertyGridDataTemplateSelector : DataTemplateSelector
                 return true;
         }
 
-        var options = PropertyGridOptionsAttribute.FromProperty(property);
+        PropertyGridOptionsAttribute options = PropertyGridOptionsAttribute.FromProperty(property);
         if (options != null)
         {
             if ((type.IsEnum || type == typeof(Enum)) && options.IsEnum)
@@ -136,7 +136,7 @@ public class PropertyGridDataTemplateSelector : DataTemplateSelector
         if (container == null)
             throw new ArgumentNullException("container");
 
-        var property = item as PropertyGridProperty;
+        PropertyGridProperty? property = item as PropertyGridProperty;
         if (property == null)
             return base.SelectTemplate(item, container);
 

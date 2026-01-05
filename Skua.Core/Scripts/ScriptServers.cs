@@ -107,7 +107,7 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
 , $"http://content.aq.com/game/api/data/servers")
                 .ConfigureAwait(false);
 
-            var servers = JsonConvert.DeserializeObject<List<Server>>(response);
+            List<Server>? servers = JsonConvert.DeserializeObject<List<Server>>(response);
             if (servers == null || !servers.Any())
                 return new();
 

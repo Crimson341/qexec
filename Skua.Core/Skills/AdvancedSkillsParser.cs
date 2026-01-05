@@ -8,18 +8,18 @@ public static class AdvancedSkillsParser
     public static AdvancedSkillsConfigJson ParseTextToJson(string textContent)
     {
         var config = new AdvancedSkillsConfigJson();
-        var lines = textContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+        string[] lines = textContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
         foreach (string line in lines)
         {
             if (string.IsNullOrWhiteSpace(line))
                 continue;
 
-            var entry = ParseLine(line);
+            (string className, string classUseMode, string skillsStr, int skillTimeout, string skillUseMode)? entry = ParseLine(line);
             if (entry == null)
                 continue;
 
-            var (className, classUseMode, skillsStr, skillTimeout, skillUseMode) = entry.Value;
+            (string? className, string? classUseMode, string? skillsStr, int skillTimeout, string? skillUseMode) = entry.Value;
 
             if (!config.ContainsKey(className))
                 config[className] = new Dictionary<string, SkillModeJson>();
@@ -39,7 +39,7 @@ public static class AdvancedSkillsParser
 
     private static (string className, string classUseMode, string skillsStr, int skillTimeout, string skillUseMode)? ParseLine(string line)
     {
-        var parts = line.Split(new[] { '=' }, 4);
+        string[] parts = line.Split(new[] { '=' }, 4);
         if (parts.Length < 3)
             return null;
 
@@ -71,11 +71,11 @@ public static class AdvancedSkillsParser
     private static List<AdvancedSkillJson> ParseSkills(string skillsStr)
     {
         var skills = new List<AdvancedSkillJson>();
-        var skillEntries = skillsStr.Split('|');
+        string[] skillEntries = skillsStr.Split('|');
 
-        foreach (var skillEntry in skillEntries)
+        foreach (string skillEntry in skillEntries)
         {
-            var trimmed = skillEntry.Trim();
+            string trimmed = skillEntry.Trim();
             if (string.IsNullOrEmpty(trimmed))
                 continue;
 
@@ -88,7 +88,7 @@ public static class AdvancedSkillsParser
             {
                 string rulesPart = trimmed[1..].Trim();
                 bool hasSkipFlag = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
-                var rules = ParseRules(rulesPart, out string multiAuraOperator);
+                List<SkillRuleJson>? rules = ParseRules(rulesPart, out string multiAuraOperator);
                 skill.Rules = rules?.Count > 0 ? rules : null;
                 skill.SkipOnMatch = hasSkipFlag;
 

@@ -1,5 +1,5 @@
-using System.Collections.Concurrent;
 using Skua.Core.Interfaces;
+using System.Collections.Concurrent;
 
 namespace Skua.Core.Threading;
 

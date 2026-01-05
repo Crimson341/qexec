@@ -41,7 +41,7 @@ internal static class Extensions
 
         count = Math.Min(count, bytes.Length - offset);
 
-        var sb = new StringBuilder(count * 2);
+        StringBuilder sb = new StringBuilder(count * 2);
         for (int i = offset; i < (offset + count); i++)
         {
             sb.Append(_hexaChars[bytes[i] / 16]);
@@ -111,7 +111,7 @@ internal static class Extensions
                 sep2 = format[2];
             }
 
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             foreach (PropertyInfo pi in obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 if (!pi.CanRead)
@@ -168,7 +168,7 @@ internal static class Extensions
                 // errrhh... so far, since lambda cannot be parsed at runtime, we do nothing...
             }
 
-            var enumerable = obj as IEnumerable;
+            IEnumerable? enumerable = obj as IEnumerable;
             if (enumerable != null)
             {
                 format = format.Substring(6 + enumExpression.Length);
@@ -199,7 +199,7 @@ internal static class Extensions
         }
         else if (format.IndexOf(',') >= 0)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             foreach (string propName in format.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 PropertyInfo pi = obj.GetType().GetProperty(propName, BindingFlags.Instance | BindingFlags.Public);
@@ -251,7 +251,7 @@ internal static class Extensions
         if (collection == null)
             return null;
 
-        var sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         int i = 0;
         foreach (object o in collection)
         {
@@ -373,7 +373,7 @@ internal static class Extensions
 
     public static List<T> SplitToList<T>(this string thisString, params char[] separators)
     {
-        var list = new List<T>();
+        List<T> list = new List<T>();
         if (thisString != null)
         {
             foreach (string s in thisString.Split(separators))
@@ -441,7 +441,7 @@ internal static class Extensions
         if (sameLevelFirst)
         {
             int count = VisualTreeHelper.GetChildrenCount(obj);
-            var list = new List<DependencyObject>(count);
+            List<DependencyObject> list = new List<DependencyObject>(count);
             for (int i = 0; i < count; i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(obj, i);
@@ -579,7 +579,7 @@ internal static class Extensions
             if (item is T)
                 yield return (T)item;
 
-            var dep = item as DependencyObject;
+            DependencyObject? dep = item as DependencyObject;
             if (dep != null)
             {
                 foreach (T child in dep.GetChildren<T>())
@@ -614,7 +614,7 @@ internal static class Extensions
         if (exception == null)
             return null;
 
-        var sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         AppendMessages(sb, exception, separator);
         return sb.ToString().Replace("..", ".");
     }
@@ -661,7 +661,7 @@ internal static class Extensions
         if (attributes == null)
             return null;
 
-        foreach (var att in attributes)
+        foreach (object? att in attributes)
         {
             if (typeof(T).IsAssignableFrom(att.GetType()))
                 return (T)att;

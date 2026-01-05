@@ -1,9 +1,9 @@
-using System.Text.RegularExpressions;
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models.Auras;
 using Skua.Core.Models.Monsters;
+using System.Text.RegularExpressions;
 
 namespace Skua.Core.Scripts.Helpers;
 

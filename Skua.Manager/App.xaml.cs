@@ -4,8 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Skua.Core.AppStartup;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
-using Skua.Core.Utils;
 using Skua.Core.Services;
+using Skua.Core.Utils;
 using Skua.Core.ViewModels;
 using Skua.Core.ViewModels.Manager;
 using Skua.WPF.Services;
@@ -104,7 +104,7 @@ public partial class App : Application
                 {
                     if (Current.MainWindow != null)
                     {
-                        var mainWindow = Current.MainWindow;
+                        Window mainWindow = Current.MainWindow;
                         if (mainWindow.WindowState == WindowState.Minimized || mainWindow.Visibility != Visibility.Visible)
                         {
                             mainWindow.Show();

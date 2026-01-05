@@ -395,7 +395,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
         if (attributes == null || attributes.Length == 0)
             return ((ICustomTypeDescriptor)this).GetEvents();
 
-        var list = new List<EventDescriptor>();
+        List<EventDescriptor> list = new List<EventDescriptor>();
         foreach (EventDescriptor evt in _events)
         {
             if (evt.Attributes.Count == 0)
@@ -438,7 +438,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
         if (attributes == null || attributes.Length == 0)
             return ((ICustomTypeDescriptor)this).GetProperties();
 
-        var list = new List<PropertyDescriptor>();
+        List<PropertyDescriptor> list = new List<PropertyDescriptor>();
         foreach (PropertyDescriptor prop in _properties)
         {
             if (prop.Attributes.Count == 0)
@@ -564,12 +564,12 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
             separator = Environment.NewLine;
         }
 
-        var list = new List<ValidationException>();
+        List<ValidationException> list = new List<ValidationException>();
         ValidateMember(culture, list, memberName);
         if (list.Count == 0)
             return null;
 
-        var sb = new StringBuilder();
+        StringBuilder sb = new StringBuilder();
         foreach (ValidationException e in list)
         {
             if (sb.Length != 0)

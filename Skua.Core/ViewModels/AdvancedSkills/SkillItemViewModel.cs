@@ -370,7 +370,7 @@ public class SkillItemViewModel : ObservableObject
             MultiAuraBool = multiAuraChecks.Count > 0,
             MultiAuraOperatorIndex = multiAuraOp
         };
-        foreach (var check in multiAuraChecks)
+        foreach (AuraCheckViewModel check in multiAuraChecks)
         {
             _useRules.MultiAuraChecks.Add(check);
         }
@@ -442,7 +442,7 @@ public class SkillItemViewModel : ObservableObject
                 _ => "AND"
             };
             bob.Append($" - [Multi-Aura ({opStr})");
-            foreach (var check in UseRules.MultiAuraChecks)
+            foreach (AuraCheckViewModel check in UseRules.MultiAuraChecks)
             {
                 string target = check.AuraTargetIndex == 1 ? "Tgt" : "Self";
                 bob.Append($" '{check.AuraName}'{(check.IsGreater ? ">" : "<")}{check.StackCount}");
@@ -489,7 +489,7 @@ public class SkillItemViewModel : ObservableObject
             };
             for (int i = 0; i < UseRules.MultiAuraChecks.Count; i++)
             {
-                var check = UseRules.MultiAuraChecks[i];
+                AuraCheckViewModel check = UseRules.MultiAuraChecks[i];
                 string suffix = i < UseRules.MultiAuraChecks.Count - 1 ? opChar : "";
                 string target = check.AuraTargetIndex == 1 ? " TARGET" : string.Empty;
                 bob.Append($" MA{(check.IsGreater ? ">" : "<")}\"{check.AuraName}\" {check.StackCount}{target}{suffix}");

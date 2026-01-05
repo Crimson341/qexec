@@ -48,7 +48,7 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
         List<string> names = new();
         List<int> ids = new();
         
-        foreach (var item in items.Cast<string>())
+        foreach (string item in items.Cast<string>())
         {
             if (int.TryParse(item, out int itemId))
                 ids.Add(itemId);
