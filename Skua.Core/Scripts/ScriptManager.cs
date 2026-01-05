@@ -47,12 +47,14 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     private IScriptWait Wait => _lazyWait.Value;
     private IAuraMonitorService AuraMonitor => _lazyAuraMonitor.Value;
 
-    private Thread? _currentScriptThread;
+    private Thread _currentScriptThread;
     private readonly object _threadLock = new();
     private bool _stoppedByScript;
     private bool _runScriptStoppingBool;
     private readonly Dictionary<string, bool> _configured = new();
     private readonly List<string> _refCache = new();
+    private readonly List<string> _includedFiles = new();
+    private WeakReference? _currentLoadContext;
 
     [ObservableProperty]
     private bool _scriptRunning = false;
@@ -80,6 +82,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         try
         {
             await _lazyBot.Value.Auto.StopAsync();
+
+            UnloadPreviousScript();
 
             object? script = Compile(File.ReadAllText(LoadedScript));
 
@@ -139,15 +143,17 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     Drops.Stop();
 
                     AuraMonitor.StopMonitoring();
+                    UnloadPreviousScript();
                     ScriptCts?.Dispose();
                     ScriptCts = null;
                     StrongReferenceMessenger.Default.Send<ScriptStoppedMessage, int>((int)MessageChannels.ScriptStatus);
                     ScriptRunning = false;
                 }
-            });
-
-            _currentScriptThread.Name = "Script Thread";
-            _currentScriptThread.IsBackground = true;
+            })
+            {
+                Name = "Script Thread",
+                IsBackground = true
+            };
 
             lock (_threadLock)
             {
@@ -204,13 +210,10 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         lock (_threadLock)
         {
-            var thread = _currentScriptThread;
-            if (thread != null && thread.IsAlive)
+            Thread thread = _currentScriptThread;
+            if (thread.IsAlive && !thread.Join(TimeSpan.FromSeconds(5)))
             {
-                if (!thread.Join(TimeSpan.FromSeconds(5)))
-                {
-                    _logger?.ScriptLog("Script thread did not exit within timeout.");
-                }
+                _logger?.ScriptLog("Script thread did not exit within timeout.");
             }
         }
 
@@ -237,7 +240,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             thread = _currentScriptThread;
         }
 
-        if (thread != null && thread.IsAlive)
+        if (thread.IsAlive)
         {
             await Task.Run(() =>
             {
@@ -253,38 +256,46 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     public object? Compile(string source)
     {
-        var sw = Stopwatch.StartNew();
-        var references = GetReferences();
-        var final = ProcessSources(source, ref references);
-        var tree = CSharpSyntaxTree.ParseText(final, encoding: Encoding.UTF8);
-
+        Stopwatch sw = Stopwatch.StartNew();
+        _includedFiles.Clear();
+        HashSet<string> references = GetReferences();
+        string final = ProcessSources(source, ref references);
+        
+        int cacheHash = ComputeCacheHash(final, _includedFiles);
+        Trace.WriteLine($"Script cache hash: {cacheHash} for {Path.GetFileName(LoadedScript)}");
+        
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(final, encoding: Encoding.UTF8);
         CompiledScript = final = tree.GetRoot().NormalizeWhitespace().ToFullString();
+        string scriptName = Path.GetFileNameWithoutExtension(LoadedScript);
+
+        ScriptLoadContext loadContext = new ScriptLoadContext();
+        _currentLoadContext = new WeakReference(loadContext);
+
         Compiler compiler = Ioc.Default.GetRequiredService<Compiler>();
 
         if (references.Count > 0)
             compiler.AddAssemblies(references.ToArray());
 
-        dynamic? assembly = compiler.CompileClass(final);
+        dynamic? assembly = compiler.CompileClass(final, cacheHash, loadContext, scriptName);
 
         sw.Stop();
         Trace.WriteLine($"Script compilation took {sw.ElapsedMilliseconds}ms.");
 
         File.WriteAllText(Path.Combine(ClientFileSources.SkuaScriptsDIR, "z_CompiledScript.cs"), final);
 
-        if (compiler.Error)
-            throw new ScriptCompileException(compiler.ErrorMessage, compiler.GeneratedClassCodeWithLineNumbers);
-
-        return assembly;
+        return compiler.Error
+            ? throw new ScriptCompileException(compiler.ErrorMessage, compiler.GeneratedClassCodeWithLineNumbers)
+            : (object?)assembly;
     }
 
     private HashSet<string> GetReferences()
     {
-        var references = new HashSet<string>();
+        HashSet<string> references = new();
         if (_refCache.Count == 0 && Directory.Exists(ClientFileSources.SkuaPluginsDIR))
         {
-            foreach (var file in Directory.EnumerateFiles(ClientFileSources.SkuaPluginsDIR, "*.dll"))
+            foreach (string file in Directory.EnumerateFiles(ClientFileSources.SkuaPluginsDIR, "*.dll"))
             {
-                var path = Path.Combine(ClientFileSources.SkuaDIR, file);
+                string path = Path.Combine(ClientFileSources.SkuaDIR, file);
                 if (CanLoadAssembly(path))
                 {
                     _refCache.Add(path);
@@ -302,8 +313,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     private string ProcessSources(string source, ref HashSet<string> references)
     {
-        StringBuilder toRemove = new StringBuilder();
-        List<string> sources = new List<string> { source };
+        StringBuilder toRemove = new();
+        List<string> sources = new() { source };
 
         foreach (string line in source.Split('\n').Select(l => l.Trim()))
         {
@@ -330,12 +341,18 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 case "include":
                     string localSource = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
                     if (File.Exists(localSource))
+                    {
                         sources.Add($"// Added from {localSource}\n{File.ReadAllText(localSource)}");
+                        _includedFiles.Add(localSource);
+                    }
                     else if (File.Exists(parts[1]))
+                    {
                         sources.Add($"// Added from {parts[1]}\n{File.ReadAllText(parts[1])}");
+                        _includedFiles.Add(parts[1]);
+                    }
                     break;
             }
-            toRemove.Append(line).AppendLine();
+            toRemove.AppendLine(line);
         }
 
         if (sources.Count > 1)
@@ -356,7 +373,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 lines.RemoveAt(i);
             }
 
-            lines.Insert(0, $"{string.Join(Environment.NewLine, usings.Distinct())}{Environment.NewLine}#nullable enable{Environment.NewLine}");
+            lines.Insert(0, $"{string.Join(Environment.NewLine, usings.Distinct().OrderBy(u => u))}{Environment.NewLine}#nullable enable{Environment.NewLine}");
             sources = lines;
         }
 
@@ -408,6 +425,28 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             return false;
         }
+    }
+
+    private static int ComputeCacheHash(string source, List<string> includedFiles)
+    {
+        using System.Security.Cryptography.SHA256 sha256 = System.Security.Cryptography.SHA256.Create();
+        byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(source));
+        return BitConverter.ToInt32(hashBytes, 0);
+    }
+
+    private void UnloadPreviousScript()
+    {
+        if (_currentLoadContext?.Target is ScriptLoadContext context)
+        {
+            try
+            {
+                context.Unload();
+            }
+            catch
+            {
+            }
+        }
+        _currentLoadContext = null;
     }
 
     public void SetLoadedScript(string path)

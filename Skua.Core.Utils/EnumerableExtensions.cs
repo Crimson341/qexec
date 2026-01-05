@@ -39,8 +39,8 @@ public static class EnumerableExtensions
         using IEnumerator<T> iterator = list.GetEnumerator();
         while (iterator.MoveNext())
         {
-            var first = iterator.Current;
-            var second = iterator.MoveNext() ? iterator.Current : default;
+            T? first = iterator.Current;
+            T? second = iterator.MoveNext() ? iterator.Current : default;
             yield return Tuple.Create(first, second);
         }
     }

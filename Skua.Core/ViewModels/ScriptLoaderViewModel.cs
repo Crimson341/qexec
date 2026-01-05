@@ -186,9 +186,9 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
 
     private async void StartScript(ScriptLoaderViewModel recipient, StartScriptMessage message)
     {
-        var startNew = false;
-        var msgPathFileName = Path.GetFileName(message.Path) ?? string.Empty;
-        var runningScriptMessage = $"Script {LoadedScript} is already running. Do you want to stop it?";
+        bool startNew = false;
+        string msgPathFileName = Path.GetFileName(message.Path) ?? string.Empty;
+        string runningScriptMessage = $"Script {LoadedScript} is already running. Do you want to stop it?";
 
         ToggleScriptEnabled = false;
 
@@ -200,7 +200,7 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
                 startNew = true;
             }
 
-            var dialogResult = _dialogService.ShowMessageBox(runningScriptMessage, "Script Error", "No", "Yes");
+            DialogResult dialogResult = _dialogService.ShowMessageBox(runningScriptMessage, "Script Error", "No", "Yes");
 
             if (dialogResult.Text == "Yes")
             {
