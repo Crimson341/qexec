@@ -19,7 +19,7 @@ public class ConcurrentLoggingService : IDisposable
 
     public void Log(string message, LogLevel level = LogLevel.Info, string? category = null)
     {
-        var entry = new LogEntry
+        LogEntry entry = new()
         {
             Message = message,
             Level = level,

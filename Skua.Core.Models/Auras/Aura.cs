@@ -1,5 +1,4 @@
 using Newtonsoft.Json;
-using Skua.Core.Models.Converters;
 
 namespace Skua.Core.Models.Auras;
 

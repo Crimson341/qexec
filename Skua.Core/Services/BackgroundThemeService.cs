@@ -1,7 +1,6 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
-using System.IO;
 
 namespace Skua.Core.Services;
 
@@ -50,7 +49,7 @@ public class BackgroundThemeService : ObservableObject
         {
             string sBG = _settingsService.Get<string>("sBG", "Generic2.swf");
             string? customPath = _settingsService.Get<string?>("CustomBackgroundPath", null);
-            
+
             if (!string.IsNullOrEmpty(customPath))
             {
                 return Path.GetFileName(customPath.Replace("file:///", "").Replace("/", "\\"));
@@ -65,7 +64,7 @@ public class BackgroundThemeService : ObservableObject
     }
 
     public string sBG => _settingsService.Get<string>("sBG", "Generic2.swf");
-    
+
     public string? CustomBackgroundPath => _settingsService.Get<string?>("CustomBackgroundPath", null);
 
     public bool IsLocalBackgroundFile(string backgroundName)

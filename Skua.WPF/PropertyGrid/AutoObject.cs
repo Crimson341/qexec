@@ -20,7 +20,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
 
     private IDictionary<string, object> _properties;
     private IDictionary<string, object> _changedProperties;
-    private readonly Dictionary<string, object> _defaultValues = new Dictionary<string, object>();
+    private readonly Dictionary<string, object> _defaultValues = new();
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AutoObject"/> class.
@@ -140,7 +140,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
     /// <returns>A string if an error occured; null otherwise.</returns>
     protected virtual string Validate(string memberName)
     {
-        List<string> errors = new List<string>();
+        List<string> errors = new();
         Validate(errors, memberName);
         if (errors.Count == 0)
             return null;
@@ -512,7 +512,7 @@ public abstract class AutoObject : IDataErrorInfo, INotifyPropertyChanged
         if (!RaisePropertyChanged && !forceRaise)
             return false;
 
-        var handler = PropertyChanged;
+        PropertyChangedEventHandler handler = PropertyChanged;
         if (handler != null)
         {
             handler(this, new PropertyChangedEventArgs(name));

@@ -3,8 +3,6 @@ using Skua.Core.Interfaces;
 using Skua.Core.Models.Monsters;
 using Skua.Core.Models.Skills;
 using System.Diagnostics;
-using System.Diagnostics.Contracts;
-using System.Numerics;
 
 namespace Skua.Core.Scripts;
 
@@ -155,7 +153,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         Player.SetSpawnPoint();
 
         _priorityMapIDs = manualMapIDs;
-        
+
         if (manualMapIDs?.Length > 0)
         {
             // Use manually specified MapIDs with priority
@@ -189,7 +187,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 Monster? firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
                 bool firstAlive = firstMonster != null && firstMonster.Alive;
                 _logger.ScriptLog($"[Priority Debug] Checking MapID {_priorityMapIDs[0]}: Monster={firstMonster?.Name}, Alive={firstAlive}");
-                
+
                 if (firstAlive)
                 {
                     currentTarget = _priorityMapIDs[0];
@@ -212,7 +210,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                         }
                     }
                 }
-                
+
                 if (currentTarget.HasValue)
                 {
                     if (Combat.Attack(currentTarget.Value))
@@ -283,7 +281,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         Trace.WriteLine("Auto hunt started.");
 
         _priorityMapIDs = manualMapIDs;
-        
+
         if (manualMapIDs?.Length > 0)
         {
             // Use manually specified MapIDs with priority
@@ -303,7 +301,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         }
 
         _logger.ScriptLog($"[Auto Hunt] Hunting for {_target}");
-        
+
         if (_priorityMapIDs?.Length > 0)
         {
             // Hunt with priority MapIDs
@@ -316,7 +314,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 Monster? firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
                 bool firstAlive = firstMonster != null && firstMonster.Alive;
                 _logger.ScriptLog($"[Hunt Priority Debug] Checking MapID {_priorityMapIDs[0]}: Monster={firstMonster?.Name}, Alive={firstAlive}");
-                
+
                 if (firstAlive)
                 {
                     currentTarget = _priorityMapIDs[0];
@@ -339,17 +337,17 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                         }
                     }
                 }
-                
+
                 if (currentTarget.HasValue)
                 {
                     // Hunt the current priority target
                     List<string> cells = Monsters.GetLivingMonsterDataLeafCells(currentTarget.Value);
-                    
+
                     foreach (string cell in cells)
                     {
                         if (token.IsCancellationRequested)
                             break;
-                            
+
                         if (Player.Cell != cell && !token.IsCancellationRequested)
                         {
                             if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
@@ -357,16 +355,16 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                             Map.Jump(cell, "Left");
                             _lastHuntTick = Environment.TickCount;
                         }
-                        
+
                         if (Monsters.Exists(currentTarget.Value) && !token.IsCancellationRequested)
                         {
-                        if (!Combat.Attack(currentTarget.Value))
+                            if (!Combat.Attack(currentTarget.Value))
                                 continue;
                             Kill.Monster(currentTarget.Value, token);
                             // Immediately re-check priorities (no delay)
                             break;
                         }
-                        
+
                         Thread.Sleep(200);
                     }
                 }
@@ -383,12 +381,12 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             while (!token.IsCancellationRequested)
             {
                 List<string> cells = Monsters.GetLivingMonsterDataLeafCells(_targetMapID);
-                
+
                 foreach (string cell in cells)
                 {
                     if (token.IsCancellationRequested)
                         break;
-                        
+
                     if (Player.Cell != cell && !token.IsCancellationRequested)
                     {
                         if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
@@ -396,7 +394,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                         Map.Jump(cell, "Left");
                         _lastHuntTick = Environment.TickCount;
                     }
-                    
+
                     if (Monsters.Exists(_targetMapID) && !token.IsCancellationRequested)
                     {
                         if (!Combat.Attack(_targetMapID))
@@ -405,7 +403,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                         Kill.Monster(_targetMapID, token);
                         return;
                     }
-                    
+
                     Thread.Sleep(200);
                 }
             }
@@ -415,7 +413,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             // Hunt all monsters (wildcard mode)
             string[] names = _target.Split('|');
             List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
-            
+
             while (!token.IsCancellationRequested)
             {
                 for (int i = cells.Count - 1; i >= 0; i--)

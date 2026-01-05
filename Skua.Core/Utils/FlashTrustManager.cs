@@ -1,6 +1,3 @@
-using System;
-using System.IO;
-
 namespace Skua.Core.Utils;
 
 public static class FlashTrustManager
@@ -29,7 +26,7 @@ public static class FlashTrustManager
             {
                 string[] existingPaths = File.ReadAllLines(trustFilePath);
                 bool needsUpdate = false;
-                
+
                 foreach (string path in requiredPaths)
                 {
                     bool found = false;

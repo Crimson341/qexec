@@ -47,7 +47,7 @@ public class ScriptInfo
             try
             {
                 using SHA256 sha256 = System.Security.Cryptography.SHA256.Create();
-                using var stream = File.OpenRead(LocalFile);
+                using FileStream stream = File.OpenRead(LocalFile);
                 byte[] hash = sha256.ComputeHash(stream);
                 return BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
             }

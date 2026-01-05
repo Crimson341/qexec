@@ -1,6 +1,5 @@
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
-using Skua.Core.Messaging;
 using Skua.Core.Models.Auras;
 using Skua.Core.Models.Monsters;
 using System.Text.RegularExpressions;
@@ -20,8 +19,8 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
     private Monster? _previousTarget;
     private bool _disposed;
     public UltraBossHelper(
-        IMessenger messenger, 
-        Lazy<IScriptPlayer> player, 
+        IMessenger messenger,
+        Lazy<IScriptPlayer> player,
         Lazy<IScriptCombat> combat)
     {
         _messenger = messenger;
@@ -106,7 +105,7 @@ public class UltraBossHelper : IUltraBossHelper, IDisposable
     {
         if (namePattern.Contains('*'))
         {
-            Regex regex = new Regex(
+            Regex regex = new(
                 "^" + namePattern.Replace("*", ".*") + "$",
                 RegexOptions.IgnoreCase);
             return auras.Where(a => regex.IsMatch(a.Name)).ToList();

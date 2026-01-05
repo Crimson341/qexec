@@ -2,7 +2,6 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 using Skua.Core.Utils;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.ViewModels;
 

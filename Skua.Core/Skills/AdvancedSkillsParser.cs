@@ -7,7 +7,7 @@ public static class AdvancedSkillsParser
 {
     public static AdvancedSkillsConfigJson ParseTextToJson(string textContent)
     {
-        var config = new AdvancedSkillsConfigJson();
+        AdvancedSkillsConfigJson config = new();
         string[] lines = textContent.Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
 
         foreach (string line in lines)
@@ -24,7 +24,7 @@ public static class AdvancedSkillsParser
             if (!config.ContainsKey(className))
                 config[className] = new Dictionary<string, SkillModeJson>();
 
-            var modeEntry = new SkillModeJson
+            SkillModeJson modeEntry = new()
             {
                 SkillUseMode = skillUseMode,
                 SkillTimeout = skillTimeout,
@@ -70,7 +70,7 @@ public static class AdvancedSkillsParser
 
     private static List<AdvancedSkillJson> ParseSkills(string skillsStr)
     {
-        var skills = new List<AdvancedSkillJson>();
+        List<AdvancedSkillJson> skills = new();
         string[] skillEntries = skillsStr.Split('|');
 
         foreach (string skillEntry in skillEntries)
@@ -82,7 +82,7 @@ public static class AdvancedSkillsParser
             if (!int.TryParse(trimmed.AsSpan(0, 1), out int skillId))
                 continue;
 
-            var skill = new AdvancedSkillJson { SkillId = skillId };
+            AdvancedSkillJson skill = new() { SkillId = skillId };
 
             if (trimmed.Length > 1)
             {
@@ -108,13 +108,13 @@ public static class AdvancedSkillsParser
 
     private static List<SkillRuleJson> ParseRules(string rulesPart, out string multiAuraOperator)
     {
-        var rules = new List<SkillRuleJson>();
+        List<SkillRuleJson> rules = new();
         multiAuraOperator = "AND";
         bool skipOnMatch = rulesPart.EndsWith('S') || rulesPart.EndsWith('s');
 
         int pos = 0;
-        var singleAuraRules = new List<SkillRuleJson>();
-        var multiAuraRules = new List<SkillRuleJson>();
+        List<SkillRuleJson> singleAuraRules = new();
+        List<SkillRuleJson> multiAuraRules = new();
         while (pos < rulesPart.Length)
         {
             if (char.ToUpper(rulesPart[pos]) == 'W' && pos + 1 < rulesPart.Length && char.ToUpper(rulesPart[pos + 1]) == 'W')
@@ -127,7 +127,7 @@ public static class AdvancedSkillsParser
                 if (pos > numStart)
                 {
                     int timeout = int.Parse(rulesPart.Substring(numStart, pos - numStart));
-                    var waitRule = new SkillRuleJson
+                    SkillRuleJson waitRule = new()
                     {
                         Type = "Wait"
                     };
@@ -297,7 +297,7 @@ public static class AdvancedSkillsParser
 
                 if (!string.IsNullOrEmpty(auraName))
                 {
-                    var rule = new SkillRuleJson
+                    SkillRuleJson rule = new()
                     {
                         Type = "MultiAura",
                         AuraName = auraName,
@@ -454,7 +454,7 @@ public static class AdvancedSkillsParser
 
                 if (!string.IsNullOrEmpty(auraName))
                 {
-                    var auraRule = new SkillRuleJson
+                    SkillRuleJson auraRule = new()
                     {
                         Type = "Aura",
                         Value = auraValue,
@@ -496,7 +496,7 @@ public static class AdvancedSkillsParser
 
     public static string ConvertJsonToJson(AdvancedSkillsConfigJson config)
     {
-        var options = new JsonSerializerOptions
+        JsonSerializerOptions options = new()
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase

@@ -6,7 +6,6 @@ using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
 using System.Diagnostics;
 using System.IO.Compression;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.Services;
 

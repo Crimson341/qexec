@@ -3,7 +3,6 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using Skua.Core.Models.Skills;
-using Skua.Core.Utils;
 using System.Text.Json;
 
 namespace Skua.Core.Skills;
@@ -152,7 +151,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     private string ConvertSkillsToString(List<AdvancedSkillJson> skills)
     {
-        var parts = new List<string>();
+        List<string> parts = new();
         foreach (AdvancedSkillJson skill in skills)
         {
             string skillStr = skill.SkillId.ToString();
@@ -171,10 +170,10 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     private string ConvertRulesToString(List<SkillRuleJson> rules, bool isMultiAura, string? multiAuraOperator)
     {
-        var ruleParts = new List<string>();
+        List<string> ruleParts = new();
         List<SkillRuleJson> multiAuraRules = isMultiAura ? rules.Where(r => r.Type == "MultiAura").ToList() : new List<SkillRuleJson>();
         List<SkillRuleJson> singleAuraRules = !isMultiAura ? rules.Where(r => r.Type == "Aura").ToList() : new List<SkillRuleJson>();
-        var otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura" && r.Type != "Skip").ToList();
+        List<SkillRuleJson> otherRules = rules.Where(r => r.Type != "MultiAura" && r.Type != "Aura" && r.Type != "Skip").ToList();
 
         foreach (SkillRuleJson? rule in otherRules)
         {
@@ -248,7 +247,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             }
         }
 
-        var result = new Dictionary<string, List<string>>();
+        Dictionary<string, List<string>> result = new();
         if (_jsonConfig != null)
         {
             foreach (KeyValuePair<string, Dictionary<string, SkillModeJson>> classEntry in _jsonConfig)
@@ -298,14 +297,14 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
 
     private void SaveToJson(string filePath)
     {
-        var config = new AdvancedSkillsConfigJson();
+        AdvancedSkillsConfigJson config = new();
 
         foreach (AdvancedSkill skill in _loadedSkills)
         {
             if (!config.ContainsKey(skill.ClassName))
                 config[skill.ClassName] = new Dictionary<string, SkillModeJson>();
 
-            var skillMode = new SkillModeJson
+            SkillModeJson skillMode = new()
             {
                 SkillUseMode = skill.SkillUseMode == SkillUseMode.UseIfAvailable ? "UseIfAvailable" : "WaitForCooldown",
                 SkillTimeout = skill.SkillTimeout,
@@ -315,7 +314,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
             config[skill.ClassName][skill.ClassUseMode.ToString()] = skillMode;
         }
 
-        var options = new JsonSerializerOptions
+        JsonSerializerOptions options = new()
         {
             WriteIndented = true,
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase

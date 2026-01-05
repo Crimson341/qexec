@@ -3,7 +3,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Skua.Core.Models;
 using System.Reflection;
-using System.Runtime.Loader;
 using System.Text;
 using Westwind.Scripting;
 
@@ -181,7 +180,7 @@ public class Compiler : CSharpScriptExecution
             // Compilation Error handling
             if (!compilationResult.Success)
             {
-                StringBuilder sb = new StringBuilder();
+                StringBuilder sb = new();
                 foreach (Diagnostic diag in
                     compilationResult.Diagnostics
                         .Where(diagnostic => diagnostic.IsWarningAsError || diagnostic.Severity == DiagnosticSeverity.Error))

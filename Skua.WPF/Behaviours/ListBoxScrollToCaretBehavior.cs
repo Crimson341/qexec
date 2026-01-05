@@ -1,6 +1,5 @@
 using Microsoft.Xaml.Behaviors;
 using System.Collections.Specialized;
-using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -24,7 +23,7 @@ public class ListBoxScrollToCaretBehavior : Behavior<ListBox>
     {
         AssociatedObject.Loaded -= OnLoaded;
         AssociatedObject.Unloaded -= OnUnloaded;
-        
+
         if (_collectionSource != null)
         {
             _collectionSource.CollectionChanged -= OnCollectionChanged;

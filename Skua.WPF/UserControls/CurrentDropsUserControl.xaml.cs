@@ -25,7 +25,7 @@ public partial class CurrentDropsUserControl : UserControl
         _viewModel = Ioc.Default.GetRequiredService<CurrentDropsViewModel>();
         DataContext = _viewModel;
         Loaded += OnLoaded;
-        
+
         // Setup debounce timer for search (300ms delay)
         _searchDebounceTimer = new DispatcherTimer
         {
@@ -36,7 +36,7 @@ public partial class CurrentDropsUserControl : UserControl
             _searchDebounceTimer?.Stop();
             _collectionView?.Refresh();
         };
-        
+
         // Add Enter key handler for immediate search
         SearchBox.PreviewKeyDown += (s, e) =>
         {

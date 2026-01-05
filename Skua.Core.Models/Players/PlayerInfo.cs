@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using Skua.Core.Models.Auras;
 
 namespace Skua.Core.Models.Players;
 

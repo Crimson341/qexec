@@ -20,7 +20,7 @@ public class DynamicObjectProperty : PropertyDescriptor
     public DynamicObjectProperty(PropertyDescriptor descriptor)
         : base(descriptor)
     {
-        List<Attribute> atts = new List<Attribute>();
+        List<Attribute> atts = new();
         foreach (Attribute att in descriptor.Attributes)
         {
             atts.Add(att);
@@ -50,13 +50,13 @@ public class DynamicObjectProperty : PropertyDescriptor
     {
         _type = type;
 
-        var ro = Attributes.GetAttribute<ReadOnlyAttribute>();
+        ReadOnlyAttribute ro = Attributes.GetAttribute<ReadOnlyAttribute>();
         if (ro != null)
         {
             _isReadOnly = ro.IsReadOnly;
         }
 
-        var dv = Attributes.GetAttribute<DefaultValueAttribute>();
+        DefaultValueAttribute dv = Attributes.GetAttribute<DefaultValueAttribute>();
         if (dv != null)
         {
             HasDefaultValue = true;
@@ -111,7 +111,7 @@ public class DynamicObjectProperty : PropertyDescriptor
 
     private static Attribute[] GetAttributes(IEnumerable<Attribute> attributes)
     {
-        var list = attributes == null ? new List<Attribute>() : new List<Attribute>(attributes);
+        List<Attribute> list = attributes == null ? new List<Attribute>() : new List<Attribute>(attributes);
         return list.ToArray();
     }
 

@@ -34,17 +34,17 @@ public partial class AboutView : UserControl
 
     private void SubscribeToAllHyperlinks(FlowDocument flowDocument)
     {
-        var hyperlinks = GetVisuals(flowDocument).OfType<Hyperlink>();
-        foreach (var link in hyperlinks)
+        IEnumerable<Hyperlink> hyperlinks = GetVisuals(flowDocument).OfType<Hyperlink>();
+        foreach (Hyperlink link in hyperlinks)
             link.Command = ((AboutViewModel)DataContext).NavigateCommand;
     }
 
     private IEnumerable<DependencyObject> GetVisuals(DependencyObject root)
     {
-        foreach (var child in LogicalTreeHelper.GetChildren(root).OfType<DependencyObject>())
+        foreach (DependencyObject child in LogicalTreeHelper.GetChildren(root).OfType<DependencyObject>())
         {
             yield return child;
-            foreach (var descendants in GetVisuals(child))
+            foreach (DependencyObject descendants in GetVisuals(child))
                 yield return descendants;
         }
     }

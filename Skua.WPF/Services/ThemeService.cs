@@ -7,7 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
-using System.Windows.Threading;
 
 namespace Skua.WPF.Services;
 
@@ -30,7 +29,7 @@ public class ThemeService : ObservableObject, IThemeService
         {
             _isColorAdjusted = internalTheme.ColorAdjustment is not null;
 
-            var colorAdjustment = internalTheme.ColorAdjustment ?? new ColorAdjustment();
+            ColorAdjustment colorAdjustment = internalTheme.ColorAdjustment ?? new ColorAdjustment();
             _desiredContrastRatio = colorAdjustment.DesiredContrastRatio;
             _contrastValue = colorAdjustment.Contrast;
             _colorSelectionValue = colorAdjustment.Colors;
@@ -66,7 +65,7 @@ public class ThemeService : ObservableObject, IThemeService
     {
         _themeSettings.SetTheme(themeItem);
 
-        var theme = _paletteHelper.GetTheme();
+        ITheme theme = _paletteHelper.GetTheme();
 
         _primaryColor = theme.PrimaryMid.Color;
         //_secondaryColor = theme.SecondaryMid.Color;
@@ -128,7 +127,7 @@ public class ThemeService : ObservableObject, IThemeService
 
                 // if we are triggering a change internally its a hue change and the colors will match
                 // so we don't want to trigger a custom color change.
-                var currentSchemeColor = ActiveScheme switch
+                Color? currentSchemeColor = ActiveScheme switch
                 {
                     ColorScheme.Primary => _primaryColor,
                     //ColorScheme.Secondary => _secondaryColor,

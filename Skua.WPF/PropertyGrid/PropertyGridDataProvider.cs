@@ -94,7 +94,7 @@ public class PropertyGridDataProvider : IListSource
         property.IsEnum = descriptor.PropertyType.IsEnum;
         property.IsFlagsEnum = descriptor.PropertyType.IsEnum && Extensions.IsFlagsEnum(descriptor.PropertyType);
 
-        var options = descriptor.GetAttribute<PropertyGridOptionsAttribute>();
+        PropertyGridOptionsAttribute? options = descriptor.GetAttribute<PropertyGridOptionsAttribute>();
         if (options != null)
         {
             if (options.SortOrder != 0)
@@ -106,7 +106,7 @@ public class PropertyGridDataProvider : IListSource
             property.IsFlagsEnum = options.IsFlagsEnum;
         }
 
-        var att = descriptor.GetAttribute<DefaultValueAttribute>();
+        DefaultValueAttribute att = descriptor.GetAttribute<DefaultValueAttribute>();
         if (att != null)
         {
             property.HasDefaultValue = true;
@@ -156,7 +156,7 @@ public class PropertyGridDataProvider : IListSource
 
         bool forceReadWrite = false;
         PropertyGridProperty property = null;
-        var options = descriptor.GetAttribute<PropertyGridOptionsAttribute>();
+        PropertyGridOptionsAttribute options = descriptor.GetAttribute<PropertyGridOptionsAttribute>();
         if (options != null)
         {
             forceReadWrite = options.ForceReadWrite;
@@ -200,7 +200,7 @@ public class PropertyGridDataProvider : IListSource
     protected virtual void ScanProperties()
     {
         Properties.Clear();
-        List<PropertyGridProperty> props = new List<PropertyGridProperty>();
+        List<PropertyGridProperty> props = new();
         foreach (PropertyDescriptor descriptor in TypeDescriptor.GetProperties(Data))
         {
             if (!descriptor.IsBrowsable)

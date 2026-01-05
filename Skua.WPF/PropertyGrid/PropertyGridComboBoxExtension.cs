@@ -112,12 +112,12 @@ public class PropertyGridComboBoxExtension : MarkupExtension
         if (BaseConverter.IsNullOrEmptyString(value))
             return string.Empty;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
         string svalue = string.Format("{0}", value);
         ulong ul;
         if (!ulong.TryParse(svalue, out ul))
         {
-            var enums = ParseEnum(svalue);
+            List<string> enums = ParseEnum(svalue);
             if (enums.Count == 0)
                 return string.Empty;
 
@@ -177,7 +177,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
 
     private static List<string> ParseEnum(string text)
     {
-        List<string> enums = new List<string>();
+        List<string> enums = new();
         string[] split = text.Split(',', ';', '|', ' ');
         if (split.Length >= 0)
         {
@@ -229,7 +229,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
         if (ulong.TryParse(svalue, out ul))
             return ul;
 
-        var enums = ParseEnum(svalue);
+        List<string> enums = ParseEnum(svalue);
         if (enums.Count == 0)
             return 0;
 
@@ -278,7 +278,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
 
         PropertyGridItem zero = null;
         PropertyGridOptionsAttribute att = PropertyGridOptionsAttribute.FromProperty(property);
-        ObservableCollection<PropertyGridItem> items = new ObservableCollection<PropertyGridItem>();
+        ObservableCollection<PropertyGridItem> items = new();
         if (isEnumOrNullableEnum)
         {
             if (nullable)
@@ -508,7 +508,7 @@ public class PropertyGridComboBoxExtension : MarkupExtension
             }
         }
 
-        Dictionary<string, object> ctx = new Dictionary<string, object>();
+        Dictionary<string, object> ctx = new();
         ctx["items"] = items;
         property.OnEvent(this, ActivatorService.CreateInstance<PropertyGridEventArgs>(property, ctx));
         return items;
@@ -527,11 +527,11 @@ public class PropertyGridComboBoxExtension : MarkupExtension
 
         FieldInfo fi = type.GetField(name, BindingFlags.Static | BindingFlags.Public);
         displayName = fi.Name;
-        var ba = fi.GetAttribute<BrowsableAttribute>();
+        BrowsableAttribute ba = fi.GetAttribute<BrowsableAttribute>();
         if (ba != null && !ba.Browsable)
             return false;
 
-        var da = fi.GetAttribute<DescriptionAttribute>();
+        DescriptionAttribute da = fi.GetAttribute<DescriptionAttribute>();
         if (da != null && !string.IsNullOrWhiteSpace(da.Description))
         {
             displayName = da.Description;

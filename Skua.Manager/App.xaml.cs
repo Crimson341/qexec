@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Skua.Core.AppStartup;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
-using Skua.Core.Services;
 using Skua.Core.Utils;
 using Skua.Core.ViewModels;
 using Skua.Core.ViewModels.Manager;
@@ -100,7 +99,7 @@ public partial class App : Application
         {
             while (_eventWaitHandle.WaitOne())
             {
-                Current.Dispatcher.BeginInvoke((Action)(() =>
+                Current.Dispatcher.BeginInvoke(() =>
                 {
                     if (Current.MainWindow != null)
                     {
@@ -116,7 +115,7 @@ public partial class App : Application
                         mainWindow.Topmost = false;
                         mainWindow.Focus();
                     }
-                }));
+                });
             }
         })
         .Start();

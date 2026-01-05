@@ -260,15 +260,15 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         _includedFiles.Clear();
         HashSet<string> references = GetReferences();
         string final = ProcessSources(source, ref references);
-        
+
         int cacheHash = ComputeCacheHash(final, _includedFiles);
         Trace.WriteLine($"Script cache hash: {cacheHash} for {Path.GetFileName(LoadedScript)}");
-        
+
         SyntaxTree tree = CSharpSyntaxTree.ParseText(final, encoding: Encoding.UTF8);
         CompiledScript = final = tree.GetRoot().NormalizeWhitespace().ToFullString();
         string scriptName = Path.GetFileNameWithoutExtension(LoadedScript);
 
-        ScriptLoadContext loadContext = new ScriptLoadContext();
+        ScriptLoadContext loadContext = new();
         _currentLoadContext = new WeakReference(loadContext);
 
         Compiler compiler = Ioc.Default.GetRequiredService<Compiler>();
@@ -359,7 +359,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             sources[0] = sources[0].Replace(toRemove.ToString(), "");
 
-            List<string> usings = new List<string>();
+            List<string> usings = new();
             string joinedSource = string.Join(Environment.NewLine, sources);
             List<string> lines = joinedSource.Split('\n').Select(l => l.Trim()).ToList();
             for (int i = lines.Count - 1; i >= 0; i--)

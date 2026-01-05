@@ -79,7 +79,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
         _scripts.Clear();
         if (_getScriptsService?.Scripts != null)
         {
-            var scriptViewModels = new List<ScriptInfoViewModel>();
+            List<ScriptInfoViewModel> scriptViewModels = new();
             foreach (ScriptInfo script in _getScriptsService.Scripts)
             {
                 if (script?.Name != null && !script.Name.Equals("null"))

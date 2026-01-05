@@ -103,7 +103,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
             return;
         }
 
-        var newAccount = new AccountItemViewModel()
+        AccountItemViewModel newAccount = new()
         {
             Username = UsernameInput,
             Password = PasswordInput,
@@ -180,7 +180,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
     private void _SaveAccounts()
     {
-        var accs = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, AccountData> accs = new(StringComparer.OrdinalIgnoreCase);
         foreach (AccountItemViewModel account in Accounts)
         {
             accs[account.Username] = new AccountData
@@ -224,7 +224,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
                 psi.ArgumentList.Add(ScriptPath);
             }
 
-            var process = Process.Start(psi);
+            Process? process = Process.Start(psi);
             if (process != null)
             {
                 // Send message to LauncherViewModel to add this process with the account display name
@@ -247,7 +247,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
         foreach (KeyValuePair<string, AccountData> kvp in accs)
         {
-            var accountVm = new AccountItemViewModel()
+            AccountItemViewModel accountVm = new()
             {
                 Username = kvp.Key,
                 DisplayName = kvp.Value.DisplayName,

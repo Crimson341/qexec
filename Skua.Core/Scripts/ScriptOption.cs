@@ -239,7 +239,7 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
 
     public void ResetToDefault()
     {
-        var defaults = new ScriptOption(_lazyFlash);
+        ScriptOption defaults = new(_lazyFlash);
         foreach (PropertyInfo pi in GetType().GetProperties())
         {
             if (pi.Name == nameof(OptionDictionary))

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -234,7 +234,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -267,7 +267,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -300,7 +300,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -333,7 +333,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -368,7 +368,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -457,7 +457,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -490,7 +490,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -523,7 +523,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -568,7 +568,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -619,7 +619,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {
@@ -670,7 +670,7 @@ public class BaseConverter : IConverter
             }
         }
 
-        var styles = NumberStyles.Integer;
+        NumberStyles styles = NumberStyles.Integer;
         string s = Convert.ToString(input, provider);
         if (NormalizeHexString(ref s))
         {

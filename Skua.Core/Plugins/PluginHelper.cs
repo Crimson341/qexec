@@ -22,7 +22,7 @@ public class PluginHelper : IPluginHelper
         if (_buttons.ContainsKey(text))
             return;
 
-        var vm = new MainMenuItemViewModel(text, new RelayCommand(action));
+        MainMenuItemViewModel vm = new(text, new RelayCommand(action));
         _buttons.Add(text, vm);
         _messenger.Send<AddPluginMenuItemMessage, int>(new(vm), (int)MessageChannels.Plugins);
     }

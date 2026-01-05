@@ -29,7 +29,7 @@ public class Decamelizer : IDecamelizer
             options = _options;
         }
 
-        StringBuilder sb = new StringBuilder(text.Length);
+        StringBuilder sb = new(text.Length);
 
         // 0=lower, 1=upper, 2=special char
         UnicodeCategory lastCategory = CharUnicodeInfo.GetUnicodeCategory(text[0]);

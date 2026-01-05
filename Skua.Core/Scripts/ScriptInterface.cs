@@ -461,11 +461,11 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                         case "sellItem":
                             Stats.GetSpace();
                             Messenger.Send<ItemSoldMessage, int>(new(
-                                Convert.ToInt32(data.CharItemID), 
-                                Convert.ToInt32(data.iQty), 
-                                Convert.ToInt32(data.iQtyNow), 
-                                Convert.ToInt32(data.intAmount), 
-                                Convert.ToInt32(data.bCoins) == 1), 
+                                Convert.ToInt32(data.CharItemID),
+                                Convert.ToInt32(data.iQty),
+                                Convert.ToInt32(data.iQtyNow),
+                                Convert.ToInt32(data.intAmount),
+                                Convert.ToInt32(data.bCoins) == 1),
                                 (int)MessageChannels.GameEvents);
                             break;
 

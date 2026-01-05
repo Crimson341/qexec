@@ -1,5 +1,4 @@
-﻿using Skua.Core.Models.Auras;
-using Skua.Core.Models.Items;
+﻿using Skua.Core.Models.Items;
 using Skua.Core.Models.Monsters;
 using Skua.Core.Models.Players;
 using Skua.Core.Models.Skills;

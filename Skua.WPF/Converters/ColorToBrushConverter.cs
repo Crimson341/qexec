@@ -15,6 +15,6 @@ public class ColorToBrushConverter : IValueConverter
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        return value is SolidColorBrush brush ? brush.Color : (object)default(Color);
+        return value is SolidColorBrush brush ? brush.Color : default;
     }
 }

@@ -42,7 +42,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
                         if (skillModes.Count > 0)
                         {
                             SoloUseModes.AddRange(skillModes);
@@ -123,7 +123,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
                         if (skillModes.Count > 0)
                         {
                             FarmUseModes.AddRange(skillModes);
@@ -204,7 +204,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
                         if (skillModes.Count > 0)
                         {
                             DodgeUseModes.AddRange(skillModes);
@@ -285,7 +285,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        var skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
                         if (skillModes.Count > 0)
                         {
                             BossUseModes.AddRange(skillModes);
@@ -352,7 +352,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     {
         if (!_advancedSkills.LoadedSkills.Any(s => s.ClassName == className))
         {
-            var newSkill = new AdvancedSkill(className, "1 | 2 | 3 | 4", 100, ClassUseMode.Base, SkillUseMode.UseIfAvailable);
+            AdvancedSkill newSkill = new(className, "1 | 2 | 3 | 4", 100, ClassUseMode.Base, SkillUseMode.UseIfAvailable);
             _advancedSkills.Add(newSkill);
         }
     }
@@ -390,7 +390,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
         string farmClass = SelectedFarmClass == CurrentClassOption ? CurrentClassOption : SelectedFarmClass;
         string dodgeClass = SelectedDodgeClass == CurrentClassOption ? CurrentClassOption : SelectedDodgeClass;
         string bossClass = SelectedBossClass == CurrentClassOption ? CurrentClassOption : SelectedBossClass;
-        
+
         builder.AppendLine($"SoloClassSelect: {soloClass}");
         builder.AppendLine($"SoloEquipCheck: {UseSoloEquipment}");
         builder.AppendLine($"SoloModeSelect: {SelectedSoloUseMode}");
@@ -410,7 +410,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     public void SetValues(Dictionary<string, string> values)
     {
         ReloadClasses();
-        
+
         if (values.ContainsKey("SoloClassSelect"))
         {
             string soloClassValue = values["SoloClassSelect"];

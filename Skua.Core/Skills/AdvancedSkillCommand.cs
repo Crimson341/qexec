@@ -33,7 +33,7 @@ public class AdvancedSkillCommand
         return (index, skill);
     }
 
-    public bool? ShouldUse(IScriptPlayer player, IScriptSelfAuras self , IScriptTargetAuras target, int skillIndex, bool canUse)
+    public bool? ShouldUse(IScriptPlayer player, IScriptSelfAuras self, IScriptTargetAuras target, int skillIndex, bool canUse)
     {
         if (skillIndex < 0 || skillIndex >= UseRules.Count)
             return true;
@@ -58,8 +58,8 @@ public class AdvancedSkillCommand
                     break;
 
                 case SkillRule.Aura:
-                    var singleCheck = new List<AuraCheck>
-                        {
+                    List<AuraCheck> singleCheck = new()
+                    {
                             new() {
                                 AuraName = useRule.AuraName,
                                 AuraTarget = useRule.AuraTarget,

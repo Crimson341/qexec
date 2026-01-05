@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.ViewModels.Manager;
 

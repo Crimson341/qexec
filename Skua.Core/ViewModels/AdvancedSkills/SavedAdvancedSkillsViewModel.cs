@@ -87,10 +87,10 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
         }
 
         AvailableModes.Clear();
-        var classModeDictionary = _advancedSkillContainer.GetAvailableClassModes();
-        if (classModeDictionary.TryGetValue(value, out var modes))
+        Dictionary<string, List<string>> classModeDictionary = _advancedSkillContainer.GetAvailableClassModes();
+        if (classModeDictionary.TryGetValue(value, out List<string>? modes))
         {
-            foreach (var mode in modes.OrderBy(x => x))
+            foreach (string mode in modes.OrderBy(x => x))
             {
                 AvailableModes.Add(mode);
             }
@@ -133,7 +133,7 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     private void SaveSkill(SavedAdvancedSkillsViewModel recipient, SaveAdvancedSkillMessage message)
     {
         recipient._advancedSkillContainer.TryOverride(message.AdvSkill);
-        Task.Delay(1000).ContinueWith(_ => 
+        Task.Delay(1000).ContinueWith(_ =>
         {
             recipient._loadedSkills = null;
             recipient.OnPropertyChanged(nameof(recipient.LoadedSkills));

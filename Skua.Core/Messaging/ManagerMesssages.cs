@@ -3,6 +3,7 @@ using Skua.Core.Models.GitHub;
 using Skua.Core.ViewModels;
 
 namespace Skua.Core.Messaging;
+
 public sealed record CheckClientUpdateMessage();
 public sealed record DownloadClientUpdateMessage(UpdateInfo UpdateInfo);
 public sealed record UpdateScriptsMessage(bool Reset);

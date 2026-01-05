@@ -25,7 +25,7 @@ public partial class ScriptInfoViewModel : ObservableObject
 
     public ObservableCollection<string> InfoTags
     {
-        get => new ObservableCollection<string>(Info.Tags);
+        get => new(Info.Tags);
     }
 
     [ObservableProperty]

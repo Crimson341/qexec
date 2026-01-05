@@ -154,7 +154,7 @@ public class SkillItemViewModel : ObservableObject
                             pos++;
                     }
                     string rawName = rest.Substring(nameStart, pos - nameStart);
-                    mauraName = rawName.Replace("\\\"" , "\"").Trim();
+                    mauraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rest.Length && rest[pos] == '"')
                         pos++;
                 }
@@ -267,7 +267,7 @@ public class SkillItemViewModel : ObservableObject
                             pos++;
                     }
                     string rawName = rest.Substring(nameStart, pos - nameStart);
-                    auraName = rawName.Replace("\\\"" , "\"").Trim();
+                    auraName = rawName.Replace("\\\"", "\"").Trim();
                     if (pos < rest.Length && rest[pos] == '"')
                         pos++;
 

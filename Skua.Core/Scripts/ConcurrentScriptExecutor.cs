@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 
 namespace Skua.Core.Scripts;
 
@@ -21,7 +20,7 @@ public class ConcurrentScriptExecutor : IDisposable
     {
         await _executionSemaphore.WaitAsync();
 
-        var context = new ScriptExecutionContext(scriptId);
+        ScriptExecutionContext context = new(scriptId);
         _activeScripts.TryAdd(scriptId, context);
 
         _ = ExecuteScriptInternalAsync(scriptId, scriptAction, context);
@@ -65,7 +64,7 @@ public class ConcurrentScriptExecutor : IDisposable
 
     public IReadOnlyDictionary<string, ScriptExecutionContext> GetActiveScripts()
     {
-        var dict = new Dictionary<string, ScriptExecutionContext>();
+        Dictionary<string, ScriptExecutionContext> dict = new();
         foreach (KeyValuePair<string, ScriptExecutionContext> kvp in _activeScripts)
         {
             dict.Add(kvp.Key, kvp.Value);

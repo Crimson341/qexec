@@ -53,7 +53,7 @@ public class PropertyGridProperty : AutoObject, IComparable, IComparable<Propert
 
     public virtual void OnEvent(object sender, PropertyGridEventArgs e)
     {
-        var handler = Event;
+        EventHandler<PropertyGridEventArgs> handler = Event;
         if (handler != null)
         {
             handler(sender, e);

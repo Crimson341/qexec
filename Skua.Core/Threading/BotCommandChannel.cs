@@ -37,7 +37,7 @@ public class BotCommandChannel : IDisposable
     public BotCommandChannel(int capacity = 100)
     {
         _cts = new();
-        var options = new BoundedChannelOptions(capacity)
+        BoundedChannelOptions options = new(capacity)
         {
             FullMode = BoundedChannelFullMode.Wait
         };
@@ -59,7 +59,7 @@ public class BotCommandChannel : IDisposable
 
     public async Task<BotCommandResponse> SendCommandAsync(string commandName, object? data, int timeoutMs = 5000)
     {
-        var request = new BotCommandRequest
+        BotCommandRequest request = new()
         {
             CommandName = commandName,
             CommandData = data
@@ -67,7 +67,7 @@ public class BotCommandChannel : IDisposable
 
         await _commandChannel.Writer.WriteAsync(request, _cts.Token);
 
-        using var cts = new CancellationTokenSource(timeoutMs);
+        using CancellationTokenSource cts = new(timeoutMs);
         try
         {
             return await request.ResponseTask.Task.ConfigureAwait(false);

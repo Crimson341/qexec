@@ -97,7 +97,7 @@ public partial class CustomWindow : Window
     {
         try
         {
-            var preference = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
+            DWM_WINDOW_CORNER_PREFERENCE preference = DWM_WINDOW_CORNER_PREFERENCE.DWMWCP_ROUND;
             PInvoke.DwmSetWindowAttribute(
                 (Windows.Win32.Foundation.HWND)hwnd,
                 DWMWINDOWATTRIBUTE.DWMWA_WINDOW_CORNER_PREFERENCE,

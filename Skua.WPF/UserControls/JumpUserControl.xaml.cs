@@ -16,7 +16,7 @@ public partial class JumpUserControl : UserControl
         InitializeComponent();
         _viewModel = Ioc.Default.GetRequiredService<JumpViewModel>();
         DataContext = _viewModel;
-        
+
         // Refresh cells when dropdown is opened
         Cells.DropDownOpened += (s, e) => _viewModel.UpdateCellsCommand.Execute(null);
     }

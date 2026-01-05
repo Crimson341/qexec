@@ -4,7 +4,7 @@ namespace Skua.Core.Utils.CustomJsonConverters;
 
 public class UnixDateTimeConverter : JsonConverter
 {
-    private static readonly DateTime _epoch = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+    private static readonly DateTime _epoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
     public override bool CanConvert(Type objectType)
     {

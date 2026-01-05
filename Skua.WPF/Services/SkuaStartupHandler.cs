@@ -60,7 +60,7 @@ public sealed class SkuaStartupHandler : IDisposable
             return false;
         }
 
-        var options = _result.Value;
+        SkuaOptions options = _result.Value;
 
         if (!string.IsNullOrEmpty(options.Username) && !string.IsNullOrEmpty(options.Password))
         {

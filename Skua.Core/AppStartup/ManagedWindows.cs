@@ -1,7 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Skua.Core.Interfaces;
 using Skua.Core.ViewModels;
-using Skua.Core.ViewModels.Manager;
 
 namespace Skua.Core.AppStartup;
 

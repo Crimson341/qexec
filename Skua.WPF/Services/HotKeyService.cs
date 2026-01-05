@@ -71,7 +71,7 @@ public class HotKeyService : IHotKeyService, IDisposable
     {
         if (Application.Current?.MainWindow != null)
         {
-            foreach (var binding in _registeredBindings)
+            foreach (KeyBinding binding in _registeredBindings)
             {
                 Application.Current.MainWindow.InputBindings.Remove(binding);
             }
@@ -82,7 +82,7 @@ public class HotKeyService : IHotKeyService, IDisposable
     public List<T> GetHotKeys<T>()
         where T : IHotKey, new()
     {
-        var hotkeys = _settingsService.Get<StringCollection>("HotKeys") ?? new StringCollection();
+        StringCollection hotkeys = _settingsService.Get<StringCollection>("HotKeys") ?? new StringCollection();
 
         EnsureAllBindingsExist(hotkeys);
         _settingsService.Set("HotKeys", hotkeys);

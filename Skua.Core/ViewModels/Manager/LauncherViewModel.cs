@@ -47,7 +47,7 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
     {
         if (message.Process != null)
         {
-            var procInfo = new ProcessInfo(message.Process, message.AccountName ?? $"Skua #{message.Process.Id}");
+            ProcessInfo procInfo = new(message.Process, message.AccountName ?? $"Skua #{message.Process.Id}");
             _dispatcherService.Invoke(() => recipient.SkuaProcesses.Add(procInfo));
         }
     }
@@ -73,10 +73,10 @@ public partial class LauncherViewModel : BotControlViewModelBase, IDisposable
 
             try
             {
-                var proc = Process.Start("./Skua.exe", args);
+                Process? proc = Process.Start("./Skua.exe", args);
                 if (proc != null)
                 {
-                    var procInfo = new ProcessInfo(proc, $"Skua #{proc.Id}");
+                    ProcessInfo procInfo = new(proc, $"Skua #{proc.Id}");
                     _dispatcherService.Invoke(() => SkuaProcesses.Add(procInfo));
                 }
             }

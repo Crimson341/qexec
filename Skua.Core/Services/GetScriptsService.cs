@@ -4,8 +4,6 @@ using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using Skua.Core.Models.GitHub;
 using Skua.Core.Utils;
-using System.Text;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.Services;
 
@@ -131,7 +129,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
             long localSize = 0;
             if (File.Exists(ClientFileSources.SkuaAdvancedSkillsFile))
             {
-                FileInfo fileInfo = new FileInfo(ClientFileSources.SkuaAdvancedSkillsFile);
+                FileInfo fileInfo = new(ClientFileSources.SkuaAdvancedSkillsFile);
                 localSize = fileInfo.Length;
             }
 
@@ -264,7 +262,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
                 return 0;
             }
 
-            var scriptChangedFiles = changedFiles
+            HashSet<string> scriptChangedFiles = changedFiles
                 .Where(f => f.EndsWith(".cs", StringComparison.OrdinalIgnoreCase) && f != "scripts.json")
                 .ToHashSet();
 
@@ -278,7 +276,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
             progress?.Report($"Found {scriptChangedFiles.Count} changed scripts. Updating...");
 
             List<ScriptInfo> scripts = await GetScriptsInfo(true, token);
-            var scriptsToUpdate = scripts.Where(s => scriptChangedFiles.Contains(s.FilePath)).ToList();
+            List<ScriptInfo> scriptsToUpdate = scripts.Where(s => scriptChangedFiles.Contains(s.FilePath)).ToList();
 
             int updated = 0;
             foreach (ScriptInfo? script in scriptsToUpdate)

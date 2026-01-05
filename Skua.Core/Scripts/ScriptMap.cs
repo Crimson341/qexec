@@ -181,7 +181,7 @@ public partial class ScriptMap : IScriptMap
 
         List<string> files = new();
         files = Directory.GetFiles(_cachePath).ToList();
-        var sw = Stopwatch.StartNew();
+        Stopwatch sw = Stopwatch.StartNew();
 
         // Always decompile when forcing refresh, even if SWF exists
         if (files.Count > 0 && files.Contains(Path.Combine(_cachePath, FileName)))
@@ -331,7 +331,7 @@ public partial class ScriptMap : IScriptMap
         {
             sw.Restart();
             fileName = fileName.EndsWith(".swf") ? fileName : fileName + ".swf";
-            var decompile = new Process
+            Process decompile = new()
             {
                 StartInfo = new ProcessStartInfo
                 {

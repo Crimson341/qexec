@@ -36,9 +36,9 @@ public class TimeLimiter
     private void CleanupOldEntries()
     {
         int currentTick = Environment.TickCount;
-        List<string> keysToRemove = new List<string>();
+        List<string> keysToRemove = new();
 
-        foreach (var kvp in _last)
+        foreach (KeyValuePair<string, int> kvp in _last)
         {
             // Remove entries older than cleanup threshold
             if (currentTick - kvp.Value > CleanupThreshold)

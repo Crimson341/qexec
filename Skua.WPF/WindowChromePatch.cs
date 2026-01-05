@@ -1,6 +1,6 @@
 using System;
-using System.Runtime.InteropServices;
 using Windows.Win32;
+using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.WindowsAndMessaging;
 
@@ -23,15 +23,15 @@ public static class WindowChromePatch
     private static unsafe void WmGetMinMaxInfo(IntPtr hwnd, IntPtr lParam)
     {
         ref MINMAXINFO mmi = ref *(MINMAXINFO*)lParam;
-        var monitor = PInvoke.MonitorFromWindow((Windows.Win32.Foundation.HWND)hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
+        HMONITOR monitor = PInvoke.MonitorFromWindow((Windows.Win32.Foundation.HWND)hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
         if (monitor.Value != IntPtr.Zero)
         {
             MONITORINFO monitorInfo = default;
             monitorInfo.cbSize = (uint)sizeof(MONITORINFO);
             if (PInvoke.GetMonitorInfo(monitor, ref monitorInfo))
             {
-                var rcWorkArea = monitorInfo.rcWork;
-                var rcMonitorArea = monitorInfo.rcMonitor;
+                RECT rcWorkArea = monitorInfo.rcWork;
+                RECT rcMonitorArea = monitorInfo.rcMonitor;
                 mmi.ptMaxPosition.X = Math.Abs(rcWorkArea.left - rcMonitorArea.left);
                 mmi.ptMaxPosition.Y = Math.Abs(rcWorkArea.top - rcMonitorArea.top);
                 mmi.ptMaxSize.X = Math.Abs(rcWorkArea.right - rcWorkArea.left);

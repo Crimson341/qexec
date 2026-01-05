@@ -332,7 +332,7 @@ public class UnifiedSettingsService
 
     private System.Collections.Specialized.StringCollection ConvertToStringCollection(object? value)
     {
-        var collection = new System.Collections.Specialized.StringCollection();
+        StringCollection collection = new();
 
         if (value == null)
             return collection;
@@ -377,7 +377,7 @@ public class UnifiedSettingsService
 
     private Dictionary<string, AccountData> ConvertToAccountDataDictionary(object? value)
     {
-        var dictionary = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, AccountData> dictionary = new(StringComparer.OrdinalIgnoreCase);
 
         if (value == null)
             return dictionary;
@@ -591,7 +591,7 @@ public class UnifiedSettingsService
 
     private JsonSerializerOptions GetJsonOptions()
     {
-        var options = new JsonSerializerOptions()
+        JsonSerializerOptions options = new()
         {
             WriteIndented = true,
             PropertyNamingPolicy = null,
@@ -610,7 +610,7 @@ public class UnifiedSettingsService
         PropertyInfo[] properties = type.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
         foreach (PropertyInfo prop in properties)
         {
-            var jsonAttr = prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
+            JsonPropertyNameAttribute? jsonAttr = prop.GetCustomAttributes(typeof(System.Text.Json.Serialization.JsonPropertyNameAttribute), false)
                 .FirstOrDefault() as System.Text.Json.Serialization.JsonPropertyNameAttribute;
 
             if (jsonAttr != null && jsonAttr.Name == jsonName)

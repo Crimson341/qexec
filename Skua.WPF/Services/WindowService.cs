@@ -62,7 +62,7 @@ public class WindowService : IWindowService, IDisposable
         if (!_managedWindows.ContainsKey(key))
             return;
 
-        var window = _managedWindows[key];
+        HostWindow window = _managedWindows[key];
         if (window.IsVisible)
         {
             // Window is already visible, bring it to front
@@ -134,7 +134,7 @@ public class WindowService : IWindowService, IDisposable
             if (disposing)
             {
                 // Close and dispose all managed windows
-                foreach (var kvp in _managedWindows.ToList())
+                foreach (KeyValuePair<string, HostWindow> kvp in _managedWindows.ToList())
                 {
                     try
                     {

@@ -1,6 +1,5 @@
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
-using System.Collections.Generic;
 
 namespace Skua.Core.Scripts;
 
@@ -230,7 +229,7 @@ public class ScriptAccounts : IScriptAccounts
         if (accounts.Comparer == StringComparer.OrdinalIgnoreCase)
             return accounts;
 
-        var caseInsensitiveDict = new Dictionary<string, AccountData>(accounts, StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, AccountData> caseInsensitiveDict = new(accounts, StringComparer.OrdinalIgnoreCase);
         return caseInsensitiveDict;
     }
 }

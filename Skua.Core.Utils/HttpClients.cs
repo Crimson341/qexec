@@ -105,16 +105,16 @@ public static class HttpClients
         await _githubApiSemaphore.WaitAsync();
         try
         {
-            var timeSinceLastCall = DateTime.UtcNow - _lastGitHubApiCall;
+            TimeSpan timeSinceLastCall = DateTime.UtcNow - _lastGitHubApiCall;
             if (timeSinceLastCall < _minDelayBetweenCalls)
             {
                 await Task.Delay(_minDelayBetweenCalls - timeSinceLastCall);
             }
             _lastGitHubApiCall = DateTime.UtcNow;
-            var client = GetGHClient();
-            var response = await ValidatedHttpExtensions.GetAsyncWithRetry(client, url, CancellationToken.None);
+            HttpClient client = GetGHClient();
+            HttpResponseMessage response = await ValidatedHttpExtensions.GetAsyncWithRetry(client, url, CancellationToken.None);
 
-            if (response.Headers.TryGetValues("X-RateLimit-Remaining", out var remainingValues))
+            if (response.Headers.TryGetValues("X-RateLimit-Remaining", out IEnumerable<string>? remainingValues))
             {
                 if (int.TryParse(remainingValues.FirstOrDefault(), out int remaining) && remaining < 10)
                 {
@@ -194,7 +194,7 @@ public static class ValidatedHttpExtensions
     /// </summary>
     public static async Task<string> GetStringAsync(this HttpClient client, string requestUri)
     {
-        using var response = await GetAsync(client, requestUri);
+        using HttpResponseMessage response = await GetAsync(client, requestUri);
         string content = await response.Content.ReadAsStringAsync();
         return string.IsNullOrWhiteSpace(content) ? throw new InvalidDataException("Response content is empty or null") : content;
     }
@@ -211,7 +211,7 @@ public static class ValidatedHttpExtensions
         {
             try
             {
-                var response = await client.GetAsync(requestUri, cancellationToken);
+                HttpResponseMessage response = await client.GetAsync(requestUri, cancellationToken);
                 response.EnsureSuccessStatusCode();
                 return response;
             }

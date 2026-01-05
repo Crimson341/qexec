@@ -6,13 +6,13 @@ using Skua.Core.Generators.Models;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
 using System.Text;
 using static Skua.Core.Generators.Diagnostics.DiagnosticDescriptors;
 
 namespace Skua.Core.Generators;
+
 public partial class MethodCallBindingGenerator
 {
     public static class Execute
@@ -95,9 +95,9 @@ public partial class MethodCallBindingGenerator
             bool isVoid = info.ReturnTypeString.Contains("void");
             string paramNames = info.MethodParamNames.Length == 0 ? "" : $", {string.Join(",", info.MethodParamNames)}";
             source.Append($"public {info.ReturnTypeString} {info.NewMethodName}{info.MethodParams}{{");
-            if(info.Values.RunMethodPre)
+            if (info.Values.RunMethodPre)
                 source.Append(info.MethodBody);
-            if(info.Values.GameFunction)
+            if (info.Values.GameFunction)
             {
                 if (isVoid)
                 {
@@ -117,7 +117,7 @@ public partial class MethodCallBindingGenerator
                 }
                 else
                 {
-                    if(info.Values.ParseFromJson)
+                    if (info.Values.ParseFromJson)
                     {
                         source.Append($"try{{string ret = Flash.Call<string>(\"{info.Values.Path}\"{paramNames});");
                         source.Append($"{info.ReturnTypeString}{(info.IsNullable ? string.Empty : "?")} returnValue = Newtonsoft.Json.JsonConvert.DeserializeObject<{info.ReturnTypeString}>(ret);");
@@ -128,7 +128,7 @@ public partial class MethodCallBindingGenerator
                     }
                 }
             }
-            if(info.Values.RunMethodPost && !info.Values.RunMethodPre)
+            if (info.Values.RunMethodPost && !info.Values.RunMethodPre)
                 source.Append(info.MethodBody);
 
             if (!isVoid)

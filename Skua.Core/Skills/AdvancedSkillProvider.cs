@@ -1,7 +1,4 @@
-using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
-using Skua.Core.Messaging;
-using Skua.Core.Utils;
 
 namespace Skua.Core.Skills;
 
@@ -57,7 +54,7 @@ public class AdvancedSkillProvider : ISkillProvider
         List<AuraCheck> multiAuraChecks = new();
         int multiAuraOp = 0;
         bool shouldSkip = useRule.Length > 0 && useRule[^1] == 's';
-        
+
         int pos = 0;
         while (pos < useRule.Length)
         {

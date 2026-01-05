@@ -38,7 +38,7 @@ public class GameApiThreadSafeWrapper : IGameApiThreadSafeWrapper
 
     public async Task<T> ExecuteAsync<T>(Func<IScriptInterface, T> operation, string operationName = "")
     {
-        var call = new GameApiCall
+        GameApiCall call = new()
         {
             OperationName = operationName,
             ExecutionTime = DateTime.UtcNow,
@@ -58,7 +58,7 @@ public class GameApiThreadSafeWrapper : IGameApiThreadSafeWrapper
 
     public async Task ExecuteAsync(Action<IScriptInterface> operation, string operationName = "")
     {
-        var call = new GameApiCall
+        GameApiCall call = new()
         {
             OperationName = operationName,
             ExecutionTime = DateTime.UtcNow,

@@ -7,8 +7,8 @@ namespace Skua.WPF;
 
 public class PropertyGridServiceProvider : IServiceProvider
 {
-    private readonly ConcurrentDictionary<Type, object> _services = new ConcurrentDictionary<Type, object>();
-    private static readonly PropertyGridServiceProvider _current = new PropertyGridServiceProvider();
+    private readonly ConcurrentDictionary<Type, object> _services = new();
+    private static readonly PropertyGridServiceProvider _current = new();
 
     public PropertyGridServiceProvider()
     {

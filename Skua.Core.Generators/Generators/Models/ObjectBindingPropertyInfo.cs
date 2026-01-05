@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 
 namespace Skua.Core.Generators.Models;
+
 public sealed record ObjectBindingPropertyInfo(
     string FieldName,
     string PropertyName,

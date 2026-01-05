@@ -1,7 +1,6 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using Skua.Core.Interfaces;
 using Skua.Core.Models;
-using Skua.Core.Utils;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -43,7 +42,8 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
             _Listen(_captureProxyCTS.Token);
             _captureProxyCTS.Dispose();
             _captureProxyCTS = null;
-        }) { Name = "Capture Proxy" };
+        })
+        { Name = "Capture Proxy" };
         _thread.Start();
     }
     public void Stop()

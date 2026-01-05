@@ -5,7 +5,6 @@ using CommunityToolkit.Mvvm.Messaging.Messages;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
 using Skua.Core.Models;
-using Skua.Core.Models.Monsters;
 using Skua.Core.Utils;
 using System.Collections.ObjectModel;
 

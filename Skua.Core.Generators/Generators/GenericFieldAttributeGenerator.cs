@@ -10,6 +10,7 @@ using System.Linq;
 using System.Text;
 
 namespace Skua.Core.Generators;
+
 public abstract partial class GenericFieldAttributeGenerator<TInfo> : IIncrementalGenerator
 {
     /// <summary>

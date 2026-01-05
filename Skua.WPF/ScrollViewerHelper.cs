@@ -62,7 +62,7 @@ public static class ScrollViewerHelper
 
     private static void HorizontalScrool_OnPreviewMouseWheel(object sender, MouseWheelEventArgs args)
     {
-        var scrollViewer = ((UIElement)sender).FindDescendant<ScrollViewer>();
+        ScrollViewer? scrollViewer = ((UIElement)sender).FindDescendant<ScrollViewer>();
 
         if (scrollViewer == null)
             return;

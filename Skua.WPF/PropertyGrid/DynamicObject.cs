@@ -13,11 +13,11 @@ namespace Skua.WPF;
 /// </summary>
 public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropertyChanged, IDataErrorInfo
 {
-    private readonly List<Attribute> _attributes = new List<Attribute>();
-    private readonly List<EventDescriptor> _events = new List<EventDescriptor>();
-    private readonly List<PropertyDescriptor> _properties = new List<PropertyDescriptor>();
-    private readonly Dictionary<Type, object> _editors = new Dictionary<Type, object>();
-    private readonly Dictionary<string, object> _values = new Dictionary<string, object>();
+    private readonly List<Attribute> _attributes = new();
+    private readonly List<EventDescriptor> _events = new();
+    private readonly List<PropertyDescriptor> _properties = new();
+    private readonly Dictionary<Type, object> _editors = new();
+    private readonly Dictionary<string, object> _values = new();
 
     /// <summary>
     /// Occurs when a property value changes.
@@ -395,14 +395,14 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
         if (attributes == null || attributes.Length == 0)
             return ((ICustomTypeDescriptor)this).GetEvents();
 
-        List<EventDescriptor> list = new List<EventDescriptor>();
+        List<EventDescriptor> list = new();
         foreach (EventDescriptor evt in _events)
         {
             if (evt.Attributes.Count == 0)
                 continue;
 
             bool cont = false;
-            foreach (var att in attributes)
+            foreach (Attribute att in attributes)
             {
                 if (!HasMatchingAttribute(evt, att))
                 {
@@ -421,7 +421,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
 
     private static bool HasMatchingAttribute(MemberDescriptor member, Attribute attribute)
     {
-        var att = member.Attributes[attribute.GetType()];
+        Attribute? att = member.Attributes[attribute.GetType()];
         if (att == null)
             return attribute.IsDefaultAttribute();
 
@@ -438,7 +438,7 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
         if (attributes == null || attributes.Length == 0)
             return ((ICustomTypeDescriptor)this).GetProperties();
 
-        List<PropertyDescriptor> list = new List<PropertyDescriptor>();
+        List<PropertyDescriptor> list = new();
         foreach (PropertyDescriptor prop in _properties)
         {
             if (prop.Attributes.Count == 0)
@@ -564,12 +564,12 @@ public class DynamicObject : ICustomTypeDescriptor, IFormattable, INotifyPropert
             separator = Environment.NewLine;
         }
 
-        List<ValidationException> list = new List<ValidationException>();
+        List<ValidationException> list = new();
         ValidateMember(culture, list, memberName);
         if (list.Count == 0)
             return null;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
         foreach (ValidationException e in list)
         {
             if (sb.Length != 0)

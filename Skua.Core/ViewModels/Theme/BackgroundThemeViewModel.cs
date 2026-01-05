@@ -4,7 +4,6 @@ using Skua.Core.Interfaces;
 using Skua.Core.Models;
 using Skua.Core.Services;
 using Skua.Core.Utils;
-using System.IO;
 
 namespace Skua.Core.ViewModels;
 

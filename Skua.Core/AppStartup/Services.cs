@@ -209,7 +209,7 @@ public static class Services
         services.AddSingleton<GitHubAuthViewModel>();
         services.AddSingleton<ScriptRepoViewModel>(s =>
         {
-            var vm = new ScriptRepoViewModel(s.GetRequiredService<IGetScriptsService>(), s.GetRequiredService<IProcessService>());
+            ScriptRepoViewModel vm = new(s.GetRequiredService<IGetScriptsService>(), s.GetRequiredService<IProcessService>());
             vm.IsManagerMode = true;
             return vm;
         });

@@ -4,7 +4,6 @@ using Skua.Core.Flash;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.Servers;
 using Skua.Core.Utils;
-using static Skua.Core.Utils.ValidatedHttpExtensions;
 
 namespace Skua.Core.Scripts;
 
@@ -91,7 +90,7 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
         return Player.Playing;
     }
 
-    [ObjectBinding("sfc.isConnected", RequireNotNull = "sfc",  Default = "false")]
+    [ObjectBinding("sfc.isConnected", RequireNotNull = "sfc", Default = "false")]
     private bool _isConnected;
 
     public void Login() => Login(Player.Username, Player.Password);
@@ -234,7 +233,7 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
         int tries = 0;
         try
         {
-            while (!token.IsCancellationRequested && !Manager.ShouldExit && !IsConnected && Player is {Playing: false, Loaded: false} && ++tries < Options.ReloginTries)
+            while (!token.IsCancellationRequested && !Manager.ShouldExit && !IsConnected && Player is { Playing: false, Loaded: false } && ++tries < Options.ReloginTries)
             {
                 if (!IsConnected && tries % 10 == 0 && tries > 0)
                 {

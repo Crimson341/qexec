@@ -1,8 +1,7 @@
 using Skua.Core.Models.Skills;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.Windows;
+using System.ComponentModel;
 using System.Windows.Controls;
 using System.Windows.Data;
 
@@ -28,7 +27,7 @@ public partial class SavedAdvancedSkillsUserControl : UserControl
 
     private void SearchBox_TextChanged(object sender, TextChangedEventArgs e)
     {
-        var view = CollectionViewSource.GetDefaultView(SkillsList.ItemsSource);
+        ICollectionView view = CollectionViewSource.GetDefaultView(SkillsList.ItemsSource);
         view.Filter = o =>
         {
             if (o is AdvancedSkill skill)
@@ -78,7 +77,7 @@ public partial class SavedAdvancedSkillsUserControl : UserControl
     {
         if (DataContext is Core.ViewModels.SavedAdvancedSkillsViewModel vm)
         {
-            foreach (var skill in _clipboard)
+            foreach (AdvancedSkill skill in _clipboard)
             {
                 vm.LoadedSkills.Add(skill);
             }

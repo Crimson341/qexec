@@ -1,4 +1,5 @@
 ﻿namespace Skua.Core.Generators;
+
 internal static class Attributes
 {
     public const string MethodCallBindingFullName = "Skua.Core.Flash.MethodCallBindingAttribute";

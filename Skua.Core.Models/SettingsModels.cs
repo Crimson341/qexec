@@ -23,7 +23,7 @@ public class AccountDataDictionaryJsonConverter : JsonConverter<Dictionary<strin
 
     public override Dictionary<string, AccountData> Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        Dictionary<string, AccountData> dictionary = new Dictionary<string, AccountData>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, AccountData> dictionary = new(StringComparer.OrdinalIgnoreCase);
 
         if (reader.TokenType == JsonTokenType.StartObject)
         {
@@ -35,7 +35,7 @@ public class AccountDataDictionaryJsonConverter : JsonConverter<Dictionary<strin
                     reader.Read();
                     if (key != null)
                     {
-                        var accountData = JsonSerializer.Deserialize<AccountData>(ref reader, options);
+                        AccountData? accountData = JsonSerializer.Deserialize<AccountData>(ref reader, options);
                         if (accountData != null)
                             dictionary[key] = accountData;
                     }
@@ -75,7 +75,7 @@ public class AccountDataDictionaryJsonConverter : JsonConverter<Dictionary<strin
     public override void Write(Utf8JsonWriter writer, Dictionary<string, AccountData> value, JsonSerializerOptions options)
     {
         writer.WriteStartObject();
-        foreach (var kvp in value)
+        foreach (KeyValuePair<string, AccountData> kvp in value)
         {
             writer.WritePropertyName(kvp.Key);
             JsonSerializer.Serialize(writer, kvp.Value, options);
@@ -94,7 +94,7 @@ public class StringCollectionJsonConverter : JsonConverter<System.Collections.Sp
 {
     public override System.Collections.Specialized.StringCollection Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
-        StringCollection collection = new System.Collections.Specialized.StringCollection();
+        StringCollection collection = new();
         if (reader.TokenType == JsonTokenType.StartArray)
         {
             while (reader.Read() && reader.TokenType != JsonTokenType.EndArray)
@@ -320,7 +320,7 @@ public class SettingsRoot
 
     public static SettingsRoot CreateDefaults()
     {
-        SettingsRoot root = new SettingsRoot
+        SettingsRoot root = new()
         {
             FormatVersion = 1,
             Shared = new SharedSettings(),

@@ -18,7 +18,7 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
         Options = options;
         _windowService = windowService;
         RemoveAllDropsCommand = new RelayCommand(Drops.Clear);
-        
+
         // Subscribe to property changes directly
         Drops.PropertyChanged += OnDropsPropertyChanged;
     }
@@ -44,10 +44,10 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
     {
         if (items is null)
             return;
-        
+
         List<string> names = new();
         List<int> ids = new();
-        
+
         foreach (string item in items.Cast<string>())
         {
             if (int.TryParse(item, out int itemId))
@@ -55,7 +55,7 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
             else
                 names.Add(item);
         }
-        
+
         if (names.Any())
             Drops.Remove(names.ToArray());
         if (ids.Any())
@@ -78,10 +78,10 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
             return;
 
         string[] inputs = AddDropInput.Split(_dropsSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        
+
         List<string> names = new();
         List<int> ids = new();
-        
+
         foreach (string input in inputs)
         {
             if (int.TryParse(input.Trim(), out int itemId))
@@ -89,7 +89,7 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
             else
                 names.Add(input);
         }
-        
+
         if (names.Any())
             Drops.Add(names.ToArray());
         if (ids.Any())

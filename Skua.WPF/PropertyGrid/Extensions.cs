@@ -41,7 +41,7 @@ internal static class Extensions
 
         count = Math.Min(count, bytes.Length - offset);
 
-        StringBuilder sb = new StringBuilder(count * 2);
+        StringBuilder sb = new(count * 2);
         for (int i = offset; i < (offset + count); i++)
         {
             sb.Append(_hexaChars[bytes[i] / 16]);
@@ -111,7 +111,7 @@ internal static class Extensions
                 sep2 = format[2];
             }
 
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (PropertyInfo pi in obj.GetType().GetProperties(BindingFlags.Instance | BindingFlags.Public))
             {
                 if (!pi.CanRead)
@@ -199,7 +199,7 @@ internal static class Extensions
         }
         else if (format.IndexOf(',') >= 0)
         {
-            StringBuilder sb = new StringBuilder();
+            StringBuilder sb = new();
             foreach (string propName in format.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries))
             {
                 PropertyInfo pi = obj.GetType().GetProperty(propName, BindingFlags.Instance | BindingFlags.Public);
@@ -251,7 +251,7 @@ internal static class Extensions
         if (collection == null)
             return null;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
         int i = 0;
         foreach (object o in collection)
         {
@@ -373,7 +373,7 @@ internal static class Extensions
 
     public static List<T> SplitToList<T>(this string thisString, params char[] separators)
     {
-        List<T> list = new List<T>();
+        List<T> list = new();
         if (thisString != null)
         {
             foreach (string s in thisString.Split(separators))
@@ -441,7 +441,7 @@ internal static class Extensions
         if (sameLevelFirst)
         {
             int count = VisualTreeHelper.GetChildrenCount(obj);
-            List<DependencyObject> list = new List<DependencyObject>(count);
+            List<DependencyObject> list = new(count);
             for (int i = 0; i < count; i++)
             {
                 DependencyObject child = VisualTreeHelper.GetChild(obj, i);
@@ -455,7 +455,7 @@ internal static class Extensions
                 }
             }
 
-            foreach (var child in list)
+            foreach (DependencyObject child in list)
             {
                 foreach (DependencyObject grandChild in child.EnumerateVisualChildren(recursive, true))
                 {
@@ -475,7 +475,7 @@ internal static class Extensions
                 yield return child;
                 if (recursive)
                 {
-                    foreach (var dp in child.EnumerateVisualChildren(true, false))
+                    foreach (DependencyObject dp in child.EnumerateVisualChildren(true, false))
                     {
                         yield return dp;
                     }
@@ -614,7 +614,7 @@ internal static class Extensions
         if (exception == null)
             return null;
 
-        StringBuilder sb = new StringBuilder();
+        StringBuilder sb = new();
         AppendMessages(sb, exception, separator);
         return sb.ToString().Replace("..", ".");
     }
