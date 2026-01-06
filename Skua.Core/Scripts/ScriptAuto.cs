@@ -295,8 +295,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         }
         else if (!Combat.StopAttacking)
         {
-            List<string> monsters = Monsters.CurrentMonsters.Select(m => m.Name).ToList();
-            _target = string.Join('|', monsters);
+            _target = string.Join('|', Monsters.CurrentMonsters.Select(m => m.Name));
             _targetMapID = -1;
         }
 
@@ -453,7 +452,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
     private void CheckDropsandBoosts()
     {
-        if (Drops.ToPickup.Any())
+        if (Drops.ToPickupIDs.Any() || Drops.ToPickup.Any())
             Drops.Start();
 
         if (Boosts.UsingBoosts)

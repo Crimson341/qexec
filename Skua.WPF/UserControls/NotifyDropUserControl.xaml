@@ -28,7 +28,15 @@
             Grid.Column="0"
             Grid.ColumnSpan="2"
             Margin="0,0,0,3"
-            ItemsSource="{Binding NotifyDropList, UpdateSourceTrigger=PropertyChanged}">
+            ItemsSource="{Binding NotifyDropList}"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            ScrollViewer.CanContentScroll="True">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
             <ListBox.ToolTip>
                 <TextBlock>
                     A list of all items the bot will make a sound when dropped.<LineBreak />

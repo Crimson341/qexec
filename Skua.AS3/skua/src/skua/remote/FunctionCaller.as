@@ -11,9 +11,7 @@ public class FunctionCaller {
     }
 
     public function pushArgs(args:Array):void {
-        for (var i:int = 0; i < args.length; i++) {
-            this._args.push(args[i]);
-        }
+        this._args = this._args.concat(args);
     }
 
     public function clearArgs():void {

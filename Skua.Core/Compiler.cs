@@ -112,8 +112,8 @@ public class Compiler : CSharpScriptExecution
             {
                 if (CachedAssemblies.Count >= _maxCachedAssemblies)
                 {
-                    int oldestKey = CachedAssemblies.Keys.First();
-                    CachedAssemblies.Remove(oldestKey, out _);
+                    int oldestKey = CachedAssemblies.Keys.Min();
+                    CachedAssemblies.TryRemove(oldestKey, out _);
                 }
 
                 CachedAssemblies[hash] = Assembly;
@@ -168,12 +168,12 @@ public class Compiler : CSharpScriptExecution
 
         using (codeStream)
         {
-            EmitResult? compilationResult = null;
-            if (CompileWithDebug)
-            {
-                DebugInformationFormat debugOptions = CompileWithDebug ? DebugInformationFormat.Embedded : DebugInformationFormat.Pdb;
-                compilationResult = compilation.Emit(codeStream, options: new EmitOptions(debugInformationFormat: debugOptions));
-            }
+        EmitResult? compilationResult = null;
+        if (CompileWithDebug)
+        {
+            const DebugInformationFormat debugOptions = DebugInformationFormat.Embedded;
+            compilationResult = compilation.Emit(codeStream, options: new EmitOptions(debugInformationFormat: debugOptions));
+        }
             else
                 compilationResult = compilation.Emit(codeStream);
 
@@ -359,15 +359,15 @@ public class Compiler : CSharpScriptExecution
                 return;
 
             string[] filePaths = Directory.GetFiles(_cacheDirectory, "*.dll");
-            List<FileInfo> files = new(filePaths.Length);
+            FileInfo[] files = new FileInfo[filePaths.Length];
 
-            foreach (string path in filePaths)
+            for (int i = 0; i < filePaths.Length; i++)
             {
-                files.Add(new FileInfo(path));
+                files[i] = new FileInfo(filePaths[i]);
             }
 
             DateTime now = DateTime.Now;
-            HashSet<FileInfo> filesToDelete = new();
+            HashSet<FileInfo> filesToDelete = [];
 
             foreach (FileInfo file in files)
             {
@@ -395,7 +395,7 @@ public class Compiler : CSharpScriptExecution
             {
                 if (group.Count > 1)
                 {
-                    FileInfo newest = group.OrderByDescending(f => f.LastWriteTimeUtc).First();
+                    FileInfo newest = group.MaxBy(f => f.LastWriteTimeUtc)!;
                     foreach (FileInfo file in group)
                     {
                         if (file != newest)
@@ -406,7 +406,7 @@ public class Compiler : CSharpScriptExecution
                 }
             }
 
-            if (files.Count - filesToDelete.Count >= _maxCachedAssemblies)
+            if (files.Length - filesToDelete.Count >= _maxCachedAssemblies)
             {
                 List<FileInfo> remaining = files.Except(filesToDelete).OrderBy(f => f.LastAccessTime).ToList();
                 int toRemove = remaining.Count - _maxCachedAssemblies + 1;

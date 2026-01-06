@@ -77,9 +77,11 @@ public class ModalMC extends MovieClip {
         this.mc.x = 960 / 2 - this.mc.width / 2;
         this.mc.y = 550 / 2 - this.mc.height / 2;
         if (param1.glow != null) {
-            _loc2_ = param1.glow.split(",")[0];
-            _loc3_ = param1.glow.split(",")[1];
-            this.mc.filters = [new GlowFilter(this.glowColors[_loc2_], 1, this.glowSizes[_loc3_], this.glowSizes[_loc3_], 64, 1)];
+            var glowParts:Array = param1.glow.split(",");
+            _loc2_ = glowParts[0];
+            _loc3_ = glowParts[1];
+            var glowSize:int = this.glowSizes[_loc3_];
+            this.mc.filters = [new GlowFilter(this.glowColors[_loc2_], 1, glowSize, glowSize, 64, 1)];
         }
     }
 

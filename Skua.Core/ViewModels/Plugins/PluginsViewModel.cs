@@ -41,7 +41,8 @@ public partial class PluginsViewModel : BotControlViewModelBase
     [RelayCommand]
     private void UnloadAllPlugins()
     {
-        PluginManager.Containers.ToList().ForEach(c => PluginManager.Unload(c.Plugin));
+        foreach (IPluginContainer container in PluginManager.Containers)
+            PluginManager.Unload(container.Plugin);
     }
 
     [RelayCommand]

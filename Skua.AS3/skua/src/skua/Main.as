@@ -7,7 +7,6 @@ import flash.display.Stage;
 import flash.display.StageAlign;
 import flash.display.StageScaleMode;
 import flash.events.Event;
-import flash.events.IOErrorEvent;
 import flash.events.KeyboardEvent;
 import flash.events.MouseEvent;
 import flash.events.TimerEvent;
@@ -27,12 +26,12 @@ import skua.util.SFSEvent;
 [SWF(frameRate="30", backgroundColor="#000000", width="958", height="550")]
 public class Main extends MovieClip {
     public static var instance:Main;
-    private static var selfAuraData:Object = {};
-    private static var targetAuraData:Object = {};
     private static var _gameClass:Class;
     private static var _fxStore:Object = {};
     private static var _fxLastOpt:Boolean = false;
     private static var _handler:*;
+    private static const PAD_NAMES_REGEX:RegExp = /(Spawn|Center|Left|Right|Up|Down|Top|Bottom)/;
+    private static const DROP_PARSE_REGEX:RegExp = /(.*)\s+x\s*(\d*)/g;
 
     private var game:*;
     private var external:Externalizer;
@@ -50,9 +49,8 @@ public class Main extends MovieClip {
     private var gameDomain:ApplicationDomain;
     private var customBGLoader:Loader;
     private var customBGReady:MovieClip = null;
+    private var customBGLagKiller:MovieClip = null;
     private var customBackgroundURL:String;
-    private var lastLoginChildCount:int = -1;
-    private var lastLoginVisible:Boolean = false;
 
     public function Main() {
         String.prototype.trim = function():String {
@@ -150,71 +148,7 @@ public class Main extends MovieClip {
     }
 
     public function onExtensionResponse(packet:*):void {
-        trackAuraStacks(packet);
         this.external.call('pext', JSON.stringify(packet));
-    }
-
-    private function trackAuraStacks(packet:*):void {
-        try {
-            if (packet.params && packet.params.type == 'json' && packet.params.dataObj) {
-                var data:Object = packet.params.dataObj;
-                if (data.cmd == 'ct' && data.a) {
-                    var myUserId:String = instance.game.sfc.myUserId.toString();
-                    for each (var action:Object in data.a) {
-                        if (action.cmd && action.auras) {
-                            var targetId:String = action.tInf;
-                            var isSelf:Boolean = targetId == 'p:' + myUserId;
-                            var isTarget:Boolean = instance.game.world.myAvatar.target && 
-                                                   (targetId == 'p:' + instance.game.world.myAvatar.target.dataLeaf.entID || 
-                                                    targetId == 'm:' + instance.game.world.myAvatar.target.dataLeaf.MonMapID);
-                            
-                            if (isSelf || isTarget) {
-                                var auraTracker:Object = isSelf ? selfAuraData : targetAuraData;
-                                
-                                for each (var aura:Object in action.auras) {
-                                    if (action.cmd.indexOf('+') > -1 || action.cmd.indexOf('++') > -1) {
-                                        var incrementBy:int = (aura.val != undefined && aura.val != null) ? parseInt(aura.val) : 1;
-                                        if (!auraTracker.hasOwnProperty(aura.nam)) {
-                                            auraTracker[aura.nam] = {
-                                                stackCount: incrementBy,
-                                                isNew: aura.isNew,
-                                                icon: aura.icon,
-                                                t: aura.t,
-                                                dur: aura.dur,
-                                                spellOn: aura.spellOn,
-                                                passive: aura.passive
-                                            };
-                                        } else {
-                                            if (aura.isNew) {
-                                                auraTracker[aura.nam].stackCount = incrementBy;
-                                            } else {
-                                                if (aura.val != undefined && aura.val != null) {
-                                                    auraTracker[aura.nam].stackCount = parseInt(aura.val);
-                                                } else {
-                                                    auraTracker[aura.nam].stackCount += incrementBy;
-                                                }
-                                            }
-                                            auraTracker[aura.nam].isNew = aura.isNew;
-                                            if (aura.icon) auraTracker[aura.nam].icon = aura.icon;
-                                            if (aura.t) auraTracker[aura.nam].t = aura.t;
-                                            if (aura.dur) auraTracker[aura.nam].dur = aura.dur;
-                                            if (aura.spellOn) auraTracker[aura.nam].spellOn = aura.spellOn;
-                                            if (aura.passive) auraTracker[aura.nam].passive = aura.passive;
-                                        }
-                                    } else if (action.cmd.indexOf('-') > -1 || action.cmd.indexOf('--') > -1) {
-                                        delete auraTracker[aura.nam];
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else if (data.cmd == 'clearAuras') {
-                    selfAuraData = {};
-                    targetAuraData = {};
-                }
-            }
-        } catch (e:Error) {
-        }
     }
 
     private function onGameClick(event:MouseEvent) : void
@@ -229,18 +163,18 @@ public class Main extends MovieClip {
                 return;
             case "btnWiki":
                 if (event.target.parent.parent.parent.name == "qRewardPrev") {
-                    this.external.call("openWebsite", "http://aqwwiki.wikidot.com/" + instance.game.ui.getChildByName("qRewardPrev").cnt.strTitle.text);
+                    this.external.call("openWebsite", "https://aqwwiki.wikidot.com/" + instance.game.ui.getChildByName("qRewardPrev").cnt.strTitle.text);
                 } else if (className.indexOf("LPFFrameItemPreview") > -1) {
-                    this.external.call("openWebsite","http://aqwwiki.wikidot.com/" + event.target.parent.tInfo.getLineText(0));
+                    this.external.call("openWebsite","https://aqwwiki.wikidot.com/" + event.target.parent.tInfo.getLineText(0));
                 } else if (className.indexOf("LPFFrameHousePreview") > -1) {
-                    this.external.call("openWebsite","http://aqwwiki.wikidot.com/" + instance.game.ui.mcPopup.getChildByName("mcInventory").previewPanel.frames[3].mc.tInfo.getLineText(0));
+                    this.external.call("openWebsite","https://aqwwiki.wikidot.com/" + instance.game.ui.mcPopup.getChildByName("mcInventory").previewPanel.frames[3].mc.tInfo.getLineText(0));
                 } else if (className.indexOf("mcQFrame") > -1) {
                     this.external.call("openWebsite","https://cse.google.com/cse?oe=utf8&ie=utf8&source=uds&safe=active&sort=&cx=015511893259151479029:wctfduricyy&start=0#gsc.tab=0&gsc.q=" + instance.game.getInstanceFromModalStack("QFrameMC").qData.sName);
                 }
                 return;
             case "hit":
                 if (className.indexOf("cProto") > -1 && event.target.parent.ti.text.toLowerCase() == "wiki monster") {
-                    this.external.call("openWebsite", "http://aqwwiki.wikidot.com/" + instance.game.world.myAvatar.target.objData.strMonName || "monsters");
+                    this.external.call("openWebsite", "https://aqwwiki.wikidot.com/" + instance.game.world.myAvatar.target.objData.strMonName || "monsters");
                 }
                 return;
             default:
@@ -249,38 +183,27 @@ public class Main extends MovieClip {
     }
 
     private function monitorLoginScreen(event:Event):void {
-        if (this.customBGReady && this.game && this.game.mcLogin) {
-
-            var currentlyVisible:Boolean = this.game.mcLogin.visible;
-            if (currentlyVisible != this.lastLoginVisible) {
-                if (currentlyVisible) {
-                    this.tryApplyCustomBG();
+        if (!this.customBGReady || !this.game || !this.game.mcLogin) return;
+        
+        if (this.game.mcLogin.visible && this.game.mcLogin.mcTitle) {
+            var hasCustomBG:Boolean = false;
+            var numChildren:int = this.game.mcLogin.mcTitle.numChildren;
+            
+            for (var i:int = 0; i < numChildren; i++) {
+                if (this.game.mcLogin.mcTitle.getChildAt(i) == this.customBGReady) {
+                    hasCustomBG = true;
+                    break;
                 }
-                this.lastLoginVisible = currentlyVisible;
             }
-
-            if (this.game.mcLogin.visible && this.game.mcLogin.mcTitle) {
-
-                var currentChildCount:int = this.game.mcLogin.mcTitle.numChildren;
-
-                if (currentChildCount != this.lastLoginChildCount) {
-                    this.lastLoginChildCount = currentChildCount;
-                    this.tryApplyCustomBG();
+            
+            if (!hasCustomBG) {
+                if (this.customBGReady.parent) {
+                    this.customBGReady.parent.removeChild(this.customBGReady);
                 }
-
-                if (currentChildCount > 0) {
-                    var hasCustomBG:Boolean = false;
-                    for (var i:int = 0; i < currentChildCount; i++) {
-                        if (this.game.mcLogin.mcTitle.getChildAt(i) == this.customBGReady) {
-                            hasCustomBG = true;
-                            break;
-                        }
-                    }
-
-                    if (!hasCustomBG) {
-                        this.tryApplyCustomBG();
-                    }
+                while (this.game.mcLogin.mcTitle.numChildren > 0) {
+                    this.game.mcLogin.mcTitle.removeChildAt(0);
                 }
+                this.game.mcLogin.mcTitle.addChild(this.customBGReady);
             }
         }
     }
@@ -293,56 +216,30 @@ public class Main extends MovieClip {
         this.customBGLoader = new Loader();
         this.customBGLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, function (e:Event):void {
             customBGReady = MovieClip(customBGLoader.content);
-            tryApplyCustomBG();
 
-            var bgTimer:Timer = new Timer(500);
-            bgTimer.addEventListener(TimerEvent.TIMER, function (timerEvent:TimerEvent):void {
-                if (customBGReady && game && game.mcLogin && game.mcLogin.visible) {
-                    tryApplyCustomBG();
+            var checkTimer:Timer = new Timer(100);
+            checkTimer.addEventListener(TimerEvent.TIMER, function (timerEvent:TimerEvent):void {
+                if (game) {
+                    while (game.mcLogin.mcTitle.numChildren > 0) {
+                        game.mcLogin.mcTitle.removeChildAt(0);
+                    }
+                    game.mcLogin.mcTitle.addChild(customBGReady);
+                    checkTimer.stop();
                 }
             });
-            bgTimer.start();
-        });
-        this.customBGLoader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, function (e:IOErrorEvent):void {
-            external.debug('Custom background load error: ' + e.text);
+            checkTimer.start();
         });
         this.customBGLoader.load(new URLRequest(this.customBackgroundURL));
-
-        this.stg.addEventListener(Event.ENTER_FRAME, function (e:Event):void {
-            if (game && game.mcLogin && game.mcLogin.mcTitle && game.mcLogin.mcTitle.numChildren > 0) {
-                stg.removeEventListener(Event.ENTER_FRAME, arguments.callee);
-                tryApplyCustomBG();
+        
+        var lagKillerLoader:Loader = new Loader();
+        lagKillerLoader.contentLoaderInfo.addEventListener(Event.COMPLETE, function (e:Event):void {
+            customBGLagKiller = MovieClip(lagKillerLoader.content);
+            if (game) {
+                game.addChildAt(customBGLagKiller, 0);
+                customBGLagKiller.visible = false;
             }
         });
-    }
-
-    private function tryApplyCustomBG():void {
-        if (!this.customBGReady) {
-            return;
-        }
-
-        if (!this.game || !this.game.mcLogin || !this.game.mcLogin.mcTitle) {
-            return;
-        }
-
-        try {
-            var numChildren:int = this.game.mcLogin.mcTitle.numChildren;
-            if (numChildren > 0) {
-                var topChild:* = this.game.mcLogin.mcTitle.getChildAt(numChildren - 1);
-                if (topChild == this.customBGReady) {
-                    return;
-                }
-            }
-
-            while (this.game.mcLogin.mcTitle.numChildren > 0) {
-                this.game.mcLogin.mcTitle.removeChildAt(0);
-            }
-
-            this.game.mcLogin.mcTitle.addChild(this.customBGReady);
-
-        } catch (e:Error) {
-            this.external.debug('Custom background apply error: ' + e.message);
-        }
+        lagKillerLoader.load(new URLRequest(this.customBackgroundURL));
     }
 
     public function key_StageGame(kbArgs:KeyboardEvent):void {
@@ -369,25 +266,28 @@ public class Main extends MovieClip {
     }
 
     public static function jumpCorrectRoom(cell:String, pad:String, autoCorrect:Boolean = true, clientOnly:Boolean = false):void {
-        var prevCell:String = instance.game.world.strFrame;
+        var world:* = instance.game.world;
+        
         if (!autoCorrect) {
-            instance.game.world.moveToCell(cell, pad, clientOnly);
+            world.moveToCell(cell, pad, clientOnly);
         } else {
-            var users:Array = instance.game.world.areaUsers;
+            var users:Array = world.areaUsers;
             users.splice(users.indexOf(instance.game.sfc.myUserName), 1);
             users.sort();
             if (users.length <= 1) {
-                instance.game.world.moveToCell(cell, pad, clientOnly);
+                world.moveToCell(cell, pad, clientOnly);
             } else {
-                var usersCell:String = instance.game.world.strFrame;
+                var uoTree:* = world.uoTree;
+                var usersCell:String = world.strFrame;
                 var usersPad:String = "Left";
                 for (var i:int = 0; i < users.length; i++) {
-                    usersCell = instance.game.world.uoTree[users[i]].strFrame;
-                    usersPad = instance.game.world.uoTree[users[i]].strPad;
+                    var userObj:* = uoTree[users[i]];
+                    usersCell = userObj.strFrame;
+                    usersPad = userObj.strPad;
                     if (cell == usersCell && pad != usersPad)
                         break;
                 }
-                instance.game.world.moveToCell(cell, usersPad, clientOnly);
+                world.moveToCell(cell, usersPad, clientOnly);
             }
 
             var jumpTimer:Timer = new Timer(50, 1);
@@ -405,25 +305,26 @@ public class Main extends MovieClip {
     public static function jumpCorrectPad(cell:String, clientOnly:Boolean = false):void {
         var cellPad:String = 'Left';
         var padArr:Array = getCellPads();
+        var world:* = instance.game.world;
+        
         if (padArr.indexOf(cellPad) >= 0) {
-            if (instance.game.world.strPad === cellPad)
+            if (world.strPad === cellPad)
                 return;
-            instance.game.world.moveToCell(cell, cellPad, clientOnly);
+            world.moveToCell(cell, cellPad, clientOnly);
         } else {
             cellPad = padArr[0];
-            if (instance.game.world.strPad === cellPad)
+            if (world.strPad === cellPad)
                 return;
-            instance.game.world.moveToCell(cell, cellPad, clientOnly);
+            world.moveToCell(cell, cellPad, clientOnly);
         }
     }
 
     public static function getCellPads():Array {
         var cellPads:Array = [];
-        var padNames:RegExp = /(Spawn|Center|Left|Right|Up|Down|Top|Bottom)/;
         var cellPadsCnt:int = instance.game.world.map.numChildren;
         for (var i:int = 0; i < cellPadsCnt; ++i) {
             var child:DisplayObject = instance.game.world.map.getChildAt(i);
-            if (padNames.test(child.name)) {
+            if (PAD_NAMES_REGEX.test(child.name)) {
                 cellPads.push(child.name);
             }
         }
@@ -663,15 +564,15 @@ public class Main extends MovieClip {
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
             
-            if (!aura || aura == null) {
+            if (!aura) {
                 continue;
             }
             
-            if (!aura.hasOwnProperty("nam") || aura.nam == null || aura.nam == "") {
+            if (!aura.hasOwnProperty("nam") || !aura.nam) {
                 continue;
             }
             
-            if (aura.hasOwnProperty("e") && aura.e == 1) {
+            if (aura.e == 1) {
                 continue;
             }
             
@@ -723,15 +624,15 @@ public class Main extends MovieClip {
         for (var i:int = 0; i < auras.length; i++) {
             var aura:Object = auras[i];
             
-            if (!aura || aura == null) {
+            if (!aura) {
                 continue;
             }
             
-            if (!aura.hasOwnProperty("nam") || aura.nam == null || aura.nam == "") {
+            if (!aura.hasOwnProperty("nam") || !aura.nam) {
                 continue;
             }
             
-            if (aura.hasOwnProperty("e") && aura.e == 1) {
+            if (aura.e == 1) {
                 continue;
             }
             
@@ -807,10 +708,14 @@ public class Main extends MovieClip {
             return false.toString();
         }
 
-        for (var i:int = 0; i < auras.length; i++) {
+        var auraCount:int = auras.length;
+        var auraListCount:int = auraList.length;
+        
+        for (var i:int = 0; i < auraCount; i++) {
             var aura:Object = auras[i];
-            for (var j:int = 0; j < auraList.length; j++) {
-                if (aura.nam.toLowerCase() == auraList[j].toLowerCase().trim()) {
+            var auraNameLower:String = aura.nam.toLowerCase();
+            for (var j:int = 0; j < auraListCount; j++) {
+                if (auraNameLower == auraList[j].toLowerCase().trim()) {
                     return true.toString();
                 }
             }
@@ -827,9 +732,10 @@ public class Main extends MovieClip {
             return 442;
         }
 
+        var lowerAuraName:String = auraName.toLowerCase();
         for (var i:int = 0; i < auras.length; i++) {
             aura = auras[i];
-            if (aura.nam.toLowerCase() == auraName.toLowerCase()) {
+            if (aura.nam.toLowerCase() == lowerAuraName) {
                 return aura.val;
             }
         }
@@ -885,9 +791,10 @@ public class Main extends MovieClip {
 
         try {
             var monID:int = 0;
+            var lowerMonsterName:String = monsterName.toLowerCase();
             for each (var monster:* in instance.game.world.monsters)
             {
-                if (monster.objData.strMonName.toLowerCase() == monsterName.toLowerCase() && monster != null) {
+                if (monster && monster.objData.strMonName.toLowerCase() == lowerMonsterName) {
                     monID = monster.objData.MonMapID
                 }
             }
@@ -977,45 +884,53 @@ public class Main extends MovieClip {
         var player:* = instance.game.world.getAvatarByUserName(name.toLowerCase());
         return attackTarget(player);
     }
+    
+    private static function sortMonstersByHP(a:*, b:*):Number {
+        var aHP:int = (a.dataLeaf && a.dataLeaf.intHP) ? a.dataLeaf.intHP : 0;
+        var bHP:int = (b.dataLeaf && b.dataLeaf.intHP) ? b.dataLeaf.intHP : 0;
+
+        var aAlive:Boolean = aHP > 0;
+        var bAlive:Boolean = bHP > 0;
+
+        if (aAlive != bAlive) {
+            return aAlive ? -1 : 1;
+        }
+
+        if (aHP != bHP) {
+            return aHP - bHP;
+        }
+
+        var aMapID:int = a.objData ? a.objData.MonMapID : 0;
+        var bMapID:int = b.objData ? b.objData.MonMapID : 0;
+        return aMapID - bMapID;
+    }
     public static function getBestMonsterTarget(name:String):* {
         var targetCandidates:Array = [];
+        var world:* = instance.game.world;
+        var lowerName:String = name.toLowerCase();
+        var isWildcard:Boolean = name == '*';
 
-        for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame)) {
-            var monName:String = monster.objData.strMonName.toLowerCase();
-            if ((monName.indexOf(name.toLowerCase()) > -1 || name == '*') && monster.pMC != null) {
-                targetCandidates.push(monster);
+        for each (var monster:* in world.getMonstersByCell(world.strFrame)) {
+            if (monster.pMC != null) {
+                var monName:String = monster.objData.strMonName.toLowerCase();
+                if (isWildcard || monName.indexOf(lowerName) > -1) {
+                    targetCandidates.push(monster);
+                }
             }
         }
 
         if (targetCandidates.length == 0)
             return null;
 
-        targetCandidates.sort(function (a:*, b:*):Number {
-            var aHP:int = (a.dataLeaf && a.dataLeaf.intHP) ? a.dataLeaf.intHP : 0;
-            var bHP:int = (b.dataLeaf && b.dataLeaf.intHP) ? b.dataLeaf.intHP : 0;
-
-            var aAlive:Boolean = aHP > 0;
-            var bAlive:Boolean = bHP > 0;
-
-            if (aAlive != bAlive) {
-                return aAlive ? -1 : 1;
-            }
-
-            if (aHP != bHP) {
-                return aHP - bHP;
-            }
-
-            var aMapID:int = a.objData ? a.objData.MonMapID : 0;
-            var bMapID:int = b.objData ? b.objData.MonMapID : 0;
-            return aMapID - bMapID;
-        });
+        targetCandidates.sort(sortMonstersByHP);
         return targetCandidates[0];
     }
 
     public static function getBestMonsterTargetByID(id:int):* {
         var targetCandidates:Array = [];
+        var world:* = instance.game.world;
 
-        for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame)) {
+        for each (var monster:* in world.getMonstersByCell(world.strFrame)) {
             if (monster.pMC != null && monster.objData && (monster.objData.MonMapID == id || monster.objData.MonID == id)) {
                 targetCandidates.push(monster);
             }
@@ -1024,31 +939,15 @@ public class Main extends MovieClip {
         if (targetCandidates.length == 0)
             return null;
 
-        targetCandidates.sort(function (a:*, b:*):Number {
-            var aHP:int = (a.dataLeaf && a.dataLeaf.intHP) ? a.dataLeaf.intHP : 0;
-            var bHP:int = (b.dataLeaf && b.dataLeaf.intHP) ? b.dataLeaf.intHP : 0;
-
-            var aAlive:Boolean = aHP > 0;
-            var bAlive:Boolean = bHP > 0;
-
-            if (aAlive != bAlive) {
-                return aAlive ? -1 : 1;
-            }
-
-            if (aHP != bHP) {
-                return aHP - bHP;
-            }
-
-            var aMapID:int = a.objData ? a.objData.MonMapID : 0;
-            var bMapID:int = b.objData ? b.objData.MonMapID : 0;
-            return aMapID - bMapID;
-        });
+        targetCandidates.sort(sortMonstersByHP);
         return targetCandidates[0];
     }
 
     public static function availableMonstersInCell():String {
         var retMonsters:Array = [];
-        for each (var monster:* in instance.game.world.getMonstersByCell(instance.game.world.strFrame)) {
+        var world:* = instance.game.world;
+        
+        for each (var monster:* in world.getMonstersByCell(world.strFrame)) {
             if (monster.pMC != null) {
                 var monsterData:Object = {};
                 for (var prop:String in monster.objData) {
@@ -1066,9 +965,10 @@ public class Main extends MovieClip {
     }
 
     public static function getTargetMonster():String {
-        var monster:* = instance.game.world.myAvatar.target
+        var world:* = instance.game.world;
+        var monster:* = world.myAvatar.target
         if (!monster || (monster.dataLeaf && monster.dataLeaf.intHP <= 0)) {
-            instance.game.world.cancelTarget();
+            world.cancelTarget();
             return JSON.stringify({});
         }
         var monsterData:Object = {};
@@ -1132,8 +1032,9 @@ public class Main extends MovieClip {
     }
 
     public static function infiniteRange():void {
+        var active:Array = instance.game.world.actions.active;
         for (var i:int = 0; i < 6; i++) {
-            instance.game.world.actions.active[i].range = 20000;
+            active[i].range = 20000;
         }
     }
 
@@ -1146,6 +1047,10 @@ public class Main extends MovieClip {
 
     public static function killLag(enable:Boolean):void {
         instance.game.world.visible = !enable;
+        
+        if (instance.customBGLagKiller) {
+            instance.customBGLagKiller.visible = enable;
+        }
     }
 
     public static function disableFX(enabled:Boolean):void {
@@ -1166,11 +1071,14 @@ public class Main extends MovieClip {
     }
 
     public static function hidePlayers(enabled:Boolean):void {
-        for each (var avatar:* in instance.game.world.avatars) {
+        var world:* = instance.game.world;
+        var currentFrame:String = world.strFrame;
+        
+        for each (var avatar:* in world.avatars) {
             if (avatar != null && avatar.pnm != null && !avatar.isMyAvatar) {
                 if (enabled) {
                     avatar.hideMC();
-                } else if (avatar.strFrame == instance.game.world.strFrame) {
+                } else if (avatar.strFrame == currentFrame) {
                     avatar.showMC();
                 }
             }
@@ -1208,8 +1116,9 @@ public class Main extends MovieClip {
     }
 
     public static function getShopItem(name:String):* {
+        var lowerName:String = name.toLowerCase();
         for each (var item:* in instance.game.world.shopinfo.items) {
-            if (item.sName.toLowerCase() == name.toLowerCase() && item != null) {
+            if (item && item.sName.toLowerCase() == lowerName) {
                 return getShopItemByID(item.ID, item.ShopItemID);
             }
         }
@@ -1218,7 +1127,7 @@ public class Main extends MovieClip {
 
     public static function getShopItemByID(itemID:int, shopItemID:int):* {
         for each (var item:* in instance.game.world.shopinfo.items) {
-            if (item.ItemID == itemID && (shopItemID == -1 || item.ShopItemID == shopItemID) && item != null) {
+            if (item && item.ItemID == itemID && (shopItemID == -1 || item.ShopItemID == shopItemID)) {
                 return item;
             }
         }
@@ -1227,10 +1136,10 @@ public class Main extends MovieClip {
 
     private static function parseDrop(name:*):* {
         var ret:* = {};
-        ret.name = name.toLowerCase().trim();
+        var lowercaseName:String = name.toLowerCase().trim();
+        ret.name = lowercaseName;
         ret.count = 1;
-        var regex:RegExp = /(.*)\s+x\s*(\d*)/g;
-        var result:Object = regex.exec(name.toLowerCase().trim());
+        var result:Object = DROP_PARSE_REGEX.exec(lowercaseName);
         if (result == null) {
             return ret;
         } else {

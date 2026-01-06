@@ -113,7 +113,8 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
 
     public void PickupAll(bool skipWait = false)
     {
-        _currentDropInfos.Items.ToList().ForEach(d => Pickup(d.Name));
+        foreach (ItemBase drop in _currentDropInfos.Items)
+            Pickup(drop.Name);
         _currentDropInfos.Clear();
         OnPropertyChanged(nameof(CurrentDropInfos));
         OnPropertyChanged(nameof(CurrentDrops));
@@ -239,10 +240,10 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
                     continue;
                 }
 
-                if (_toPickupIDs.Any())
+                if (_toPickupIDs.Count > 0)
                     Pickup(_toPickupIDs.Items.ToArray());
 
-                if (_toPickup.Any())
+                if (_toPickup.Count > 0)
                     Pickup(_toPickup.Items.ToArray());
 
                 if (RejectElse)

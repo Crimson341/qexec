@@ -110,7 +110,7 @@ public partial class ScriptServers : ObservableRecipient, IScriptServers
                 .ConfigureAwait(false);
 
             List<Server>? servers = JsonConvert.DeserializeObject<List<Server>>(response);
-            if (servers == null || !servers.Any())
+            if (servers == null || servers.Count == 0)
                 return new();
 
             CachedServers = servers;

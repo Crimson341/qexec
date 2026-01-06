@@ -34,7 +34,18 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
     [ObservableProperty]
     private string _addDropInput = string.Empty;
 
-    public List<string> ToPickup => Drops.ToPickup.Concat(Drops.ToPickupIDs.Select(id => id.ToString())).ToList();
+    public List<string> ToPickup
+    {
+        get
+        {
+            List<string> items = new();
+            foreach (string name in Drops.ToPickup)
+                items.Add(name);
+            foreach (int id in Drops.ToPickupIDs)
+                items.Add(id.ToString());
+            return items;
+        }
+    }
     public IScriptDrop Drops { get; }
     public IScriptOption Options { get; }
     public IRelayCommand RemoveAllDropsCommand { get; }
@@ -48,17 +59,18 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
         List<string> names = new();
         List<int> ids = new();
 
-        foreach (string item in items.Cast<string>())
+        foreach (object item in items)
         {
-            if (int.TryParse(item, out int itemId))
+            string itemStr = (string)item;
+            if (int.TryParse(itemStr, out int itemId))
                 ids.Add(itemId);
             else
-                names.Add(item);
+                names.Add(itemStr);
         }
 
-        if (names.Any())
+        if (names.Count > 0)
             Drops.Remove(names.ToArray());
-        if (ids.Any())
+        if (ids.Count > 0)
             Drops.Remove(ids.ToArray());
     }
 
@@ -90,9 +102,9 @@ public partial class ToPickupDropsViewModel : ObservableRecipient
                 names.Add(input);
         }
 
-        if (names.Any())
+        if (names.Count > 0)
             Drops.Add(names.ToArray());
-        if (ids.Any())
+        if (ids.Count > 0)
             Drops.Add(ids.ToArray());
 
         AddDropInput = string.Empty;

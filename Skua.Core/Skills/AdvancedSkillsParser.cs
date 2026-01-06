@@ -59,7 +59,7 @@ public static class AdvancedSkillsParser
             {
                 skillUseMode = "UseIfAvailable";
             }
-            else if (int.TryParse(new string(lastPart.Where(char.IsDigit).ToArray()), out int timeout))
+            else if (int.TryParse(string.Concat(lastPart.Where(char.IsDigit)), out int timeout))
             {
                 skillTimeout = timeout;
                 skillUseMode = "WaitForCooldown";

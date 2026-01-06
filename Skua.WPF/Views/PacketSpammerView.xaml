@@ -28,7 +28,15 @@
             Grid.Column="0"
             Margin="0,0,3,3"
             ItemsSource="{Binding Packets}"
-            SelectedIndex="{Binding SelectedIndex}">
+            SelectedIndex="{Binding SelectedIndex}"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            ScrollViewer.CanContentScroll="True">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
             <b:Interaction.Behaviors>
                 <wpf:ListBoxScrollToSelectedIndexBehavior />
             </b:Interaction.Behaviors>

@@ -48,7 +48,21 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
     }
 
     public IScriptAuto Auto { get; }
-    public List<string>? PlayerClasses => _inventory.Items?.Where(i => i.Category == ItemCategory.Class).Select(i => i.Name).ToList();
+    public List<string>? PlayerClasses
+    {
+        get
+        {
+            if (_inventory.Items is null)
+                return null;
+            List<string> classes = new();
+            foreach (ItemBase item in _inventory.Items)
+            {
+                if (item.Category == ItemCategory.Class)
+                    classes.Add(item.Name);
+            }
+            return classes;
+        }
+    }
 
     [ObservableProperty]
     private List<string> _currentClassModeStrings = new();
@@ -65,7 +79,11 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
             {
                 CurrentClassModes = new();
                 CurrentClassModeStrings = new List<string>();
-                CurrentClassModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == _selectedClassString).Select(s => s.ClassUseMode));
+                foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                {
+                    if (skill.ClassName == _selectedClassString)
+                        CurrentClassModes.Add(skill.ClassUseMode);
+                }
 
                 Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
                 if (classModes.TryGetValue(_selectedClassString, out List<string>? modes))
@@ -75,7 +93,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
 
                 OnPropertyChanged(nameof(CurrentClassModes));
 
-                if (CurrentClassModes.Any())
+                if (CurrentClassModes.Count > 0)
                 {
                     SelectedClassMode = CurrentClassModes.First();
                 }
@@ -137,17 +155,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         _autoCts?.Dispose();
         _autoCts = new CancellationTokenSource();
 
-        // Parse ManualMapIDs
-        int[]? manualMapIDs = null;
-        if (!string.IsNullOrWhiteSpace(ManualMapIDs))
-        {
-            int[] mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(s => int.TryParse(s.Trim(), out _))
-                .Select(s => int.Parse(s.Trim()))
-                .ToArray();
-            if (mapIds.Length > 0)
-                manualMapIDs = mapIds;
-        }
+        int[]? manualMapIDs = ParseManualMapIDs();
 
         if (_selectedClassString is not null && _selectedClassMode is not null)
         {
@@ -173,17 +181,7 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         _autoCts?.Dispose();
         _autoCts = new CancellationTokenSource();
 
-        // Parse ManualMapIDs
-        int[]? manualMapIDs = null;
-        if (!string.IsNullOrWhiteSpace(ManualMapIDs))
-        {
-            int[] mapIds = ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries)
-                .Where(s => int.TryParse(s.Trim(), out _))
-                .Select(s => int.Parse(s.Trim()))
-                .ToArray();
-            if (mapIds.Length > 0)
-                manualMapIDs = mapIds;
-        }
+        int[]? manualMapIDs = ParseManualMapIDs();
 
         if (_selectedClassString is not null && _selectedClassMode is not null)
         {
@@ -200,6 +198,20 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
             _autoCts.Token,
             TaskCreationOptions.LongRunning,
             TaskScheduler.Default);
+    }
+
+    private int[]? ParseManualMapIDs()
+    {
+        if (string.IsNullOrWhiteSpace(ManualMapIDs))
+            return null;
+
+        List<int> mapIds = new();
+        foreach (string part in ManualMapIDs.Split(new[] { ',', ' ', ';' }, StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (int.TryParse(part.Trim(), out int id))
+                mapIds.Add(id);
+        }
+        return mapIds.Count > 0 ? mapIds.ToArray() : null;
     }
 
     private async Task StopAutoAsync()

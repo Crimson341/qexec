@@ -27,17 +27,17 @@ public class BackgroundThemeService : ObservableObject
 
     public List<string> GetAvailableBackgrounds()
     {
-        List<string> backgrounds = defaultBackgrounds.ToList();
+        List<string> backgrounds = new(defaultBackgrounds);
 
         if (Directory.Exists(ClientFileSources.SkuaThemesDIR))
         {
-            List<string> swfFiles = Directory.GetFiles(ClientFileSources.SkuaThemesDIR, "*.swf")
-                .Select(Path.GetFileName)
-                .Where(f => f != null)
-                .Cast<string>()
-                .ToList();
-
-            backgrounds.AddRange(swfFiles);
+            string[] swfPaths = Directory.GetFiles(ClientFileSources.SkuaThemesDIR, "*.swf");
+            foreach (string path in swfPaths)
+            {
+                string? fileName = Path.GetFileName(path);
+                if (fileName != null)
+                    backgrounds.Add(fileName);
+            }
         }
 
         return backgrounds.Distinct().ToList();

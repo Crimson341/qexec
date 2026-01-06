@@ -13,7 +13,10 @@ public partial class OptionContainerItemViewModel : ObservableObject
         Type = option.Type;
         if (Type.IsEnum)
         {
-            EnumValues = Enum.GetNames(Type).Select(s => s.Replace('_', ' ')).ToList();
+            string[] enumNames = Enum.GetNames(Type);
+            EnumValues = new List<string>(enumNames.Length);
+            foreach (string name in enumNames)
+                EnumValues.Add(name.Replace('_', ' '));
             SelectedValue = GetValue().ToString()!.Replace('_', ' ');
             return;
         }

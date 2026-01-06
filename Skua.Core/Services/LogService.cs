@@ -10,6 +10,10 @@ namespace Skua.Core.Services;
 public class LogService : ObservableRecipient, ILogService, IDisposable
 {
     private readonly DebugListener _debugListener;
+    private const int MaxLogEntries = 10000;
+    private readonly object _debugLock = new();
+    private readonly object _scriptLock = new();
+    private readonly object _flashLock = new();
 
     public LogService()
     {
@@ -29,7 +33,12 @@ public class LogService : ObservableRecipient, ILogService, IDisposable
 
     public void DebugLog(string message)
     {
-        _debugLogs.Add(message);
+        lock (_debugLock)
+        {
+            if (_debugLogs.Count >= MaxLogEntries)
+                _debugLogs.RemoveAt(0);
+            _debugLogs.Add(message);
+        }
         Messenger.Send(new LogsChangedMessage(LogType.Debug));
         Messenger.Send(new AddLogMessage(LogType.Debug, message));
     }
@@ -38,7 +47,12 @@ public class LogService : ObservableRecipient, ILogService, IDisposable
     {
         if (message is null)
             return;
-        _flashLogs.Add(message);
+        lock (_flashLock)
+        {
+            if (_flashLogs.Count >= MaxLogEntries)
+                _flashLogs.RemoveAt(0);
+            _flashLogs.Add(message);
+        }
         Messenger.Send(new LogsChangedMessage(LogType.Flash));
         Messenger.Send(new AddLogMessage(LogType.Flash, message));
     }
@@ -47,7 +61,12 @@ public class LogService : ObservableRecipient, ILogService, IDisposable
     {
         if (message is null)
             return;
-        _scriptLogs.Add(message);
+        lock (_scriptLock)
+        {
+            if (_scriptLogs.Count >= MaxLogEntries)
+                _scriptLogs.RemoveAt(0);
+            _scriptLogs.Add(message);
+        }
         Messenger.Send(new LogsChangedMessage(LogType.Script));
         Messenger.Send(new AddLogMessage(LogType.Script, message));
     }
@@ -57,15 +76,18 @@ public class LogService : ObservableRecipient, ILogService, IDisposable
         switch (logType)
         {
             case LogType.Debug:
-                _debugLogs.Clear();
+                lock (_debugLock)
+                    _debugLogs.Clear();
                 break;
 
             case LogType.Script:
-                _scriptLogs.Clear();
+                lock (_scriptLock)
+                    _scriptLogs.Clear();
                 break;
 
             case LogType.Flash:
-                _flashLogs.Clear();
+                lock (_flashLock)
+                    _flashLogs.Clear();
                 break;
         }
         Messenger.Send(new LogsChangedMessage(logType));
@@ -75,9 +97,9 @@ public class LogService : ObservableRecipient, ILogService, IDisposable
     {
         return logType switch
         {
-            LogType.Debug => _debugLogs,
-            LogType.Script => _scriptLogs,
-            LogType.Flash => _flashLogs,
+            LogType.Debug => new List<string>(_debugLogs),
+            LogType.Script => new List<string>(_scriptLogs),
+            LogType.Flash => new List<string>(_flashLogs),
             _ => new()
         };
     }

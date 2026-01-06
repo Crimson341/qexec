@@ -65,7 +65,8 @@ public partial class FastTravelViewModel : BotControlViewModelBase
     private void SaveFastTravels()
     {
         StringCollection values = new();
-        values.AddRange(FastTravelItems.Select(i => i.ToString()).ToArray());
+        foreach (FastTravelItemViewModel item in FastTravelItems)
+            values.Add(item.ToString());
         _settings.Set("FastTravels", values);
     }
 

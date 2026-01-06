@@ -164,7 +164,12 @@ public class AuraMonitorService : IAuraMonitorService, IDisposable, IAsyncDispos
             }
         }
 
-        List<string> keysToRemove = (from kvp in stateDict where !currentAuraNames.Contains(kvp.Key) select kvp.Key).ToList();
+        List<string> keysToRemove = new();
+        foreach (KeyValuePair<string, AuraState> kvp in stateDict)
+        {
+            if (!currentAuraNames.Contains(kvp.Key))
+                keysToRemove.Add(kvp.Key);
+        }
 
         foreach (string key in keysToRemove)
         {

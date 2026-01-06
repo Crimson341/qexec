@@ -171,9 +171,19 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
     private string ConvertRulesToString(List<SkillRuleJson> rules, bool isMultiAura, string? multiAuraOperator)
     {
         List<string> ruleParts = new();
-        List<SkillRuleJson> multiAuraRules = isMultiAura ? rules.Where(r => r.Type == "MultiAura").ToList() : new List<SkillRuleJson>();
-        List<SkillRuleJson> singleAuraRules = !isMultiAura ? rules.Where(r => r.Type == "Aura").ToList() : new List<SkillRuleJson>();
-        List<SkillRuleJson> otherRules = rules.Where(r => r.Type is not "MultiAura" and not "Aura" and not "Skip").ToList();
+        List<SkillRuleJson> multiAuraRules = new();
+        List<SkillRuleJson> singleAuraRules = new();
+        List<SkillRuleJson> otherRules = new();
+        
+        foreach (SkillRuleJson rule in rules)
+        {
+            if (isMultiAura && rule.Type == "MultiAura")
+                multiAuraRules.Add(rule);
+            else if (!isMultiAura && rule.Type == "Aura")
+                singleAuraRules.Add(rule);
+            else if (rule.Type is not "MultiAura" and not "Aura" and not "Skip")
+                otherRules.Add(rule);
+        }
 
         foreach (SkillRuleJson? rule in otherRules)
         {
@@ -252,7 +262,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         {
             foreach (KeyValuePair<string, Dictionary<string, SkillModeJson>> classEntry in _jsonConfig)
             {
-                result[classEntry.Key] = classEntry.Value.Keys.ToList();
+                result[classEntry.Key] = new List<string>(classEntry.Value.Keys);
             }
         }
         return result;

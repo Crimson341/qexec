@@ -51,7 +51,7 @@ public static class FlashTrustManager
 
             File.WriteAllLines(trustFilePath, requiredPaths);
         }
-        catch (Exception)
+        catch
         {
             /* ignored */
         }

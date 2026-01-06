@@ -28,7 +28,15 @@
             Grid.ColumnSpan="2"
             Margin="0,0,0,3"
             ItemsSource="{Binding CurrentAutoQuests}"
-            SelectionMode="Multiple">
+            SelectionMode="Multiple"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            ScrollViewer.CanContentScroll="True">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
             <ListBox.ToolTip>
                 <TextBlock>
                     A list of all quests the bot will automatically try to complete.<LineBreak />

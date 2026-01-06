@@ -28,7 +28,7 @@ public class ClientUpdateService : IClientUpdateService
         {
             string releases = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, "auqw/Skua/refs/heads/master/releases.json");
             List<UpdateInfo>? releaseList = JsonConvert.DeserializeObject<List<UpdateInfo>>(releases);
-            if (releaseList is null || !releaseList.Any())
+            if (releaseList is null || releaseList.Count == 0)
                 return;
 
             Releases.Clear();

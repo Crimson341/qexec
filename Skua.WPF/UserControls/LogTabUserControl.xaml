@@ -24,8 +24,18 @@
             Grid.Row="0"
             Grid.Column="0"
             Grid.ColumnSpan="2"
-            ItemsSource="{Binding Logs, UpdateSourceTrigger=PropertyChanged}"
-            SelectionMode="Multiple">
+            ItemsSource="{Binding Logs}"
+            SelectionMode="Multiple"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            VirtualizingPanel.CacheLength="10,10"
+            VirtualizingPanel.CacheLengthUnit="Item"
+            ScrollViewer.CanContentScroll="True">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
             <b:Interaction.Behaviors>
                 <wpf:ListBoxCopySelectedBehavior />
                 <wpf:ListBoxScrollToCaretBehavior />

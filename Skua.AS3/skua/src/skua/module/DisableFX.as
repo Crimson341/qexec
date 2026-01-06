@@ -9,9 +9,13 @@ public class DisableFX extends Module {
     }
 
     override public function onToggle(game:*):void {
-        for (var mid:* in game.world.monsters) {
-            var monster:* = game.world.monsters[mid];
-            if (monster.dataLeaf && monster.dataLeaf.strFrame == game.world.strFrame && monster.pMC && monster.dataLeaf.intState > 0) {
+        var world:* = game.world;
+        var monsters:* = world.monsters;
+        var currentFrame:String = world.strFrame;
+        
+        for (var mid:* in monsters) {
+            var monster:* = monsters[mid];
+            if (monster.dataLeaf && monster.dataLeaf.strFrame == currentFrame && monster.pMC && monster.dataLeaf.intState > 0) {
                 var mmc:MovieClip = monster.pMC as MovieClip;
                 if (enabled) {
                     mmc = mmc.getChildAt(1) as MovieClip;
@@ -23,8 +27,8 @@ public class DisableFX extends Module {
             }
         }
 
-        for (var aid:* in game.world.avatars) {
-            var avatar:* = game.world.avatars[aid];
+        for (var aid:* in world.avatars) {
+            var avatar:* = world.avatars[aid];
             if (avatar.objData && avatar.pMC) {
                 toggleAnims(avatar.pMC.mcChar.weapon.mcWeapon as MovieClip, !enabled);
                 toggleAnims(avatar.pMC.mcChar.weaponOff.getChildAt(0) as MovieClip, !enabled);

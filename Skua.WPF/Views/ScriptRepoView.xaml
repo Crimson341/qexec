@@ -21,19 +21,19 @@
                     Command="{Binding UpdateAllCommand}"
                     Content="Update All"
                     DockPanel.Dock="Left"
-                    IsEnabled="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvertBooleanConverter}}" />
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}" />
                 <Button
                     Margin="3,0"
                     Command="{Binding DownloadAllCommand}"
                     Content="Download All"
                     DockPanel.Dock="Left"
-                    IsEnabled="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvertBooleanConverter}}" />
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}" />
                 <Button
                     Margin="3,0,0,0"
                     Command="{Binding RefreshScriptsCommand}"
                     Content="Refresh"
                     DockPanel.Dock="Right"
-                    IsEnabled="{Binding IsBusy, UpdateSourceTrigger=PropertyChanged, Converter={StaticResource InvertBooleanConverter}}" />
+                    IsEnabled="{Binding IsBusy, Converter={StaticResource InvertBooleanConverter}}" />
                 <TextBox
                     x:Name="SearchBox"
                     Margin="3,0"
@@ -67,7 +67,7 @@
                         Grid.Column="1"
                         Margin="2"
                         VerticalAlignment="Center">
-                        <Run Text="{Binding BotScriptQuantity, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=000}" />
+                        <Run Text="{Binding BotScriptQuantity, Mode=OneWay, FallbackValue=000}" />
                     </TextBlock>
                     <TextBlock
                         Grid.Column="2"
@@ -78,9 +78,9 @@
                         Grid.Column="3"
                         Margin="2"
                         VerticalAlignment="Center">
-                        <Run Text="{Binding DownloadedQuantity, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=000}" />
+                        <Run Text="{Binding DownloadedQuantity, Mode=OneWay, FallbackValue=000}" />
                         <Run Text="/" />
-                        <Run Text="{Binding ScriptQuantity, Mode=OneWay, UpdateSourceTrigger=PropertyChanged, FallbackValue=000}" />
+                        <Run Text="{Binding ScriptQuantity, Mode=OneWay, FallbackValue=000}" />
                     </TextBlock>
                     <TextBlock
                         Grid.Column="4"
@@ -91,7 +91,7 @@
                         Grid.Column="5"
                         Margin="2"
                         VerticalAlignment="Center"
-                        Text="{Binding OutdatedQuantity, UpdateSourceTrigger=PropertyChanged, Mode=OneWay, FallbackValue=0}" />
+                        Text="{Binding OutdatedQuantity, Mode=OneWay, FallbackValue=0}" />
                 </Grid>
             </Border>
             <DataGrid
@@ -101,8 +101,8 @@
                 HorizontalScrollBarVisibility="Disabled"
                 IsEnabled="{Binding ElementName=ScriptsDataGrid, Path=HasItems}"
                 IsReadOnly="True"
-                ItemsSource="{Binding Scripts, UpdateSourceTrigger=PropertyChanged}"
-                SelectedItem="{Binding SelectedItem, UpdateSourceTrigger=PropertyChanged}"
+                ItemsSource="{Binding Scripts}"
+                SelectedItem="{Binding SelectedItem}"
                 SelectionMode="Single"
                 SelectionUnit="FullRow">
                 <DataGrid.ContextMenu>
@@ -209,27 +209,20 @@
                 </DataGrid.Columns>
                 <DataGrid.RowStyle>
                     <Style BasedOn="{StaticResource MaterialDesignDataGridRow}" TargetType="DataGridRow">
+                        <Style.Resources>
+                            <SolidColorBrush x:Key="DownloadedBrush" Opacity="0.2" Color="#456796" />
+                            <SolidColorBrush x:Key="NotDownloadedBrush" Opacity="0.2" Color="Red" />
+                            <SolidColorBrush x:Key="OutdatedBrush" Opacity="0.2" Color="Yellow" />
+                        </Style.Resources>
                         <Style.Triggers>
-                            <DataTrigger Binding="{Binding Downloaded, UpdateSourceTrigger=PropertyChanged}" Value="True">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <SolidColorBrush Opacity="0.2" Color="#456796" />
-                                    </Setter.Value>
-                                </Setter>
+                            <DataTrigger Binding="{Binding Downloaded}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource DownloadedBrush}" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Downloaded, UpdateSourceTrigger=PropertyChanged}" Value="False">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <SolidColorBrush Opacity="0.2" Color="Red" />
-                                    </Setter.Value>
-                                </Setter>
+                            <DataTrigger Binding="{Binding Downloaded}" Value="False">
+                                <Setter Property="Background" Value="{StaticResource NotDownloadedBrush}" />
                             </DataTrigger>
-                            <DataTrigger Binding="{Binding Outdated, UpdateSourceTrigger=PropertyChanged}" Value="True">
-                                <Setter Property="Background">
-                                    <Setter.Value>
-                                        <SolidColorBrush Opacity="0.2" Color="Yellow" />
-                                    </Setter.Value>
-                                </Setter>
+                            <DataTrigger Binding="{Binding Outdated}" Value="True">
+                                <Setter Property="Background" Value="{StaticResource OutdatedBrush}" />
                             </DataTrigger>
                         </Style.Triggers>
                     </Style>

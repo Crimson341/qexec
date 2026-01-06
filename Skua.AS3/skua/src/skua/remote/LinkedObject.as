@@ -35,13 +35,15 @@ public class LinkedObject {
     }
 
     public function getChild(path:String):LinkedObject {
-        if (this._children[path] != null) {
-            return this._children[path];
+        var cached:LinkedObject = this._children[path];
+        if (cached != null) {
+            return cached;
         }
         var parts:Array = path.split(".");
         var name:String = parts.pop();
         var parent:* = this._parent[_name];
-        for (var i:int = 0; i < parts.length; i++) {
+        var partsLen:int = parts.length;
+        for (var i:int = 0; i < partsLen; i++) {
             parent = parent[parts[i]];
         }
         return this._children[path] = RemoteRegistry.createLinked(parent, name);

@@ -69,7 +69,8 @@ public class RemoteRegistry {
 
     public static function ext_fcPushArgs(id:int, argIds:Array):void {
         var vals:* = [];
-        for (var i:int = 0; i < argIds.length; i++) {
+        var argLen:int = argIds.length;
+        for (var i:int = 0; i < argLen; i++) {
             vals[i] = getObject(argIds[i]).getValue();
         }
         getFunctionCaller(id).pushArgs(vals);

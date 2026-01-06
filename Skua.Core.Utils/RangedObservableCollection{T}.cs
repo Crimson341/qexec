@@ -45,15 +45,12 @@ public class RangedObservableCollection<T> : ObservableCollection<T>
     /// <exception cref="ArgumentNullException"> <paramref name="collection"/> is a null reference </exception>
     public void AddRange(IEnumerable<T> collection)
     {
-        if (collection is null || !collection.Any())
+        if (collection?.Any() != true)
             return;
 
         CheckReentrancy();
 
-        int startIndex = Count;
-        List<T> changedItems = new(collection);
-
-        foreach (T i in changedItems)
+        foreach (T i in collection)
             Items.Add(i);
 
         OnCountPropertyChanged();
@@ -72,7 +69,7 @@ public class RangedObservableCollection<T> : ObservableCollection<T>
     /// <exception cref="ArgumentNullException"> <paramref name="collection"/> is a null reference </exception>
     public void ReplaceRange(IEnumerable<T> collection)
     {
-        if (collection is null || !collection.Any())
+        if (collection?.Any() != true)
             return;
 
         CheckReentrancy();
@@ -97,7 +94,7 @@ public class RangedObservableCollection<T> : ObservableCollection<T>
     /// <exception cref="ArgumentNullException"> <paramref name="collection"/> is a null reference </exception>
     public void RemoveRange(IEnumerable<T> collection)
     {
-        if (collection is null || !collection.Any())
+        if (collection?.Any() != true)
             return;
 
         CheckReentrancy();

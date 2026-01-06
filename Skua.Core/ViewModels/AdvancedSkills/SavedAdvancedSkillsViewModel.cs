@@ -75,7 +75,9 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
     {
         AvailableClasses.Clear();
         Dictionary<string, List<string>> classModeDictionary = _advancedSkillContainer.GetAvailableClassModes();
-        foreach (string? className in classModeDictionary.Keys.OrderBy(x => x))
+        List<string> sortedKeys = new(classModeDictionary.Keys);
+        sortedKeys.Sort();
+        foreach (string className in sortedKeys)
         {
             AvailableClasses.Add(className);
         }
@@ -93,7 +95,9 @@ public partial class SavedAdvancedSkillsViewModel : ObservableRecipient
         Dictionary<string, List<string>> classModeDictionary = _advancedSkillContainer.GetAvailableClassModes();
         if (classModeDictionary.TryGetValue(value, out List<string>? modes))
         {
-            foreach (string mode in modes.OrderBy(x => x))
+            List<string> sortedModes = new(modes);
+            sortedModes.Sort();
+            foreach (string mode in sortedModes)
             {
                 AvailableModes.Add(mode);
             }

@@ -126,10 +126,24 @@ public class ScriptHunt : IScriptHunt
         string[] names = name.Split('|');
         while ((!token?.IsCancellationRequested ?? true) && !Manager.ShouldExit)
         {
-            List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterCells(n)).Distinct().ToList();
+            HashSet<string> cellsSet = new();
+            foreach (string n in names)
+            {
+                foreach (string cell in Monsters.GetLivingMonsterCells(n))
+                    cellsSet.Add(cell);
+            }
+            List<string> cells = new(cellsSet);
 
             if (cells.Count == 0)
-                cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
+            {
+                cellsSet.Clear();
+                foreach (string n in names)
+                {
+                    foreach (string cell in Monsters.GetLivingMonsterDataLeafCells(n))
+                        cellsSet.Add(cell);
+                }
+                cells = new(cellsSet);
+            }
 
             foreach (string cell in cells.TakeWhile(cell => !(token?.IsCancellationRequested ?? false)))
             {
@@ -198,9 +212,12 @@ public class ScriptHunt : IScriptHunt
             _Hunt(name, token);
             return;
         }
+        string[] names = name.Split('|');
+        for (int i = 0; i < names.Length; i++)
+            names[i] = names[i].ToLower();
+        
         while ((!token?.IsCancellationRequested ?? true) && !Manager.ShouldExit)
         {
-            string[] names = name.Split('|').Select(x => x.ToLower()).ToArray();
             IOrderedEnumerable<Monster> ordered = Monsters.MapMonsters.OrderBy(x => 0);
             if (priority.HasFlag(HuntPriorities.HighHP))
                 ordered = ordered.OrderByDescending(x => x.HP);
@@ -289,7 +306,13 @@ public class ScriptHunt : IScriptHunt
         _ctsHunt = new();
         _item = (item, quantity, tempItem);
         string[] names = name.Split('|');
-        List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
+        HashSet<string> cellsSet = new();
+        foreach (string n in names)
+        {
+            foreach (string cell in Monsters.GetLivingMonsterDataLeafCells(n))
+                cellsSet.Add(cell);
+        }
+        List<string> cells = new(cellsSet);
 
         StrongReferenceMessenger.Default.Register<ScriptHunt, ItemDroppedMessage, int>(this, (int)MessageChannels.GameEvents, ItemDropped);
         try

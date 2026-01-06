@@ -14,8 +14,11 @@ public partial class OptionContainerViewModel : ObservableObject
 
         if (container.MultipleOptions.Count > 0)
         {
-            foreach (IOption option in container.MultipleOptions.Values.SelectMany(x => x))
-                Options.Add(new(container, option));
+            foreach (List<IOption> optionList in container.MultipleOptions.Values)
+            {
+                foreach (IOption option in optionList)
+                    Options.Add(new(container, option));
+            }
         }
     }
 

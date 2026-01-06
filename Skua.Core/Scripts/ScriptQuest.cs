@@ -368,25 +368,29 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                     if (questData != null)
                     {
                         // Add Requirements
-                        if (questData.Requirements != null && questData.Requirements.Any())
+                        if (questData.Requirements != null && questData.Requirements.Count > 0)
                         {
-                            int[] requirementIds = questData.Requirements
-                                .Where(r => r != null && !r.Temp)
-                                .Select(r => r.ID)
-                                .ToArray();
-                            if (requirementIds.Any())
-                                Drop.Add(requirementIds);
+                            List<int> requirementIds = new();
+                            foreach (var r in questData.Requirements)
+                            {
+                                if (r != null && !r.Temp)
+                                    requirementIds.Add(r.ID);
+                            }
+                            if (requirementIds.Count > 0)
+                                Drop.Add(requirementIds.ToArray());
                         }
 
                         // Add AcceptRequirements
-                        if (questData.AcceptRequirements != null && questData.AcceptRequirements.Any())
+                        if (questData.AcceptRequirements != null && questData.AcceptRequirements.Count > 0)
                         {
-                            int[] acceptReqIds = questData.AcceptRequirements
-                                .Where(r => r != null && !r.Temp)
-                                .Select(r => r.ID)
-                                .ToArray();
-                            if (acceptReqIds.Any())
-                                Drop.Add(acceptReqIds);
+                            List<int> acceptReqIds = new();
+                            foreach (var r in questData.AcceptRequirements)
+                            {
+                                if (r != null && !r.Temp)
+                                    acceptReqIds.Add(r.ID);
+                            }
+                            if (acceptReqIds.Count > 0)
+                                Drop.Add(acceptReqIds.ToArray());
                         }
                     }
                 }
@@ -472,8 +476,18 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                 HashSet<int> registeredSet = new(_registered.Items);
 
                 // Remove cooldowns for quests that are no longer registered
-                List<int> staleComplete = _questCompleteCooldowns.Keys.Where(k => !registeredSet.Contains(k)).ToList();
-                List<int> staleAccept = _questAcceptCooldowns.Keys.Where(k => !registeredSet.Contains(k)).ToList();
+                List<int> staleComplete = new();
+                foreach (int k in _questCompleteCooldowns.Keys)
+                {
+                    if (!registeredSet.Contains(k))
+                        staleComplete.Add(k);
+                }
+                List<int> staleAccept = new();
+                foreach (int k in _questAcceptCooldowns.Keys)
+                {
+                    if (!registeredSet.Contains(k))
+                        staleAccept.Add(k);
+                }
 
                 foreach (int key in staleComplete)
                     _questCompleteCooldowns.Remove(key);

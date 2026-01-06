@@ -42,7 +42,12 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        HashSet<ClassUseMode> skillModes = new();
+                        foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                        {
+                            if (skill.ClassName == classToUse)
+                                skillModes.Add(skill.ClassUseMode);
+                        }
                         if (skillModes.Count > 0)
                         {
                             SoloUseModes.AddRange(skillModes);
@@ -56,7 +61,11 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                 }
                 else
                 {
-                    SoloUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                    foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                    {
+                        if (skill.ClassName == classToUse)
+                            SoloUseModes.Add(skill.ClassUseMode);
+                    }
                 }
 
                 Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
@@ -122,7 +131,12 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        HashSet<ClassUseMode> skillModes = new();
+                        foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                        {
+                            if (skill.ClassName == classToUse)
+                                skillModes.Add(skill.ClassUseMode);
+                        }
                         if (skillModes.Count > 0)
                         {
                             FarmUseModes.AddRange(skillModes);
@@ -136,7 +150,11 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                 }
                 else
                 {
-                    FarmUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                    foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                    {
+                        if (skill.ClassName == classToUse)
+                            FarmUseModes.Add(skill.ClassUseMode);
+                    }
                 }
 
                 Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
@@ -202,7 +220,12 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        HashSet<ClassUseMode> skillModes = new();
+                        foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                        {
+                            if (skill.ClassName == classToUse)
+                                skillModes.Add(skill.ClassUseMode);
+                        }
                         if (skillModes.Count > 0)
                         {
                             DodgeUseModes.AddRange(skillModes);
@@ -216,7 +239,11 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                 }
                 else
                 {
-                    DodgeUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                    foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                    {
+                        if (skill.ClassName == classToUse)
+                            DodgeUseModes.Add(skill.ClassUseMode);
+                    }
                 }
 
                 Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
@@ -282,7 +309,12 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                     }
                     else
                     {
-                        List<ClassUseMode> skillModes = _advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode).Distinct().ToList();
+                        HashSet<ClassUseMode> skillModes = new();
+                        foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                        {
+                            if (skill.ClassName == classToUse)
+                                skillModes.Add(skill.ClassUseMode);
+                        }
                         if (skillModes.Count > 0)
                         {
                             BossUseModes.AddRange(skillModes);
@@ -296,7 +328,11 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
                 }
                 else
                 {
-                    BossUseModes.AddRange(_advancedSkills.LoadedSkills.Where(s => s.ClassName == classToUse).Select(s => s.ClassUseMode));
+                    foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+                    {
+                        if (skill.ClassName == classToUse)
+                            BossUseModes.Add(skill.ClassUseMode);
+                    }
                 }
 
                 Dictionary<string, List<string>> classModes = _advancedSkills.GetAvailableClassModes();
@@ -346,7 +382,16 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
 
     private void EnsureSkillEntryExists(string className)
     {
-        if (!_advancedSkills.LoadedSkills.Any(s => s.ClassName == className))
+        bool exists = false;
+        foreach (AdvancedSkill skill in _advancedSkills.LoadedSkills)
+        {
+            if (skill.ClassName == className)
+            {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists)
         {
             AdvancedSkill newSkill = new(className, "1 | 2 | 3 | 4", 100, ClassUseMode.Base, SkillUseMode.UseIfAvailable);
             _advancedSkills.Add(newSkill);
@@ -357,9 +402,14 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     private void ReloadClasses()
     {
         PlayerClasses = new List<string> { CurrentClassOption };
-        PlayerClasses.AddRange(_inventory.Items?.Where(i =>
-            (i.Category == ItemCategory.Class) && (i.EnhancementLevel > 0)
-        ).Select(i => i.Name) ?? Enumerable.Empty<string>());
+        if (_inventory.Items is not null)
+        {
+            foreach (InventoryItem item in _inventory.Items)
+            {
+                if (item.Category == ItemCategory.Class && item.EnhancementLevel > 0)
+                    PlayerClasses.Add(item.Name);
+            }
+        }
 
         OnPropertyChanged(nameof(PlayerClasses));
 

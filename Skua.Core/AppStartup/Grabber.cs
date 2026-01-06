@@ -314,8 +314,15 @@ internal class Grabber
             }
         }
 
-        List<ShopItem> coinItems = items.Where(item => item.Coins).ToList();
-        List<ShopItem> goldItems = items.Where(item => !item.Coins).ToList();
+        List<ShopItem> coinItems = new();
+        List<ShopItem> goldItems = new();
+        foreach (ShopItem item in items)
+        {
+            if (item.Coins)
+                coinItems.Add(item);
+            else
+                goldItems.Add(item);
+        }
 
         if (coinItems.Count > 0 && coinItems.Sum(item => item.Cost) > 0)
         {

@@ -63,7 +63,10 @@ public partial class AdvancedSkillEditorViewModel : ObservableRecipient
     [RelayCommand]
     private void SaveSkills()
     {
-        string skills = string.Join(" | ", _currentSkillsList.Select(s => s.Convert()));
+        List<string> skillStrings = new(_currentSkillsList.Count);
+        foreach (SkillItemViewModel skill in _currentSkillsList)
+            skillStrings.Add(skill.Convert());
+        string skills = string.Join(" | ", skillStrings);
         string modeString = SelectedClassUseMode >= 0 && SelectedClassUseMode < ClassUseModes.Length ? ClassUseModes[SelectedClassUseMode] : "Base";
         AdvancedSkill advSkill = new(CurrentClassName, skills, CurrentSkillTimeout, modeString, UseWaitModeBool ? SkillUseMode.WaitForCooldown : SkillUseMode.UseIfAvailable);
         OnPropertyChanged(nameof(CurrentSkillsList));

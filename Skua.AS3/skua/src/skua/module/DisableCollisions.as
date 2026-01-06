@@ -8,14 +8,15 @@ public class DisableCollisions extends Module {
     }
 
     override public function onToggle(game:*):void {
+        var world:* = game.world;
         if (enabled) {
-            _old = game.world.arrSolid;
-            _oldR = game.world.arrSolidR;
-            game.world.arrSolid = [];
-            game.world.arrSolidR = [];
+            _old = world.arrSolid;
+            _oldR = world.arrSolidR;
+            world.arrSolid = [];
+            world.arrSolidR = [];
         } else {
-            game.world.arrSolid = _old;
-            game.world.arrSolidR = _oldR;
+            world.arrSolid = _old;
+            world.arrSolidR = _oldR;
         }
     }
 

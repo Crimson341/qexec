@@ -178,8 +178,7 @@ public partial class ScriptMap : IScriptMap
         if (!forceRefresh && _savedMapItems.ContainsKey(FileName))
             return _savedMapItems[FileName];
 
-        List<string> files = new();
-        files = Directory.GetFiles(_cachePath).ToList();
+        List<string> files = new(Directory.GetFiles(_cachePath));
         Stopwatch sw = Stopwatch.StartNew();
 
         // Always decompile when forcing refresh, even if SWF exists

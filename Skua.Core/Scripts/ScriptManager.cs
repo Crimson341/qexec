@@ -262,7 +262,6 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         string final = ProcessSources(source, ref references);
 
         int cacheHash = ComputeCacheHash(final, _includedFiles);
-        Trace.WriteLine($"Script cache hash: {cacheHash} for {Path.GetFileName(LoadedScript)}");
 
         SyntaxTree tree = CSharpSyntaxTree.ParseText(final, encoding: Encoding.UTF8);
         CompiledScript = final = tree.GetRoot().NormalizeWhitespace().ToFullString();
@@ -281,7 +280,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         sw.Stop();
         Trace.WriteLine($"Script compilation took {sw.ElapsedMilliseconds}ms.");
 
-        File.WriteAllText(Path.Combine(ClientFileSources.SkuaScriptsDIR, "z_CompiledScript.cs"), final);
+        //File.WriteAllText(Path.Combine(ClientFileSources.SkuaScriptsDIR, "z_CompiledScript.cs"), final);
 
         return compiler.Error
             ? throw new ScriptCompileException(compiler.ErrorMessage, compiler.GeneratedClassCodeWithLineNumbers)
@@ -393,7 +392,14 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         FieldInfo? dontPreconfField = t.GetField("DontPreconfigure");
         if (multiOptsField is not null)
         {
-            List<FieldInfo> multiOpts = (from optField in (string[])multiOptsField.GetValue(script)! select t.GetField(optField)).ToList();
+            string[] optFieldNames = (string[])multiOptsField.GetValue(script)!;
+            List<FieldInfo> multiOpts = new(optFieldNames.Length);
+            foreach (string optField in optFieldNames)
+            {
+                FieldInfo? field = t.GetField(optField);
+                if (field != null)
+                    multiOpts.Add(field);
+            }
             foreach (FieldInfo opt in multiOpts)
             {
                 List<IOption> parsedOpt = (List<IOption>)opt.GetValue(script)!;

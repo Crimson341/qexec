@@ -29,13 +29,22 @@ public partial class RegisteredQuestsViewModel : ObservableRecipient
     [ObservableProperty]
     private string _rewardIdInput = string.Empty;
 
-    public List<RegisteredQuestInfo> CurrentAutoQuests => _quests.Registered
-        .Select(q => new RegisteredQuestInfo
+    public List<RegisteredQuestInfo> CurrentAutoQuests
+    {
+        get
         {
-            QuestId = q,
-            RewardId = _quests.RegisteredRewards.TryGetValue(q, out int rewardId) ? rewardId : -1
-        })
-        .ToList();
+            List<RegisteredQuestInfo> quests = new();
+            foreach (int questId in _quests.Registered)
+            {
+                quests.Add(new RegisteredQuestInfo
+                {
+                    QuestId = questId,
+                    RewardId = _quests.RegisteredRewards.TryGetValue(questId, out int rewardId) ? rewardId : -1
+                });
+            }
+            return quests;
+        }
+    }
 
     [RelayCommand]
     private void RemoveAllQuests()
@@ -46,11 +55,12 @@ public partial class RegisteredQuestsViewModel : ObservableRecipient
     [RelayCommand]
     private void RemoveQuests(IList<object>? items)
     {
-        if (items is null)
+        if (items is null || items.Count == 0)
             return;
-        IEnumerable<int> quests = items.Cast<RegisteredQuestInfo>().Select(q => q.QuestId);
-        if (quests.Any())
-            _quests.UnregisterQuests(quests.ToArray());
+        int[] quests = new int[items.Count];
+        for (int i = 0; i < items.Count; i++)
+            quests[i] = ((RegisteredQuestInfo)items[i]).QuestId;
+        _quests.UnregisterQuests(quests);
     }
 
     [RelayCommand]
@@ -61,15 +71,19 @@ public partial class RegisteredQuestsViewModel : ObservableRecipient
         if (!AddQuestInput.Replace(",", "").Replace("|", "").Replace(" ", "").All(char.IsDigit))
             return;
 
-        IEnumerable<int> quests = AddQuestInput.Split(_questsSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Select(s => int.Parse(s));
+        string[] parts = AddQuestInput.Split(_questsSeparator, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0)
+            return;
 
         // Parse reward ID (defaults to -1 if empty or invalid)
         int rewardId = -1;
         if (!string.IsNullOrWhiteSpace(RewardIdInput) && int.TryParse(RewardIdInput.Trim(), out int parsedReward))
             rewardId = parsedReward;
 
-        if (quests.Any())
-            _quests.RegisterQuests(quests.Select(q => (q, rewardId)).ToArray());
+        (int, int)[] quests = new (int, int)[parts.Length];
+        for (int i = 0; i < parts.Length; i++)
+            quests[i] = (int.Parse(parts[i]), rewardId);
+        _quests.RegisterQuests(quests);
 
         AddQuestInput = string.Empty;
         RewardIdInput = string.Empty;

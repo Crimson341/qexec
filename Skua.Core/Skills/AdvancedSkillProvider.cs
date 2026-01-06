@@ -34,12 +34,13 @@ public class AdvancedSkillProvider : ISkillProvider
     public void Load(string skills)
     {
         int index = 0;
-        foreach (string command in skills.ToLower().Split('|').Select(s => s.Trim()).ToList())
+        foreach (string command in skills.ToLower().Split('|'))
         {
-            if (int.TryParse(command.AsSpan(0, 1), out int skill))
+            string trimmed = command.Trim();
+            if (trimmed.Length > 0 && int.TryParse(trimmed.AsSpan(0, 1), out int skill))
             {
                 _currentCommand.Skills.Add(index, skill);
-                _currentCommand.UseRules.Add(command.Length <= 1 ? _none : ParseUseRule(command[1..]));
+                _currentCommand.UseRules.Add(trimmed.Length <= 1 ? _none : ParseUseRule(trimmed[1..]));
                 ++index;
             }
         }

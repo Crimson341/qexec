@@ -33,7 +33,16 @@ public partial class CurrentDropsViewModel : BotControlViewModelBase
     [ObservableProperty]
     private ItemBase? _selectedDrop;
 
-    public List<ItemBase> CurrentDrops => _drops.CurrentDropInfos.ToList();
+    public List<ItemBase> CurrentDrops
+    {
+        get
+        {
+            List<ItemBase> drops = new();
+            foreach (ItemBase drop in _drops.CurrentDropInfos)
+                drops.Add(drop);
+            return drops;
+        }
+    }
 
     [RelayCommand]
     private void Pickup()
@@ -50,8 +59,10 @@ public partial class CurrentDropsViewModel : BotControlViewModelBase
         if (items is null || !_player.Playing)
             return;
 
-        IEnumerable<ItemBase> drops = items.Cast<ItemBase>();
-        _drops.Pickup(drops.Select(d => d.ID).ToArray());
+        int[] dropIds = new int[items.Count];
+        for (int i = 0; i < items.Count; i++)
+            dropIds[i] = ((ItemBase)items[i]).ID;
+        _drops.Pickup(dropIds);
     }
 
     [RelayCommand]

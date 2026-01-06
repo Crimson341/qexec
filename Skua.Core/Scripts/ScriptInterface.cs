@@ -345,9 +345,9 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     /// </summary>
     private void RunScriptHandlers()
     {
-        if (!Handlers.CurrentHandlers.Any())
+        if (Handlers.CurrentHandlers.ToList().Count == 0)
             return;
-        List<IHandler> rem = new();
+        List<IHandler> rem = [];
         foreach (IHandler handler in Handlers.CurrentHandlers.ToList())
         {
             _limit.LimitedRun("handler_" + handler.Name, handler.Ticks * _timerDelay, () =>

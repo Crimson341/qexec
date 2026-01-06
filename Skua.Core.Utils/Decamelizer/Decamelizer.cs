@@ -212,12 +212,9 @@ public class Decamelizer : IDecamelizer
 
     private static char GetHexadecimalEscape(string text, ref int i)
     {
-        string s = text[i + 2].ToString(CultureInfo.InvariantCulture);
-        s += text[i + 3].ToString(CultureInfo.InvariantCulture);
-        s += text[i + 4].ToString(CultureInfo.InvariantCulture);
-        s += text[i + 5].ToString(CultureInfo.InvariantCulture);
+        ReadOnlySpan<char> hexChars = text.AsSpan(i + 2, 4);
         i += 6;
-        return (char)int.Parse(s, NumberStyles.HexNumber);
+        return (char)int.Parse(hexChars, NumberStyles.HexNumber);
     }
 
     // format is \uXXXX
@@ -234,12 +231,9 @@ public class Decamelizer : IDecamelizer
 
     private static char GetUnicodeEscape(string text, ref int i)
     {
-        string s = text[i + 2].ToString(CultureInfo.InvariantCulture);
-        s += text[i + 3].ToString(CultureInfo.InvariantCulture);
-        s += text[i + 4].ToString(CultureInfo.InvariantCulture);
-        s += text[i + 5].ToString(CultureInfo.InvariantCulture);
+        ReadOnlySpan<char> unicodeChars = text.AsSpan(i + 2, 4);
         i += 5;
-        return (char)int.Parse(s);
+        return (char)int.Parse(unicodeChars);
     }
 
     private static bool IsPureNumber(char c)

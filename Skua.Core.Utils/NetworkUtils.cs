@@ -11,7 +11,7 @@ public class NetworkUtils
         using (Socket socket = new(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp))
         {
             socket.Bind(new IPEndPoint(IPAddress.Loopback, 0));
-            port = (socket.LocalEndPoint as IPEndPoint).Port;
+            port = ((IPEndPoint)socket.LocalEndPoint!).Port;
         }
         return port;
     }

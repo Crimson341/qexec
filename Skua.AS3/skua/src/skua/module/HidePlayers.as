@@ -5,8 +5,9 @@ public class HidePlayers extends Module {
     }
 
     override public function onToggle(game:*):void {
-        for (var id:* in game.world.avatars) {
-            var avatar:* = game.world.avatars[id];
+        var avatars:* = game.world.avatars;
+        for (var id:* in avatars) {
+            var avatar:* = avatars[id];
             if (!avatar.isMyAvatar && avatar.pMC) {
                 avatar.pMC.mcChar.visible = !enabled;
                 avatar.pMC.pname.visible = !enabled;

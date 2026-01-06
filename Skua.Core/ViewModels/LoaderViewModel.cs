@@ -49,7 +49,11 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
         }
         if (SelectedIndex == 1)
         {
-            Task.Factory.StartNew(() => _quests.Load(InputIDs.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries).Select(x => int.Parse(x)).ToArray()));
+            string[] parts = InputIDs.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+            int[] questIds = new int[parts.Length];
+            for (int i = 0; i < parts.Length; i++)
+                questIds[i] = int.Parse(parts[i]);
+            Task.Factory.StartNew(() => _quests.Load(questIds));
         }
     }
 
@@ -63,8 +67,10 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     {
         if (items is null)
             return;
-        IEnumerable<QuestData> quests = items.Cast<QuestData>();
-        _quests.Load(quests.Select(q => q.ID).ToArray());
+        int[] questIds = new int[items.Count];
+        for (int i = 0; i < items.Count; i++)
+            questIds[i] = ((QuestData)items[i]).ID;
+        _quests.Load(questIds);
     }
 
     [RelayCommand]
@@ -73,8 +79,10 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
         if (items is null)
             return;
 
-        IEnumerable<QuestData> quests = items.Cast<QuestData>();
-        _clipboardService.SetText(string.Join(",", quests.Select(q => q.Name)));
+        List<string> names = new(items.Count);
+        foreach (object item in items)
+            names.Add(((QuestData)item).Name);
+        _clipboardService.SetText(string.Join(",", names));
     }
 
     [RelayCommand]
@@ -83,8 +91,10 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
         if (items is null)
             return;
 
-        IEnumerable<QuestData> quests = items.Cast<QuestData>();
-        _clipboardService.SetText(string.Join(",", quests.Select(q => q.ID)));
+        List<int> ids = new(items.Count);
+        foreach (object item in items)
+            ids.Add(((QuestData)item).ID);
+        _clipboardService.SetText(string.Join(",", ids));
     }
 
     [RelayCommand]

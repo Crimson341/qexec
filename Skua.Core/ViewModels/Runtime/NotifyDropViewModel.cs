@@ -36,11 +36,12 @@ public sealed partial class NotifyDropViewModel : BotControlViewModelBase
     [RelayCommand]
     private void RemoveDrops(IList<object>? items)
     {
-        if (items is null)
+        if (items is null || items.Count == 0)
             return;
-        IEnumerable<string> drops = items.Cast<string>();
-        if (drops.Any())
-            NotifyDropList.RemoveRange(drops);
+        List<string> drops = new(items.Count);
+        foreach (object item in items)
+            drops.Add((string)item);
+        NotifyDropList.RemoveRange(drops);
 
         if (NotifyDropList.Count == 0)
         {
@@ -86,7 +87,7 @@ public sealed partial class NotifyDropViewModel : BotControlViewModelBase
 
     private void ItemDropped(NotifyDropViewModel recipient, ItemDroppedMessage message)
     {
-        foreach (string? item in recipient.NotifyDropList.ToList())
+        foreach (string? item in recipient.NotifyDropList)
         {
             if (item == message.Item.Name)
             {

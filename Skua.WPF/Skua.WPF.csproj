@@ -7,6 +7,11 @@
       <UseWindowsForms>true</UseWindowsForms>
       <Platforms>AnyCPU;x64;x86</Platforms>
       <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <LangVersion>latest</LangVersion>
+    
+    <!-- Performance optimizations -->
+    <TieredCompilation>true</TieredCompilation>
+    <TieredCompilationQuickJit>true</TieredCompilationQuickJit>
   </PropertyGroup>
 
   <ItemGroup>

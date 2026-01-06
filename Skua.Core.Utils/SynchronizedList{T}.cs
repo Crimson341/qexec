@@ -69,7 +69,8 @@ public class SynchronizedList<T>
     /// <returns>The first element that matches the conditions defined by the specified predicate, if found; otherwise, the default value for type T.</returns>
     public T? Find(Predicate<T> predicate)
     {
-        return list.Find(predicate);
+        lock (sync)
+            return list.Find(predicate);
     }
 
     /// <summary>

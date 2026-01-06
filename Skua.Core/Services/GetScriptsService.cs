@@ -99,10 +99,9 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
 
     public async Task<int> DownloadAllWhereAsync(Func<ScriptInfo, bool> pred)
     {
-        IEnumerable<ScriptInfo> toUpdate = _scripts.Where(pred);
-        int count = toUpdate.Count();
+        List<ScriptInfo> toUpdate = _scripts.Where(pred).ToList();
         await Task.WhenAll(toUpdate.Select(s => DownloadScriptAsync(s)));
-        return count;
+        return toUpdate.Count;
     }
 
     public async Task DeleteScriptAsync(ScriptInfo info)

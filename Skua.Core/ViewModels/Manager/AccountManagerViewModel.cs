@@ -127,10 +127,13 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         // TODO manage ids for sync in the future
 
         _syncThemes = _settingsService.Get("syncTheme", false);
-        foreach (AccountItemViewModel? acc in Accounts.Where(a => a.UseCheck))
+        foreach (AccountItemViewModel acc in Accounts)
         {
-            _LaunchAcc(acc.Username, acc.Password, acc.DisplayName);
-            await Task.Delay(1000);
+            if (acc.UseCheck)
+            {
+                _LaunchAcc(acc.Username, acc.Password, acc.DisplayName);
+                await Task.Delay(1000);
+            }
         }
     }
 
@@ -148,7 +151,14 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     [RelayCommand]
     public async Task RemoveAccounts()
     {
-        foreach (AccountItemViewModel? acc in Accounts.Where(a => a.UseCheck).ToList())
+        List<AccountItemViewModel> toRemove = new();
+        foreach (AccountItemViewModel acc in Accounts)
+        {
+            if (acc.UseCheck)
+                toRemove.Add(acc);
+        }
+
+        foreach (AccountItemViewModel acc in toRemove)
             _RemoveAccount(acc);
 
         _SaveAccounts();
@@ -264,7 +274,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 , $"http://content.aq.com/game/api/data/servers");
 
             List<Server>? servers = JsonConvert.DeserializeObject<List<Server>>(response);
-            if (servers == null || !servers.Any())
+            if (servers == null || servers.Count == 0)
                 return;
 
             _cachedServers = servers;

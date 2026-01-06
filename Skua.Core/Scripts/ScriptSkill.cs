@@ -165,7 +165,12 @@ public partial class ScriptSkill : IScriptSkill
             Wait.ForItemEquip(className);
         }
 
-        List<AdvancedSkill> skills = AdvancedSkillContainer.LoadedSkills.Where(s => string.Equals(s.ClassName, className, StringComparison.CurrentCultureIgnoreCase)).ToList();
+        List<AdvancedSkill> skills = new();
+        foreach (AdvancedSkill s in AdvancedSkillContainer.LoadedSkills)
+        {
+            if (string.Equals(s.ClassName, className, StringComparison.CurrentCultureIgnoreCase))
+                skills.Add(s);
+        }
         if (skills.Count == 0)
         {
             OverrideProvider.Load(genericSkills);

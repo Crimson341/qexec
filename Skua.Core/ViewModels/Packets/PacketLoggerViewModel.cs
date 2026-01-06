@@ -62,7 +62,18 @@ public partial class PacketLoggerViewModel : BotControlViewModelBase
             _flash.FlashCall -= LogPackets;
     }
 
-    private bool _filterEnabled => _packetFilters.Where(f => !f.IsChecked).Any();
+    private bool _filterEnabled
+    {
+        get
+        {
+            foreach (PacketLogFilterViewModel filter in _packetFilters)
+            {
+                if (!filter.IsChecked)
+                    return true;
+            }
+            return false;
+        }
+    }
 
     private void LogPackets(string function, object[] args)
     {
@@ -76,9 +87,9 @@ public partial class PacketLoggerViewModel : BotControlViewModelBase
         }
 
         string[] packet = args[0].ToString()!.Split(new[] { '%' }, StringSplitOptions.RemoveEmptyEntries);
-        foreach (Predicate<string[]> filter in _packetFilters.Where(f => !f.IsChecked).Select(f => f.Filter))
+        foreach (PacketLogFilterViewModel filterVM in _packetFilters)
         {
-            if (filter.Invoke(packet))
+            if (!filterVM.IsChecked && filterVM.Filter.Invoke(packet))
                 return;
         }
 

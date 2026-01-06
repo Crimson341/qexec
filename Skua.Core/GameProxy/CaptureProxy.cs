@@ -116,7 +116,11 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
         List<byte> cpacket = new();
         NetworkStream targetStream = target.GetStream();
         NetworkStream destStream = destination.GetStream();
-        IInterceptor[]? interceptors = Interceptors.Count > 0 ? Interceptors.OrderBy(i => i.Priority).ToArray() : null;
+        IInterceptor[]? interceptors = null;
+        if (Interceptors.Count > 0)
+        {
+            interceptors = Interceptors.OrderBy(i => i.Priority).ToArray();
+        }
 
         try
         {
@@ -175,6 +179,9 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
 
     private static byte[] _ToBytes(string s)
     {
-        return s.Select(c => (byte)c).ToArray();
+        byte[] result = new byte[s.Length];
+        for (int i = 0; i < s.Length; i++)
+            result[i] = (byte)s[i];
+        return result;
     }
 }

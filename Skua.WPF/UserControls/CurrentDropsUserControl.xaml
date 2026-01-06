@@ -27,9 +27,18 @@
         <ListBox
             x:Name="CurrentDropsListBox"
             Grid.Row="1"
-            ItemsSource="{Binding CurrentDrops, Mode=OneWay, UpdateSourceTrigger=PropertyChanged}"
+            ItemsSource="{Binding CurrentDrops, Mode=OneWay}"
             SelectedItem="{Binding SelectedDrop}"
-            SelectionMode="Multiple" />
+            SelectionMode="Multiple"
+            VirtualizingPanel.IsVirtualizing="True"
+            VirtualizingPanel.VirtualizationMode="Recycling"
+            ScrollViewer.CanContentScroll="True">
+            <ListBox.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <VirtualizingStackPanel />
+                </ItemsPanelTemplate>
+            </ListBox.ItemsPanel>
+        </ListBox>
         <Grid Grid.Row="2" Margin="0,6,0,0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
