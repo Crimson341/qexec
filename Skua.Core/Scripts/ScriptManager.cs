@@ -8,6 +8,7 @@ using Skua.Core.Interfaces.Services;
 using Skua.Core.Messaging;
 using Skua.Core.Models;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 
@@ -254,6 +255,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         OnPropertyChanged(nameof(ScriptRunning));
     }
 
+    [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]
     public object? Compile(string source)
     {
         Stopwatch sw = Stopwatch.StartNew();
