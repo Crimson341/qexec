@@ -116,12 +116,12 @@ public partial class ScriptBoost : ObservableObject, IScriptBoost, IAsyncDisposa
                 }
             }
         }
-        
+
         if (id == 0 && searchBank)
         {
             if (!Bank.Loaded)
                 Bank.Load();
-            
+
             List<InventoryItem>? bankItems = Bank.Items;
             if (bankItems != null)
             {
@@ -134,7 +134,7 @@ public partial class ScriptBoost : ObservableObject, IScriptBoost, IAsyncDisposa
                     }
                 }
             }
-            
+
             if (id > 0)
                 Bank.EnsureToInventory(id, false);
         }

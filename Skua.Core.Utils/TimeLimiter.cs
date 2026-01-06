@@ -36,7 +36,7 @@ public class TimeLimiter
     private void CleanupOldEntries()
     {
         int currentTick = Environment.TickCount;
-        
+
         string[] keysToRemove = _last.Where(kvp => currentTick - kvp.Value > CleanupThreshold)
                                      .Select(kvp => kvp.Key)
                                      .ToArray();

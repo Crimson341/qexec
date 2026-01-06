@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Skua.Core.Models;
+using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
 using Westwind.Scripting;
@@ -32,6 +33,7 @@ public class Compiler : CSharpScriptExecution
     /// <param name="loadContext">Optional AssemblyLoadContext for loading the assembly</param>
     /// <param name="scriptName">Optional script name for cache file naming</param>
     /// <returns>Instance of that class or null</returns>
+    [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]
     public new dynamic? CompileClass(string code, int? cacheHash = null, ScriptLoadContext? loadContext = null, string? scriptName = null)
     {
         Type? type = CompileClassToType(code, cacheHash, loadContext, scriptName);
@@ -54,6 +56,7 @@ public class Compiler : CSharpScriptExecution
     /// <param name="loadContext">Optional AssemblyLoadContext for loading the assembly</param>
     /// <param name="scriptName">Optional script name for cache file naming</param>
     /// <returns>Instance of that class or null</returns>
+    [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]
     public new Type? CompileClassToType(string code, int? cacheHash = null, ScriptLoadContext? loadContext = null, string? scriptName = null)
     {
         int hash = cacheHash ?? code.GetHashCode();
@@ -139,6 +142,7 @@ public class Compiler : CSharpScriptExecution
     /// <param name="source">Source code</param>
     /// <param name="noLoad">if set doesn't load the assembly (useful only when OutputAssembly is set)</param>
     /// <returns></returns>
+    [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]
     public new bool CompileAssembly(string source, bool noLoad = false)
     {
         ClearErrors();
@@ -168,14 +172,16 @@ public class Compiler : CSharpScriptExecution
 
         using (codeStream)
         {
-        EmitResult? compilationResult = null;
-        if (CompileWithDebug)
-        {
-            const DebugInformationFormat debugOptions = DebugInformationFormat.Embedded;
-            compilationResult = compilation.Emit(codeStream, options: new EmitOptions(debugInformationFormat: debugOptions));
-        }
+            EmitResult? compilationResult = null;
+            if (CompileWithDebug)
+            {
+                const DebugInformationFormat debugOptions = DebugInformationFormat.Embedded;
+                compilationResult = compilation.Emit(codeStream, options: new EmitOptions(debugInformationFormat: debugOptions));
+            }
             else
+            {
                 compilationResult = compilation.Emit(codeStream);
+            }
 
             // Compilation Error handling
             if (!compilationResult.Success)
@@ -229,7 +235,7 @@ public class Compiler : CSharpScriptExecution
         CachedAssemblies?.Clear();
     }
 
-    private string? TryLoadFromDiskCache(int hash, string? scriptName = null)
+    private static string? TryLoadFromDiskCache(int hash, string? scriptName = null)
     {
         try
         {
@@ -256,6 +262,7 @@ public class Compiler : CSharpScriptExecution
                     }
                     catch
                     {
+                        /* ignored */
                     }
                     return null;
                 }
@@ -386,7 +393,7 @@ public class Compiler : CSharpScriptExecution
                 string scriptName = GetScriptNameFromCacheFile(file.Name);
                 if (!scriptGroups.ContainsKey(scriptName))
                 {
-                    scriptGroups[scriptName] = new List<FileInfo>();
+                    scriptGroups[scriptName] = [];
                 }
                 scriptGroups[scriptName].Add(file);
             }
@@ -408,7 +415,7 @@ public class Compiler : CSharpScriptExecution
 
             if (files.Length - filesToDelete.Count >= _maxCachedAssemblies)
             {
-                List<FileInfo> remaining = files.Except(filesToDelete).OrderBy(f => f.LastAccessTime).ToList();
+                List<FileInfo> remaining = [.. files.Except(filesToDelete).OrderBy(f => f.LastAccessTime)];
                 int toRemove = remaining.Count - _maxCachedAssemblies + 1;
 
                 for (int i = 0; i < toRemove && i < remaining.Count; i++)
@@ -425,11 +432,13 @@ public class Compiler : CSharpScriptExecution
                 }
                 catch
                 {
+                    /* ignored */
                 }
             }
         }
         catch
         {
+            /* ignored */
         }
     }
 
@@ -473,6 +482,7 @@ public class Compiler : CSharpScriptExecution
         }
         catch
         {
+            /* ignored */
         }
     }
 }

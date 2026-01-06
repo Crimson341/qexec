@@ -371,7 +371,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                         if (questData.Requirements != null && questData.Requirements.Count > 0)
                         {
                             List<int> requirementIds = new();
-                            foreach (var r in questData.Requirements)
+                            foreach (ItemBase r in questData.Requirements)
                             {
                                 if (r != null && !r.Temp)
                                     requirementIds.Add(r.ID);
@@ -384,7 +384,7 @@ public partial class ScriptQuest : ObservableRecipient, IScriptQuest
                         if (questData.AcceptRequirements != null && questData.AcceptRequirements.Count > 0)
                         {
                             List<int> acceptReqIds = new();
-                            foreach (var r in questData.AcceptRequirements)
+                            foreach (ItemBase r in questData.AcceptRequirements)
                             {
                                 if (r != null && !r.Temp)
                                     acceptReqIds.Add(r.ID);

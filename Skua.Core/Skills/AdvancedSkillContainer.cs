@@ -174,7 +174,7 @@ public class AdvancedSkillContainer : ObservableRecipient, IAdvancedSkillContain
         List<SkillRuleJson> multiAuraRules = new();
         List<SkillRuleJson> singleAuraRules = new();
         List<SkillRuleJson> otherRules = new();
-        
+
         foreach (SkillRuleJson rule in rules)
         {
             if (isMultiAura && rule.Type == "MultiAura")

@@ -215,7 +215,7 @@ public class ScriptHunt : IScriptHunt
         string[] names = name.Split('|');
         for (int i = 0; i < names.Length; i++)
             names[i] = names[i].ToLower();
-        
+
         while ((!token?.IsCancellationRequested ?? true) && !Manager.ShouldExit)
         {
             IOrderedEnumerable<Monster> ordered = Monsters.MapMonsters.OrderBy(x => 0);
