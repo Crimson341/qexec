@@ -13,6 +13,7 @@ namespace Skua.Core.ViewModels;
 
 public partial class PacketInterceptorViewModel : BotControlViewModelBase
 {
+
     public PacketInterceptorViewModel(ICaptureProxy gameProxy, IScriptServers server)
         : base("Packet Interceptor")
     {
@@ -58,6 +59,11 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
         }
     }
 
+    ~PacketInterceptorViewModel()
+    {
+        _logger?.Dispose();
+    }
+
     public bool Running => _gameProxy.Running;
     public List<Server> ServerList => _server.CachedServers;
     public IRelayCommand ClearPacketsCommand { get; }
@@ -96,19 +102,45 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
     }
 }
 
-public class InterceptorLogger : IInterceptor
+public class InterceptorLogger : IInterceptor, IDisposable
 {
+    public const bool LogToFile = false;
+
     private readonly Action<InterceptedPacketViewModel> _addFunc;
+    private readonly StreamWriter _logWriter;
+    private readonly object _logLock = new();
 
     public int Priority => int.MaxValue;
 
     public InterceptorLogger(Action<InterceptedPacketViewModel> addFunc)
     {
         _addFunc = addFunc;
+        if (LogToFile)
+        {
+            string logPath = Path.Combine(ClientFileSources.SkuaDIR, "InterceptedLogs.txt");
+            _logWriter = new StreamWriter(logPath, append: true) { AutoFlush = true };
+        }
     }
 
     public void Intercept(MessageInfo message, bool outbound)
     {
         _addFunc(new(message.Content, message.Send ? outbound : null));
+
+        if (LogToFile)
+        {
+            lock (_logLock)
+            {
+                string direction = message.Send ? (outbound ? "OUT" : "IN") : "UNKNOWN";
+                _logWriter.WriteLine($"[{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff}] [{direction}] {message.Content}");
+            }
+        }
+    }
+
+    public void Dispose()
+    {
+        if (_logWriter != null)
+        {
+            _logWriter?.Dispose();
+        }
     }
 }
