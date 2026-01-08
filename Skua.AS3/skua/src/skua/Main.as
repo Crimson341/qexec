@@ -949,16 +949,7 @@ public class Main extends MovieClip {
         
         for each (var monster:* in world.getMonstersByCell(world.strFrame)) {
             if (monster.pMC != null) {
-                var monsterData:Object = {};
-                for (var prop:String in monster.objData) {
-                    monsterData[prop] = monster.objData[prop];
-                }
-                if (monster.dataLeaf) {
-                    monsterData.intHP = monster.dataLeaf.intHP;
-                    monsterData.intHPMax = monster.dataLeaf.intHPMax;
-                    monsterData.intState = monster.dataLeaf.intState;
-                }
-                retMonsters.push(monsterData);
+                retMonsters.push(getMonData(monster));
             }
         }
         return JSON.stringify(retMonsters);
@@ -971,33 +962,29 @@ public class Main extends MovieClip {
             world.cancelTarget();
             return JSON.stringify({});
         }
-        var monsterData:Object = {};
-        for (var prop:String in monster.objData) {
-            monsterData[prop] = monster.objData[prop];
-        }
-        if (monster.dataLeaf) {
-            monsterData.intHP = monster.dataLeaf.intHP;
-            monsterData.intHPMax = monster.dataLeaf.intHPMax;
-            monsterData.intState = monster.dataLeaf.intState;
-        }
-        return JSON.stringify(monsterData);
+        return JSON.stringify(getMonData(monster));
     }
 
     public static function getMonsters():String {
         var retMonsters:Array = [];
         for each (var monster:* in instance.game.world.monsters) {
-            var monsterData:Object = {};
-            for (var prop:String in monster.objData) {
-                monsterData[prop] = monster.objData[prop];
-            }
-            if (monster.dataLeaf) {
-                monsterData.intHP = monster.dataLeaf.intHP;
-                monsterData.intHPMax = monster.dataLeaf.intHPMax;
-                monsterData.intState = monster.dataLeaf.intState;
-            }
-            retMonsters.push(monsterData);
+            retMonsters.push(getMonData(monster));
         }
         return JSON.stringify(retMonsters);
+    }
+
+    public static function getMonData(mon:Object):Object
+    {
+        var monsterData:Object = {};
+        for (var prop:String in mon.objData) {
+            monsterData[prop] = mon.objData[prop];
+        }
+        if (mon.dataLeaf) {
+            monsterData.intHP = mon.dataLeaf.intHP;
+            monsterData.intHPMax = mon.dataLeaf.intHPMax;
+            monsterData.intState = mon.dataLeaf.intState;
+        }
+        return monsterData;
     }
 
     public function requestDoomArenaPVPQueue():void {
@@ -1249,6 +1236,5 @@ public class Main extends MovieClip {
     public static function Gender():String {
         return '"' + instance.game.world.myAvatar.objData.strGender.toUpperCase() + '"';
     }
-
 }
 }
