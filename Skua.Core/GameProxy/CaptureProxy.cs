@@ -116,11 +116,6 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
         List<byte> cpacket = new();
         NetworkStream targetStream = target.GetStream();
         NetworkStream destStream = destination.GetStream();
-        IInterceptor[]? interceptors = null;
-        if (Interceptors.Count > 0)
-        {
-            interceptors = Interceptors.OrderBy(i => i.Priority).ToArray();
-        }
 
         try
         {
@@ -150,9 +145,12 @@ public partial class CaptureProxy : ObservableRecipient, ICaptureProxy
                     cpacket.Clear();
 
                     MessageInfo message = new(Encoding.UTF8.GetString(data, 0, data.Length));
-                    if (interceptors != null)
-                        foreach (IInterceptor interceptor in interceptors)
+                    if (Interceptors.Count > 0)
+                    {
+                        IInterceptor[] currentInterceptors = Interceptors.OrderBy(i => i.Priority).ToArray();
+                        foreach (IInterceptor interceptor in currentInterceptors)
                             interceptor.Intercept(message, outbound);
+                    }
 
                     if (message.Send)
                     {
