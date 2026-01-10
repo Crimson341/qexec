@@ -180,42 +180,26 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         {
             if (_priorityMapIDs?.Length > 0)
             {
-                // Priority MapID targeting - kill first target completely before switching
+                // Sequential priority targeting - always prefer earlier indices if alive
                 int? currentTarget = null;
 
-                // Always prefer the first priority if it exists
-                Monster? firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
-                bool firstAlive = firstMonster != null && firstMonster.Alive;
-                _logger.ScriptLog($"[Priority Debug] Checking MapID {_priorityMapIDs[0]}: Monster={firstMonster?.Name}, Alive={firstAlive}");
-
-                if (firstAlive)
+                // Find the highest priority (lowest index) alive monster
+                for (int i = 0; i < _priorityMapIDs.Length; i++)
                 {
-                    currentTarget = _priorityMapIDs[0];
-                    _logger.ScriptLog($"[Priority Debug] Targeting first priority: {currentTarget}");
-                }
-                else
-                {
-                    _logger.ScriptLog($"[Priority Debug] First priority {_priorityMapIDs[0]} is dead, checking alternatives...");
-                    // First priority is dead, find next available
-                    for (int i = 1; i < _priorityMapIDs.Length; i++)
+                    Monster? monster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
+                    bool alive = monster != null && monster.Alive;
+                    
+                    if (alive)
                     {
-                        Monster? altMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
-                        bool altAlive = altMonster != null && altMonster.Alive;
-                        _logger.ScriptLog($"[Priority Debug] Checking alternative MapID {_priorityMapIDs[i]}: Monster={altMonster?.Name}, Alive={altAlive}");
-                        if (altAlive)
-                        {
-                            currentTarget = _priorityMapIDs[i];
-                            _logger.ScriptLog($"[Priority Debug] Switched to alternative: {currentTarget}");
-                            break;
-                        }
+                        currentTarget = _priorityMapIDs[i];
+                        break;
                     }
                 }
 
                 if (currentTarget.HasValue)
                 {
-                    if (Combat.Attack(currentTarget.Value))
-                        Kill.Monster(currentTarget.Value, token);
-
+                    Combat.Attack(currentTarget.Value);
+                    Thread.Sleep(200);
                     // Immediately re-evaluate priorities (no extra delay)
                     continue;
                 }
@@ -306,34 +290,19 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             // Hunt with priority MapIDs
             while (!token.IsCancellationRequested)
             {
-                // Find highest priority available monster - first priority takes precedence
+                // Sequential priority targeting - always prefer earlier indices if alive
                 int? currentTarget = null;
 
-                // Always prefer the first priority if it exists AND is alive
-                Monster? firstMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[0]);
-                bool firstAlive = firstMonster != null && firstMonster.Alive;
-                _logger.ScriptLog($"[Hunt Priority Debug] Checking MapID {_priorityMapIDs[0]}: Monster={firstMonster?.Name}, Alive={firstAlive}");
-
-                if (firstAlive)
+                // Find the highest priority (lowest index) alive monster
+                for (int i = 0; i < _priorityMapIDs.Length; i++)
                 {
-                    currentTarget = _priorityMapIDs[0];
-                    _logger.ScriptLog($"[Hunt Priority Debug] Targeting first priority: {currentTarget}");
-                }
-                else
-                {
-                    _logger.ScriptLog($"[Hunt Priority Debug] First priority {_priorityMapIDs[0]} is dead, checking alternatives...");
-                    // First priority is dead, find next available
-                    for (int i = 1; i < _priorityMapIDs.Length; i++)
+                    Monster? monster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
+                    bool alive = monster != null && monster.Alive;
+                    
+                    if (alive)
                     {
-                        Monster? altMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
-                        bool altAlive = altMonster != null && altMonster.Alive;
-                        _logger.ScriptLog($"[Hunt Priority Debug] Checking alternative MapID {_priorityMapIDs[i]}: Monster={altMonster?.Name}, Alive={altAlive}");
-                        if (altAlive)
-                        {
-                            currentTarget = _priorityMapIDs[i];
-                            _logger.ScriptLog($"[Hunt Priority Debug] Switched to alternative: {currentTarget}");
-                            break;
-                        }
+                        currentTarget = _priorityMapIDs[i];
+                        break;
                     }
                 }
 
@@ -357,9 +326,8 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
                         if (Monsters.Exists(currentTarget.Value) && !token.IsCancellationRequested)
                         {
-                            if (!Combat.Attack(currentTarget.Value))
-                                continue;
-                            Kill.Monster(currentTarget.Value, token);
+                            Combat.Attack(currentTarget.Value);
+                            Thread.Sleep(200);
                             // Immediately re-check priorities (no delay)
                             break;
                         }
