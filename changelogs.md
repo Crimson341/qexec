@@ -1,3 +1,39 @@
+# Skua 1.3.3.1
+## Released: January 10, 2026
+
+
+# Features/Changes
+
+### Auto-Attack | Auto-Hunt
+  - `Manual MapIDs` now work properly, and will attack MID[index 0], then MID[index 1]. If MID[index 0] respawns while MID[index 1] is alive, it will swap mobs 👍 
+
+### Packet Interceptor 
+  - Packet logging when `Log packets` is unchecked is now fixed
+
+### Compiler Changes/Script Caching
+  - Scripts get cached to `%APPDATA%/Skua/Scripts/Cached-Scripts`
+  - This improves startup time for re-running scripts (assuming `auqw/Scripts` isn't updating as you are running them)
+  - There are still planned changes to the compiler
+
+### Planned changes for the compiler
+  - Currently, the compiler takes each script we use for a certain script into one single file, then compiles that into the final running script.
+  - Example: `0NecroticSwordOfDoom.cs` uses `CoreNSOD.cs` and that needs. `CoreBots.cs` (`0NecroticSwordOfDoom`>`CoreNSOD`>`CoreBots`)
+  - This way of compiling for cached scripts is terrible. Anytime any script in that flow changes, it'll need to recompile everything.
+  - So, to remedy this, I want to change the compiler to compile each script separately
+
+### Minor Optimizations
+
+### UI Changes
+  - Accounts with tags will now align correctly
+  - Whenever you get the `443` error for scripts, a pop-up will open saying
+    - "Unable to connect to GitHub."
+    - "Please check your internet connection and try again."
+    - "If the problem persists, GitHub may be temporarily unavailable."
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.3.3.0...1.3.3.1
+
+---
+
 # Skua 1.3.3.0
 ## Released: December 20, 2025
 
