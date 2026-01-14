@@ -246,13 +246,13 @@ public interface IScriptQuest : INotifyPropertyChanged
     void UpdateQuest(int value, int slot);
 
     /// <summary>
-    /// Load the quests into the <see cref="Cached"/> list from the Quests.txt.
+    /// Load the quests into the <see cref="Cached"/> list from the QuestData.json.
     /// </summary>
     /// <returns></returns>
     void LoadCachedQuests();
 
     /// <summary>
-    /// Quests a list of <see cref="QuestData"/> from the Quests.txt file.
+    /// Quests a list of <see cref="QuestData"/> from the QuestData.json file.
     /// </summary>
     /// <param name="start">The starting ID.</param>
     /// <param name="count">How many will be taken.</param>
@@ -260,7 +260,7 @@ public interface IScriptQuest : INotifyPropertyChanged
     List<QuestData> GetCachedQuests(int start, int count);
 
     /// <summary>
-    /// Quests a list of <see cref="QuestData"/> from the Quests.txt file.
+    /// Quests a list of <see cref="QuestData"/> from the QuestData.json file.
     /// </summary>
     /// <param name="ids">IDs to get.</param>
     /// <returns></returns>

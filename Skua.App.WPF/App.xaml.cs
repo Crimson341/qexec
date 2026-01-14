@@ -150,6 +150,11 @@ public sealed partial class App : Application
             });
         }
 
+        Task.Factory.StartNew(async () =>
+        {
+            await getScripts.UpdateQuestDataFile();
+        });
+
         Services.GetRequiredService<IPluginManager>().Initialize();
 
         Services.GetRequiredService<IHotKeyService>().Reload();

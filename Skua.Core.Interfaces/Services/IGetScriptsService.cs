@@ -27,4 +27,6 @@ public interface IGetScriptsService : INotifyPropertyChanged
     Task DeleteScriptAsync(ScriptInfo info);
 
     Task<bool> UpdateSkillSetsFile();
+
+    Task<bool> UpdateQuestDataFile();
 }

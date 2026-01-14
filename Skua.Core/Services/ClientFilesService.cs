@@ -46,7 +46,7 @@ public class ClientFilesService : IClientFilesService
 
         if (!File.Exists(ClientFileSources.SkuaQuestsFile))
         {
-            string rootQuestsFile = Path.Combine(AppContext.BaseDirectory, "Quests.txt");
+            string rootQuestsFile = Path.Combine(AppContext.BaseDirectory, "QuestData.json");
             if (File.Exists(rootQuestsFile))
                 File.Copy(rootQuestsFile, ClientFileSources.SkuaQuestsFile);
             else

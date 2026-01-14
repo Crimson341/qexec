@@ -12,6 +12,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
     private readonly IDialogService _dialogService;
     private const string _rawScriptsJsonUrl = "auqw/Scripts/refs/heads/Skua/scripts.json";
     private const string _skillsSetsRawUrl = "auqw/Scripts/refs/heads/Skua/Skills/AdvancedSkills.json";
+    private const string _questDataRawUrl = "auqw/Scripts/refs/heads/Skua/QuestData.json";
     private const string _repoOwner = "auqw";
     private const string _repoName = "Scripts";
     private const string _repoBranch = "Skua";
@@ -144,6 +145,20 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         {
             string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _skillsSetsRawUrl);
             await File.WriteAllTextAsync(ClientFileSources.SkuaAdvancedSkillsFile, content);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<bool> UpdateQuestDataFile()
+    {
+        try
+        {
+            string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _questDataRawUrl);
+            await File.WriteAllTextAsync(ClientFileSources.SkuaQuestsFile, content);
             return true;
         }
         catch

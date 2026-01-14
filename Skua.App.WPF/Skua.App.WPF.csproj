@@ -21,12 +21,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Quests.txt" />
+    <None Remove="QuestData.json" />
     <None Remove="AdvancedSkills.json" />
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="Quests.txt">
+    <Content Include="QuestData.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="AdvancedSkills.json">

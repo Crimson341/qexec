@@ -107,7 +107,7 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
             IsLoading = true;
             ProgressReport = progress;
         });
-        List<QuestData> questData = await _questLoader.UpdateAsync("Quests.txt", getAll, progress, _loaderCTS.Token);
+        List<QuestData> questData = await _questLoader.UpdateAsync("QuestData.json", getAll, progress, _loaderCTS.Token);
         QuestIDs.Clear();
         QuestIDs.AddRange(questData);
         IsLoading = false;
@@ -122,7 +122,7 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
         IsLoading = true;
         ProgressReport = "Getting quests";
         QuestIDs.Clear();
-        QuestIDs.AddRange(await _questLoader.GetFromFileAsync("Quests.txt"));
+        QuestIDs.AddRange(await _questLoader.GetFromFileAsync("QuestData.json"));
         ProgressReport = string.Empty;
         IsLoading = false;
     }
