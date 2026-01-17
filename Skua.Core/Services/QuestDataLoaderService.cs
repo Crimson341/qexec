@@ -23,6 +23,11 @@ public class QuestDataLoaderService : IQuestDataLoaderService
     private readonly IScriptPlayer _player;
     private readonly Dictionary<string, List<QuestData>?> _cachedQuests = new();
 
+    public void ClearCache()
+    {
+        _cachedQuests.Clear();
+    }
+
     public async Task<List<QuestData>> GetFromFileAsync(string fileName)
     {
         fileName = Path.Combine(ClientFileSources.SkuaDIR, fileName);
@@ -45,7 +50,13 @@ public class QuestDataLoaderService : IQuestDataLoaderService
             if (!_player.LoggedIn)
                 return _quests.Cached = await GetFromFileAsync(fileName);
 
-            _quests.Cached = await GetFromFileAsync(fileName);
+            // Clear cache to ensure we get fresh data during updates
+            string cacheKey = $"CachedQuests_{Path.Combine(ClientFileSources.SkuaDIR, fileName)}";
+            _cachedQuests.Remove(cacheKey);
+            
+            // Load existing data first - we'll use this for incremental updates or if cancellation happens
+            List<QuestData> existingQuestData = await GetFromFileAsync(fileName);
+            _quests.Cached = all ? new List<QuestData>() : existingQuestData;
             AutoResetEvent wait = new(false);
 
             int start = 1;
@@ -90,10 +101,51 @@ public class QuestDataLoaderService : IQuestDataLoaderService
                 }
             }
 
-            quests.AddRange(_quests.Cached);
-            await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.Distinct().OrderBy(q => q.ID), Formatting.Indented), token);
+            // Handle cancellation gracefully and merge data appropriately
+            if (!all)
+            {
+                // For incremental updates, merge with existing cached data
+                quests.AddRange(_quests.Cached);
+            }
+            else if (token.IsCancellationRequested)
+            {
+                if (quests.Count == 0)
+                {
+                    // If cancelled early in full update with no new data, keep existing data
+                    if (existingQuestData.Count > 0)
+                    {
+                        progress?.Report("Update cancelled - keeping existing quest data");
+                        return _quests.Cached = existingQuestData;
+                    }
+                }
+                else
+                {
+                    // If we got some new data before cancellation, merge it with existing data
+                    // Keep newer data (higher IDs) from new fetch, older data from existing
+                    if (quests.Any())
+                    {
+                        int maxNewId = quests.Max(q => q.ID);
+                        IEnumerable<QuestData> olderExistingData = existingQuestData.Where(q => q.ID > maxNewId);
+                        quests.AddRange(olderExistingData);
+                        progress?.Report($"Update cancelled - saved {quests.Count} quests (partial data + existing)");
+                    }
+                    else
+                    {
+                        // No new data was fetched, just keep existing data
+                        progress?.Report("Update cancelled - keeping existing quest data");
+                        return _quests.Cached = existingQuestData;
+                    }
+                }
+            }
+                
+            // Don't pass cancelled token to file write operation
+            CancellationToken writeToken = token.IsCancellationRequested ? CancellationToken.None : token;
+            await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.Distinct().OrderBy(q => q.ID), Formatting.Indented), writeToken);
             progress?.Report($"Getting quests from file {fileName}");
 
+            // Clear cache again to force reading the newly written file
+            _cachedQuests.Remove(cacheKey);
+            
             return _quests.Cached = await GetFromFileAsync(fileName);
         });
     }

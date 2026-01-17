@@ -102,6 +102,11 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     {
         _loaderCTS = new();
         QuestIDs.Clear();
+        
+        // Clear cache to ensure fresh data when updating
+        if (getAll)
+            _questLoader.ClearCache();
+            
         Progress<string> progress = new(progress =>
         {
             IsLoading = true;
