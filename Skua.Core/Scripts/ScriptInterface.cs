@@ -227,7 +227,12 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
     public void Stop(bool runScriptStoppingEvent = true)
     {
-        Manager.StopScript(runScriptStoppingEvent);
+        _ = Manager.StopScript(runScriptStoppingEvent);
+    }
+
+    public async Task StopAsync(bool runScriptStoppingEvent = true)
+    {
+        await Manager.StopScript(runScriptStoppingEvent);
     }
 
     private void ScriptTimer(CancellationToken token)
@@ -313,7 +318,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         if (connDetail == "null")
             return (Environment.TickCount, connDetail);
         if (connDetail.Contains("has been lost") && !_waitForLogin)
-            OnLogout();
+            _ = OnLogout();
         else if (Environment.TickCount - lastConnChange >= Options.LoadTimeout && connDetail == lastConnDetail && !_waitForLogin)
         {
             if (connDetail.Contains("loading map"))
@@ -587,7 +592,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                         if (parts.Length >= 5 && parts[4] == "logout")
                         {
                             Messenger.Send<LogoutMessage, int>((int)MessageChannels.GameEvents);
-                            OnLogout();
+                            _ = OnLogout();
                         }
                         break;
                 }
@@ -600,7 +605,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     private volatile bool _waitForLogin;
     private CancellationTokenSource? _reloginCTS;
 
-    private void OnLogout()
+    private async Task OnLogout()
     {
         if (!Options.AutoRelogin || _waitForLogin)
             return;
@@ -614,7 +619,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
         Log("Auto re-login triggered.");
         bool wasRunning = Manager.ScriptRunning;
-        Manager.StopScript();
+        await Manager.StopScript();
         bool kicked = Player.Kicked;
         _waitForLogin = true;
         Messenger.Send<ReloginTriggeredMessage, int>(new(kicked), (int)MessageChannels.GameEvents);
@@ -632,7 +637,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
             Stats.Relogins++;
             bool relogged = await Servers.EnsureRelogin(_reloginCTS.Token);
             if (startScript)
-                await Ioc.Default.GetService<IScriptManager>()!.StartScriptAsync();
+                await Ioc.Default.GetService<IScriptManager>()!.StartScript();
             Log($"Re-login was {(relogged ? "successful" : "cancelled or unsuccessful")}.");
             _reloginCTS.Dispose();
             _reloginCTS = null;

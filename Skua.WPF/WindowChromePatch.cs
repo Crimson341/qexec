@@ -24,7 +24,7 @@ public static class WindowChromePatch
     {
         ref MINMAXINFO mmi = ref *(MINMAXINFO*)lParam;
         HMONITOR monitor = PInvoke.MonitorFromWindow((Windows.Win32.Foundation.HWND)hwnd, MONITOR_FROM_FLAGS.MONITOR_DEFAULTTONEAREST);
-        if (monitor.Value != IntPtr.Zero)
+        if (!monitor.IsNull)
         {
             MONITORINFO monitorInfo = default;
             monitorInfo.cbSize = (uint)sizeof(MONITORINFO);

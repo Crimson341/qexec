@@ -10,16 +10,19 @@ using Westwind.Scripting;
 namespace Skua.Core;
 
 /// <summary>
-/// Slightly modified compiler based on Westwind.Scripting (https://github.com/RickStrahl/Westwind.Scripting)
+/// "Slightly" modified compiler based on Westwind.Scripting (https://github.com/RickStrahl/Westwind.Scripting)
 /// </summary>
 public class Compiler : CSharpScriptExecution
 {
-    private const int _maxCachedAssemblies = 50;
+    private const int _maxCachedAssemblies = 500;
     private static readonly string _cacheDirectory = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
-    private static readonly TimeSpan _cacheExpiration = TimeSpan.FromDays(3);
+    private static readonly TimeSpan _cacheExpiration = TimeSpan.FromDays(7);
     private static readonly TimeSpan _cleanupThrottle = TimeSpan.FromMinutes(5);
     private static DateTime _lastCleanupTime = DateTime.MinValue;
     private static readonly object _cleanupLock = new();
+    private static readonly object _compilationLock = new();
+    private string? _cachedNamespacePrefix = null;
+    private int _lastNamespaceHash = 0;
 
     /// <summary>
     /// This method compiles a class and hands back a
@@ -59,6 +62,8 @@ public class Compiler : CSharpScriptExecution
     [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]
     public new Type? CompileClassToType(string code, int? cacheHash = null, ScriptLoadContext? loadContext = null, string? scriptName = null)
     {
+        code = PrependNamespaces(code);
+
         int hash = cacheHash ?? code.GetHashCode();
 
         GeneratedClassCode = code;
@@ -97,18 +102,9 @@ public class Compiler : CSharpScriptExecution
             if (cachedAssemblyPath == null)
             {
                 string diskCachePath = GetDiskCachePath(hash, scriptName);
-                if (!CompileAssemblyToDisk(code, diskCachePath))
-                    return null;
 
-                if (loadContext != null)
-                {
-                    using FileStream stream = File.OpenRead(diskCachePath);
-                    Assembly = loadContext.LoadFromStream(stream);
-                }
-                else
-                {
-                    Assembly = Assembly.LoadFrom(diskCachePath);
-                }
+                if (!CompileOrWaitForAssembly(code, diskCachePath, loadContext))
+                    return null;
             }
 
             if (loadContext == null)
@@ -146,12 +142,16 @@ public class Compiler : CSharpScriptExecution
     public new bool CompileAssembly(string source, bool noLoad = false)
     {
         ClearErrors();
+        string sourceWithNamespaces = PrependNamespaces(source);
 
-        SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source.Trim());
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(sourceWithNamespaces.Trim(), encoding: Encoding.UTF8);
 
         CSharpCompilation compilation = CSharpCompilation.Create(GeneratedClassName + ".cs")
             .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                        optimizationLevel: OptimizationLevel.Release))
+                        optimizationLevel: OptimizationLevel.Release,
+                        concurrentBuild: true,
+                        deterministic: true,
+                        reportSuppressedDiagnostics: false))
             .WithReferences(References)
             .AddSyntaxTrees(tree);
 
@@ -162,7 +162,7 @@ public class Compiler : CSharpScriptExecution
         Stream? codeStream = null;
         if (string.IsNullOrEmpty(OutputAssembly))
         {
-            codeStream = new MemoryStream(); // in-memory assembly
+            codeStream = new MemoryStream();
         }
         else
         {
@@ -183,7 +183,6 @@ public class Compiler : CSharpScriptExecution
                 compilationResult = compilation.Emit(codeStream);
             }
 
-            // Compilation Error handling
             if (!compilationResult.Success)
             {
                 StringBuilder sb = new();
@@ -227,6 +226,29 @@ public class Compiler : CSharpScriptExecution
             throw LastException;
     }
 
+    private string PrependNamespaces(string source)
+    {
+        if (Namespaces == null || Namespaces.Count == 0)
+            return source;
+
+        int currentHash = Namespaces.Count > 0 ? string.Join(";", Namespaces).GetHashCode() : 0;
+        if (_cachedNamespacePrefix == null || _lastNamespaceHash != currentHash)
+        {
+            StringBuilder sb = new(Namespaces.Count * 40);
+            foreach (string ns in Namespaces)
+            {
+                sb.Append("using ");
+                sb.Append(ns);
+                sb.AppendLine(";");
+            }
+            sb.AppendLine();
+            _cachedNamespacePrefix = sb.ToString();
+            _lastNamespaceHash = currentHash;
+        }
+
+        return _cachedNamespacePrefix + source;
+    }
+
     /// <summary>
     /// Clears the cached assemblies to free memory
     /// </summary>
@@ -262,7 +284,6 @@ public class Compiler : CSharpScriptExecution
                     }
                     catch
                     {
-                        /* ignored */
                     }
                     return null;
                 }
@@ -290,15 +311,135 @@ public class Compiler : CSharpScriptExecution
         return Path.Combine(_cacheDirectory, fileName);
     }
 
+    private bool CompileOrWaitForAssembly(string source, string outputPath, ScriptLoadContext? loadContext)
+    {
+        string mutexName = $"Global\\Skua_Compile_{Path.GetFileName(outputPath).Replace(".dll", "").Replace("-", "_")}";
+        Mutex? compilationMutex = null;
+
+        try
+        {
+            compilationMutex = new Mutex(false, mutexName);
+
+            if (!compilationMutex.WaitOne(TimeSpan.FromMinutes(2)))
+            {
+                ErrorType = ExecutionErrorTypes.Compilation;
+                ErrorMessage = "Timeout waiting for script compilation to complete.";
+                SetErrors(new ApplicationException(ErrorMessage));
+                return false;
+            }
+
+            try
+            {
+                string scriptName = Path.GetFileNameWithoutExtension(outputPath);
+                int dashIndex = scriptName.LastIndexOf('-');
+                if (dashIndex > 0)
+                {
+                    string actualScriptName = scriptName[(dashIndex + 1)..];
+                    if (int.TryParse(scriptName[..dashIndex], out int currentHash))
+                    {
+                        DeleteOldVersions(actualScriptName, currentHash);
+                    }
+                }
+
+                if (File.Exists(outputPath))
+                {
+                    try
+                    {
+                        AssemblyName.GetAssemblyName(outputPath);
+
+                        if (loadContext != null)
+                        {
+                            using FileStream stream = File.OpenRead(outputPath);
+                            Assembly = loadContext.LoadFromStream(stream);
+                        }
+                        else
+                        {
+                            Assembly = Assembly.LoadFrom(outputPath);
+                        }
+                        return true;
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            File.Delete(outputPath);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+
+                if (!CompileAssemblyToDisk(source, outputPath))
+                    return false;
+
+                if (loadContext != null)
+                {
+                    using FileStream stream = File.OpenRead(outputPath);
+                    Assembly = loadContext.LoadFromStream(stream);
+                }
+                else
+                {
+                    Assembly = Assembly.LoadFrom(outputPath);
+                }
+                return true;
+            }
+            finally
+            {
+                compilationMutex.ReleaseMutex();
+            }
+        }
+        catch (AbandonedMutexException)
+        {
+            if (File.Exists(outputPath))
+            {
+                try
+                {
+                    AssemblyName.GetAssemblyName(outputPath);
+
+                    if (loadContext != null)
+                    {
+                        using FileStream stream = File.OpenRead(outputPath);
+                        Assembly = loadContext.LoadFromStream(stream);
+                    }
+                    else
+                    {
+                        Assembly = Assembly.LoadFrom(outputPath);
+                    }
+                    return true;
+                }
+                catch
+                {
+                }
+            }
+
+            ErrorType = ExecutionErrorTypes.Compilation;
+            ErrorMessage = "Compilation was abandoned by another process.";
+            SetErrors(new ApplicationException(ErrorMessage));
+            return false;
+        }
+        finally
+        {
+            compilationMutex?.Dispose();
+        }
+    }
+
     private bool CompileAssemblyToDisk(string source, string outputPath)
     {
         ClearErrors();
 
-        SyntaxTree tree = SyntaxFactory.ParseSyntaxTree(source.Trim());
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(source.Trim(), encoding: Encoding.UTF8);
 
-        CSharpCompilation compilation = CSharpCompilation.Create(Path.GetFileNameWithoutExtension(outputPath))
+        string fileName = Path.GetFileNameWithoutExtension(outputPath);
+        int lastDash = fileName.LastIndexOf('-');
+        string assemblyName = lastDash > 0 ? fileName[(lastDash + 1)..] : fileName;
+
+        CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
             .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                        optimizationLevel: OptimizationLevel.Release))
+                        optimizationLevel: OptimizationLevel.Release,
+                        concurrentBuild: true,
+                        deterministic: true,
+                        reportSuppressedDiagnostics: false))
             .WithReferences(References)
             .AddSyntaxTrees(tree);
 
@@ -378,7 +519,12 @@ public class Compiler : CSharpScriptExecution
 
             foreach (FileInfo file in files)
             {
-                if ((now - file.LastAccessTime) > _cacheExpiration)
+                string scriptName = GetScriptNameFromCacheFile(file.Name);
+                if (scriptName.Contains("Core", StringComparison.OrdinalIgnoreCase))
+                    continue;
+
+                TimeSpan age = now - file.LastWriteTimeUtc;
+                if (age > _cacheExpiration)
                 {
                     filesToDelete.Add(file);
                 }
@@ -398,24 +544,24 @@ public class Compiler : CSharpScriptExecution
                 scriptGroups[scriptName].Add(file);
             }
 
-            foreach (List<FileInfo> group in scriptGroups.Values)
+            foreach (var kvp in scriptGroups)
             {
-                if (group.Count > 1)
+                if (kvp.Value.Count > 1)
                 {
-                    FileInfo newest = group.MaxBy(f => f.LastWriteTimeUtc)!;
-                    foreach (FileInfo file in group)
+                    FileInfo newest = kvp.Value.MaxBy(f => f.LastWriteTimeUtc)!;
+                    foreach (FileInfo file in kvp.Value)
                     {
                         if (file != newest)
-                        {
                             filesToDelete.Add(file);
-                        }
                     }
                 }
             }
 
             if (files.Length - filesToDelete.Count >= _maxCachedAssemblies)
             {
-                List<FileInfo> remaining = [.. files.Except(filesToDelete).OrderBy(f => f.LastAccessTime)];
+                List<FileInfo> remaining = [.. files.Except(filesToDelete)
+                    .Where(f => !GetScriptNameFromCacheFile(f.Name).Contains("Core", StringComparison.OrdinalIgnoreCase))
+                    .OrderBy(f => f.LastWriteTimeUtc)];
                 int toRemove = remaining.Count - _maxCachedAssemblies + 1;
 
                 for (int i = 0; i < toRemove && i < remaining.Count; i++)
@@ -438,16 +584,15 @@ public class Compiler : CSharpScriptExecution
         }
         catch
         {
-            /* ignored */
         }
     }
 
     private static string GetScriptNameFromCacheFile(string fileName)
     {
         ReadOnlySpan<char> nameWithoutExt = Path.GetFileNameWithoutExtension(fileName.AsSpan());
-        int firstDashIndex = nameWithoutExt.IndexOf('-');
+        int lastDashIndex = nameWithoutExt.LastIndexOf('-');
 
-        return firstDashIndex <= 0 ? string.Empty : new string(nameWithoutExt[(firstDashIndex + 1)..]);
+        return lastDashIndex <= 0 ? string.Empty : new string(nameWithoutExt[(lastDashIndex + 1)..]);
     }
 
     private static void DeleteOldVersions(string scriptName, int currentHash)
@@ -466,23 +611,37 @@ public class Compiler : CSharpScriptExecution
                     continue;
 
                 ReadOnlySpan<char> fileNameWithoutExt = Path.GetFileNameWithoutExtension(fileName.AsSpan());
-                int dashIndex = fileNameWithoutExt.IndexOf('-');
+                int dashIndex = fileNameWithoutExt.LastIndexOf('-');
 
                 if (dashIndex > 0 && int.TryParse(fileNameWithoutExt[..dashIndex], out int fileHash) && fileHash != currentHash)
                 {
-                    try
+                    bool deleted = false;
+                    for (int attempt = 0; attempt < 3 && !deleted; attempt++)
                     {
-                        File.Delete(file);
-                    }
-                    catch
-                    {
+                        try
+                        {
+                            File.Delete(file);
+                            deleted = true;
+                        }
+                        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+                        {
+                            if (attempt < 2)
+                            {
+                                GC.Collect();
+                                GC.WaitForPendingFinalizers();
+                                Thread.Sleep(100);
+                            }
+                        }
+                        catch
+                        {
+                            break;
+                        }
                     }
                 }
             }
         }
         catch
         {
-            /* ignored */
         }
     }
 }

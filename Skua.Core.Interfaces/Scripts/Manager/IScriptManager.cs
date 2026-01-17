@@ -20,7 +20,7 @@ public interface IScriptManager : IScriptStatus, INotifyPropertyChanged
     /// </summary>
     /// <returns>A task that represents the asynchronous operation. The task result contains an exception if the script fails;
     /// otherwise, null if the script completes successfully.</returns>
-    Task<Exception?> StartScriptAsync();
+    Task<Exception?> StartScript();
 
     /// <summary>
     /// Compiles the specified source code and returns the resulting object representation.
