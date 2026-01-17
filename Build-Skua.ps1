@@ -71,13 +71,13 @@ function Test-Prerequisites {
     else { Write-BuildError "MSBuild not found. Install Visual Studio or Build Tools"; $hasErrors = $true }
     
     $dotnetList = dotnet --list-sdks 2>$null
-    $hasNet6 = $dotnetList | Where-Object { $_ -match "^6\." }
-    if ($hasNet6) {
-        $net6Version = ($hasNet6 | Select-Object -First 1) -split ' ' | Select-Object -First 1
-        Write-Success ".NET 6 SDK found: $net6Version"
+    $hasNet10 = $dotnetList | Where-Object { $_ -match "^10\." }
+    if ($hasNet10) {
+        $net10Version = ($hasNet10 | Select-Object -First 1) -split ' ' | Select-Object -First 1
+        Write-Success ".NET 10 SDK found: $net10Version"
     }
     else {
-        Write-BuildError ".NET 6 SDK not found. Install from https://dotnet.microsoft.com/download/dotnet/6.0"
+        Write-BuildError ".NET 10 SDK not found. Install from https://dotnet.microsoft.com/download/dotnet/10.0"
         $hasErrors = $true
     }
     
@@ -148,8 +148,8 @@ function Copy-BuildOutputs([string]$Platform, [string]$Config) {
     if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir -Force | Out-Null }
     
     @("Skua.App.WPF", "Skua.Manager") | ForEach-Object {
-        $sourceDir = ".\$_\bin\$Platform\$Config\net6.0-windows"
-        if (-not (Test-Path $sourceDir)) { $sourceDir = ".\$_\bin\$Config\net6.0-windows" }
+        $sourceDir = ".\$_\bin\$Platform\$Config\net10.0-windows"
+        if (-not (Test-Path $sourceDir)) { $sourceDir = ".\$_\bin\$Config\net10.0-windows" }
         
         if (Test-Path $sourceDir) {
             $destDir = Join-Path $outputDir $_

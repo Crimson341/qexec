@@ -14,13 +14,12 @@ This document provides instructions for building the Skua project from source, i
 
 ### Required Software
 
-1. **.NET 6.0 SDK or later**
+1. **.NET 10.0 SDK or later**
    - Download from: https://dotnet.microsoft.com/download
    - Verify installation: `dotnet --version`
-   - Project targets: `net6.0-windows` for applications and libraries
+   - Project targets: `net10.0-windows` for applications and libraries
 
-2. **Visual Studio 2019/2022** (for MSBuild and WiX support)
-   - Community Edition or higher
+2. **Visual Studio 2026** (for MSBuild and WiX support)
    - Workloads required:
      - .NET desktop development
      - Desktop development with C++
@@ -35,8 +34,10 @@ This document provides instructions for building the Skua project from source, i
 4. **PowerShell 7 or later**
    - For PowerShell: https://github.com/PowerShell/PowerShell/releases
 
-5. **FlashDevelop (for building skua.swf)**
-   - For FlashDevelop: https://github.com/fdorg/flashdevelop/raw/refs/heads/development/Releases/FlashDevelop-5.3.3.exe
+5. **FlashDevelop or IntelliJ IDEA Ultimate (for building Skua.AS3 project - skua.swf)**
+   - **Option A - FlashDevelop**: https://github.com/fdorg/flashdevelop/raw/refs/heads/development/Releases/FlashDevelop-5.3.3.exe
+   - **Option B - IntelliJ IDEA Ultimate**: https://www.jetbrains.com/idea/download/
+     - Requires ActionScript & Flash plugin
 
 ### Optional Software
 
@@ -69,7 +70,7 @@ This document provides instructions for building the Skua project from source, i
 .\Build-Skua.ps1 -Configuration Debug
 
 # Skip cleaning
-.\Build-Skua.ps1 -Clean false
+.\Build-Skua.ps1 -SkipClean
 
 # Skip installer
 .\Build-Skua.ps1 -SkipInstaller
@@ -101,7 +102,7 @@ The main build automation script with full control over the build process.
 .\Build-Skua.ps1 -SkipInstaller
 
 # Skip cleaning
-.\Build-Skua.ps1 -Clean false
+.\Build-Skua.ps1 -SkipClean
 
 # Custom output path
 .\Build-Skua.ps1 -OutputPath "C:\MyBuilds"
@@ -113,8 +114,8 @@ The main build automation script with full control over the build process.
 |-----------|------|---------|-------------|
 | Configuration | String | Release | Build configuration (Debug/Release) |
 | Platforms | String[] | @("x64", "x86") | Target platforms to build |
-| BuildInstaller | Boolean | $true | Whether to build WiX installer |
-| Clean | Boolean | $true | Clean before building |
+| SkipInstaller | Switch | $false | Skip building WiX installer |
+| SkipClean | Switch | $false | Skip cleaning before build |
 | OutputPath | String | .\build | Output directory for artifacts |
 
 #### Output Structure
@@ -180,7 +181,7 @@ dotnet tool install --global wix
 msbuild Skua.Installer\Skua.Installer.wixproj /p:Configuration=Release /p:Platform=x64
 
 # Or find MSBuild path first
-"C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Current\Bin\MSBuild.exe" ^
+"C:\Program Files\Microsoft Visual Studio\18\{EDITION}\MSBuild\Current\Bin\MSBuild.exe" ^
   Skua.Installer\Skua.Installer.wixproj ^
   /p:Configuration=Release ^
   /p:Platform=x64
@@ -223,10 +224,10 @@ Test the build process locally before pushing:
 
 ```powershell
 # Full build test
-.\Build-Skua.ps1 -Configuration Release -Clean:$true
+.\Build-Skua.ps1 -Configuration Release
 
 # Debug build test
-.\Build-Skua.ps1 -Configuration Debug -Platforms @("x64")
+.\Build-Skua.ps1 -Configuration Debug -Platforms "x64"
 ```
 
 ## Troubleshooting
@@ -271,8 +272,8 @@ dotnet build -p:Platform=x86 -p:PlatformTarget=x86
 
 Speed up builds with these tips:
 
-1. **Incremental builds**: Use `-Clean false` when testing
-2. **Single platform**: Build only what you need
+1. **Incremental builds**: Use `-SkipClean` when testing
+2. **Single platform**: Build only what you need (e.g., `-Platforms "x64"`)
 3. **Skip installer**: Use `-SkipInstaller` during development
 4. **Parallel builds**: MSBuild uses parallel builds by default
 
@@ -307,20 +308,18 @@ Edit project files to add custom configurations:
 
 ### Build Version Management
 
-Set version in project files:
+Versions are centrally managed in `Directory.Build.props` at the repository root:
 
 ```xml
-<PropertyGroup>
-  <Version>1.0.0</Version>
-  <AssemblyVersion>1.0.0.0</AssemblyVersion>
-  <FileVersion>1.0.0.0</FileVersion>
-</PropertyGroup>
-```
-
-Or via command line:
-
-```bash
-dotnet build -p:Version=1.2.3
+<!-- Directory.Build.props -->
+<?xml version="1.0" encoding="utf-8"?>
+<Project>
+  <PropertyGroup>
+    <AssemblyVersion>1.0.0.0</AssemblyVersion>
+    <FileVersion>1.0.0.0</FileVersion>
+    <Version>1.0.0.0</Version>
+  </PropertyGroup>
+</Project>
 ```
 
 ## Contributing

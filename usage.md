@@ -2,13 +2,13 @@
 
 ## Installation & Setup
 
-1. [.net 6 SDK (x64) installer](<https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-6.0.420-windows-x64-installer>)
+1. [.net 10 SDK (x64) installer](<https://dotnet.microsoft.com/en-us/download/dotnet/thank-you/sdk-10.0.102-windows-x64-installer>)
 
-2. [CleanFlash](<https://drive.google.com/file/d/1R0KrjAyHTz6KfcAp_zsRh2Mrv25J0PbI/view>) (and for it to be installed properly do this: [CleanFlash Installation](https://imgur.com/ztsLYZ1))
+2. [CleanFlash](<https://github.com/wtffidy/CleanFlashBackUp/blob/main/CleanFlash_34.0.0.175_Installer.exe>) (and for it to be installed properly do this: [CleanFlash Installation](https://imgur.com/ztsLYZ1))
 
-3. [Skua 1.2.4.0 Release](<https://github.com/BrenoHenrike/Skua/releases/download/1.2.4.0/Skua-1.2.4.0-Release-x64.msi>)
+3. [Skua Latest Release](<https://github.com/auqw/Skua/releases/latest>)
 
-- Install both `.net 6 SDK` and `CleanFlash` before installing `Skua`.
+- Install both `.net 10 SDK` and `CleanFlash` before installing `Skua`.
 
 ## Once everything is properly installed and working
 
