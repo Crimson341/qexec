@@ -469,6 +469,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         string cacheDir = _cacheScriptsDir;
 
+        ConcurrentBag<string> validCachedFiles = new();
+        
         Parallel.ForEach(_includedFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
         {
             string includeSource = File.ReadAllText(includedFile);
@@ -480,32 +482,30 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(includeSource));
             int includeHash = BitConverter.ToInt32(hashBytes, 0);
             string compiledPath = Path.Combine(cacheDir, $"{includeHash}-{includeFileName}.dll");
-            fileInfoCache[includedFile] = (includeSource, includeFileName, includeHash, compiledPath);
-        });
-
-        ConcurrentBag<string> validCachedFiles = new();
-        Parallel.ForEach(_includedFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
-        {
-            var info = fileInfoCache[includedFile];
-            if (File.Exists(info.cachePath))
+            
+            if (File.Exists(compiledPath))
             {
                 try
                 {
-                    AssemblyName.GetAssemblyName(info.cachePath);
+                    AssemblyName.GetAssemblyName(compiledPath);
                     validCachedFiles.Add(includedFile);
-                    compiledPaths[includedFile] = info.cachePath;
+                    compiledPaths[includedFile] = compiledPath;
+                    fileInfoCache[includedFile] = (string.Empty, includeFileName, includeHash, compiledPath);
+                    return;
                 }
                 catch
                 {
                     try
                     {
-                        File.Delete(info.cachePath);
+                        File.Delete(compiledPath);
                     }
                     catch
                     {
                     }
                 }
             }
+            
+            fileInfoCache[includedFile] = (includeSource, includeFileName, includeHash, compiledPath);
         });
 
         HashSet<string> processed = new(validCachedFiles);

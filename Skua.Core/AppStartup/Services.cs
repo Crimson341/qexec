@@ -224,33 +224,50 @@ public static class Services
         return services;
     }
 
+    private static List<PortableExecutableReference>? _cachedBaseReferences;
+    private static readonly object _referenceCacheLock = new();
+
     private static Compiler CreateCompiler(IServiceProvider s)
     {
         Compiler compiler = new();
-        string[] refPaths = {
-            typeof(object).GetTypeInfo().Assembly.Location,
-            typeof(Console).GetTypeInfo().Assembly.Location,
-            typeof(object).Assembly.Location,
-            typeof(Enumerable).Assembly.Location,
-            typeof(ScriptManager).Assembly.Location,
-            Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location)!, "System.Runtime.dll")
-        };
-        List<PortableExecutableReference> refs = AppDomain.CurrentDomain
-            .GetAssemblies()
-            .Where(a => !a.IsDynamic)
-            .Select(a => a.Location)
-            .Where(s => !string.IsNullOrEmpty(s))
-            .Where(s => !s.Contains("xunit"))
-            .Select(s => MetadataReference.CreateFromFile(s))
-            .ToList();
-
-        string? regexPath = typeof(System.Text.RegularExpressions.Regex).Assembly.Location;
-        if (!string.IsNullOrEmpty(regexPath))
+        
+        if (_cachedBaseReferences == null)
         {
-            refs.Add(MetadataReference.CreateFromFile(regexPath));
+            lock (_referenceCacheLock)
+            {
+                if (_cachedBaseReferences == null)
+                {
+                    string[] refPaths = {
+                        typeof(object).GetTypeInfo().Assembly.Location,
+                        typeof(Console).GetTypeInfo().Assembly.Location,
+                        typeof(object).Assembly.Location,
+                        typeof(Enumerable).Assembly.Location,
+                        typeof(ScriptManager).Assembly.Location,
+                        Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location)!, "System.Runtime.dll")
+                    };
+                    
+                    List<PortableExecutableReference> refs = AppDomain.CurrentDomain
+                        .GetAssemblies()
+                        .Where(a => !a.IsDynamic)
+                        .Select(a => a.Location)
+                        .Where(s => !string.IsNullOrEmpty(s))
+                        .Where(s => !s.Contains("xunit"))
+                        .Select(s => MetadataReference.CreateFromFile(s))
+                        .ToList();
+
+                    string? regexPath = typeof(System.Text.RegularExpressions.Regex).Assembly.Location;
+                    if (!string.IsNullOrEmpty(regexPath))
+                    {
+                        refs.Add(MetadataReference.CreateFromFile(regexPath));
+                    }
+                    
+                    refs.AddRange(refPaths.Select(s => MetadataReference.CreateFromFile(s)));
+                    _cachedBaseReferences = refs;
+                }
+            }
         }
-        compiler.AddAssemblies(refs);
-        compiler.AddAssemblies(refPaths.Select(s => MetadataReference.CreateFromFile(s)));
+        
+        compiler.AddAssemblies(_cachedBaseReferences);
         compiler.AddNamespaces(new[]
         {
             "System",

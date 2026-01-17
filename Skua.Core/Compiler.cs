@@ -21,6 +21,12 @@ public class Compiler : CSharpScriptExecution
     private static DateTime _lastCleanupTime = DateTime.MinValue;
     private static readonly object _cleanupLock = new();
     private static readonly object _compilationLock = new();
+    private static readonly CSharpCompilationOptions _compilationOptions = new(
+        OutputKind.DynamicallyLinkedLibrary,
+        optimizationLevel: OptimizationLevel.Release,
+        concurrentBuild: false,
+        deterministic: true,
+        reportSuppressedDiagnostics: false);
     private string? _cachedNamespacePrefix = null;
     private int _lastNamespaceHash = 0;
 
@@ -62,11 +68,7 @@ public class Compiler : CSharpScriptExecution
     [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]
     public new Type? CompileClassToType(string code, int? cacheHash = null, ScriptLoadContext? loadContext = null, string? scriptName = null)
     {
-        code = PrependNamespaces(code);
-
         int hash = cacheHash ?? code.GetHashCode();
-
-        GeneratedClassCode = code;
 
         if (loadContext != null || !CachedAssemblies.ContainsKey(hash))
         {
@@ -101,6 +103,8 @@ public class Compiler : CSharpScriptExecution
 
             if (cachedAssemblyPath == null)
             {
+                code = PrependNamespaces(code);
+                GeneratedClassCode = code;
                 string diskCachePath = GetDiskCachePath(hash, scriptName);
 
                 if (!CompileOrWaitForAssembly(code, diskCachePath, loadContext))
@@ -144,14 +148,10 @@ public class Compiler : CSharpScriptExecution
         ClearErrors();
         string sourceWithNamespaces = PrependNamespaces(source);
 
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(sourceWithNamespaces.Trim(), encoding: Encoding.UTF8);
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(sourceWithNamespaces.Trim());
 
         CSharpCompilation compilation = CSharpCompilation.Create(GeneratedClassName + ".cs")
-            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                        optimizationLevel: OptimizationLevel.Release,
-                        concurrentBuild: true,
-                        deterministic: true,
-                        reportSuppressedDiagnostics: false))
+            .WithOptions(_compilationOptions)
             .WithReferences(References)
             .AddSyntaxTrees(tree);
 
@@ -428,18 +428,14 @@ public class Compiler : CSharpScriptExecution
     {
         ClearErrors();
 
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(source.Trim(), encoding: Encoding.UTF8);
+        SyntaxTree tree = CSharpSyntaxTree.ParseText(source.Trim());
 
         string fileName = Path.GetFileNameWithoutExtension(outputPath);
         int lastDash = fileName.LastIndexOf('-');
         string assemblyName = lastDash > 0 ? fileName[(lastDash + 1)..] : fileName;
 
         CSharpCompilation compilation = CSharpCompilation.Create(assemblyName)
-            .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary,
-                        optimizationLevel: OptimizationLevel.Release,
-                        concurrentBuild: true,
-                        deterministic: true,
-                        reportSuppressedDiagnostics: false))
+            .WithOptions(_compilationOptions)
             .WithReferences(References)
             .AddSyntaxTrees(tree);
 

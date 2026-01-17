@@ -34,6 +34,12 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     private string _inputIDs = string.Empty;
 
     [ObservableProperty]
+    private string _rangeStart = string.Empty;
+
+    [ObservableProperty]
+    private string _rangeEnd = string.Empty;
+
+    [ObservableProperty]
     private int _selectedIndex;
 
     [ObservableProperty]
@@ -112,13 +118,22 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
             IsLoading = true;
             ProgressReport = progress;
         });
-        List<QuestData> questData = await _questLoader.UpdateAsync("QuestData.json", getAll, progress, _loaderCTS.Token);
-        QuestIDs.Clear();
-        QuestIDs.AddRange(questData);
-        IsLoading = false;
-        ProgressReport = string.Empty;
-        _loaderCTS.Dispose();
-        _loaderCTS = null;
+        try
+        {
+            List<QuestData> questData = await _questLoader.UpdateAsync("QuestData.json", getAll, progress, _loaderCTS.Token);
+            QuestIDs.Clear();
+            QuestIDs.AddRange(questData);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsLoading = false;
+            ProgressReport = string.Empty;
+            _loaderCTS.Dispose();
+            _loaderCTS = null;
+        }
     }
 
     [RelayCommand]
