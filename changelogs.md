@@ -1,3 +1,12 @@
+# Skua 1.3.3.2
+## Released: January 14, 2026
+
+# Quest.txt is now QuestData.json and it updates from scripts [repo ](https://github.com/auqw/Scripts/blob/Skua/QuestData.json) now
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.3.3.1...1.3.3.2
+
+---
+
 # Skua 1.3.3.1
 ## Released: January 10, 2026
 
