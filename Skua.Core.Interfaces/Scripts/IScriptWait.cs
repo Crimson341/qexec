@@ -318,6 +318,21 @@ public interface IScriptWait
     bool ForQuestComplete(int id, int timeout = 10);
 
     /// <summary>
+    /// Waits for quest with specified <paramref name="id"/> to be loaded in the quest tree.
+    /// </summary>
+    /// <param name="id">ID of the quest to be loaded.</param>
+    /// <param name="timeout">Number of times the thread should be slept (for <see cref="WAIT_SLEEP"/> milliseconds) before the wait is cancelled.</param>
+    bool ForQuestLoad(int id, int timeout = 20);
+
+    /// <summary>
+    /// Waits for all quests within the specified range to be loaded in the quest tree.
+    /// </summary>
+    /// <param name="startId">Starting quest ID of the range.</param>
+    /// <param name="endId">Ending quest ID of the range.</param>
+    /// <param name="timeout">Number of times the thread should be slept (for <see cref="WAIT_SLEEP"/> milliseconds) before the wait is cancelled.</param>
+    bool ForQuestLoad(int startId, int endId, int timeout = 20);
+
+    /// <summary>
     /// Waits for the specified skill to cooldown.
     /// </summary>
     /// <param name="index">Index of the skill.</param>

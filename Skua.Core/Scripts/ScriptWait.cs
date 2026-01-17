@@ -220,6 +220,23 @@ public class ScriptWait : IScriptWait
         return ForTrue(() => !Player.Playing || !Quests.IsInProgress(id), OverrideTimeout ? QuestActionTimeout : timeout, WAIT_SLEEP / 2);
     }
 
+    public bool ForQuestLoad(int id, int timeout = 20)
+    {
+        return ForTrue(() => !Player.Playing || Quests.Tree.Exists(q => q.ID == id), timeout);
+    }
+
+    public bool ForQuestLoad(int startId, int endId, int timeout = 20)
+    {
+        int initialCount = Quests.Tree.Count;
+        return ForTrue(() =>
+        {
+            if (!Player.Playing)
+                return true;
+            
+            return Quests.Tree.Count > initialCount || Quests.Tree.Exists(q => q.ID >= startId && q.ID <= endId);
+        }, timeout);
+    }
+
     public bool ForSkillCooldown(int index, int timeout = 50)
     {
         return ForTrue(() => Skills.CanUseSkill(index), timeout, WAIT_SLEEP);

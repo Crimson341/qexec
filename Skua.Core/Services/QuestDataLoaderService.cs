@@ -11,16 +11,18 @@ namespace Skua.Core.Services;
 
 public class QuestDataLoaderService : IQuestDataLoaderService
 {
-    public QuestDataLoaderService(IScriptQuest quests, IScriptPlayer player, IFlashUtil flash)
+    public QuestDataLoaderService(IScriptQuest quests, IScriptPlayer player, IFlashUtil flash, IScriptWait wait)
     {
         _quests = quests;
         _flash = flash;
         _player = player;
+        _wait = wait;
     }
 
     private readonly IScriptQuest _quests;
     private readonly IFlashUtil _flash;
     private readonly IScriptPlayer _player;
+    private readonly IScriptWait _wait;
     private readonly Dictionary<string, List<QuestData>?> _cachedQuests = new();
 
     public void ClearCache()
@@ -53,11 +55,10 @@ public class QuestDataLoaderService : IQuestDataLoaderService
             // Clear cache to ensure we get fresh data during updates
             string cacheKey = $"CachedQuests_{Path.Combine(ClientFileSources.SkuaDIR, fileName)}";
             _cachedQuests.Remove(cacheKey);
-            
+
             // Load existing data first - we'll use this for incremental updates or if cancellation happens
             List<QuestData> existingQuestData = await GetFromFileAsync(fileName);
             _quests.Cached = all ? new List<QuestData>() : existingQuestData;
-            AutoResetEvent wait = new(false);
 
             int start = 1;
             if (!all && (_quests.Cached.Count > 0))
@@ -72,33 +73,24 @@ public class QuestDataLoaderService : IQuestDataLoaderService
                 _flash.SetGameObject("world.questTree", new ExpandoObject());
                 progress?.Report($"Loading Quests {i}-{i + 29}...");
 
-                List<Quest> currQuests = new();
-                StrongReferenceMessenger.Default.Register<QuestDataLoaderService, ExtensionPacketMessage, int>(this, (int)MessageChannels.GameEvents, PacketListener);
-
                 _quests.Load(Enumerable.Range(i, 29).ToArray());
 
-                wait.WaitOne(10000);
-                StrongReferenceMessenger.Default.Unregister<ExtensionPacketMessage, int>(this, (int)MessageChannels.GameEvents);
-                if (currQuests.Count == 0)
+                if (!_wait.ForQuestLoad(i, i + 28, 100))
                 {
                     progress?.Report("No more quests found.");
                     break;
                 }
 
-                quests.AddRange(currQuests.Select(q => ConvertToQuestData(q)));
+                List<Quest> loadedQuests = _quests.Tree.Where(q => q.ID >= i && q.ID <= i + 28).ToList();
+                if (loadedQuests.Count == 0)
+                {
+                    progress?.Report("No more quests found.");
+                    break;
+                }
+
+                quests.AddRange(loadedQuests.Select(q => ConvertToQuestData(q)));
                 if (!token.IsCancellationRequested)
                     await Task.Delay(1500);
-                continue;
-
-                void PacketListener(QuestDataLoaderService recipient, ExtensionPacketMessage message)
-                {
-                    if ((message.Packet["params"].type == "json") && (message.Packet["params"].dataObj.cmd == "getQuests"))
-                    {
-                        ValueCollection col = JsonConvert.DeserializeObject<Dictionary<int, Quest>>(JsonConvert.SerializeObject(message.Packet["params"].dataObj.quests)).Values;
-                        currQuests = col.ToList();
-                        wait.Set();
-                    }
-                }
             }
 
             // Handle cancellation gracefully and merge data appropriately
@@ -137,7 +129,7 @@ public class QuestDataLoaderService : IQuestDataLoaderService
                     }
                 }
             }
-                
+
             // Don't pass cancelled token to file write operation
             CancellationToken writeToken = token.IsCancellationRequested ? CancellationToken.None : token;
             await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.Distinct().OrderBy(q => q.ID), Formatting.Indented), writeToken);
@@ -145,7 +137,64 @@ public class QuestDataLoaderService : IQuestDataLoaderService
 
             // Clear cache again to force reading the newly written file
             _cachedQuests.Remove(cacheKey);
-            
+
+            var existingQuestIds = quests.Select(q => q.ID).ToHashSet();
+            quests.AddRange(_quests.Cached.Where(q => !existingQuestIds.Contains(q.ID)));
+            await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.OrderBy(q => q.ID), Formatting.Indented), token);
+            progress?.Report($"Getting quests from file {fileName}");
+
+            _cachedQuests.Remove($"CachedQuests_{Path.Combine(ClientFileSources.SkuaDIR, fileName)}");
+            return _quests.Cached = await GetFromFileAsync(fileName);
+        });
+    }
+
+    public async Task<List<QuestData>> UpdateRangeAsync(string fileName, int startId, int endId, IProgress<string>? progress, CancellationToken token)
+    {
+        return await Task.Run(async () =>
+        {
+            if (!_player.LoggedIn)
+                return _quests.Cached = await GetFromFileAsync(fileName);
+
+            _quests.Cached = await GetFromFileAsync(fileName);
+
+            List<QuestData> quests = new();
+            for (int i = startId; i <= endId; i += 29)
+            {
+                if (token.IsCancellationRequested)
+                    break;
+
+                _flash.SetGameObject("world.questTree", new ExpandoObject());
+                int questCount = Math.Min(29, endId - i + 1);
+                int rangeEnd = i + questCount - 1;
+                progress?.Report($"Loading Quests {i}-{rangeEnd}...");
+
+                _quests.Load(Enumerable.Range(i, questCount).ToArray());
+
+                if (!_wait.ForQuestLoad(i, rangeEnd, 100))
+                {
+                    progress?.Report("No more quests found.");
+                    break;
+                }
+
+                List<Quest> loadedQuests = _quests.Tree.Where(q => q.ID >= i && q.ID <= rangeEnd).ToList();
+                if (loadedQuests.Count == 0)
+                {
+                    progress?.Report("No more quests found.");
+                    break;
+                }
+
+                quests.AddRange(loadedQuests.Select(q => ConvertToQuestData(q)));
+                if (!token.IsCancellationRequested)
+                    await Task.Delay(1500);
+            }
+
+            var existingQuestIds = quests.Select(q => q.ID).ToHashSet();
+            quests.AddRange(_quests.Cached.Where(q => !existingQuestIds.Contains(q.ID)));
+            await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.OrderBy(q => q.ID), Formatting.Indented), token);
+            progress?.Report($"Getting quests from file {fileName}");
+
+            _cachedQuests.Remove($"CachedQuests_{Path.Combine(ClientFileSources.SkuaDIR, fileName)}");
+
             return _quests.Cached = await GetFromFileAsync(fileName);
         });
     }

@@ -84,6 +84,10 @@
                 </ListBox.InputBindings>
             </ListBox>
             <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -91,6 +95,7 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <DockPanel
+                    Grid.Row="0"
                     Grid.Column="0"
                     Margin="0,3,3,0"
                     HorizontalAlignment="Stretch">
@@ -111,9 +116,10 @@
                         CommandParameter="{StaticResource FalseValue}"
                         Content="Update"
                         IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBooleanConverter}}"
-                        ToolTip="Preserves the quests present in the Quests.txt file and add new ones." />
+                        ToolTip="Preserves the quests present in the QuestData.json file and add new ones." />
                 </DockPanel>
                 <Button
+                    Grid.Row="0"
                     Grid.Column="1"
                     Margin="3,3,3,0"
                     Command="{Binding CopyQuestsIDsCommand}"
@@ -122,6 +128,7 @@
                     IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBooleanConverter}}"
                     ToolTip="(Ctrl + C) Copy the IDs of the selected quests separated by comma." />
                 <Button
+                    Grid.Row="0"
                     Grid.Column="2"
                     Margin="3,3,3,0"
                     Command="{Binding CopyQuestsNamesCommand}"
@@ -130,6 +137,7 @@
                     IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBooleanConverter}}"
                     ToolTip="(Ctrl + Shift + C) Copy the names of the selected quests separated by comma." />
                 <Button
+                    Grid.Row="0"
                     Grid.Column="3"
                     Margin="3,3,0,0"
                     Command="{Binding LoadQuestsCommand}"
@@ -137,6 +145,33 @@
                     Content="Load"
                     IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBooleanConverter}}"
                     ToolTip="(Ctrl + L) Load all the selected quests." />
+                <DockPanel
+                    Grid.Row="1"
+                    Grid.Column="0"
+                    Grid.ColumnSpan="4"
+                    Margin="0,3,0,0">
+                    <Button
+                        Margin="3,0,0,0"
+                        Command="{Binding CopyQuestsNamesAndIDsCommand}"
+                        CommandParameter="{Binding ElementName=QuestIDsListBox, Path=SelectedItems}"
+                        Content="Copy Names+IDs"
+                        DockPanel.Dock="Right"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBooleanConverter}}"
+                        ToolTip="Copy selected quests as 'Name | ID' format" />
+                    <Button
+                        Margin="0,0,3,0"
+                        Command="{Binding UpdateQuestsRangeCommand}"
+                        Content="Update Range"
+                        DockPanel.Dock="Right"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBooleanConverter}}"
+                        ToolTip="Update quests within the specified ID range" />
+                    <TextBox
+                        Margin="0,0,3,0"
+                        materialDesign:HintAssist.Hint="Quest Range (e.g., 2566, 2599)"
+                        IsEnabled="{Binding IsLoading, Converter={StaticResource InvertBooleanConverter}}"
+                        Text="{Binding QuestRange, UpdateSourceTrigger=PropertyChanged}"
+                        ToolTip="Enter quest ID range in format: startID, endID" />
+                </DockPanel>
             </Grid>
         </Grid>
         <materialDesign:Snackbar

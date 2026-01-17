@@ -9,7 +9,7 @@ namespace Skua.Core.ViewModels;
 public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
 {
     public LoaderViewModel(IScriptShop shops, IScriptQuest quests, IQuestDataLoaderService questLoader, IClipboardService clipboardService)
-        : base("Loader", 550, 270)
+        : base("Loader", 550, 320)
     {
         _shops = shops;
         _quests = quests;
@@ -34,10 +34,7 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     private string _inputIDs = string.Empty;
 
     [ObservableProperty]
-    private string _rangeStart = string.Empty;
-
-    [ObservableProperty]
-    private string _rangeEnd = string.Empty;
+    private string _questRange = string.Empty;
 
     [ObservableProperty]
     private int _selectedIndex;
@@ -104,15 +101,25 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     }
 
     [RelayCommand]
+    private void CopyQuestsNamesAndIDs(IList<object>? items)
+    {
+        if (items is null)
+            return;
+
+        List<string> lines = new(items.Count);
+        foreach (object item in items)
+        {
+            QuestData quest = (QuestData)item;
+            lines.Add($"// {quest.Name} | {quest.ID}");
+        }
+        _clipboardService.SetText(string.Join(Environment.NewLine, lines));
+    }
+
+    [RelayCommand]
     private async Task UpdateQuests(bool getAll)
     {
         _loaderCTS = new();
         QuestIDs.Clear();
-        
-        // Clear cache to ensure fresh data when updating
-        if (getAll)
-            _questLoader.ClearCache();
-            
         Progress<string> progress = new(progress =>
         {
             IsLoading = true;
@@ -145,6 +152,52 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
         QuestIDs.AddRange(await _questLoader.GetFromFileAsync("QuestData.json"));
         ProgressReport = string.Empty;
         IsLoading = false;
+    }
+
+    [RelayCommand]
+    private async Task UpdateQuestsRange()
+    {
+        string[] parts = QuestRange.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        
+        if (parts.Length != 2 || !int.TryParse(parts[0], out int startId) || !int.TryParse(parts[1], out int endId))
+        {
+            ProgressReport = "Invalid format. Use: startID, endID";
+            await Task.Delay(2000);
+            ProgressReport = string.Empty;
+            return;
+        }
+
+        if (startId > endId)
+        {
+            ProgressReport = "Start ID must be less than or equal to End ID";
+            await Task.Delay(2000);
+            ProgressReport = string.Empty;
+            return;
+        }
+
+        _loaderCTS = new();
+        QuestIDs.Clear();
+        Progress<string> progress = new(progress =>
+        {
+            IsLoading = true;
+            ProgressReport = progress;
+        });
+        try
+        {
+            List<QuestData> questData = await _questLoader.UpdateRangeAsync("QuestData.json", startId, endId, progress, _loaderCTS.Token);
+            QuestIDs.Clear();
+            QuestIDs.AddRange(questData);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsLoading = false;
+            ProgressReport = string.Empty;
+            _loaderCTS.Dispose();
+            _loaderCTS = null;
+        }
     }
 
     [RelayCommand]
