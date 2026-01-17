@@ -83,7 +83,7 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
         ScriptManager.SetLoadedScript(path);
 
         if (ScriptManager.ScriptRunning)
-            await ScriptManager.StopScriptAsync();
+            await ScriptManager.StopScript();
         await StartScript();
     }
 
@@ -100,7 +100,7 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
 
         if (ScriptManager.ScriptRunning)
         {
-            ScriptManager.StopScript();
+            await ScriptManager.StopScript();
             ToggleScriptEnabled = true;
             return;
         }
@@ -111,18 +111,18 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
     private async Task StartScript()
     {
         ScriptStatus = "Compiling...";
-        await Task.Run(async () =>
+        Exception? ex = await ScriptManager.StartScript();
+        if (ex is not null)
         {
-            Exception? ex = await ScriptManager.StartScriptAsync();
-            if (ex is not null)
-            {
-                _dialogService.ShowMessageBox($"Error while starting script:\r\n{ex.Message}", "Script Error");
-                ScriptStatus = "[Error]";
-                ScriptErrorToolTip = $"Error while starting script:\r\n{ex}";
-                ToggleScriptEnabled = true;
-            }
+            _dialogService.ShowMessageBox($"Error while starting script:\r\n{ex.Message}", "Script Error");
+            ScriptStatus = "[Error]";
+            ScriptErrorToolTip = $"Error while starting script:\r\n{ex}";
+            ToggleScriptEnabled = true;
+        }
+        else
+        {
             ScriptStatus = "[Running]";
-        });
+        }
     }
 
     [RelayCommand]
@@ -205,7 +205,7 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
             if (dialogResult.Text == "Yes")
             {
                 ToggleScriptEnabled = false;
-                await ScriptManager.StopScriptAsync();
+                await ScriptManager.StopScript();
 
                 if (startNew)
                 {

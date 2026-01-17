@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Microsoft.CodeAnalysis;
@@ -7,15 +7,21 @@ using Skua.Core.Interfaces;
 using Skua.Core.Interfaces.Services;
 using Skua.Core.Messaging;
 using Skua.Core.Models;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Skua.Core.Scripts;
 
 public partial class ScriptManager : ObservableObject, IScriptManager, IDisposable
 {
+    private static readonly Regex _versionRegex = new(@"^/\*[\s\S]*?version:\s*(\d+\.\d+\.\d+\.\d+)[\s\S]*?\*/", RegexOptions.Multiline | RegexOptions.Compiled);
+    private static readonly string _skuaDIR = ClientFileSources.SkuaDIR;
+    private static readonly string _cacheScriptsDir = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
     public ScriptManager(
         ILogService logger,
         Lazy<IScriptInterface> scriptInterface,
@@ -55,7 +61,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     private readonly Dictionary<string, bool> _configured = new();
     private readonly List<string> _refCache = new();
     private readonly List<string> _includedFiles = new();
-    private WeakReference? _currentLoadContext;
+    private ScriptLoadContext? _currentLoadContext;
 
     [ObservableProperty]
     private bool _scriptRunning = false;
@@ -72,7 +78,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     public bool ShouldExit => ScriptCts?.IsCancellationRequested ?? false;
 
-    public async Task<Exception?> StartScriptAsync()
+    public async Task<Exception?> StartScript()
     {
         if (ScriptRunning)
         {
@@ -86,26 +92,31 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
             UnloadPreviousScript();
 
-            object? script = Compile(File.ReadAllText(LoadedScript));
+            string scriptContent = File.ReadAllText(LoadedScript);
+            object? script = await Task.Run(() => Compile(scriptContent));
 
             LoadScriptConfig(script);
-            if (_configured.TryGetValue(Config!.Storage, out bool b) && !b)
-                Config.Configure();
+            bool needsConfig = _configured.TryGetValue(Config!.Storage, out bool b) && !b;
+            ManualResetEventSlim scriptReady = new(false);
 
             Handlers.Clear();
             _runScriptStoppingBool = false;
 
-            _currentScriptThread = new(async () =>
+            _currentScriptThread = new(() =>
             {
                 Exception? exception = null;
                 ScriptCts = new();
+                scriptReady.Set();
+
                 try
                 {
                     script?.GetType().GetMethod("ScriptMain")?.Invoke(script, new object[] { _lazyBot.Value });
                 }
                 catch (Exception e)
                 {
-                    if (e is not TargetInvocationException || !_stoppedByScript)
+                    Exception actualException = e is TargetInvocationException && e.InnerException != null ? e.InnerException : e;
+
+                    if ((actualException is not OperationCanceledException || !_stoppedByScript) && (e is not TargetInvocationException || !_stoppedByScript))
                     {
                         exception = e;
                         Trace.WriteLine($"Error while running script:\r\nMessage: {(e.InnerException is not null ? e.InnerException.Message : e.Message)}\r\nStackTrace: {(e.InnerException is not null ? e.InnerException.StackTrace : e.StackTrace)}");
@@ -122,7 +133,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                         StrongReferenceMessenger.Default.Send<ScriptStoppingMessage, int>((int)MessageChannels.ScriptStatus);
                         try
                         {
-                            switch (await Task.Run(async () => await StrongReferenceMessenger.Default.Send<ScriptStoppingRequestMessage, int>(new(exception), (int)MessageChannels.ScriptStatus)))
+                            switch (Task.Run(async () => await StrongReferenceMessenger.Default.Send<ScriptStoppingRequestMessage, int>(new(exception), (int)MessageChannels.ScriptStatus)).GetAwaiter().GetResult())
                             {
                                 case true:
                                     Trace.WriteLine("Script finished successfully.");
@@ -164,6 +175,16 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
             StrongReferenceMessenger.Default.Send<ScriptStartedMessage, int>((int)MessageChannels.ScriptStatus);
 
+            if (needsConfig)
+            {
+                _ = Task.Run(() =>
+                {
+                    scriptReady.Wait();
+                    Config!.Configure();
+                    _configured[Config!.Storage] = true;
+                });
+            }
+
             return null;
         }
         catch (Exception e)
@@ -176,52 +197,15 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     public async Task RestartScriptAsync()
     {
         Trace.WriteLine("Restarting script");
-        await StopScriptAsync(false);
+        await StopScript(false);
         await Task.Run(async () =>
         {
             await Task.Delay(5000);
-            await StartScriptAsync();
+            await StartScript();
         });
     }
 
-    public void RestartScript()
-    {
-        Trace.WriteLine("Restarting script");
-        StopScript(false);
-        Task.Run(async () =>
-        {
-            await Task.Delay(5000);
-            await StartScriptAsync();
-        });
-    }
-
-    public void StopScript(bool runScriptStoppingEvent = true)
-    {
-        _runScriptStoppingBool = runScriptStoppingEvent;
-        _stoppedByScript = true;
-        ScriptCts?.Cancel();
-
-        if (Thread.CurrentThread.Name == "Script Thread")
-        {
-            ScriptCts?.Token.ThrowIfCancellationRequested();
-            return;
-        }
-
-        Wait.ForTrue(() => ScriptCts == null, 20);
-
-        lock (_threadLock)
-        {
-            Thread thread = _currentScriptThread;
-            if (thread.IsAlive && !thread.Join(TimeSpan.FromSeconds(5)))
-            {
-                _logger?.ScriptLog("Script thread did not exit within timeout.");
-            }
-        }
-
-        OnPropertyChanged(nameof(ScriptRunning));
-    }
-
-    public async ValueTask StopScriptAsync(bool runScriptStoppingEvent = true)
+    public async ValueTask StopScript(bool runScriptStoppingEvent = true)
     {
         _runScriptStoppingBool = runScriptStoppingEvent;
         _stoppedByScript = true;
@@ -258,21 +242,26 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     [RequiresUnreferencedCode("This method may require code that cannot be statically analyzed for trimming. Use with caution.")]
     public object? Compile(string source)
     {
+        CheckScriptVersionRequirement(source);
+
         Stopwatch sw = Stopwatch.StartNew();
         _includedFiles.Clear();
         HashSet<string> references = GetReferences();
         string final = ProcessSources(source, ref references);
 
-        int cacheHash = ComputeCacheHash(final, _includedFiles);
+        ScriptLoadContext loadContext = new();
+        _currentLoadContext = loadContext;
 
-        SyntaxTree tree = CSharpSyntaxTree.ParseText(final, encoding: Encoding.UTF8);
-        CompiledScript = final = tree.GetRoot().NormalizeWhitespace().ToFullString();
+        List<string> compiledIncludes = CompileIncludedFiles(references, loadContext);
+        references.UnionWith(compiledIncludes);
+
+        int cacheHash = ComputeCacheHash(final, _includedFiles);
+        CompiledScript = final;
         string scriptName = Path.GetFileNameWithoutExtension(LoadedScript);
 
-        ScriptLoadContext loadContext = new();
-        _currentLoadContext = new WeakReference(loadContext);
-
         Compiler compiler = Ioc.Default.GetRequiredService<Compiler>();
+        compiler.AddDefaultReferencesAndNamespaces();
+        compiler.AllowReferencesInCode = true;
 
         if (references.Count > 0)
             compiler.AddAssemblies(references.ToArray());
@@ -282,7 +271,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         sw.Stop();
         Trace.WriteLine($"Script compilation took {sw.ElapsedMilliseconds}ms.");
 
-        //File.WriteAllText(Path.Combine(ClientFileSources.SkuaScriptsDIR, "z_CompiledScript.cs"), final);
+        GC.Collect(2, GCCollectionMode.Optimized, blocking: false);
 
         return compiler.Error
             ? throw new ScriptCompileException(compiler.ErrorMessage, compiler.GeneratedClassCodeWithLineNumbers)
@@ -314,25 +303,37 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     private string ProcessSources(string source, ref HashSet<string> references)
     {
-        StringBuilder toRemove = new();
-        List<string> sources = new() { source };
-
-        foreach (string line in source.Split('\n').Select(l => l.Trim()))
+        Span<Range> lineRanges = stackalloc Range[256];
+        int lineCount = source.AsSpan().Split(lineRanges, '\n');
+        if (lineCount > lineRanges.Length)
         {
+            lineRanges = new Range[lineCount];
+            lineCount = source.AsSpan().Split(lineRanges, '\n');
+        }
+
+        List<string> linesToRemove = new();
+        ReadOnlySpan<char> sourceSpan = source.AsSpan();
+
+        for (int i = 0; i < lineCount; i++)
+        {
+            ReadOnlySpan<char> line = sourceSpan[lineRanges[i]].Trim();
+
             if (line.StartsWith("using"))
                 break;
 
             if (!line.StartsWith("//cs_"))
-            {
                 continue;
-            }
 
-            string[] parts = line.Split((char[])null!, 2, StringSplitOptions.RemoveEmptyEntries);
+            string lineStr = new(line);
+            string[] parts = lineStr.Split((char[])null!, 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+                continue;
+
             string cmd = parts[0][5..];
             switch (cmd)
             {
                 case "ref":
-                    string local = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
+                    string local = Path.Combine(_skuaDIR, parts[1]);
                     if (File.Exists(local))
                         references.Add(local);
                     else if (File.Exists(parts[1]))
@@ -340,45 +341,27 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     break;
 
                 case "include":
-                    string localSource = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
+                    string localSource = Path.Combine(_skuaDIR, parts[1]);
                     if (File.Exists(localSource))
-                    {
-                        sources.Add($"// Added from {localSource}\n{File.ReadAllText(localSource)}");
                         _includedFiles.Add(localSource);
-                    }
                     else if (File.Exists(parts[1]))
-                    {
-                        sources.Add($"// Added from {parts[1]}\n{File.ReadAllText(parts[1])}");
                         _includedFiles.Add(parts[1]);
-                    }
                     break;
             }
-            toRemove.AppendLine(line);
+            linesToRemove.Add(lineStr);
         }
 
-        if (sources.Count > 1)
+        if (linesToRemove.Count == 0)
+            return source.Trim();
+
+        StringBuilder sb = new(source);
+        foreach (string line in linesToRemove)
         {
-            sources[0] = sources[0].Replace(toRemove.ToString(), "");
-
-            List<string> usings = new();
-            string joinedSource = string.Join(Environment.NewLine, sources);
-            List<string> lines = joinedSource.Split('\n').Select(l => l.Trim()).ToList();
-            for (int i = lines.Count - 1; i >= 0; i--)
-            {
-                if (!lines[i].StartsWith("using") || lines[i].Split(' ').Length != 2)
-                {
-                    continue;
-                }
-
-                usings.Add(lines[i]);
-                lines.RemoveAt(i);
-            }
-
-            lines.Insert(0, $"{string.Join(Environment.NewLine, usings.Distinct().OrderBy(u => u))}{Environment.NewLine}#nullable enable{Environment.NewLine}");
-            sources = lines;
+            sb.Replace(line + "\n", "");
+            sb.Replace(line + "\r\n", "");
+            sb.Replace(line, "");
         }
-
-        return string.Join(Environment.NewLine, sources);
+        return sb.ToString().Trim();
     }
 
     public void LoadScriptConfig(object? script)
@@ -437,24 +420,310 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     private static int ComputeCacheHash(string source, List<string> includedFiles)
     {
-        using System.Security.Cryptography.SHA256 sha256 = System.Security.Cryptography.SHA256.Create();
-        byte[] hashBytes = sha256.ComputeHash(System.Text.Encoding.UTF8.GetBytes(source));
-        return BitConverter.ToInt32(hashBytes, 0);
+        using var sha256 = SHA256.Create();
+        byte[] sourceBytes = Encoding.UTF8.GetBytes(source);
+        byte[] sourceHash = sha256.ComputeHash(sourceBytes);
+        using var ms = new MemoryStream();
+        ms.Write(sourceHash, 0, sourceHash.Length);
+
+        foreach (string file in includedFiles.OrderBy(f => f))
+        {
+            if (File.Exists(file))
+            {
+                byte[] pathBytes = Encoding.UTF8.GetBytes(file);
+                ms.Write(pathBytes, 0, pathBytes.Length);
+
+                long ticks = File.GetLastWriteTimeUtc(file).Ticks;
+                byte[] ticksBytes = BitConverter.GetBytes(ticks);
+                ms.Write(ticksBytes, 0, ticksBytes.Length);
+            }
+        }
+
+        byte[] combinedHash = sha256.ComputeHash(ms.ToArray());
+        return BitConverter.ToInt32(combinedHash, 0);
+    }
+
+    private void CheckScriptVersionRequirement(string source)
+    {
+        Match match = _versionRegex.Match(source);
+        if (match.Success)
+        {
+            string requiredVersionStr = match.Groups[1].Value;
+            Version? currentVersion = Assembly.GetExecutingAssembly().GetName().Version;
+
+            if (Version.TryParse(requiredVersionStr, out Version? requiredVersion) && currentVersion != null && currentVersion < requiredVersion)
+            {
+                throw new ScriptVersionException(requiredVersionStr, currentVersion.ToString());
+            }
+        }
+    }
+
+    private List<string> CompileIncludedFiles(HashSet<string> references, ScriptLoadContext loadContext)
+    {
+        ConcurrentDictionary<string, string> compiledPaths = new();
+        object lockObj = new();
+
+        // Build dependency graph and precompute cache info in parallel
+        ConcurrentDictionary<string, List<string>> dependencyGraph = new();
+        ConcurrentDictionary<string, (string source, string fileName, int hash, string cachePath)> fileInfoCache = new();
+
+        string cacheDir = _cacheScriptsDir;
+
+        Parallel.ForEach(_includedFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
+        {
+            string includeSource = File.ReadAllText(includedFile);
+            List<string> deps = ExtractIncludeDependencies(includeSource);
+            dependencyGraph[includedFile] = deps;
+
+            string includeFileName = Path.GetFileNameWithoutExtension(includedFile);
+            using var sha256 = SHA256.Create();
+            byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(includeSource));
+            int includeHash = BitConverter.ToInt32(hashBytes, 0);
+            string compiledPath = Path.Combine(cacheDir, $"{includeHash}-{includeFileName}.dll");
+            fileInfoCache[includedFile] = (includeSource, includeFileName, includeHash, compiledPath);
+        });
+
+        ConcurrentBag<string> validCachedFiles = new();
+        Parallel.ForEach(_includedFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
+        {
+            var info = fileInfoCache[includedFile];
+            if (File.Exists(info.cachePath))
+            {
+                try
+                {
+                    AssemblyName.GetAssemblyName(info.cachePath);
+                    validCachedFiles.Add(includedFile);
+                    compiledPaths[includedFile] = info.cachePath;
+                }
+                catch
+                {
+                    try
+                    {
+                        File.Delete(info.cachePath);
+                    }
+                    catch
+                    {
+                    }
+                }
+            }
+        });
+
+        HashSet<string> processed = new(validCachedFiles);
+        HashSet<string> includedFilesSet = new(_includedFiles);
+
+        while (processed.Count < _includedFiles.Count)
+        {
+            List<string> readyToCompile = new();
+            foreach (string file in _includedFiles)
+            {
+                if (processed.Contains(file))
+                    continue;
+
+                List<string> deps = dependencyGraph[file];
+                bool allDepsReady = true;
+                foreach (string dep in deps)
+                {
+                    if (includedFilesSet.Contains(dep) && !processed.Contains(dep))
+                    {
+                        allDepsReady = false;
+                        break;
+                    }
+                }
+
+                if (allDepsReady)
+                    readyToCompile.Add(file);
+            }
+
+            if (readyToCompile.Count == 0)
+                break;
+
+            Parallel.ForEach(readyToCompile, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
+            {
+                if (!validCachedFiles.Contains(file))
+                {
+                    CompileIncludeRecursive(file, references, loadContext, compiledPaths, lockObj, fileInfoCache);
+                }
+            });
+
+            foreach (string file in readyToCompile)
+                processed.Add(file);
+        }
+
+        fileInfoCache.Clear();
+        
+        return compiledPaths.Values.ToList();
+    }
+
+
+    private void CompileIncludeRecursive(
+        string includedFile,
+        HashSet<string> references,
+        ScriptLoadContext loadContext,
+        ConcurrentDictionary<string, string> compiledPaths,
+        object lockObj,
+        ConcurrentDictionary<string, (string source, string fileName, int hash, string cachePath)> fileInfoCache)
+    {
+        if (compiledPaths.ContainsKey(includedFile))
+            return;
+
+        try
+        {
+            var info = fileInfoCache[includedFile];
+            string includeSource = info.source;
+            string includeFileName = info.fileName;
+            int includeHash = info.hash;
+            string compiledPath = info.cachePath;
+
+            HashSet<string> includeReferences = new(references);
+            lock (lockObj)
+            {
+                includeReferences.UnionWith(compiledPaths.Values);
+            }
+
+            string processedInclude = ProcessIncludeDirectives(includeSource, ref includeReferences);
+
+            Compiler includeCompiler = Ioc.Default.GetRequiredService<Compiler>();
+            includeCompiler.AddDefaultReferencesAndNamespaces();
+            includeCompiler.AllowReferencesInCode = true;
+
+            if (includeReferences.Count > 0)
+                includeCompiler.AddAssemblies(includeReferences.ToArray());
+
+            dynamic? assembly = includeCompiler.CompileClass(processedInclude, includeHash, loadContext, includeFileName);
+
+            if (includeCompiler.Error)
+            {
+                throw new ScriptCompileException(
+                    $"Error compiling included file '{includedFile}':\n{includeCompiler.ErrorMessage}",
+                    includeCompiler.GeneratedClassCodeWithLineNumbers);
+            }
+
+            if (File.Exists(compiledPath))
+            {
+                compiledPaths[includedFile] = compiledPath;
+            }
+        }
+        catch (Exception ex) when (ex is not ScriptCompileException)
+        {
+            throw new ScriptCompileException($"Failed to compile included file '{includedFile}': {ex.Message}", string.Empty);
+        }
+    }
+
+    private List<string> ExtractIncludeDependencies(string source)
+    {
+        List<string> dependencies = new();
+        ReadOnlySpan<char> sourceSpan = source.AsSpan();
+
+        int start = 0;
+        int newlinePos;
+        while ((newlinePos = sourceSpan[start..].IndexOf('\n')) >= 0)
+        {
+            ReadOnlySpan<char> line = sourceSpan[start..(start + newlinePos)].Trim();
+
+            if (line.StartsWith("using"))
+                break;
+
+            if (line.StartsWith("//cs_include "))
+            {
+                string lineStr = new(line);
+                string[] parts = lineStr.Split((char[])null!, 2, StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length >= 2)
+                {
+                    string includePath = parts[1];
+                    string localPath = Path.Combine(ClientFileSources.SkuaDIR, includePath);
+                    if (File.Exists(localPath))
+                        dependencies.Add(localPath);
+                    else if (File.Exists(includePath))
+                        dependencies.Add(includePath);
+                }
+            }
+
+            start += newlinePos + 1;
+        }
+
+        return dependencies;
+    }
+
+
+    private string ProcessIncludeDirectives(string source, ref HashSet<string> references)
+    {
+        List<string> linesToRemove = new();
+        ReadOnlySpan<char> sourceSpan = source.AsSpan();
+
+        int start = 0;
+        int newlinePos;
+        while ((newlinePos = sourceSpan[start..].IndexOf('\n')) >= 0)
+        {
+            ReadOnlySpan<char> line = sourceSpan[start..(start + newlinePos)].Trim();
+
+            if (line.StartsWith("using"))
+                break;
+
+            if (!line.StartsWith("//cs_"))
+            {
+                start += newlinePos + 1;
+                continue;
+            }
+
+            string lineStr = new(line);
+            string[] parts = lineStr.Split((char[])null!, 2, StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length < 2)
+            {
+                start += newlinePos + 1;
+                continue;
+            }
+
+            string cmd = parts[0][5..];
+            if (cmd == "ref")
+            {
+                string local = Path.Combine(ClientFileSources.SkuaDIR, parts[1]);
+                if (File.Exists(local))
+                    references.Add(local);
+                else if (File.Exists(parts[1]))
+                    references.Add(parts[1]);
+            }
+
+            linesToRemove.Add(new string(sourceSpan[start..(start + newlinePos + 1)]));
+            start += newlinePos + 1;
+        }
+
+        if (linesToRemove.Count == 0)
+            return source.Trim();
+
+        StringBuilder sb = new(source);
+        foreach (string lineToRemove in linesToRemove)
+        {
+            sb.Replace(lineToRemove, "");
+        }
+        return sb.ToString().Trim();
     }
 
     private void UnloadPreviousScript()
     {
-        if (_currentLoadContext?.Target is ScriptLoadContext context)
+        ScriptLoadContext? context = _currentLoadContext;
+        _currentLoadContext = null;
+
+        if (context is null)
+            return;
+
+        _ = Task.Run(() =>
         {
             try
             {
+                var weak = new WeakReference(context);
                 context.Unload();
+
+                for (int i = 0; i < 3 && weak.IsAlive; i++)
+                {
+                    GC.Collect();
+                    GC.WaitForPendingFinalizers();
+                    Thread.Sleep(50);
+                }
             }
             catch
             {
             }
-        }
-        _currentLoadContext = null;
+        });
     }
 
     public void SetLoadedScript(string path)

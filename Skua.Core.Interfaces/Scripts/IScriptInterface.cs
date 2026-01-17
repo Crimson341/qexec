@@ -246,7 +246,15 @@ public interface IScriptInterface
     /// Stops the script
     /// </summary>
     /// <param name="runScriptStoppingEvent">Whether to fire the <see cref="IScriptEvent.ScriptStopping"/> event.</param>
+    /// <remarks>This method is deprecated. Use <see cref="StopAsync"/> instead for proper async/await pattern.</remarks>
+    [Obsolete("Use StopAsync instead for proper async/await pattern.")]
     void Stop(bool runScriptStoppingEvent = true);
+
+    /// <summary>
+    /// Asynchronously stops the script
+    /// </summary>
+    /// <param name="runScriptStoppingEvent">Whether to fire the <see cref="IScriptEvent.ScriptStopping"/> event.</param>
+    Task StopAsync(bool runScriptStoppingEvent = true);
 
     /// <summary>
     /// Writes a message to the script logs.

@@ -253,6 +253,25 @@ public static class Services
         compiler.AddAssemblies(refPaths.Select(s => MetadataReference.CreateFromFile(s)));
         compiler.AddNamespaces(new[]
         {
+            "System",
+            "System.Collections",
+            "System.Collections.Generic",
+            "System.Diagnostics",
+            "System.Drawing",
+            "System.Dynamic",
+            "System.Globalization",
+            "System.IO",
+            "System.Linq",
+            "System.Net",
+            "System.Net.Http",
+            "System.Reflection",
+            "System.Runtime.CompilerServices",
+            "System.Text",
+            "System.Text.RegularExpressions",
+            "System.Threading",
+            "System.Threading.Tasks",
+            "System.Timers",
+            "System.Windows.Forms",
             "Skua.Core",
             "Skua.Core.Interfaces",
             "Skua.Core.Models",
@@ -264,6 +283,12 @@ public static class Services
             "Skua.Core.Models.Shops",
             "Skua.Core.Models.Skills",
             "Skua.Core.Models.Auras",
+            "Skua.Core.Models.Factions",
+            "Skua.Core.Options",
+            "Skua.Core.Utils",
+            "CommunityToolkit.Mvvm.DependencyInjection",
+            "Newtonsoft.Json",
+            "Newtonsoft.Json.Linq",
         });
         compiler.SaveGeneratedCode = true;
         return compiler;

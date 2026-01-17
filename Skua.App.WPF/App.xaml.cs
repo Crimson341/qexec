@@ -70,7 +70,7 @@ public sealed partial class App : Application
         await ((IAsyncDisposable)Services.GetRequiredService<IScriptBoost>()).DisposeAsync();
         await ((IAsyncDisposable)Services.GetRequiredService<IScriptBotStats>()).DisposeAsync();
         await ((IAsyncDisposable)Services.GetRequiredService<IScriptDrop>()).DisposeAsync();
-        await Ioc.Default.GetRequiredService<IScriptManager>().StopScriptAsync();
+        await Ioc.Default.GetRequiredService<IScriptManager>().StopScript();
         await ((IScriptInterfaceManager)_bot).StopTimerAsync();
 
         Services.GetRequiredService<IFlashUtil>().Dispose();

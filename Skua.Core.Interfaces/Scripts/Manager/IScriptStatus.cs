@@ -47,15 +47,22 @@ public interface IScriptStatus
     Task RestartScriptAsync();
 
     /// <summary>
-    /// Stops the currently running script, optionally triggering the script stopping event.
+    /// Asynchronously starts a script.
     /// </summary>
-    /// <param name="runScriptStoppingEvent">true to raise the script stopping event before stopping the script; otherwise, false.</param>
-    void StopScript(bool runScriptStoppingEvent = true);
+    /// <returns>A task that represents the asynchronous start operation.</returns>
+    Task<Exception?> StartScript();
+
+    /// <summary>
+    /// Sets the path to for you to start a script with <see cref="StartScript"/>.
+    /// </summary>
+    /// <param name="path"></param>
+    void SetLoadedScript(string path);
+
 
     /// <summary>
     /// Asynchronously stops the currently running script.
     /// </summary>
     /// <param name="runScriptStoppingEvent">true to trigger the script stopping event before stopping the script; otherwise, false.</param>
     /// <returns>A ValueTask that represents the asynchronous stop operation.</returns>
-    ValueTask StopScriptAsync(bool runScriptStoppingEvent = true);
+    ValueTask StopScript(bool runScriptStoppingEvent = true);
 }
