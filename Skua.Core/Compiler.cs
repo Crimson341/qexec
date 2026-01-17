@@ -20,6 +20,7 @@ public class Compiler : CSharpScriptExecution
     private static readonly TimeSpan _cleanupThrottle = TimeSpan.FromMinutes(5);
     private static DateTime _lastCleanupTime = DateTime.MinValue;
     private static readonly object _cleanupLock = new();
+    private static readonly object _compilationLock = new();
 
     /// <summary>
     /// This method compiles a class and hands back a
@@ -97,18 +98,9 @@ public class Compiler : CSharpScriptExecution
             if (cachedAssemblyPath == null)
             {
                 string diskCachePath = GetDiskCachePath(hash, scriptName);
-                if (!CompileAssemblyToDisk(code, diskCachePath))
+                
+                if (!CompileOrWaitForAssembly(code, diskCachePath, loadContext))
                     return null;
-
-                if (loadContext != null)
-                {
-                    using FileStream stream = File.OpenRead(diskCachePath);
-                    Assembly = loadContext.LoadFromStream(stream);
-                }
-                else
-                {
-                    Assembly = Assembly.LoadFrom(diskCachePath);
-                }
             }
 
             if (loadContext == null)
@@ -288,6 +280,108 @@ public class Compiler : CSharpScriptExecution
 
         string fileName = string.IsNullOrEmpty(scriptName) ? $"{hash}.dll" : $"{hash}-{scriptName}.dll";
         return Path.Combine(_cacheDirectory, fileName);
+    }
+
+    private bool CompileOrWaitForAssembly(string source, string outputPath, ScriptLoadContext? loadContext)
+    {
+        string mutexName = $"Global\\Skua_Compile_{Path.GetFileName(outputPath).Replace(".dll", "").Replace("-", "_")}";
+        Mutex? compilationMutex = null;
+
+        try
+        {
+            compilationMutex = new Mutex(false, mutexName);
+            
+            if (!compilationMutex.WaitOne(TimeSpan.FromMinutes(2)))
+            {
+                ErrorType = ExecutionErrorTypes.Compilation;
+                ErrorMessage = "Timeout waiting for script compilation to complete.";
+                SetErrors(new ApplicationException(ErrorMessage));
+                return false;
+            }
+
+            try
+            {
+                if (File.Exists(outputPath))
+                {
+                    try
+                    {
+                        AssemblyName.GetAssemblyName(outputPath);
+                        
+                        if (loadContext != null)
+                        {
+                            using FileStream stream = File.OpenRead(outputPath);
+                            Assembly = loadContext.LoadFromStream(stream);
+                        }
+                        else
+                        {
+                            Assembly = Assembly.LoadFrom(outputPath);
+                        }
+                        return true;
+                    }
+                    catch
+                    {
+                        try
+                        {
+                            File.Delete(outputPath);
+                        }
+                        catch
+                        {
+                        }
+                    }
+                }
+
+                if (!CompileAssemblyToDisk(source, outputPath))
+                    return false;
+
+                if (loadContext != null)
+                {
+                    using FileStream stream = File.OpenRead(outputPath);
+                    Assembly = loadContext.LoadFromStream(stream);
+                }
+                else
+                {
+                    Assembly = Assembly.LoadFrom(outputPath);
+                }
+                return true;
+            }
+            finally
+            {
+                compilationMutex.ReleaseMutex();
+            }
+        }
+        catch (AbandonedMutexException)
+        {
+            if (File.Exists(outputPath))
+            {
+                try
+                {
+                    AssemblyName.GetAssemblyName(outputPath);
+                    
+                    if (loadContext != null)
+                    {
+                        using FileStream stream = File.OpenRead(outputPath);
+                        Assembly = loadContext.LoadFromStream(stream);
+                    }
+                    else
+                    {
+                        Assembly = Assembly.LoadFrom(outputPath);
+                    }
+                    return true;
+                }
+                catch
+                {
+                }
+            }
+            
+            ErrorType = ExecutionErrorTypes.Compilation;
+            ErrorMessage = "Compilation was abandoned by another process.";
+            SetErrors(new ApplicationException(ErrorMessage));
+            return false;
+        }
+        finally
+        {
+            compilationMutex?.Dispose();
+        }
     }
 
     private bool CompileAssemblyToDisk(string source, string outputPath)
