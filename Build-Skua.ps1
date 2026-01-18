@@ -30,9 +30,9 @@ function Write-Header([string]$Message) {
     Write-Host $Message -ForegroundColor Cyan
     Write-Host "========================================`n" -ForegroundColor Cyan
 }
-function Write-Success([string]$Message) { Write-Host "✓  $Message" -ForegroundColor Green }
-function Write-BuildError([string]$Message) { Write-Host "✗  $Message" -ForegroundColor Red }
-function Write-Info([string]$Message) { Write-Host "ℹ  $Message" -ForegroundColor Yellow }
+function Write-Success([string]$Message) { Write-Host "[SUCCESS] $Message" -ForegroundColor Green }
+function Write-BuildError([string]$Message) { Write-Host "[ERROR] $Message" -ForegroundColor Red }
+function Write-Info([string]$Message) { Write-Host "[INFO] $Message" -ForegroundColor Yellow }
 
 function Get-MSBuildPath {
     $vsWhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
@@ -117,15 +117,24 @@ function Restore-Projects {
     if ($LASTEXITCODE -ne 0) { Write-BuildError "Restore failed"; Write-Host $result -ForegroundColor Red; throw "Restore failed" }
 }
 
+function Build-SourceGenerators([string]$Config) {
+    Write-Info "Building source generators (AnyCPU)..."
+    $generatorProj = ".\Skua.Core.Generators\Skua.Core.Generators.csproj"
+    $result = & dotnet build $generatorProj --configuration $Config -p:Platform=AnyCPU --verbosity minimal 2>&1
+    if ($LASTEXITCODE -ne 0) { Write-BuildError "Generator build failed"; Write-Host $result -ForegroundColor Red; throw "Generator build failed" }
+    Write-Success "Source generators built successfully"
+}
+
 function Build-Platform([string]$Platform, [string]$Config) {
     Write-Header "Building $Platform - $Config"
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     
     try {
         Restore-Projects
+        Build-SourceGenerators -Config $Config
         
         Write-Info "Building Skua.sln..."
-        $buildArgs = @("build", "Skua.sln", "--configuration", $Config, "-p:Platform=$Platform", "-p:Platforms=$Platform", "--no-restore", "--verbosity", "minimal", "-p:WarningLevel=0")
+        $buildArgs = @("build", "Skua.sln", "--configuration", $Config, "-p:Platform=$Platform", "--no-restore", "--verbosity", "minimal", "-p:WarningLevel=0")
         if ($Platform -eq "x86") { $buildArgs += "-p:PlatformTarget=x86" }
         
         $result = & dotnet $buildArgs 2>&1
@@ -213,7 +222,7 @@ function Wait-ForKeyPress([int]$ExitCode = 0) {
     Write-Host "`n========================================" -ForegroundColor DarkGray
     Write-Host $(if ($ExitCode -eq 0) { "Press any key to exit..." } else { "Build failed. Press any key to exit..." }) -ForegroundColor $(if ($ExitCode -eq 0) { "Green" } else { "Red" })
     Write-Host "========================================" -ForegroundColor DarkGray
-    try { $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown") } catch { /* ignored */ }
+    try { $null = $Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyUp") } catch { /* ignored */ }
     exit $ExitCode
 }
 
@@ -222,6 +231,12 @@ function Main {
     $success = $false
     $exitCode = 0
     $ErrorActionPreference = "Stop"
+    
+    $dotnetPath = (Get-Command dotnet -ErrorAction SilentlyContinue).Source
+    if ($dotnetPath) {
+        $dotnetDir = Split-Path $dotnetPath -Parent
+        $env:PATH = "$dotnetDir;$env:PATH"
+    }
     
     try {
         Write-Header "Skua Build Automation"

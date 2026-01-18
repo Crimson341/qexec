@@ -6,6 +6,7 @@
     <Nullable>enable</Nullable>
     <UseWPF>true</UseWPF>
     <Platforms>AnyCPU;x64;x86</Platforms>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
     <StartupObject>Skua.Manager.Program</StartupObject>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
     <WithCulture>false</WithCulture>
@@ -42,8 +43,11 @@
     </None>
   </ItemGroup>
 
-  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="if $(ConfigurationName) == Release xcopy /y &quot;$(TargetDir)Skua.Manager.exe&quot; &quot;..\Build\$(PlatformName)\&quot;&#xD;&#xA;if $(ConfigurationName) == Release xcopy /y &quot;$(TargetDir)Skua.Manager.dll&quot; &quot;..\Build\$(PlatformName)\&quot;&#xD;&#xA;if $(ConfigurationName) == Release xcopy /y &quot;$(TargetDir)Skua.Manager.runtimeconfig.json&quot; &quot;..\Build\$(PlatformName)\&quot;" />
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
+    <MakeDir Directories="..\Build\$(PlatformName)" />
+    <Copy SourceFiles="$(TargetDir)Skua.Manager.exe" DestinationFolder="..\Build\$(PlatformName)" />
+    <Copy SourceFiles="$(TargetDir)Skua.Manager.dll" DestinationFolder="..\Build\$(PlatformName)" />
+    <Copy SourceFiles="$(TargetDir)Skua.Manager.runtimeconfig.json" DestinationFolder="..\Build\$(PlatformName)" />
   </Target>
 
 </Project>

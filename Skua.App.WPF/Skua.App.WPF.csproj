@@ -12,6 +12,7 @@
     <WithCulture>false</WithCulture>
     <NeutralLanguage>en</NeutralLanguage>
     <Platforms>AnyCPU;x64;x86</Platforms>
+    <RuntimeIdentifiers>win-x64;win-x86</RuntimeIdentifiers>
     <Company>Skua</Company>
     <Description>Scriptable C# bot for AdventureQuest Worlds</Description>
     <ApplicationIcon>SkuaIcon.ico</ApplicationIcon>
@@ -93,12 +94,33 @@
     </None>
   </ItemGroup>
 
-	<Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-		<Exec Command="if $(ConfigurationName) == Release rd /s /q &quot;$(TargetDir)&quot;&#xD;&#xA;if $(ConfigurationName) == Release xcopy &quot;..\FFDec\*.*&quot; &quot;$(TargetDir)FFDec&quot; /Y /I /E" />
+	<Target Name="PreBuild" BeforeTargets="PreBuildEvent" Condition="'$(Configuration)' == 'Release'">
+		<RemoveDir Directories="$(TargetDir)" Condition="Exists('$(TargetDir)')" />
+		<MakeDir Directories="$(TargetDir)FFDec" />
+		<ItemGroup>
+			<FFDecFiles Include="..\FFDec\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(FFDecFiles)" DestinationFolder="$(TargetDir)FFDec\%(RecursiveDir)" />
 	</Target>
 
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent">
-		<Exec Command="del *.pdb&#xD;&#xA;del *.config&#xD;&#xA;if $(ConfigurationName) == Release rename &quot;$(TargetDir)Skua.App.WPF.exe&quot; &quot;Skua.exe&quot;&#xD;&#xA;;; Move all assemblies and related files to Assemblies folder&#xD;&#xA;ROBOCOPY &quot;$(TargetDir) &quot; &quot;$(TargetDir)\Assemblies\ &quot; /XF Skua.App.WPF.dll *.zip *.swf *.cfg *.pspdb *.pssym *.json *.txt *.exe *.config *.manifest /XD assemblies options tmp tools plugins Scripts FFDec /E /IS /MOVE&#xD;&#xA;if $(ConfigurationName) == Release ROBOCOPY &quot;$(TargetDir) &quot; &quot;..\Build\$(PlatformName)\ &quot; /E&#xD;&#xA;if %25errorlevel%25 leq 4 exit 0 else exit %25errorlevel%25" />
+		<ItemGroup>
+			<PdbFiles Include="$(TargetDir)*.pdb" />
+			<ConfigFiles Include="$(TargetDir)*.config" />
+		</ItemGroup>
+		<Delete Files="@(PdbFiles)" />
+		<Delete Files="@(ConfigFiles)" />
+		<Move SourceFiles="$(TargetDir)Skua.App.WPF.exe" DestinationFiles="$(TargetDir)Skua.exe" Condition="'$(Configuration)' == 'Release'" />
+		<MakeDir Directories="$(TargetDir)Assemblies" />
+		<ItemGroup>
+			<FilesToMove Include="$(TargetDir)**\*.*" Exclude="$(TargetDir)Skua.App.WPF.dll;$(TargetDir)*.zip;$(TargetDir)*.swf;$(TargetDir)*.cfg;$(TargetDir)*.pspdb;$(TargetDir)*.pssym;$(TargetDir)*.json;$(TargetDir)*.txt;$(TargetDir)*.exe;$(TargetDir)*.config;$(TargetDir)*.manifest;$(TargetDir)assemblies\**;$(TargetDir)options\**;$(TargetDir)tmp\**;$(TargetDir)tools\**;$(TargetDir)plugins\**;$(TargetDir)Scripts\**;$(TargetDir)FFDec\**" />
+		</ItemGroup>
+		<Move SourceFiles="@(FilesToMove)" DestinationFolder="$(TargetDir)Assemblies\%(RecursiveDir)" />
+		<MakeDir Directories="..\Build\$(PlatformName)" Condition="'$(Configuration)' == 'Release'" />
+		<ItemGroup Condition="'$(Configuration)' == 'Release'">
+			<BuildOutputFiles Include="$(TargetDir)**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(BuildOutputFiles)" DestinationFolder="..\Build\$(PlatformName)\%(RecursiveDir)" Condition="'$(Configuration)' == 'Release'" />
 	</Target>
 
 </Project>

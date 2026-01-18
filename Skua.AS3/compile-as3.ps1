@@ -69,8 +69,8 @@ if ($asconfigcPath) {
 Write-Host "`n🔍 Checking for Apache Royale SDK..." -ForegroundColor Yellow
 $royalePath = Get-Command asjsc -ErrorAction SilentlyContinue
 if ($royalePath) {
-    Write-Host "✅ Found Royale SDK at: $($royalePath.Source)" -ForegroundColor Green
-    Write-Host "ℹ️ Note: Royale compiles to HTML/JS, not SWF. Skipping." -ForegroundColor Yellow
+    Write-Host "[SUCCESS] Found Royale SDK at: $($royalePath.Source)" -ForegroundColor Green
+    Write-Host "[INFO] Note: Royale compiles to HTML/JS, not SWF. Skipping." -ForegroundColor Yellow
 }
 
 # Method 4: Check for Adobe Animate
@@ -81,14 +81,14 @@ $animatePath = @(
 ) | Get-ChildItem -ErrorAction SilentlyContinue | Select-Object -First 1
 
 if ($animatePath) {
-    Write-Host "✅ Found Adobe Animate at: $($animatePath.FullName)" -ForegroundColor Green
-    Write-Host "ℹ️ Note: Adobe Animate requires manual compilation. Open the .as3proj file in Animate and publish." -ForegroundColor Yellow
+    Write-Host "[SUCCESS] Found Adobe Animate at: $($animatePath.FullName)" -ForegroundColor Green
+    Write-Host "[INFO] Note: Adobe Animate requires manual compilation. Open the .as3proj file in Animate and publish." -ForegroundColor Yellow
 }
 
 # SDK Download option
 if ($DownloadSDK) {
-    Write-Host "`n📥 Downloading Flex SDK..." -ForegroundColor Yellow
-    Write-Host "ℹ️ This feature is not implemented yet. Please manually download:" -ForegroundColor Yellow
+    Write-Host "`n[INFO] Downloading Flex SDK..." -ForegroundColor Yellow
+    Write-Host "[INFO] This feature is not implemented yet. Please manually download:" -ForegroundColor Yellow
     Write-Host "   • Apache Flex SDK: https://flex.apache.org/download-binaries.html" -ForegroundColor White
     Write-Host "   • Adobe AIR SDK: https://airsdk.harman.com/download" -ForegroundColor White
 }

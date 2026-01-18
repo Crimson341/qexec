@@ -1,1 +1,1 @@
-pwsh -ExecutionPolicy Bypass -Command "./Build-Skua.ps1"
+pwsh ./Build-Skua.ps1
