@@ -1,3 +1,51 @@
+# Skua 1.4.0.1
+## Released: January 18, 2026
+
+- Compiler Fixed & performance "boosted" 
+ - Preload should be good ( issue was most likely the compiler.. shenanigans) 
+ - Fix crash upon clicking `usage guide` / `build guide` in about tab of manager
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.3.3.2...1.4.0.1
+
+---
+
+# Skua 1.4.0.0
+## Released: January 18, 2026
+
+## Changes/Fixes
+
+### [**.NET 10**](<https://dotnet.microsoft.com/en-us/download/dotnet/10.0>)  I am sorry, Windows 7 users, it was bound to happen. 
+Please go ahead and download the new net version for [Skua 1.4.0.0](<https://github.com/auqw/Skua/releases/tag/1.4.0.0>).
+
+### Compiler Changes
+- Added a check for `version: #.#.#.#` in the first 6 lines of a script.
+  - If a version number is present and it's higher than your current Skua version, it'll prompt you to update and open the Skua release page.
+    - This will stop compilation immediately so no errors are thrown
+ 
+- Added a Mutex for the compiler so only one account will compile while the others wait for that one to finish.
+
+- The compiler now builds each `//cs_include` file
+
+With these compiler changes come higher initial compile times (expected)
+Using `0FarmerJoeKitDoAll.cs` as a performance test between 1.3.3.2 and 1.4.0.0
+
+1.3.3.2: ~7 seconds
+1.4.0.0: ~14-16 seconds
+
+However, if any `Core` files update, we'll only need to recompile the one that updated; thus, consecutive compiles can get as low as ~2 seconds.
+
+## Additions
+- Tools > Loader 
+  - Added updating from the scripts repo to always have the latest if it gets updated there aswell
+  - Added `Update Range` with a textbox for a range of `QuestIDs`
+  - Added `Copy Name+IDS` output is `// {questName} | {questID}`
+
+This update is "small", however, we are dropping support for Windows 7, so I think the bump to 1.4.0.0 was a good idea
+
+**Full Changelog**: [`1.3.3.2...1.4.0.0`](<https://github.com/auqw/Skua/compare/1.3.3.2...1.4.0.0>)
+
+---
+
 # Skua 1.3.3.2
 ## Released: January 14, 2026
 
