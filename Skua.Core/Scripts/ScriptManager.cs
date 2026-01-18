@@ -239,14 +239,11 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             {
                 if (!thread.Join(TimeSpan.FromSeconds(5)))
                 {
-                    _logger?.ScriptLog("Script thread did not exit within timeout. Attempting to interrupt...");
                     try
                     {
                         thread.Interrupt();
                         if (!thread.Join(TimeSpan.FromSeconds(3)))
                         {
-                            _logger?.ScriptLog("Script thread did not respond to interrupt. Forcing thread termination...");
-                            
                             // More aggressive termination attempts
                             try
                             {
@@ -257,26 +254,18 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                                 // Give one final chance with a shorter timeout
                                 if (!thread.Join(TimeSpan.FromSeconds(1)))
                                 {
-                                    _logger?.ScriptLog("Script thread is unresponsive. Thread may continue running in background until process exit.");
-                                }
-                                else
-                                {
-                                    _logger?.ScriptLog("Script thread finally terminated.");
+                                    _logger?.ScriptLog("Script thread is unresponsive and may continue running until process exit.");
                                 }
                             }
                             catch (Exception termEx)
                             {
-                                _logger?.ScriptLog($"Error during final termination attempt: {termEx.Message}");
+                                _logger?.ScriptLog($"Error during thread termination: {termEx.Message}");
                             }
-                        }
-                        else
-                        {
-                            _logger?.ScriptLog("Script thread successfully interrupted.");
                         }
                     }
                     catch (Exception ex)
                     {
-                        _logger?.ScriptLog($"Error interrupting script thread: {ex.Message}");
+                        _logger?.ScriptLog($"Error stopping script thread: {ex.Message}");
                     }
                 }
             }).ConfigureAwait(false);
