@@ -1,3 +1,23 @@
+# Skua 1.4.0.2
+## Released: January 18, 2026
+
+# Auto-Hunt & Auto-Attack Changelog
+
+Fixed:
+•  Auto-Hunt now properly moves between cells when targeted monsters are killed
+•  Auto-Hunt continues hunting same monster type after killing individual instances
+•  Priority MapID hunting now camps specific cells and waits for respawns
+•  Reduced hunt delays for faster monster targeting (1000ms → 200ms) 
+•  Optimized cell traversal to reduce unnecessary full map rescans
+
+Technical:
+•  Changed from MapID-based to name-based hunting for targeted monsters
+•  Priority MapIDs now camp single cells instead of searching multiple locations 
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.4.0.0...1.4.0.2
+
+---
+
 # Skua 1.4.0.1
 ## Released: January 18, 2026
 
