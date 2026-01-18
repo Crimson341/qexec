@@ -540,7 +540,7 @@ public class Compiler : CSharpScriptExecution
                 scriptGroups[scriptName].Add(file);
             }
 
-            foreach (var kvp in scriptGroups)
+            foreach (KeyValuePair<string, List<FileInfo>> kvp in scriptGroups)
             {
                 if (kvp.Value.Count > 1)
                 {

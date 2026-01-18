@@ -1,11 +1,8 @@
-﻿using CommunityToolkit.Mvvm.Messaging;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Skua.Core.Interfaces;
-using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Quests;
 using System.Dynamic;
-using static System.Collections.Generic.Dictionary<int, Skua.Core.Models.Quests.Quest>;
 
 namespace Skua.Core.Services;
 
@@ -138,7 +135,7 @@ public class QuestDataLoaderService : IQuestDataLoaderService
             // Clear cache again to force reading the newly written file
             _cachedQuests.Remove(cacheKey);
 
-            var existingQuestIds = quests.Select(q => q.ID).ToHashSet();
+            HashSet<int> existingQuestIds = quests.Select(q => q.ID).ToHashSet();
             quests.AddRange(_quests.Cached.Where(q => !existingQuestIds.Contains(q.ID)));
             await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.OrderBy(q => q.ID), Formatting.Indented), token);
             progress?.Report($"Getting quests from file {fileName}");
@@ -188,7 +185,7 @@ public class QuestDataLoaderService : IQuestDataLoaderService
                     await Task.Delay(1500);
             }
 
-            var existingQuestIds = quests.Select(q => q.ID).ToHashSet();
+            HashSet<int> existingQuestIds = quests.Select(q => q.ID).ToHashSet();
             quests.AddRange(_quests.Cached.Where(q => !existingQuestIds.Contains(q.ID)));
             await File.WriteAllTextAsync(Path.Combine(ClientFileSources.SkuaDIR, fileName), JsonConvert.SerializeObject(quests.OrderBy(q => q.ID), Formatting.Indented), token);
             progress?.Report($"Getting quests from file {fileName}");

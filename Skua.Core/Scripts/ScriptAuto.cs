@@ -188,7 +188,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 {
                     Monster? monster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
                     bool alive = monster != null && monster.Alive;
-                    
+
                     if (alive)
                     {
                         currentTarget = _priorityMapIDs[i];
@@ -298,7 +298,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
                 {
                     Monster? monster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _priorityMapIDs[i]);
                     bool alive = monster != null && monster.Alive;
-                    
+
                     if (alive)
                     {
                         currentTarget = _priorityMapIDs[i];

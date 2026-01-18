@@ -158,7 +158,7 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     private async Task UpdateQuestsRange()
     {
         string[] parts = QuestRange.Split(new char[] { ',', ' ' }, StringSplitOptions.RemoveEmptyEntries);
-        
+
         if (parts.Length != 2 || !int.TryParse(parts[0], out int startId) || !int.TryParse(parts[1], out int endId))
         {
             ProgressReport = "Invalid format. Use: startID, endID";

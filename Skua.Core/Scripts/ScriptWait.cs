@@ -232,7 +232,7 @@ public class ScriptWait : IScriptWait
         {
             if (!Player.Playing)
                 return true;
-            
+
             return Quests.Tree.Count > initialCount || Quests.Tree.Exists(q => q.ID >= startId && q.ID <= endId);
         }, timeout);
     }

@@ -21,7 +21,7 @@ public class ScriptLoadContext : AssemblyLoadContext
             return null;
 
         string[] matchingFiles = Directory.GetFiles(_cacheDirectory, $"*-{assemblyName.Name}.dll");
-        
+
         if (matchingFiles.Length > 0)
         {
             string latestFile = matchingFiles.OrderByDescending(f => File.GetLastWriteTimeUtc(f)).First();

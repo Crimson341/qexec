@@ -230,7 +230,7 @@ public static class Services
     private static Compiler CreateCompiler(IServiceProvider s)
     {
         Compiler compiler = new();
-        
+
         if (_cachedBaseReferences == null)
         {
             lock (_referenceCacheLock)
@@ -245,7 +245,7 @@ public static class Services
                         typeof(ScriptManager).Assembly.Location,
                         Path.Combine(Path.GetDirectoryName(typeof(System.Runtime.GCSettings).GetTypeInfo().Assembly.Location)!, "System.Runtime.dll")
                     };
-                    
+
                     List<PortableExecutableReference> refs = AppDomain.CurrentDomain
                         .GetAssemblies()
                         .Where(a => !a.IsDynamic)
@@ -260,13 +260,13 @@ public static class Services
                     {
                         refs.Add(MetadataReference.CreateFromFile(regexPath));
                     }
-                    
+
                     refs.AddRange(refPaths.Select(s => MetadataReference.CreateFromFile(s)));
                     _cachedBaseReferences = refs;
                 }
             }
         }
-        
+
         compiler.AddAssemblies(_cachedBaseReferences);
         compiler.AddNamespaces(new[]
         {

@@ -420,10 +420,10 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     private static int ComputeCacheHash(string source, List<string> includedFiles)
     {
-        using var sha256 = SHA256.Create();
+        using SHA256 sha256 = SHA256.Create();
         byte[] sourceBytes = Encoding.UTF8.GetBytes(source);
         byte[] sourceHash = sha256.ComputeHash(sourceBytes);
-        using var ms = new MemoryStream();
+        using MemoryStream ms = new();
         ms.Write(sourceHash, 0, sourceHash.Length);
 
         foreach (string file in includedFiles.OrderBy(f => f))
@@ -479,7 +479,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             dependencyGraph[includedFile] = deps;
 
             string includeFileName = Path.GetFileNameWithoutExtension(includedFile);
-            using var sha256 = SHA256.Create();
+            using SHA256 sha256 = SHA256.Create();
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(includeSource));
             int includeHash = BitConverter.ToInt32(hashBytes, 0);
             string compiledPath = Path.Combine(cacheDir, $"{includeHash}-{includeFileName}.dll");
@@ -569,7 +569,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         try
         {
-            var info = fileInfoCache[includedFile];
+            (string source, string fileName, int hash, string cachePath) info = fileInfoCache[includedFile];
             string includeSource = info.source;
             string includeFileName = info.fileName;
             int includeHash = info.hash;
@@ -711,7 +711,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             try
             {
-                var weak = new WeakReference(context);
+                WeakReference weak = new(context);
                 context.Unload();
 
                 for (int i = 0; i < 3 && weak.IsAlive; i++)
