@@ -127,7 +127,10 @@ public class Compiler : CSharpScriptExecution
             Assembly = CachedAssemblies[hash];
         }
 
-        return Assembly.ExportedTypes.First();
+        Type? firstType = Assembly.ExportedTypes.FirstOrDefault();
+        if (firstType == null)
+            throw new InvalidOperationException($"Assembly '{Assembly.FullName}' contains no exported types.");
+        return firstType;
     }
 
     /// <summary>

@@ -160,7 +160,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
             return;
 
         _ctsDrops?.Cancel();
-        Wait.ForTrue(() => _taskDrops?.IsCompleted == true, null, 20);
+        Wait.ForTrue(() => _taskDrops?.IsCompleted == true, null, 2);
         _ctsDrops?.Dispose();
         _taskDrops = null;
         OnPropertyChanged(nameof(Enabled));

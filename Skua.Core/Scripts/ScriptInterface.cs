@@ -188,7 +188,23 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     public void Sleep(int ms)
     {
         CheckScriptTermination();
-        Thread.Sleep(ms);
+        
+        // For longer sleeps, break them up to check for cancellation more frequently
+        if (ms > 1000)
+        {
+            int remaining = ms;
+            while (remaining > 0)
+            {
+                CheckScriptTermination();
+                int chunk = Math.Min(500, remaining);
+                Thread.Sleep(chunk);
+                remaining -= chunk;
+            }
+        }
+        else
+        {
+            Thread.Sleep(ms);
+        }
     }
 
     public async Task SleepAsync(int ms)

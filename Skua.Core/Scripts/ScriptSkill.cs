@@ -117,7 +117,7 @@ public partial class ScriptSkill : IScriptSkill
     {
         _provider?.Stop();
         _skillsCTS?.Cancel();
-        Wait.ForTrue(() => !TimerRunning, 20);
+        Wait.ForTrue(() => !TimerRunning, 2);
     }
 
     public void Pause()
