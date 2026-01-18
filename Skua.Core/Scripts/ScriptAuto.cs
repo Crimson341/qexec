@@ -275,7 +275,7 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         else if (Player.HasTarget && !Combat.StopAttacking)
         {
             _target = Player.Target?.Name ?? "*";
-            _targetMapID = Player.Target?.MapID ?? -1;
+            _targetMapID = -1;
         }
         else if (!Combat.StopAttacking)
         {
@@ -308,32 +308,29 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
                 if (currentTarget.HasValue)
                 {
-                    // Hunt the current priority target
-                    List<string> cells = Monsters.GetLivingMonsterDataLeafCells(currentTarget.Value);
-
-                    foreach (string cell in cells)
+                    Monster? monster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == currentTarget.Value);
+                    if (monster != null)
                     {
-                        if (token.IsCancellationRequested)
-                            break;
-
-                        if (Player.Cell != cell && !token.IsCancellationRequested)
+                        if (Player.Cell != monster.Cell && !token.IsCancellationRequested)
                         {
                             if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
                                 Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
-                            Map.Jump(cell, "Left");
+                            Map.Jump(monster.Cell, "Left");
                             _lastHuntTick = Environment.TickCount;
                         }
+                    }
 
-                        if (Monsters.Exists(currentTarget.Value) && !token.IsCancellationRequested)
+                    if (Monsters.Exists(currentTarget.Value) && !token.IsCancellationRequested)
+                    {
+                        Monster? targetMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == currentTarget.Value);
+                        while (targetMonster?.HP > 0 && !token.IsCancellationRequested)
                         {
                             Combat.Attack(currentTarget.Value);
-                            Thread.Sleep(200);
-                            // Immediately re-check priorities (no delay)
-                            break;
+                            Thread.Sleep(Options.ActionDelay);
+                            targetMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == currentTarget.Value);
                         }
-
-                        Thread.Sleep(200);
                     }
+                    Thread.Sleep(200);
                 }
                 else
                 {
@@ -344,10 +341,15 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
         }
         else if (_targetMapID > 0)
         {
-            // Hunt specific monster by MapID only
             while (!token.IsCancellationRequested)
             {
                 List<string> cells = Monsters.GetLivingMonsterDataLeafCells(_targetMapID);
+
+                if (cells.Count == 0)
+                {
+                    Thread.Sleep(200);
+                    continue;
+                }
 
                 foreach (string cell in cells)
                 {
@@ -364,56 +366,96 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
 
                     if (Monsters.Exists(_targetMapID) && !token.IsCancellationRequested)
                     {
-                        if (!Combat.Attack(_targetMapID))
-                            continue;
-                        Thread.Sleep(Options.ActionDelay);
-                        Kill.Monster(_targetMapID, token);
-                        return;
+                        Monster? targetMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _targetMapID);
+                        while (targetMonster?.HP > 0 && !token.IsCancellationRequested)
+                        {
+                            Combat.Attack(_targetMapID);
+                            Thread.Sleep(Options.ActionDelay);
+                            targetMonster = Monsters.MapMonsters.FirstOrDefault(m => m.MapID == _targetMapID);
+                        }
                     }
 
                     Thread.Sleep(200);
                 }
             }
         }
-        else
+        else if (!string.IsNullOrEmpty(_target) && _target != "*")
         {
-            // Hunt all monsters (wildcard mode)
+            while (!token.IsCancellationRequested)
+            {
+                List<string> cells = Monsters.GetLivingMonsterDataLeafCells(_target);
+
+                if (cells.Count == 0)
+                {
+                    Thread.Sleep(200);
+                    continue;
+                }
+
+                foreach (string cell in cells)
+                {
+                    if (token.IsCancellationRequested)
+                        break;
+
+                    if (Player.Cell != cell && !token.IsCancellationRequested)
+                    {
+                        if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
+                            Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
+                        Map.Jump(cell, "Left");
+                        _lastHuntTick = Environment.TickCount;
+                    }
+
+                    if (Monsters.Exists(_target) && !token.IsCancellationRequested)
+                    {
+                        Monster? targetMonster = Monsters.CurrentMonsters.FirstOrDefault(m => m.Name == _target);
+                        while (targetMonster?.HP > 0 && !token.IsCancellationRequested)
+                        {
+                            Combat.Attack(_target);
+                            Thread.Sleep(Options.ActionDelay);
+                            targetMonster = Monsters.CurrentMonsters.FirstOrDefault(m => m.Name == _target);
+                        }
+                    }
+
+                    Thread.Sleep(200);
+                }
+            }
+        }
+        {
             string[] names = _target.Split('|');
             List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
 
             while (!token.IsCancellationRequested)
+        {
+            for (int i = cells.Count - 1; i >= 0; i--)
             {
-                for (int i = cells.Count - 1; i >= 0; i--)
+                if (Player.Cell != cells[i] && !token.IsCancellationRequested)
                 {
-                    if (Player.Cell != cells[i] && !token.IsCancellationRequested)
-                    {
-                        if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
-                            Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
-                        Map.Jump(cells[i], "Left");
-                        _lastHuntTick = Environment.TickCount;
-                    }
+                    if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
+                        Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
+                    Map.Jump(cells[i], "Left");
+                    _lastHuntTick = Environment.TickCount;
+                }
 
-                    foreach (string mon in names)
-                    {
-                        if (token.IsCancellationRequested)
-                            break;
+                foreach (string mon in names)
+                {
+                    if (token.IsCancellationRequested)
+                        break;
 
-                        if (Monsters.Exists(mon) && !token.IsCancellationRequested)
+                    if (Monsters.Exists(mon) && !token.IsCancellationRequested)
+                    {
+                        if (!Combat.Attack(mon))
                         {
-                            if (!Combat.Attack(mon))
-                            {
-                                cells.RemoveAt(i);
-                                continue;
-                            }
-                            Thread.Sleep(Options.ActionDelay);
-                            Kill.Monster(mon, token);
-                            break;
+                            cells.RemoveAt(i);
+                            continue;
                         }
-
-                        cells.RemoveAt(i);
+                        Thread.Sleep(Options.ActionDelay);
+                        Kill.Monster(mon, token);
+                        break;
                     }
+
+                    cells.RemoveAt(i);
                 }
             }
+        }
         }
         Trace.WriteLine("Auto hunt stopped.");
     }
