@@ -470,10 +470,11 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         string cacheDir = _cacheScriptsDir;
 
         ConcurrentBag<string> validCachedFiles = new();
-        
+
         Parallel.ForEach(_includedFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
         {
             string includeSource = File.ReadAllText(includedFile);
+            CheckScriptVersionRequirement(includeSource);
             List<string> deps = ExtractIncludeDependencies(includeSource);
             dependencyGraph[includedFile] = deps;
 
@@ -482,7 +483,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(includeSource));
             int includeHash = BitConverter.ToInt32(hashBytes, 0);
             string compiledPath = Path.Combine(cacheDir, $"{includeHash}-{includeFileName}.dll");
-            
+
             if (File.Exists(compiledPath))
             {
                 try
@@ -504,7 +505,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     }
                 }
             }
-            
+
             fileInfoCache[includedFile] = (includeSource, includeFileName, includeHash, compiledPath);
         });
 
@@ -550,7 +551,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         }
 
         fileInfoCache.Clear();
-        
+
         return compiledPaths.Values.ToList();
     }
 

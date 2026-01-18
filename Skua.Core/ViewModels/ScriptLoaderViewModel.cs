@@ -114,7 +114,15 @@ public partial class ScriptLoaderViewModel : BotControlViewModelBase
         Exception? ex = await ScriptManager.StartScript();
         if (ex is not null)
         {
-            _dialogService.ShowMessageBox($"Error while starting script:\r\n{ex.Message}", "Script Error");
+            if (ex is ScriptVersionException versionEx)
+            {
+                _dialogService.ShowMessageBox($"Error while starting script:\r\n{ex.Message}", "Version Error");
+                _processService.OpenLink(versionEx.UpdateUrl);
+            }
+            else
+            {
+                _dialogService.ShowMessageBox($"Error while starting script:\r\n{ex.Message}", "Script Error");
+            }
             ScriptStatus = "[Error]";
             ScriptErrorToolTip = $"Error while starting script:\r\n{ex}";
             ToggleScriptEnabled = true;
