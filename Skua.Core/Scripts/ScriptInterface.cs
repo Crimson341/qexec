@@ -188,7 +188,7 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
     public void Sleep(int ms)
     {
         CheckScriptTermination();
-        
+
         // For longer sleeps, break them up to check for cancellation more frequently
         if (ms > 1000)
         {

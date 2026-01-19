@@ -424,38 +424,38 @@ public partial class ScriptAuto : ObservableObject, IScriptAuto
             List<string> cells = names.SelectMany(n => Monsters.GetLivingMonsterDataLeafCells(n)).Distinct().ToList();
 
             while (!token.IsCancellationRequested)
-        {
-            for (int i = cells.Count - 1; i >= 0; i--)
             {
-                if (Player.Cell != cells[i] && !token.IsCancellationRequested)
+                for (int i = cells.Count - 1; i >= 0; i--)
                 {
-                    if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
-                        Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
-                    Map.Jump(cells[i], "Left");
-                    _lastHuntTick = Environment.TickCount;
-                }
-
-                foreach (string mon in names)
-                {
-                    if (token.IsCancellationRequested)
-                        break;
-
-                    if (Monsters.Exists(mon) && !token.IsCancellationRequested)
+                    if (Player.Cell != cells[i] && !token.IsCancellationRequested)
                     {
-                        if (!Combat.Attack(mon))
-                        {
-                            cells.RemoveAt(i);
-                            continue;
-                        }
-                        Thread.Sleep(Options.ActionDelay);
-                        Kill.Monster(mon, token);
-                        break;
+                        if (Environment.TickCount - _lastHuntTick < Options.HuntDelay)
+                            Thread.Sleep(Options.HuntDelay - Environment.TickCount + _lastHuntTick);
+                        Map.Jump(cells[i], "Left");
+                        _lastHuntTick = Environment.TickCount;
                     }
 
-                    cells.RemoveAt(i);
+                    foreach (string mon in names)
+                    {
+                        if (token.IsCancellationRequested)
+                            break;
+
+                        if (Monsters.Exists(mon) && !token.IsCancellationRequested)
+                        {
+                            if (!Combat.Attack(mon))
+                            {
+                                cells.RemoveAt(i);
+                                continue;
+                            }
+                            Thread.Sleep(Options.ActionDelay);
+                            Kill.Monster(mon, token);
+                            break;
+                        }
+
+                        cells.RemoveAt(i);
+                    }
                 }
             }
-        }
         }
         Trace.WriteLine("Auto hunt stopped.");
     }

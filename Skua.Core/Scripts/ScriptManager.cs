@@ -133,7 +133,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                         StrongReferenceMessenger.Default.Send<ScriptStoppingMessage, int>((int)MessageChannels.ScriptStatus);
                         try
                         {
-                            var messageTask = Task.Run(async () => await StrongReferenceMessenger.Default.Send<ScriptStoppingRequestMessage, int>(new(exception), (int)MessageChannels.ScriptStatus));
+                            Task<bool?> messageTask = Task.Run(async () => await StrongReferenceMessenger.Default.Send<ScriptStoppingRequestMessage, int>(new(exception), (int)MessageChannels.ScriptStatus));
                             if (messageTask.Wait(TimeSpan.FromSeconds(2)))
                             {
                                 switch (messageTask.Result)
@@ -285,9 +285,9 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         string final = ProcessSources(source, ref references);
 
         // Debug: Check if final source is empty or contains no classes (disabled for performance)
-        #if DEBUG_VERBOSE
+#if DEBUG_VERBOSE
 
-        #endif
+#endif
 
         // Check if the processed source contains any class definitions
         if (string.IsNullOrWhiteSpace(final))
@@ -423,18 +423,18 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     {
         bool foundNewFiles = true;
         int iterationCount = 0;
-        #if DEBUG_VERBOSE
+#if DEBUG_VERBOSE
 
-        #endif
+#endif
 
         // Keep iterating until no new files are found
         while (foundNewFiles && iterationCount < 10) // Safety limit
         {
             foundNewFiles = false;
             iterationCount++;
-            #if DEBUG_VERBOSE
+#if DEBUG_VERBOSE
 
-            #endif
+#endif
 
             List<string> currentFiles = new(_includedFiles); // Snapshot current list
 
@@ -630,9 +630,9 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         ConcurrentBag<string> validCachedFiles = new();
 
-        #if DEBUG_VERBOSE
+#if DEBUG_VERBOSE
 
-        #endif
+#endif
 
         Dictionary<string, string> filenameLookup = new(StringComparer.OrdinalIgnoreCase);
         foreach (string file in _includedFiles)
@@ -697,7 +697,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         HashSet<string> processed = new(validCachedFiles);
         HashSet<string> includedFilesSet = new(_includedFiles);
 
-        #if DEBUG_VERBOSE
+#if DEBUG_VERBOSE
 
         foreach (var kvp in dependencyGraph)
         {
@@ -705,11 +705,11 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             string deps = kvp.Value.Count > 0 ? string.Join(", ", kvp.Value.Select(Path.GetFileName)) : "[none]";
 
         }
-        #endif
+#endif
 
         HashSet<string> allReferencedFiles = new(_includedFiles);
         List<string> newlyAddedFiles = new();
-        foreach (var kvp in dependencyGraph)
+        foreach (KeyValuePair<string, List<string>> kvp in dependencyGraph)
         {
             foreach (string dep in kvp.Value)
             {
@@ -757,13 +757,13 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         List<string> orderedFiles = SortByDependencyOrder(dependencyGraph, _includedFiles);
 
-        #if DEBUG_VERBOSE
+#if DEBUG_VERBOSE
 
         foreach (string file in orderedFiles)
         {
 
         }
-        #endif
+#endif
 
         HashSet<string> compiledFiles = new(validCachedFiles);
 
@@ -801,9 +801,9 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             if (readyBatch.Count == 0)
                 break;
 
-            #if DEBUG_VERBOSE
+#if DEBUG_VERBOSE
 
-            #endif
+#endif
 
             Parallel.ForEach(readyBatch, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
             {

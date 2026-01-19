@@ -28,7 +28,7 @@ public class AboutViewModel : BotControlViewModelBase
     {
         if (string.IsNullOrEmpty(url))
             return;
-            
+
         try
         {
             // Handle relative file paths that start with "./"
@@ -36,10 +36,10 @@ public class AboutViewModel : BotControlViewModelBase
             {
                 // Get the relative path without the "./" prefix
                 string relativePath = url.Substring(2);
-                
+
                 // Combine with the current directory to get the full path
                 string fullPath = System.IO.Path.Combine(Environment.CurrentDirectory, relativePath);
-                
+
                 // Check if the file exists
                 if (System.IO.File.Exists(fullPath))
                 {
