@@ -1,3 +1,25 @@
+# Skua 1.4.0.3
+## Released: January 19, 2026
+
+## Actually fixed compiler
+
+### Code that was the issue:
+```cs
+Span<Range> lineRanges = stackalloc Range[256];
+```
+This only read 256 imports, while a few had more than 256, and I was not aware of that.
+
+Scripts tested:
+- `0AllClasses.cs`
+- `0AllStories.cs`
+- `0FarmerJoeDoAll.cs`
+- `0VoidHighlord.cs`
+- `JoePrepsForUltras.cs` (this is for Insert's scripts for Grim)
+
+**Full Changelog**:[`1.4.0.2...1.4.0.3`](<https://github.com/auqw/Skua/compare/1.4.0.2...1.4.0.3>)
+
+---
+
 # Skua 1.4.0.2
 ## Released: January 18, 2026
 
