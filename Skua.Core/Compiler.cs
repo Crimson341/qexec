@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Emit;
 using Skua.Core.Models;
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Text;
@@ -20,7 +21,6 @@ public class Compiler : CSharpScriptExecution
     private static readonly TimeSpan _cleanupThrottle = TimeSpan.FromMinutes(5);
     private static DateTime _lastCleanupTime = DateTime.MinValue;
     private static readonly object _cleanupLock = new();
-    private static readonly object _compilationLock = new();
     private static readonly CSharpCompilationOptions _compilationOptions = new(
         OutputKind.DynamicallyLinkedLibrary,
         optimizationLevel: OptimizationLevel.Release,
@@ -29,6 +29,64 @@ public class Compiler : CSharpScriptExecution
         reportSuppressedDiagnostics: false);
     private string? _cachedNamespacePrefix = null;
     private int _lastNamespaceHash = 0;
+    
+    private static readonly ConcurrentDictionary<int, string> _compiledRegistry = new();
+    private static readonly ConcurrentDictionary<string, Assembly> _loadedAssemblies = new(StringComparer.OrdinalIgnoreCase);
+    
+    public static bool IsCompiled(int hash) => _compiledRegistry.ContainsKey(hash) || TryLoadFromDiskCache(hash, null) != null;
+    
+    public static string? GetCompiledPath(int hash)
+    {
+        if (_compiledRegistry.TryGetValue(hash, out string? path))
+            return path;
+        return TryLoadFromDiskCache(hash, null);
+    }
+    
+    public static bool IsLoaded(string assemblyPath) => _loadedAssemblies.ContainsKey(assemblyPath);
+    
+    public static Assembly? GetLoadedAssembly(string assemblyPath)
+    {
+        _loadedAssemblies.TryGetValue(assemblyPath, out Assembly? assembly);
+        return assembly;
+    }
+    
+    public static IReadOnlyDictionary<string, Assembly> GetAllLoadedAssemblies() => _loadedAssemblies;
+    
+    public static void RegisterCompiled(int hash, string cachePath)
+    {
+        _compiledRegistry[hash] = cachePath;
+    }
+    
+    public static void RegisterLoaded(string assemblyPath, Assembly assembly)
+    {
+        _loadedAssemblies[assemblyPath] = assembly;
+    }
+    
+    public static void ClearSessionRegistries()
+    {
+        _loadedAssemblies.Clear();
+    }
+    
+    public static bool AreAllDependenciesCompiled(IEnumerable<int> dependencyHashes)
+    {
+        foreach (int hash in dependencyHashes)
+        {
+            if (!IsCompiled(hash))
+                return false;
+        }
+        return true;
+    }
+    
+    public static List<string> GetMissingDependencies(IEnumerable<(int hash, string name)> dependencies)
+    {
+        List<string> missing = new();
+        foreach ((int hash, string name) in dependencies)
+        {
+            if (!IsCompiled(hash))
+                missing.Add(name);
+        }
+        return missing;
+    }
 
     /// <summary>
     /// This method compiles a class and hands back a
@@ -87,6 +145,8 @@ public class Compiler : CSharpScriptExecution
                     {
                         Assembly = Assembly.LoadFrom(cachedAssemblyPath);
                     }
+                    RegisterCompiled(hash, cachedAssemblyPath);
+                    RegisterLoaded(cachedAssemblyPath, Assembly);
                 }
                 catch
                 {
@@ -109,6 +169,9 @@ public class Compiler : CSharpScriptExecution
 
                 if (!CompileOrWaitForAssembly(code, diskCachePath, loadContext))
                     return null;
+                    
+                RegisterCompiled(hash, diskCachePath);
+                RegisterLoaded(diskCachePath, Assembly);
             }
 
             if (loadContext == null)

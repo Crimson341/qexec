@@ -20,7 +20,7 @@ namespace Skua.Core.Scripts;
 public partial class ScriptManager : ObservableObject, IScriptManager, IDisposable
 {
     private static readonly Regex _versionRegex = new(@"^/\*[\s\S]*?version:\s*(\d+\.\d+\.\d+\.\d+)[\s\S]*?\*/", RegexOptions.Multiline | RegexOptions.Compiled);
-    private static readonly string _skuaDIR = ClientFileSources.SkuaDIR;
+    private static readonly Regex _accessibilityRegex = new(@"\b(public\s+|internal\s+|private\s+)?class\s+\w+", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly string _cacheScriptsDir = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
     public ScriptManager(
         ILogService logger,
@@ -250,7 +250,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                                 // Mark the thread as background so it doesn't prevent app shutdown
                                 if (!thread.IsBackground)
                                     thread.IsBackground = true;
-                                    
+
                                 // Give one final chance with a shorter timeout
                                 if (!thread.Join(TimeSpan.FromSeconds(1)))
                                 {
@@ -283,40 +283,32 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         _includedFiles.Clear();
         HashSet<string> references = GetReferences();
         string final = ProcessSources(source, ref references);
-        
+
         // Debug: Check if final source is empty or contains no classes (disabled for performance)
         #if DEBUG_VERBOSE
 
         #endif
-        
+
         // Check if the processed source contains any class definitions
         if (string.IsNullOrWhiteSpace(final))
         {
             throw new ScriptCompileException($"Script file '{LoadedScript}' is empty after processing includes and references.", final);
         }
-        
+
         // Use regex to check for class definitions more robustly
-        if (!System.Text.RegularExpressions.Regex.IsMatch(final, @"\b(public\s+|internal\s+|private\s+)?class\s+\w+", RegexOptions.Multiline))
+        if (!_accessibilityRegex.IsMatch(final))
         {
             throw new ScriptCompileException($"Script file '{LoadedScript}' contains no class definitions after processing includes and references. Scripts must contain at least one class.", final);
         }
-        
+
         // Recursively discover all transitive includes
-        #if DEBUG_VERBOSE
-
-        #endif
         DiscoverAllIncludes(references);
-        #if DEBUG_VERBOSE
-
-        #endif
 
         ScriptLoadContext loadContext = new();
         _currentLoadContext = loadContext;
 
         List<string> compiledIncludes = CompileIncludedFiles(references, loadContext);
-        #if DEBUG_VERBOSE
 
-        #endif
         references.UnionWith(compiledIncludes);
 
         int cacheHash = ComputeCacheHash(final, _includedFiles);
@@ -382,7 +374,6 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             ReadOnlySpan<char> line = sourceSpan[lineRanges[i]].Trim();
 
-            // Only process directive lines, skip everything else
             if (!line.StartsWith("//cs_"))
                 continue;
 
@@ -419,7 +410,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         // Split source into lines and filter out directive lines
         string[] sourceLines = source.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         List<string> filteredLines = new();
-        
+
         foreach (string sourceLine in sourceLines)
         {
             string trimmedLine = sourceLine.Trim();
@@ -428,10 +419,10 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 filteredLines.Add(sourceLine);
             }
         }
-        
+
         return string.Join(Environment.NewLine, filteredLines).Trim();
     }
-    
+
     private void DiscoverAllIncludes(HashSet<string> references)
     {
         bool foundNewFiles = true;
@@ -439,7 +430,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         #if DEBUG_VERBOSE
 
         #endif
-        
+
         // Keep iterating until no new files are found
         while (foundNewFiles && iterationCount < 10) // Safety limit
         {
@@ -448,9 +439,9 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             #if DEBUG_VERBOSE
 
             #endif
-            
+
             List<string> currentFiles = new(_includedFiles); // Snapshot current list
-            
+
             foreach (string currentFile in currentFiles)
             {
                 if (!File.Exists(currentFile))
@@ -458,19 +449,19 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
                     continue;
                 }
-                
+
                 try
                 {
                     string fileContent = File.ReadAllText(currentFile);
                     List<string> newIncludes = ExtractIncludeDirectivesFromSource(fileContent, references);
 
-                    
+
                     foreach (string include in newIncludes)
                     {
                         // Check if already included using filename comparison (more reliable)
-                        bool alreadyIncluded = _includedFiles.Any(f => 
+                        bool alreadyIncluded = _includedFiles.Any(f =>
                             string.Equals(Path.GetFileName(f), Path.GetFileName(include), StringComparison.OrdinalIgnoreCase));
-                            
+
                         if (!alreadyIncluded && File.Exists(include))
                         {
 
@@ -487,7 +478,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         }
 
     }
-    
+
     private List<string> ExtractIncludeDirectivesFromSource(string source, HashSet<string> references)
     {
         List<string> includes = new();
@@ -518,7 +509,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                             else if (File.Exists(parts[1]))
                                 references.Add(parts[1]);
                             break;
-                            
+
                         case "include":
                             string includeLocal = Path.Combine(ClientFileSources.SkuaScriptsDIR, parts[1].Replace("Scripts/", ""));
                             if (File.Exists(includeLocal))
@@ -532,7 +523,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
             start += newlinePos + 1;
         }
-        
+
         return includes;
     }
 
@@ -636,7 +627,6 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         ConcurrentDictionary<string, bool> compilationCompleted = new();
         object lockObj = new();
 
-        // Build dependency graph and precompute cache info in parallel
         ConcurrentDictionary<string, List<string>> dependencyGraph = new();
         ConcurrentDictionary<string, (string source, string fileName, int hash, string cachePath)> fileInfoCache = new();
 
@@ -644,12 +634,10 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         ConcurrentBag<string> validCachedFiles = new();
 
-        // Debug: Print included files count (disabled for performance)
         #if DEBUG_VERBOSE
 
         #endif
-        
-        // Create filename lookup dictionary for O(1) dependency resolution
+
         Dictionary<string, string> filenameLookup = new(StringComparer.OrdinalIgnoreCase);
         foreach (string file in _includedFiles)
         {
@@ -657,17 +645,15 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             if (!filenameLookup.ContainsKey(filename))
                 filenameLookup[filename] = file;
         }
-        
+
         Parallel.ForEach(_includedFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
         {
             string includeSource = File.ReadAllText(includedFile);
             CheckScriptVersionRequirement(includeSource);
             List<string> deps = ExtractIncludeDependencies(includeSource);
-            // Normalize dependency paths to match _includedFiles entries using O(1) lookup
             List<string> normalizedDeps = new();
             foreach (string dep in deps)
             {
-                // Fast O(1) lookup using filename
                 if (filenameLookup.TryGetValue(Path.GetFileName(dep), out string? matchingFile))
                 {
                     normalizedDeps.Add(matchingFile);
@@ -693,6 +679,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     validCachedFiles.Add(includedFile);
                     compiledPaths[includedFile] = compiledPath;
                     compilationCompleted[includedFile] = true;
+                    Compiler.RegisterCompiled(includeHash, compiledPath);
                     fileInfoCache[includedFile] = (string.Empty, includeFileName, includeHash, compiledPath);
                     return;
                 }
@@ -714,7 +701,6 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         HashSet<string> processed = new(validCachedFiles);
         HashSet<string> includedFilesSet = new(_includedFiles);
 
-        // Debug: Print dependency graph (disabled for performance)
         #if DEBUG_VERBOSE
 
         foreach (var kvp in dependencyGraph)
@@ -724,8 +710,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         }
         #endif
-        
-        // Ensure all files referenced in dependency graph are included
+
         HashSet<string> allReferencedFiles = new(_includedFiles);
         List<string> newlyAddedFiles = new();
         foreach (var kvp in dependencyGraph)
@@ -741,8 +726,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 }
             }
         }
-        
-        // Process newly added files for cache info
+
         foreach (string newFile in newlyAddedFiles)
         {
             string includeSource = File.ReadAllText(newFile);
@@ -752,7 +736,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             byte[] hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(includeSource));
             int includeHash = BitConverter.ToInt32(hashBytes, 0);
             string compiledPath = Path.Combine(cacheDir, $"{includeHash}-{includeFileName}.dll");
-            
+
             if (File.Exists(compiledPath))
             {
                 try
@@ -761,6 +745,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     validCachedFiles.Add(newFile);
                     compiledPaths[newFile] = compiledPath;
                     compilationCompleted[newFile] = true;
+                    Compiler.RegisterCompiled(includeHash, compiledPath);
                     fileInfoCache[newFile] = (string.Empty, includeFileName, includeHash, compiledPath);
                 }
                 catch
@@ -773,11 +758,9 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 fileInfoCache[newFile] = (includeSource, includeFileName, includeHash, compiledPath);
             }
         }
-        
-        // Sort files by dependency order and compile sequentially
+
         List<string> orderedFiles = SortByDependencyOrder(dependencyGraph, _includedFiles);
-        
-        // Debug: Print compilation order (disabled for performance)
+
         #if DEBUG_VERBOSE
 
         foreach (string file in orderedFiles)
@@ -785,26 +768,23 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
         }
         #endif
-        
-        // Parallel compilation in dependency-ordered batches
+
         HashSet<string> compiledFiles = new(validCachedFiles);
-        
-        // Mark cached files as completed
+
         foreach (string cachedFile in validCachedFiles)
         {
             compilationCompleted[cachedFile] = true;
         }
-        
+
         while (compiledFiles.Count < orderedFiles.Count)
         {
-            // Find files ready for compilation (all dependencies completed)
             List<string> readyBatch = new();
-            
+
             foreach (string file in orderedFiles)
             {
                 if (compiledFiles.Contains(file))
                     continue;
-                    
+
                 bool allDepsReady = true;
                 if (dependencyGraph.TryGetValue(file, out List<string>? fileDeps))
                 {
@@ -817,19 +797,18 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                         }
                     }
                 }
-                
+
                 if (allDepsReady)
                     readyBatch.Add(file);
             }
-            
+
             if (readyBatch.Count == 0)
-                break; // Deadlock protection
-                
+                break;
+
             #if DEBUG_VERBOSE
 
             #endif
-            
-            // Compile this batch in parallel
+
             Parallel.ForEach(readyBatch, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, file =>
             {
                 try
@@ -842,8 +821,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     throw;
                 }
             });
-            
-            // Add completed files to the compiled set
+
             foreach (string file in readyBatch)
                 compiledFiles.Add(file);
         }
@@ -875,8 +853,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             string compiledPath = info.cachePath;
 
             HashSet<string> includeReferences = new(references);
-            
-            // Add ALL previously compiled assemblies as references
+
             lock (lockObj)
             {
                 foreach (KeyValuePair<string, string> kvp in compiledPaths)
@@ -885,13 +862,11 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     {
                         try
                         {
-                            // Verify the assembly is valid and can be loaded
                             AssemblyName.GetAssemblyName(kvp.Value);
                             includeReferences.Add(kvp.Value);
                         }
                         catch
                         {
-                            // Skip invalid assemblies
                         }
                     }
                 }
@@ -915,15 +890,13 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     includeCompiler.GeneratedClassCodeWithLineNumbers);
             }
 
-            // Add to compiled paths immediately after successful compilation
             if (assembly != null && File.Exists(compiledPath))
             {
-                // Wait a bit to ensure file is fully written
                 for (int i = 0; i < 10; i++)
                 {
                     try
                     {
-                        using var fs = new FileStream(compiledPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                        using FileStream fs = new(compiledPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                         if (fs.Length > 0)
                             break;
                     }
@@ -932,22 +905,23 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                         Thread.Sleep(10);
                     }
                 }
-                
+
                 lock (lockObj)
                 {
                     compiledPaths[includedFile] = compiledPath;
                     compilationCompleted[includedFile] = true;
 
-                    
-                    // Force the assembly to be loaded in the context immediately
-                    try
+                    if (!Compiler.IsLoaded(compiledPath))
                     {
-                        using FileStream stream = File.OpenRead(compiledPath);
-                        loadContext.LoadFromStream(stream);
-                    }
-                    catch (Exception ex)
-                    {
-
+                        try
+                        {
+                            using FileStream stream = File.OpenRead(compiledPath);
+                            Assembly loadedAssembly = loadContext.LoadFromStream(stream);
+                            Compiler.RegisterLoaded(compiledPath, loadedAssembly);
+                        }
+                        catch
+                        {
+                        }
                     }
                 }
             }
@@ -963,8 +937,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         List<string> result = new();
         HashSet<string> visited = new();
         HashSet<string> visiting = new();
-        
-        // Visit each file in dependency order
+
         foreach (string file in files)
         {
             if (!visited.Contains(file))
@@ -972,21 +945,21 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 VisitDependencies(file, dependencyGraph, visited, visiting, result, files);
             }
         }
-        
+
         return result;
     }
-    
+
     private void VisitDependencies(string file, ConcurrentDictionary<string, List<string>> dependencyGraph,
         HashSet<string> visited, HashSet<string> visiting, List<string> result, List<string> allFiles)
     {
         if (visiting.Contains(file))
-            return; // Circular dependency detected, skip
-            
+            return;
+
         if (visited.Contains(file))
             return;
-            
+
         visiting.Add(file);
-        
+
         // Visit all dependencies first
         if (dependencyGraph.TryGetValue(file, out List<string>? dependencies))
         {
@@ -998,7 +971,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 }
             }
         }
-        
+
         visiting.Remove(file);
         visited.Add(file);
         result.Add(file);
@@ -1009,7 +982,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         List<string> result = new();
         HashSet<string> visited = new();
         HashSet<string> visiting = new();
-        
+
         foreach (string file in files)
         {
             if (!visited.Contains(file))
@@ -1017,21 +990,21 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 VisitFile(file, dependencyGraph, visited, visiting, result, files);
             }
         }
-        
+
         return result;
     }
-    
-    private void VisitFile(string file, ConcurrentDictionary<string, List<string>> dependencyGraph, 
+
+    private void VisitFile(string file, ConcurrentDictionary<string, List<string>> dependencyGraph,
         HashSet<string> visited, HashSet<string> visiting, List<string> result, List<string> allFiles)
     {
         if (visiting.Contains(file))
-            return; // Circular dependency, skip
-            
+            return;
+
         if (visited.Contains(file))
             return;
-            
+
         visiting.Add(file);
-        
+
         if (dependencyGraph.TryGetValue(file, out List<string>? deps))
         {
             foreach (string dep in deps)
@@ -1042,7 +1015,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 }
             }
         }
-        
+
         visiting.Remove(file);
         visited.Add(file);
         result.Add(file);
@@ -1052,7 +1025,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     {
         if (!dependencyGraph.TryGetValue(file, out List<string>? directDeps))
             return;
-            
+
         foreach (string dep in directDeps)
         {
             if (allDeps.Add(dep))
@@ -1155,6 +1128,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     {
         ScriptLoadContext? context = _currentLoadContext;
         _currentLoadContext = null;
+
+        Compiler.ClearSessionRegistries();
 
         if (context is null)
             return;
