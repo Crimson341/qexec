@@ -35,22 +35,7 @@ public class Compiler : CSharpScriptExecution
 
     public static bool IsCompiled(int hash) => _compiledRegistry.ContainsKey(hash) || TryLoadFromDiskCache(hash, null) != null;
 
-    public static string? GetCompiledPath(int hash)
-    {
-        if (_compiledRegistry.TryGetValue(hash, out string? path))
-            return path;
-        return TryLoadFromDiskCache(hash, null);
-    }
-
     public static bool IsLoaded(string assemblyPath) => _loadedAssemblies.ContainsKey(assemblyPath);
-
-    public static Assembly? GetLoadedAssembly(string assemblyPath)
-    {
-        _loadedAssemblies.TryGetValue(assemblyPath, out Assembly? assembly);
-        return assembly;
-    }
-
-    public static IReadOnlyDictionary<string, Assembly> GetAllLoadedAssemblies() => _loadedAssemblies;
 
     public static void RegisterCompiled(int hash, string cachePath)
     {
@@ -65,27 +50,6 @@ public class Compiler : CSharpScriptExecution
     public static void ClearSessionRegistries()
     {
         _loadedAssemblies.Clear();
-    }
-
-    public static bool AreAllDependenciesCompiled(IEnumerable<int> dependencyHashes)
-    {
-        foreach (int hash in dependencyHashes)
-        {
-            if (!IsCompiled(hash))
-                return false;
-        }
-        return true;
-    }
-
-    public static List<string> GetMissingDependencies(IEnumerable<(int hash, string name)> dependencies)
-    {
-        List<string> missing = new();
-        foreach ((int hash, string name) in dependencies)
-        {
-            if (!IsCompiled(hash))
-                missing.Add(name);
-        }
-        return missing;
     }
 
     /// <summary>
