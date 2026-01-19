@@ -15,7 +15,7 @@ namespace Skua.Core;
 /// </summary>
 public class Compiler : CSharpScriptExecution
 {
-    private const int _maxCachedAssemblies = 500;
+    private const int _maxCachedAssemblies = 1024;
     private static readonly string _cacheDirectory = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
     private static readonly TimeSpan _cacheExpiration = TimeSpan.FromDays(7);
     private static readonly TimeSpan _cleanupThrottle = TimeSpan.FromMinutes(5);
@@ -29,44 +29,44 @@ public class Compiler : CSharpScriptExecution
         reportSuppressedDiagnostics: false);
     private string? _cachedNamespacePrefix = null;
     private int _lastNamespaceHash = 0;
-    
+
     private static readonly ConcurrentDictionary<int, string> _compiledRegistry = new();
     private static readonly ConcurrentDictionary<string, Assembly> _loadedAssemblies = new(StringComparer.OrdinalIgnoreCase);
-    
+
     public static bool IsCompiled(int hash) => _compiledRegistry.ContainsKey(hash) || TryLoadFromDiskCache(hash, null) != null;
-    
+
     public static string? GetCompiledPath(int hash)
     {
         if (_compiledRegistry.TryGetValue(hash, out string? path))
             return path;
         return TryLoadFromDiskCache(hash, null);
     }
-    
+
     public static bool IsLoaded(string assemblyPath) => _loadedAssemblies.ContainsKey(assemblyPath);
-    
+
     public static Assembly? GetLoadedAssembly(string assemblyPath)
     {
         _loadedAssemblies.TryGetValue(assemblyPath, out Assembly? assembly);
         return assembly;
     }
-    
+
     public static IReadOnlyDictionary<string, Assembly> GetAllLoadedAssemblies() => _loadedAssemblies;
-    
+
     public static void RegisterCompiled(int hash, string cachePath)
     {
         _compiledRegistry[hash] = cachePath;
     }
-    
+
     public static void RegisterLoaded(string assemblyPath, Assembly assembly)
     {
         _loadedAssemblies[assemblyPath] = assembly;
     }
-    
+
     public static void ClearSessionRegistries()
     {
         _loadedAssemblies.Clear();
     }
-    
+
     public static bool AreAllDependenciesCompiled(IEnumerable<int> dependencyHashes)
     {
         foreach (int hash in dependencyHashes)
@@ -76,7 +76,7 @@ public class Compiler : CSharpScriptExecution
         }
         return true;
     }
-    
+
     public static List<string> GetMissingDependencies(IEnumerable<(int hash, string name)> dependencies)
     {
         List<string> missing = new();
@@ -169,7 +169,7 @@ public class Compiler : CSharpScriptExecution
 
                 if (!CompileOrWaitForAssembly(code, diskCachePath, loadContext))
                     return null;
-                    
+
                 RegisterCompiled(hash, diskCachePath);
                 RegisterLoaded(diskCachePath, Assembly);
             }

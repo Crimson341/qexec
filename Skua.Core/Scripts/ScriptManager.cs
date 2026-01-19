@@ -359,13 +359,9 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     private string ProcessSources(string source, ref HashSet<string> references)
     {
-        Span<Range> lineRanges = stackalloc Range[256];
+        int actualLineCount = source.AsSpan().Count('\n') + 1;
+        Span<Range> lineRanges = actualLineCount <= 1024 ? stackalloc Range[actualLineCount] : new Range[actualLineCount];
         int lineCount = source.AsSpan().Split(lineRanges, '\n');
-        if (lineCount > lineRanges.Length)
-        {
-            lineRanges = new Range[lineCount];
-            lineCount = source.AsSpan().Split(lineRanges, '\n');
-        }
 
         List<string> linesToRemove = new();
         ReadOnlySpan<char> sourceSpan = source.AsSpan();
