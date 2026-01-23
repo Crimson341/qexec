@@ -621,6 +621,25 @@ public class Main extends MovieClip {
             return rebuiltAuras;
         }
         
+        if (auras.length > 250) {
+            var expiredCount:int = 0;
+            for (var j:int = 0; j < auras.length; j++) {
+                var checkAura:Object = auras[j];
+                if (!checkAura || !checkAura.hasOwnProperty("nam") || !checkAura.nam || checkAura.e == 1) {
+                    expiredCount++;
+                }
+            }
+            
+            if (expiredCount > auras.length * 0.5) {
+                for (var k:int = auras.length - 1; k >= 0; k--) {
+                    var cleanAura:Object = auras[k];
+                    if (!cleanAura || !cleanAura.hasOwnProperty("nam") || !cleanAura.nam || cleanAura.e == 1) {
+                        auras.splice(k, 1);
+                    }
+                }
+            }
+        }
+        
         for (var i:int = 0; i < auras.length; i++) {
             var aura:Object = auras[i];
             
