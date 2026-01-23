@@ -145,7 +145,6 @@ function Build-Platform([string]$Platform, [string]$Config, [bool]$EnableBinLog 
         
         $stopwatch.Stop()
         Write-Success "Build completed for $Platform in $($stopwatch.Elapsed.TotalSeconds.ToString('F2'))s"
-        Copy-BuildOutputs -Platform $Platform -Config $Config
     }
     catch {
         $stopwatch.Stop()
@@ -154,24 +153,6 @@ function Build-Platform([string]$Platform, [string]$Config, [bool]$EnableBinLog 
     }
 }
 
-function Copy-BuildOutputs([string]$Platform, [string]$Config) {
-    Write-Info "Copying build outputs..."
-    $outputDir = Join-Path $OutputPath "$Config\$Platform"
-    if (-not (Test-Path $outputDir)) { New-Item -ItemType Directory -Path $outputDir -Force | Out-Null }
-    
-    @("Skua.App.WPF", "Skua.Manager") | ForEach-Object {
-        $sourceDir = ".\$_\bin\$Platform\$Config\net10.0-windows"
-        if (-not (Test-Path $sourceDir)) { $sourceDir = ".\$_\bin\$Config\net10.0-windows" }
-        
-        if (Test-Path $sourceDir) {
-            $destDir = Join-Path $outputDir $_
-            if (Test-Path $destDir) { Remove-Item -Path $destDir -Recurse -Force }
-            Copy-Item -Path $sourceDir -Destination $destDir -Recurse -Force
-            Write-Success "Copied $_"
-        }
-        else { Write-Info "Skipping $_ (not built for this platform)" }
-    }
-}
 
 function Build-Installer([string]$Platform) {
     if ($SkipInstaller) { Write-Info "Skipping installer build"; return }
@@ -294,11 +275,6 @@ function Main {
             
             if (-not $allSuccess) {
                 throw "One or more platform builds failed"
-            }
-            
-            # Copy outputs after parallel builds
-            foreach ($platform in $Platforms) {
-                Copy-BuildOutputs -Platform $platform -Config $Configuration
             }
             
             # Build installers in parallel
