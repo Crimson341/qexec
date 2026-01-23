@@ -20,7 +20,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
 
     protected override void OnActivated()
     {
-        RefreshScriptsList();
+        _ = RefreshScriptsList();
     }
 
     private readonly IGetScriptsService _getScriptsService;
@@ -71,29 +71,33 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
             }, token);
         }
         catch { }
-        RefreshScriptsList();
+        await RefreshScriptsList();
     }
 
-    private void RefreshScriptsList()
+    private async Task RefreshScriptsList()
     {
         _scripts.Clear();
         if (_getScriptsService?.Scripts != null)
         {
-            List<ScriptInfoViewModel> scriptViewModels = new();
-            foreach (ScriptInfo script in _getScriptsService.Scripts)
+            List<ScriptInfoViewModel> scriptViewModels = await Task.Run(() =>
             {
-                if (script?.Name != null && !script.Name.Equals("null"))
+                List<ScriptInfoViewModel> viewModels = new();
+                foreach (ScriptInfo script in _getScriptsService.Scripts)
                 {
-                    if (script.Description?.Equals("null") == true)
-                        script.Description = "No description provided.";
+                    if (script?.Name != null && !script.Name.Equals("null"))
+                    {
+                        if (script.Description?.Equals("null") == true)
+                            script.Description = "No description provided.";
 
-                    if (script.Tags?.Contains("null") == true && (script.Tags.Length == 1))
-                        script.Tags = new[] { "no-tags" };
-                    else script.Tags ??= new[] { "no-tags" };
+                        if (script.Tags?.Contains("null") == true && (script.Tags.Length == 1))
+                            script.Tags = new[] { "no-tags" };
+                        else script.Tags ??= new[] { "no-tags" };
 
-                    scriptViewModels.Add(new(script));
+                        viewModels.Add(new(script));
+                    }
                 }
-            }
+                return viewModels;
+            });
             _scripts.AddRange(scriptViewModels);
         }
 
@@ -151,7 +155,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
         ProgressReportMessage = "Updating scripts...";
         int count = await _getScriptsService.DownloadAllWhereAsync(s => s.Outdated);
         ProgressReportMessage = $"Updated {count} scripts.";
-        RefreshScriptsList();
+        await RefreshScriptsList();
     }
 
     [RelayCommand]
@@ -161,7 +165,7 @@ public partial class ScriptRepoViewModel : BotControlViewModelBase
         ProgressReportMessage = "Downloading outdated/missing scripts...";
         int count = await Task.Run(async () => await _getScriptsService.DownloadAllWhereAsync(s => !s.Downloaded || s.Outdated));
         ProgressReportMessage = $"Downloaded {count} scripts.";
-        RefreshScriptsList();
+        await RefreshScriptsList();
     }
 
     [RelayCommand]
