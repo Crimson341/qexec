@@ -1,3 +1,18 @@
+# Skua 1.4.0.4
+## Released: January 23, 2026
+
+## Changes/Fixes
+
+- Compiler race conditions hopefully fixed
+- Search scripts causing a lockup should be fixed
+- Refactored Skua.AS3 for quicker navigation
+- Auras should be more reliable in advanced skills
+  - Apparently, AQW doesn't handle their expired auras, and they stay inside the aura array, thus causing overflow issues
+
+**Full Changelog**:[`1.4.0.3...1.4.0.4`](<https://github.com/auqw/Skua/compare/1.4.0.3...1.4.0.4>)
+
+---
+
 # Skua 1.4.0.3
 ## Released: January 19, 2026
 
