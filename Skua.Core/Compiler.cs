@@ -27,6 +27,7 @@ public class Compiler : CSharpScriptExecution
         concurrentBuild: false,
         deterministic: true,
         reportSuppressedDiagnostics: false);
+    private readonly object _namespaceCacheLock = new();
     private string? _cachedNamespacePrefix = null;
     private int _lastNamespaceHash = 0;
 
@@ -140,13 +141,16 @@ public class Compiler : CSharpScriptExecution
 
             if (loadContext == null)
             {
-                if (CachedAssemblies.Count >= _maxCachedAssemblies)
+                lock (CachedAssemblies)
                 {
-                    int oldestKey = CachedAssemblies.Keys.Min();
-                    CachedAssemblies.TryRemove(oldestKey, out _);
-                }
+                    if (CachedAssemblies.Count >= _maxCachedAssemblies)
+                    {
+                        int oldestKey = CachedAssemblies.Keys.Min();
+                        CachedAssemblies.TryRemove(oldestKey, out _);
+                    }
 
-                CachedAssemblies[hash] = Assembly;
+                    CachedAssemblies[hash] = Assembly;
+                }
             }
         }
         else
@@ -262,21 +266,25 @@ public class Compiler : CSharpScriptExecution
             return source;
 
         int currentHash = Namespaces.Count > 0 ? string.Join(";", Namespaces).GetHashCode() : 0;
-        if (_cachedNamespacePrefix == null || _lastNamespaceHash != currentHash)
+        
+        lock (_namespaceCacheLock)
         {
-            StringBuilder sb = new(Namespaces.Count * 40);
-            foreach (string ns in Namespaces)
+            if (_cachedNamespacePrefix == null || _lastNamespaceHash != currentHash)
             {
-                sb.Append("using ");
-                sb.Append(ns);
-                sb.AppendLine(";");
+                StringBuilder sb = new(Namespaces.Count * 40);
+                foreach (string ns in Namespaces)
+                {
+                    sb.Append("using ");
+                    sb.Append(ns);
+                    sb.AppendLine(";");
+                }
+                sb.AppendLine();
+                _cachedNamespacePrefix = sb.ToString();
+                _lastNamespaceHash = currentHash;
             }
-            sb.AppendLine();
-            _cachedNamespacePrefix = sb.ToString();
-            _lastNamespaceHash = currentHash;
-        }
 
-        return _cachedNamespacePrefix + source;
+            return _cachedNamespacePrefix + source;
+        }
     }
 
     /// <summary>
@@ -505,23 +513,13 @@ public class Compiler : CSharpScriptExecution
 
     private static void TryRunCleanup()
     {
-        if ((DateTime.Now - _lastCleanupTime) < _cleanupThrottle)
-            return;
-
-        if (!Monitor.TryEnter(_cleanupLock))
-            return;
-
-        try
+        lock (_cleanupLock)
         {
             if ((DateTime.Now - _lastCleanupTime) < _cleanupThrottle)
                 return;
 
             Task.Run(() => CleanupOldCachedAssemblies());
             _lastCleanupTime = DateTime.Now;
-        }
-        finally
-        {
-            Monitor.Exit(_cleanupLock);
         }
     }
 

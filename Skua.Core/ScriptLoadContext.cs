@@ -7,7 +7,7 @@ namespace Skua.Core;
 public class ScriptLoadContext : AssemblyLoadContext
 {
     private static readonly string _cacheDirectory = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
-    private bool _isUnloading;
+    private volatile bool _isUnloading;
 
     public ScriptLoadContext() : base(isCollectible: true)
     {
@@ -41,8 +41,19 @@ public class ScriptLoadContext : AssemblyLoadContext
         if (matchingFiles.Length > 0)
         {
             string latestFile = matchingFiles.OrderByDescending(f => File.GetLastWriteTimeUtc(f)).First();
-            using FileStream stream = File.OpenRead(latestFile);
-            return LoadFromStream(stream);
+            
+            if (!File.Exists(latestFile))
+                return null;
+
+            try
+            {
+                using FileStream stream = File.OpenRead(latestFile);
+                return LoadFromStream(stream);
+            }
+            catch
+            {
+                return null;
+            }
         }
 
         return null;

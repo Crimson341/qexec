@@ -54,12 +54,16 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     private IScriptWait Wait => _lazyWait.Value;
     private IAuraMonitorService AuraMonitor => _lazyAuraMonitor.Value;
 
-    private Thread _currentScriptThread;
+    private Thread? _currentScriptThread;
     private readonly object _threadLock = new();
+    private readonly object _stateLock = new();
     private bool _stoppedByScript;
     private bool _runScriptStoppingBool;
+    private readonly object _configuredLock = new();
     private readonly Dictionary<string, bool> _configured = new();
+    private readonly object _refCacheLock = new();
     private readonly List<string> _refCache = new();
+    private readonly ReaderWriterLockSlim _includedFilesLock = new();
     private readonly List<string> _includedFiles = new();
     private ScriptLoadContext? _currentLoadContext;
 
@@ -80,10 +84,14 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     public async Task<Exception?> StartScript()
     {
-        if (ScriptRunning)
+        lock (_threadLock)
         {
-            _logger.ScriptLog("Script already running.");
-            return new Exception("Script already running.");
+            if (ScriptRunning)
+            {
+                _logger.ScriptLog("Script already running.");
+                return new Exception("Script already running.");
+            }
+            ScriptRunning = true;
         }
 
         try
@@ -96,13 +104,23 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             object? script = await Task.Run(() => Compile(scriptContent));
 
             LoadScriptConfig(script);
-            bool needsConfig = _configured.TryGetValue(Config!.Storage, out bool b) && !b;
+            
+            bool needsConfig;
+            lock (_configuredLock)
+            {
+                needsConfig = _configured.TryGetValue(Config!.Storage, out bool b) && !b;
+            }
+            
             ManualResetEventSlim scriptReady = new(false);
 
             Handlers.Clear();
-            _runScriptStoppingBool = false;
+            
+            lock (_stateLock)
+            {
+                _runScriptStoppingBool = false;
+            }
 
-            _currentScriptThread = new(() =>
+            Thread scriptThread = new(() =>
             {
                 Exception? exception = null;
                 ScriptCts = new();
@@ -116,19 +134,35 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 {
                     Exception actualException = e is TargetInvocationException && e.InnerException != null ? e.InnerException : e;
 
-                    if ((actualException is not OperationCanceledException || !_stoppedByScript) && (e is not TargetInvocationException || !_stoppedByScript))
+                    bool stoppedByScript;
+                    lock (_stateLock)
+                    {
+                        stoppedByScript = _stoppedByScript;
+                    }
+
+                    if ((actualException is not OperationCanceledException || !stoppedByScript) && (e is not TargetInvocationException || !stoppedByScript))
                     {
                         exception = e;
                         Trace.WriteLine($"Error while running script:\r\nMessage: {(e.InnerException is not null ? e.InnerException.Message : e.Message)}\r\nStackTrace: {(e.InnerException is not null ? e.InnerException.StackTrace : e.StackTrace)}");
 
                         StrongReferenceMessenger.Default.Send<ScriptErrorMessage, int>(new(e), (int)MessageChannels.ScriptStatus);
-                        _runScriptStoppingBool = true;
+                        
+                        lock (_stateLock)
+                        {
+                            _runScriptStoppingBool = true;
+                        }
                     }
                 }
                 finally
                 {
-                    _stoppedByScript = false;
-                    if (_runScriptStoppingBool)
+                    bool shouldSendStoppingMessage;
+                    lock (_stateLock)
+                    {
+                        _stoppedByScript = false;
+                        shouldSendStoppingMessage = _runScriptStoppingBool;
+                    }
+                    
+                    if (shouldSendStoppingMessage)
                     {
                         StrongReferenceMessenger.Default.Send<ScriptStoppingMessage, int>((int)MessageChannels.ScriptStatus);
                         try
@@ -177,8 +211,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
             lock (_threadLock)
             {
-                _currentScriptThread.Start();
-                ScriptRunning = true;
+                _currentScriptThread = scriptThread;
+                scriptThread.Start();
             }
 
             StrongReferenceMessenger.Default.Send<ScriptStartedMessage, int>((int)MessageChannels.ScriptStatus);
@@ -189,7 +223,10 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 {
                     scriptReady.Wait();
                     Config!.Configure();
-                    _configured[Config!.Storage] = true;
+                    lock (_configuredLock)
+                    {
+                        _configured[Config!.Storage] = true;
+                    }
                 });
             }
 
@@ -197,7 +234,10 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         }
         catch (Exception e)
         {
-            ScriptRunning = false;
+            lock (_threadLock)
+            {
+                ScriptRunning = false;
+            }
             return e;
         }
     }
@@ -215,8 +255,12 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     public async ValueTask StopScript(bool runScriptStoppingEvent = true)
     {
-        _runScriptStoppingBool = runScriptStoppingEvent;
-        _stoppedByScript = true;
+        lock (_stateLock)
+        {
+            _runScriptStoppingBool = runScriptStoppingEvent;
+            _stoppedByScript = true;
+        }
+        
         ScriptCts?.Cancel();
 
         if (Thread.CurrentThread.Name == "Script Thread")
@@ -280,7 +324,17 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         CheckScriptVersionRequirement(source);
 
         Stopwatch sw = Stopwatch.StartNew();
-        _includedFiles.Clear();
+        
+        _includedFilesLock.EnterWriteLock();
+        try
+        {
+            _includedFiles.Clear();
+        }
+        finally
+        {
+            _includedFilesLock.ExitWriteLock();
+        }
+        
         HashSet<string> references = GetReferences();
         string final = ProcessSources(source, ref references);
 
@@ -305,13 +359,25 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         DiscoverAllIncludes(references);
 
         ScriptLoadContext loadContext = new();
-        _currentLoadContext = loadContext;
+        lock (_stateLock)
+        {
+            _currentLoadContext = loadContext;
+        }
 
         List<string> compiledIncludes = CompileIncludedFiles(references, loadContext);
 
         references.UnionWith(compiledIncludes);
 
-        int cacheHash = ComputeCacheHash(final, _includedFiles);
+        int cacheHash;
+        _includedFilesLock.EnterReadLock();
+        try
+        {
+            cacheHash = ComputeCacheHash(final, new List<string>(_includedFiles));
+        }
+        finally
+        {
+            _includedFilesLock.ExitReadLock();
+        }
         CompiledScript = final;
         string scriptName = Path.GetFileNameWithoutExtension(LoadedScript);
 
@@ -337,21 +403,25 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     private HashSet<string> GetReferences()
     {
         HashSet<string> references = new();
-        if (_refCache.Count == 0 && Directory.Exists(ClientFileSources.SkuaPluginsDIR))
+        
+        lock (_refCacheLock)
         {
-            foreach (string file in Directory.EnumerateFiles(ClientFileSources.SkuaPluginsDIR, "*.dll"))
+            if (_refCache.Count == 0 && Directory.Exists(ClientFileSources.SkuaPluginsDIR))
             {
-                string path = Path.Combine(ClientFileSources.SkuaDIR, file);
-                if (CanLoadAssembly(path))
+                foreach (string file in Directory.EnumerateFiles(ClientFileSources.SkuaPluginsDIR, "*.dll"))
                 {
-                    _refCache.Add(path);
-                    references.Add(path);
+                    string path = Path.Combine(ClientFileSources.SkuaDIR, file);
+                    if (CanLoadAssembly(path))
+                    {
+                        _refCache.Add(path);
+                        references.Add(path);
+                    }
                 }
             }
-        }
-        else
-        {
-            references.UnionWith(_refCache);
+            else
+            {
+                references.UnionWith(_refCache);
+            }
         }
 
         return references;
@@ -364,6 +434,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         int lineCount = source.AsSpan().Split(lineRanges, '\n');
 
         List<string> linesToRemove = new();
+        List<string> filesToInclude = new();
         ReadOnlySpan<char> sourceSpan = source.AsSpan();
 
         for (int i = 0; i < lineCount; i++)
@@ -392,25 +463,38 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 case "include":
                     string localSource = Path.Combine(ClientFileSources.SkuaScriptsDIR, parts[1].Replace("Scripts/", ""));
                     if (File.Exists(localSource))
-                        _includedFiles.Add(localSource);
+                        filesToInclude.Add(localSource);
                     else if (File.Exists(parts[1]))
-                        _includedFiles.Add(parts[1]);
+                        filesToInclude.Add(parts[1]);
                     break;
             }
             linesToRemove.Add(lineStr);
         }
 
+        if (filesToInclude.Count > 0)
+        {
+            _includedFilesLock.EnterWriteLock();
+            try
+            {
+                _includedFiles.AddRange(filesToInclude);
+            }
+            finally
+            {
+                _includedFilesLock.ExitWriteLock();
+            }
+        }
+
         if (linesToRemove.Count == 0)
             return source.Trim();
 
-        // Split source into lines and filter out directive lines
+        HashSet<string> linesToRemoveSet = new(linesToRemove);
         string[] sourceLines = source.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         List<string> filteredLines = new();
 
         foreach (string sourceLine in sourceLines)
         {
             string trimmedLine = sourceLine.Trim();
-            if (!linesToRemove.Contains(trimmedLine))
+            if (!linesToRemoveSet.Contains(trimmedLine))
             {
                 filteredLines.Add(sourceLine);
             }
@@ -436,7 +520,16 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
 #endif
 
-            List<string> currentFiles = new(_includedFiles); // Snapshot current list
+            List<string> currentFiles;
+            _includedFilesLock.EnterReadLock();
+            try
+            {
+                currentFiles = new List<string>(_includedFiles);
+            }
+            finally
+            {
+                _includedFilesLock.ExitReadLock();
+            }
 
             foreach (string currentFile in currentFiles)
             {
@@ -452,17 +545,39 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     List<string> newIncludes = ExtractIncludeDirectivesFromSource(fileContent, references);
 
 
-                    foreach (string include in newIncludes)
+                    if (newIncludes.Count > 0)
                     {
-                        // Check if already included using filename comparison (more reliable)
-                        bool alreadyIncluded = _includedFiles.Any(f =>
-                            string.Equals(Path.GetFileName(f), Path.GetFileName(include), StringComparison.OrdinalIgnoreCase));
-
-                        if (!alreadyIncluded && File.Exists(include))
+                        List<string> filesToAdd = new();
+                        foreach (string include in newIncludes)
                         {
+                            if (File.Exists(include))
+                                filesToAdd.Add(include);
+                        }
 
-                            _includedFiles.Add(include);
-                            foundNewFiles = true;
+                        if (filesToAdd.Count > 0)
+                        {
+                            _includedFilesLock.EnterWriteLock();
+                            try
+                            {
+                                HashSet<string> existingNames = new(StringComparer.OrdinalIgnoreCase);
+                                foreach (string existing in _includedFiles)
+                                {
+                                    existingNames.Add(Path.GetFileName(existing));
+                                }
+
+                                foreach (string include in filesToAdd)
+                                {
+                                    if (existingNames.Add(Path.GetFileName(include)))
+                                    {
+                                        _includedFiles.Add(include);
+                                        foundNewFiles = true;
+                                    }
+                                }
+                            }
+                            finally
+                            {
+                                _includedFilesLock.ExitWriteLock();
+                            }
                         }
                     }
                 }
@@ -555,10 +670,13 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             opts.Options.AddRange((List<IOption>)optsField.GetValue(script)!);
         if (storageField is not null)
             opts.Storage = (string)storageField.GetValue(script)!;
-        if (dontPreconfField is not null)
-            _configured[opts.Storage] = (bool)dontPreconfField.GetValue(script)!;
-        else if (optsField is not null)
-            _configured[opts.Storage] = false;
+        lock (_configuredLock)
+        {
+            if (dontPreconfField is not null)
+                _configured[opts.Storage] = (bool)dontPreconfField.GetValue(script)!;
+            else if (optsField is not null)
+                _configured[opts.Storage] = false;
+        }
 
         opts.SetDefaults();
         opts.Load();
@@ -635,14 +753,24 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 #endif
 
         Dictionary<string, string> filenameLookup = new(StringComparer.OrdinalIgnoreCase);
-        foreach (string file in _includedFiles)
+        List<string> includedFilesSnapshot;
+        _includedFilesLock.EnterReadLock();
+        try
         {
-            string filename = Path.GetFileName(file);
-            if (!filenameLookup.ContainsKey(filename))
-                filenameLookup[filename] = file;
+            includedFilesSnapshot = new List<string>(_includedFiles);
+            foreach (string file in _includedFiles)
+            {
+                string filename = Path.GetFileName(file);
+                if (!filenameLookup.ContainsKey(filename))
+                    filenameLookup[filename] = file;
+            }
+        }
+        finally
+        {
+            _includedFilesLock.ExitReadLock();
         }
 
-        Parallel.ForEach(_includedFiles, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
+        Parallel.ForEach(includedFilesSnapshot, new ParallelOptions { MaxDegreeOfParallelism = Environment.ProcessorCount }, includedFile =>
         {
             string includeSource = File.ReadAllText(includedFile);
             CheckScriptVersionRequirement(includeSource);
@@ -654,9 +782,22 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 {
                     normalizedDeps.Add(matchingFile);
                 }
-                else if (_includedFiles.Contains(dep))
+                else
                 {
-                    normalizedDeps.Add(dep);
+                    bool containsDep;
+                    _includedFilesLock.EnterReadLock();
+                    try
+                    {
+                        containsDep = _includedFiles.Contains(dep);
+                    }
+                    finally
+                    {
+                        _includedFilesLock.ExitReadLock();
+                    }
+                    if (containsDep)
+                    {
+                        normalizedDeps.Add(dep);
+                    }
                 }
             }
             dependencyGraph[includedFile] = normalizedDeps;
@@ -695,7 +836,16 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         });
 
         HashSet<string> processed = new(validCachedFiles);
-        HashSet<string> includedFilesSet = new(_includedFiles);
+        HashSet<string> includedFilesSet;
+        _includedFilesLock.EnterReadLock();
+        try
+        {
+            includedFilesSet = new HashSet<string>(_includedFiles);
+        }
+        finally
+        {
+            _includedFilesLock.ExitReadLock();
+        }
 
 #if DEBUG_VERBOSE
 
@@ -707,7 +857,17 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         }
 #endif
 
-        HashSet<string> allReferencedFiles = new(_includedFiles);
+        HashSet<string> allReferencedFiles;
+        _includedFilesLock.EnterReadLock();
+        try
+        {
+            allReferencedFiles = new HashSet<string>(_includedFiles);
+        }
+        finally
+        {
+            _includedFilesLock.ExitReadLock();
+        }
+        
         List<string> newlyAddedFiles = new();
         foreach (KeyValuePair<string, List<string>> kvp in dependencyGraph)
         {
@@ -715,11 +875,22 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             {
                 if (File.Exists(dep) && !allReferencedFiles.Contains(dep))
                 {
-
                     allReferencedFiles.Add(dep);
-                    _includedFiles.Add(dep);
                     newlyAddedFiles.Add(dep);
                 }
+            }
+        }
+
+        if (newlyAddedFiles.Count > 0)
+        {
+            _includedFilesLock.EnterWriteLock();
+            try
+            {
+                _includedFiles.AddRange(newlyAddedFiles);
+            }
+            finally
+            {
+                _includedFilesLock.ExitWriteLock();
             }
         }
 
@@ -755,7 +926,16 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             }
         }
 
-        List<string> orderedFiles = SortByDependencyOrder(dependencyGraph, _includedFiles);
+        List<string> orderedFiles;
+        _includedFilesLock.EnterReadLock();
+        try
+        {
+            orderedFiles = SortByDependencyOrder(dependencyGraph, new List<string>(_includedFiles));
+        }
+        finally
+        {
+            _includedFilesLock.ExitReadLock();
+        }
 
 #if DEBUG_VERBOSE
 
@@ -1122,8 +1302,12 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 
     private void UnloadPreviousScript()
     {
-        ScriptLoadContext? context = _currentLoadContext;
-        _currentLoadContext = null;
+        ScriptLoadContext? context;
+        lock (_stateLock)
+        {
+            context = _currentLoadContext;
+            _currentLoadContext = null;
+        }
 
         Compiler.ClearSessionRegistries();
 
@@ -1172,5 +1356,6 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             }
         }
         ScriptCts?.Dispose();
+        _includedFilesLock?.Dispose();
     }
 }
