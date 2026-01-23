@@ -1,6 +1,14 @@
 package skua {
 import flash.external.ExternalInterface;
 
+import skua.api.Auras;
+import skua.api.Combat;
+import skua.api.Monster;
+import skua.api.Player;
+import skua.api.Server;
+import skua.api.Shop;
+import skua.api.Skills;
+import skua.api.World;
 import skua.module.Modules;
 import skua.remote.RemoteRegistry;
 
@@ -11,8 +19,13 @@ public class Externalizer {
     }
 
     public function init(root:Main):void {
+        // Core initialization
         this.addCallback("loadClient", Main.loadGame);
         this.addCallback("setBackgroundValues", Main.setBackgroundValues);
+        this.addCallback("isTrue", Main.isTrue);
+        this.addCallback("isNull", Main.isNull);
+
+        // Game object access
         this.addCallback("getGameObject", Main.getGameObject);
         this.addCallback("getGameObjectS", Main.getGameObjectS);
         this.addCallback("getGameObjectKey", Main.getGameObjectKey);
@@ -23,66 +36,71 @@ public class Externalizer {
         this.addCallback("callGameFunction", Main.callGameFunction);
         this.addCallback("callGameFunction0", Main.callGameFunction0);
         this.addCallback("selectArrayObjects", Main.selectArrayObjects);
-        this.addCallback("connectToServer", Main.connectToServer);
-        this.addCallback("isNull", Main.isNull);
 
-        this.addCallback("clickServer", Main.clickServer);
+        // Server
+        this.addCallback("connectToServer", Server.connectToServer);
+        this.addCallback("clickServer", Server.clickServer);
 
-        this.addCallback("isLoggedIn", Main.isLoggedIn);
-        this.addCallback("isKicked", Main.isKicked);
+        // Player
+        this.addCallback("isLoggedIn", Player.isLoggedIn);
+        this.addCallback("isKicked", Player.isKicked);
+        this.addCallback("walkTo", Player.walkTo);
+        this.addCallback("untargetSelf", Player.untargetSelf);
+        this.addCallback("attackPlayer", Player.attackPlayer);
+        this.addCallback("getAvatar", Player.getAvatar);
+        this.addCallback("getLoadouts", Player.getLoadouts);
+        this.addCallback("gender", Player.Gender);
+        this.addCallback("rejectExcept", Player.rejectExcept);
 
-        this.addCallback("infiniteRange", Main.infiniteRange);
-        this.addCallback("canUseSkill", Main.canUseSkill);
-        this.addCallback("useSkill", Main.useSkill);
 
-        this.addCallback("rejectExcept", Main.rejectExcept);
+        // World
+        this.addCallback("jumpCorrectRoom", World.jumpCorrectRoom);
+        this.addCallback("disableDeathAd", World.disableDeathAd);
+        this.addCallback("skipCutscenes", World.skipCutscenes);
+        this.addCallback("hidePlayers", World.hidePlayers);
+        this.addCallback("disableFX", World.disableFX);
+        this.addCallback("killLag", World.killLag);
 
-        this.addCallback("walkTo", Main.walkTo);
-        this.addCallback("jumpCorrectRoom", Main.jumpCorrectRoom);
+        // Monster
+        this.addCallback("availableMonsters", Monster.availableMonstersInCell);
+        this.addCallback("getMonsters", Monster.getMonsters);
+        this.addCallback("getTargetMonster", Monster.getTargetMonster);
+        this.addCallback("attackMonsterName", Monster.attackMonsterByName);
+        this.addCallback("attackMonsterID", Monster.attackMonsterByID);
 
-        this.addCallback("getLoadouts", Main.getLoadouts);
+        // Skills
+        this.addCallback("canUseSkill", Skills.canUseSkill);
+        this.addCallback("useSkill", Skills.useSkill);
 
-        this.addCallback("availableMonsters", Main.availableMonstersInCell);
-        this.addCallback("getMonsters", Main.getMonsters);
-        this.addCallback("getTargetMonster", Main.getTargetMonster);
-        this.addCallback("attackMonsterName", Main.attackMonsterByName);
-        this.addCallback("attackMonsterID", Main.attackMonsterByID);
-        this.addCallback("untargetSelf", Main.untargetSelf);
-        this.addCallback("attackPlayer", Main.attackPlayer);
+        // Combat
+        this.addCallback("infiniteRange", Combat.infiniteRange);
+        this.addCallback("magnetize", Combat.magnetize);
 
-        this.addCallback("buyItemByName", Main.buyItemByName);
-        this.addCallback("buyItemByID", Main.buyItemByID);
-        this.addCallback("getShopItem", Main.getShopItem);
-        this.addCallback("getShopItemByID", Main.getShopItemByID);
+        // Shop
+        this.addCallback("buyItemByName", Shop.buyItemByName);
+        this.addCallback("buyItemByID", Shop.buyItemByID);
+        this.addCallback("getShopItem", Shop.getShopItem);
+        this.addCallback("getShopItemByID", Shop.getShopItemByID);
 
+        // Auras
+        this.addCallback("getSubjectAuras", Auras.getSubjectAuras);
+        this.addCallback("HasAnyActiveAura", Auras.HasAnyActiveAura);
+        this.addCallback("GetPlayerAura", Auras.GetPlayerAura);
+        this.addCallback("GetMonsterAuraByName", Auras.GetMonsterAuraByName);
+        this.addCallback("GetMonsterAuraByID", Auras.GetMonsterAuraByID);
+        this.addCallback("rebuildAuraArray", Auras.rebuildAuraArray);
+        this.addCallback("GetAurasValue", Auras.GetAurasValue);
+        this.addCallback("rebuilduoTree", Auras.rebuilduoTree);
+        this.addCallback("rebuildmonTree", Auras.rebuildmonTree);
+
+        // Packets
         this.addCallback("sendClientPacket", Main.sendClientPacket);
         this.addCallback("catchPackets", Main.catchPackets);
 
-        this.addCallback("disableDeathAd", Main.disableDeathAd);
-        this.addCallback("skipCutscenes", Main.skipCutscenes);
-        this.addCallback("hidePlayers", Main.hidePlayers);
-        this.addCallback("magnetize", Main.magnetize);
-        this.addCallback("disableFX", Main.disableFX);
-        this.addCallback("killLag", Main.killLag);
-
-        // aura reading
-        this.addCallback("isTrue", Main.isTrue);
-        this.addCallback("getSubjectAuras", Main.getSubjectAuras);
-        this.addCallback("HasAnyActiveAura", Main.HasAnyActiveAura);
-        this.addCallback("GetPlayerAura", Main.GetPlayerAura);
-        this.addCallback("GetMonsterAuraByName", Main.GetMonsterAuraByName);
-        this.addCallback("GetMonsterAuraByID", Main.GetMonsterAuraByID);
-        this.addCallback("rebuildAuraArray", Main.rebuildAuraArray);
-        this.addCallback("GetAurasValue", Main.GetAurasValue);
-        this.addCallback("rebuilduoTree", Main.rebuilduoTree);
-        this.addCallback("rebuildmonTree", Main.rebuildmonTree);
-        this.addCallback("getAvatar", Main.getAvatar);
-
+        // Utilities
         this.addCallback("injectScript", Main.injectScript);
 
-        this.addCallback("UserID", Main.UserID);
-        this.addCallback("gender", Main.Gender);
-
+        // Remote Registry
         this.addCallback("lnkCreate", RemoteRegistry.ext_create);
         this.addCallback("lnkDestroy", RemoteRegistry.ext_destroy);
         this.addCallback("lnkGetChild", RemoteRegistry.ext_getChild);
@@ -93,6 +111,7 @@ public class Externalizer {
         this.addCallback("lnkGetArray", RemoteRegistry.ext_getArray);
         this.addCallback("lnkSetArray", RemoteRegistry.ext_setArray);
 
+        // Function Call Registry
         this.addCallback("fcCreate", RemoteRegistry.ext_fcCreate);
         this.addCallback("fcPush", RemoteRegistry.ext_fcPushArgs);
         this.addCallback("fcPushDirect", RemoteRegistry.ext_fcPushArgsDirect);
@@ -100,6 +119,7 @@ public class Externalizer {
         this.addCallback("fcCallFlash", RemoteRegistry.ext_fcCallFlash);
         this.addCallback("fcCall", RemoteRegistry.ext_fcCall);
 
+        // Modules
         this.addCallback("modEnable", Modules.enable);
         this.addCallback("modDisable", Modules.disable);
 
