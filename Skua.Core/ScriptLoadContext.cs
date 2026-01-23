@@ -20,6 +20,20 @@ public class ScriptLoadContext : AssemblyLoadContext
         if (!Directory.Exists(_cacheDirectory))
             return null;
 
+        if (Unloading != null)
+            return null;
+
+        try
+        {
+            return Default.LoadFromAssemblyName(assemblyName);
+        }
+        catch
+        {
+        }
+
+        if (Unloading != null)
+            return null;
+
         string[] matchingFiles = Directory.GetFiles(_cacheDirectory, $"*-{assemblyName.Name}.dll");
 
         if (matchingFiles.Length > 0)
