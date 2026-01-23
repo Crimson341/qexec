@@ -7,9 +7,11 @@ namespace Skua.Core;
 public class ScriptLoadContext : AssemblyLoadContext
 {
     private static readonly string _cacheDirectory = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
+    private bool _isUnloading;
 
     public ScriptLoadContext() : base(isCollectible: true)
     {
+        Unloading += context => _isUnloading = true;
     }
 
     protected override Assembly? Load(AssemblyName assemblyName)
@@ -20,7 +22,7 @@ public class ScriptLoadContext : AssemblyLoadContext
         if (!Directory.Exists(_cacheDirectory))
             return null;
 
-        if (Unloading != null)
+        if (_isUnloading)
             return null;
 
         try
@@ -31,7 +33,7 @@ public class ScriptLoadContext : AssemblyLoadContext
         {
         }
 
-        if (Unloading != null)
+        if (_isUnloading)
             return null;
 
         string[] matchingFiles = Directory.GetFiles(_cacheDirectory, $"*-{assemblyName.Name}.dll");
