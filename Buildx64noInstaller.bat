@@ -1,1 +1,1 @@
-pwsh ./Build-Skua.ps1 -Platforms "x64" -SkipInstaller
+pwsh ./Build-Skua.ps1 -Platforms "x64" -SkipInstaller -SkipClean

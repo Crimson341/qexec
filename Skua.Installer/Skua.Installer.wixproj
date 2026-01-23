@@ -31,11 +31,8 @@
   <!-- Before build -->
   <Import Project="Sdk.targets" Sdk="WixToolset.Sdk" Version="6.0.2" />
   <Target Name="BeforeBuild">
-    <!-- Clean previous build folder -->
-    <!-- <Exec Command="rd /s /q ..\Skua.App.WPF\bin\$(Configuration)\net6.0-windows\win-$(Platform)" /> -->
-    <!-- Publish dotnet core app -->
-    <Exec Command="dotnet build ..\Skua.App.WPF\Skua.App.WPF.csproj -c $(Configuration) -a $(Platform) --no-self-contained" />
-    <Exec Command="dotnet build ..\Skua.Manager\Skua.Manager.csproj -c $(Configuration) -a $(Platform) --no-self-contained" />
+    <!-- Skip rebuild - use already built binaries from Build\$(Platform) -->
+    <!-- The main build script already builds everything once -->
     <!-- Get assembly version -->
     <GetAssemblyIdentity AssemblyFiles="..\Build\$(Platform)\Skua.App.WPF.dll">
       <Output TaskParameter="Assemblies" ItemName="AssemblyVersion" />

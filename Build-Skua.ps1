@@ -18,7 +18,9 @@ param(
     [ValidateSet("x64", "x86")][string[]]$Platforms = @("x64", "x86"),
     [switch]$SkipClean,
     [string]$OutputPath = ".\build",
-    [switch]$SkipInstaller
+    [switch]$SkipInstaller,
+    [switch]$BinaryLog,
+    [switch]$Parallel
 )
 
 $ProgressPreference = "SilentlyContinue"
@@ -125,7 +127,7 @@ function Build-SourceGenerators([string]$Config) {
     Write-Success "Source generators built successfully"
 }
 
-function Build-Platform([string]$Platform, [string]$Config) {
+function Build-Platform([string]$Platform, [string]$Config, [bool]$EnableBinLog = $false) {
     Write-Header "Building $Platform - $Config"
     $stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
     
@@ -134,8 +136,9 @@ function Build-Platform([string]$Platform, [string]$Config) {
         Build-SourceGenerators -Config $Config
         
         Write-Info "Building Skua.sln..."
-        $buildArgs = @("build", "Skua.sln", "--configuration", $Config, "-p:Platform=$Platform", "--no-restore", "--verbosity", "minimal", "-p:WarningLevel=0")
+        $buildArgs = @("build", "Skua.sln", "--configuration", $Config, "-p:Platform=$Platform", "--no-restore", "--verbosity", "minimal", "-p:WarningLevel=0", "/p:BuildInParallel=true")
         if ($Platform -eq "x86") { $buildArgs += "-p:PlatformTarget=x86" }
+        if ($EnableBinLog) { $buildArgs += "/bl:build-$Platform-$Config.binlog" }
         
         $result = & dotnet $buildArgs 2>&1
         if ($LASTEXITCODE -ne 0) { Write-BuildError "Build failed"; Write-Host $result -ForegroundColor Red; throw "Build failed" }
@@ -243,9 +246,103 @@ function Main {
         Test-Prerequisites
         if (-not $SkipClean) { CleanSolution }
         
-        foreach ($platform in $Platforms) {
-            Build-Platform -Platform $platform -Config $Configuration
-            if (-not $SkipInstaller) { Build-Installer -Platform $platform }
+        if ($Parallel -and $Platforms.Count -gt 1) {
+            Write-Info "Building platforms in parallel..."
+            
+            # Restore and build generators once before parallel builds
+            Restore-Projects
+            Build-SourceGenerators -Config $Configuration
+            
+            $jobs = @()
+            foreach ($platform in $Platforms) {
+                $job = Start-Job -ScriptBlock {
+                    param($platform, $config, $enableBinLog)
+                    
+                    $buildArgs = @("build", "Skua.sln", "--configuration", $config, "-p:Platform=$platform", "--no-restore", "--verbosity", "minimal", "-p:WarningLevel=0", "/p:BuildInParallel=true")
+                    if ($platform -eq "x86") { $buildArgs += "-p:PlatformTarget=x86" }
+                    if ($enableBinLog) { $buildArgs += "/bl:build-$platform-$config.binlog" }
+                    
+                    $result = & dotnet $buildArgs 2>&1
+                    if ($LASTEXITCODE -ne 0) {
+                        return @{ Success = $false; Platform = $platform; Output = $result }
+                    }
+                    return @{ Success = $true; Platform = $platform; Output = $result }
+                } -ArgumentList $platform, $Configuration, $BinaryLog
+                $jobs += $job
+            }
+            
+            Write-Info "Waiting for parallel builds to complete..."
+            $allSuccess = $true
+            $jobs | Wait-Job | ForEach-Object {
+                $result = Receive-Job -Job $_
+                if (-not $result.Success) {
+                    Write-BuildError "Build failed for $($result.Platform)"
+                    Write-Host $result.Output -ForegroundColor Red
+                    $allSuccess = $false
+                }
+                else {
+                    Write-Success "Build completed for $($result.Platform)"
+                }
+                Remove-Job -Job $_
+            }
+            
+            if (-not $allSuccess) {
+                throw "One or more platform builds failed"
+            }
+            
+            # Copy outputs after parallel builds
+            foreach ($platform in $Platforms) {
+                Copy-BuildOutputs -Platform $platform -Config $Configuration
+            }
+            
+            # Build installers in parallel
+            if (-not $SkipInstaller) {
+                Write-Info "Building installers in parallel..."
+                $installerJobs = @()
+                foreach ($platform in $Platforms) {
+                    $job = Start-Job -ScriptBlock {
+                        param($msbuildPath, $installerProject, $config, $platform)
+                        
+                        $result = & $msbuildPath $installerProject "/p:Configuration=$config" "/p:Platform=$platform" "/t:Rebuild" "/verbosity:minimal" "/nologo" 2>&1
+                        if ($LASTEXITCODE -ne 0) {
+                            return @{ Success = $false; Platform = $platform; Output = $result }
+                        }
+                        return @{ Success = $true; Platform = $platform; Output = $result }
+                    } -ArgumentList $script:MSBuildPath, ".\Skua.Installer\Skua.Installer.wixproj", $Configuration, $platform
+                    $installerJobs += $job
+                }
+                
+                Write-Info "Waiting for installer builds to complete..."
+                $installerJobs | Wait-Job | ForEach-Object {
+                    $result = Receive-Job -Job $_
+                    if (-not $result.Success) {
+                        Write-BuildError "Installer build failed for $($result.Platform)"
+                        Write-Host $result.Output -ForegroundColor Red
+                    }
+                    else {
+                        Write-Success "Installer completed for $($result.Platform)"
+                        
+                        # Copy installer to Installers folder
+                        $installers = Get-ChildItem -Path ".\Skua.Installer\bin\$($result.Platform)\$Configuration\*.msi" -ErrorAction SilentlyContinue
+                        if ($installers) {
+                            $installerDest = Join-Path $OutputPath "Installers"
+                            if (-not (Test-Path $installerDest)) { New-Item -ItemType Directory -Path $installerDest -Force | Out-Null }
+                            $installers | ForEach-Object {
+                                $destName = "Skua_${Configuration}_$($result.Platform)_$($_.Name)"
+                                Copy-Item -Path $_.FullName -Destination (Join-Path $installerDest $destName) -Force
+                                Write-Success "Installer created: $destName"
+                            }
+                        }
+                    }
+                    Remove-Job -Job $_
+                }
+            }
+        }
+        else {
+            foreach ($platform in $Platforms) {
+                Build-Platform -Platform $platform -Config $Configuration -EnableBinLog $BinaryLog
+                if (-not $SkipInstaller) { Build-Installer -Platform $platform }
+            }
         }
         $success = $true
     }
