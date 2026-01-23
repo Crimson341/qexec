@@ -246,6 +246,12 @@ function Main {
         Test-Prerequisites
         if (-not $SkipClean) { CleanSolution }
         
+        # Warn if using -Parallel with single platform
+        if ($Parallel -and $Platforms.Count -eq 1) {
+            Write-Info "Note: -Parallel flag is only beneficial when building multiple platforms."
+            Write-Info "Building single platform ($($Platforms[0])) sequentially..."
+        }
+        
         if ($Parallel -and $Platforms.Count -gt 1) {
             Write-Info "Building platforms in parallel..."
             
