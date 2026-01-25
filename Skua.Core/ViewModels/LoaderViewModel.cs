@@ -209,4 +209,13 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
             ProgressReport = "Cancelling task...";
         }
     }
+
+    [RelayCommand]
+    private async Task UpdateSelectedQuest(object? selectedItem)
+    {
+        if (selectedItem is QuestData questData)
+        {
+            await Task.Run(() => _quests.UpdateQuest(questData.ID));
+        }
+    }
 }

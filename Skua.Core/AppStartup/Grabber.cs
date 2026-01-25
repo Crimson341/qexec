@@ -31,6 +31,7 @@ internal class Grabber
         List<GrabberTaskViewModel> questCommands = new(baseQuestCommands)
         {
             new("Register", RegisterQuests),
+            new("Update Quest", UpdateQuest),
             new("Unregister All", async (i, p, t) =>
             {
                 p.Report("Working...");
@@ -207,6 +208,48 @@ internal class Grabber
     private static async Task OpenQuests(IList<object>? i, IProgress<string> p, CancellationToken t)
     {
         await DefaultQuestTask("Showing", Ioc.Default.GetService<IScriptQuest>()!.Load, i, p, t);
+    }
+
+    private static async Task UpdateQuest(IList<object>? i, IProgress<string> p, CancellationToken t)
+    {
+        if (i is null || i.Count == 0)
+        {
+            p.Report("No quests found/selected.");
+            return;
+        }
+
+        if (i.Count != 1)
+        {
+            p.Report("Please select exactly one quest to update.");
+            return;
+        }
+
+        int questId = i.First() switch
+        {
+            Quest quest => quest.ID,
+            MapItem mapItem => mapItem.QuestID,
+            _ => 0
+        };
+
+        if (questId == 0)
+        {
+            p.Report("Invalid quest selected.");
+            return;
+        }
+
+        try
+        {
+            p.Report($"Updating quest {questId}...");
+            await Task.Run(() => Ioc.Default.GetService<IScriptQuest>()!.UpdateQuest(questId), t);
+            p.Report($"Quest {questId} updated.");
+        }
+        catch
+        {
+            if (t.IsCancellationRequested)
+                p.Report("Task cancelled.");
+            else
+                p.Report("Failed to update quest.");
+        }
     }
 
     private static async Task DefaultQuestTask(string identifier, Action<int[]> action, IList<object>? i, IProgress<string> p, CancellationToken t)
