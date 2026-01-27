@@ -380,6 +380,24 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
     private readonly IAdvancedSkillContainer _advancedSkills;
     private readonly IScriptPlayer _player;
 
+    private void SortPlayerClasses()
+    {
+        if (PlayerClasses.Count <= 1)
+        {
+            return;
+        }
+
+        List<string> sortedClasses = PlayerClasses
+            .Where(name => name != CurrentClassOption)
+            .OrderBy(name => name, System.StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+        PlayerClasses = new List<string> { CurrentClassOption };
+        PlayerClasses.AddRange(sortedClasses);
+
+        OnPropertyChanged(nameof(PlayerClasses));
+    }
+
     private void EnsureSkillEntryExists(string className)
     {
         bool exists = false;
@@ -411,7 +429,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             }
         }
 
-        OnPropertyChanged(nameof(PlayerClasses));
+        SortPlayerClasses();
 
         SoloUseModes = new();
         SelectedSoloClass = null;
@@ -463,7 +481,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (soloClassValue != CurrentClassOption && !PlayerClasses.Contains(soloClassValue))
             {
                 PlayerClasses.Add(soloClassValue);
-                OnPropertyChanged(nameof(PlayerClasses));
+                SortPlayerClasses();
             }
             SelectedSoloClass = soloClassValue;
             UseSoloEquipment = values.TryGetValue("SoloEquipCheck", out string? check) && Convert.ToBoolean(check);
@@ -484,7 +502,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (farmClassValue != CurrentClassOption && !PlayerClasses.Contains(farmClassValue))
             {
                 PlayerClasses.Add(farmClassValue);
-                OnPropertyChanged(nameof(PlayerClasses));
+                SortPlayerClasses();
             }
             SelectedFarmClass = farmClassValue;
             UseFarmEquipment = values.TryGetValue("FarmEquipCheck", out string? check) && Convert.ToBoolean(check);
@@ -505,7 +523,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (dodgeClassValue != CurrentClassOption && !PlayerClasses.Contains(dodgeClassValue))
             {
                 PlayerClasses.Add(dodgeClassValue);
-                OnPropertyChanged(nameof(PlayerClasses));
+                SortPlayerClasses();
             }
             SelectedDodgeClass = dodgeClassValue;
             UseDodgeEquipment = values.TryGetValue("DodgeEquipCheck", out string? check) && Convert.ToBoolean(check);
@@ -526,7 +544,7 @@ public partial class CBOClassSelectViewModel : ObservableObject, IManageCBOption
             if (bossClassValue != CurrentClassOption && !PlayerClasses.Contains(bossClassValue))
             {
                 PlayerClasses.Add(bossClassValue);
-                OnPropertyChanged(nameof(PlayerClasses));
+                SortPlayerClasses();
             }
             SelectedBossClass = bossClassValue;
             UseBossEquipment = values.TryGetValue("BossEquipCheck", out string? check) && Convert.ToBoolean(check);

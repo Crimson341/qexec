@@ -54,13 +54,17 @@ public partial class AutoViewModel : BotControlViewModelBase, IDisposable
         {
             if (_inventory.Items is null)
                 return null;
+
             List<string> classes = new();
             foreach (ItemBase item in _inventory.Items)
             {
                 if (item.Category == ItemCategory.Class)
                     classes.Add(item.Name);
             }
-            return classes;
+
+            return classes
+                .OrderBy(name => name, System.StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
     }
 

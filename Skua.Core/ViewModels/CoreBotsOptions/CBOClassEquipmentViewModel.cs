@@ -97,12 +97,12 @@ public partial class CBOClassEquipmentViewModel : ObservableObject, IManageCBOpt
     [RelayCommand]
     private void RefreshInventory()
     {
-        Helms = _inventory.Items?.Where(i => i.Category == ItemCategory.Helm && i.EnhancementLevel > 0).Select(i => i.Name).ToList() ?? new();
-        Armors = _inventory.Items?.Where(i => i.Category == ItemCategory.Armor).Select(i => i.Name).ToList() ?? new();
-        Capes = _inventory.Items?.Where(i => i.Category == ItemCategory.Cape && i.EnhancementLevel > 0).Select(i => i.Name).ToList() ?? new();
-        Weapons = _inventory.Items?.Where(i => i.ItemGroup == "Weapon" && i.EnhancementLevel > 0).Select(i => i.Name).ToList() ?? new();
-        Pets = _inventory.Items?.Where(i => i.Category == ItemCategory.Pet).Select(i => i.Name).ToList() ?? new();
-        GroundItems = _inventory.Items?.Where(i => i.Category == ItemCategory.Misc).Select(i => i.Name).ToList() ?? new();
+        Helms = _inventory.Items?.Where(i => i.Category == ItemCategory.Helm && i.EnhancementLevel > 0).Select(i => i.Name).OrderBy(name => name).ToList() ?? new List<string>();
+        Armors = _inventory.Items?.Where(i => i.Category == ItemCategory.Armor).Select(i => i.Name).OrderBy(name => name).ToList() ?? new List<string>();
+        Capes = _inventory.Items?.Where(i => i.Category == ItemCategory.Cape && i.EnhancementLevel > 0).Select(i => i.Name).OrderBy(name => name).ToList() ?? new List<string>();
+        Weapons = _inventory.Items?.Where(i => i.ItemGroup == "Weapon" && i.EnhancementLevel > 0).Select(i => i.Name).OrderBy(name => name).ToList() ?? new List<string>();
+        Pets = _inventory.Items?.Where(i => i.Category == ItemCategory.Pet).Select(i => i.Name).OrderBy(name => name).ToList() ?? new List<string>();
+        GroundItems = _inventory.Items?.Where(i => i.Category == ItemCategory.Misc).Select(i => i.Name).OrderBy(name => name).ToList() ?? new List<string>();
 
         OnPropertyChanged(nameof(Helms));
         OnPropertyChanged(nameof(Armors));
@@ -198,6 +198,13 @@ public partial class CBOClassEquipmentViewModel : ObservableObject, IManageCBOpt
             Pets.Add(SelectedBossPet);
         if (!string.IsNullOrEmpty(SelectedBossGroundItem = GetValue("GroundItem4Select")))
             GroundItems.Add(SelectedBossGroundItem);
+
+        Helms.Sort(System.StringComparer.OrdinalIgnoreCase);
+        Armors.Sort(System.StringComparer.OrdinalIgnoreCase);
+        Capes.Sort(System.StringComparer.OrdinalIgnoreCase);
+        Weapons.Sort(System.StringComparer.OrdinalIgnoreCase);
+        Pets.Sort(System.StringComparer.OrdinalIgnoreCase);
+        GroundItems.Sort(System.StringComparer.OrdinalIgnoreCase);
 
         string GetValue(string key) => values.TryGetValue(key, out string? value) ? value : string.Empty;
     }
