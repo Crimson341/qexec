@@ -31,7 +31,7 @@ internal class Grabber
         List<GrabberTaskViewModel> questCommands = new(baseQuestCommands)
         {
             new("Register", RegisterQuests),
-            new("Update Quest", UpdateQuest),
+            new("Fake Complete", UpdateQuest),
             new("Unregister All", async (i, p, t) =>
             {
                 p.Report("Working...");
@@ -220,7 +220,7 @@ internal class Grabber
 
         if (i.Count != 1)
         {
-            p.Report("Please select exactly one quest to update.");
+            p.Report("Please select exactly one quest to complete.");
             return;
         }
 
@@ -231,6 +231,12 @@ internal class Grabber
             _ => 0
         };
 
+        string questName = i.First() switch
+        {
+            Quest quest => quest.Name,
+            _ => "unknown"
+        };
+
         if (questId == 0)
         {
             p.Report("Invalid quest selected.");
@@ -239,16 +245,16 @@ internal class Grabber
 
         try
         {
-            p.Report($"Updating quest {questId}...");
+            p.Report($"Fake completing quest {questName}...");
             await Task.Run(() => Ioc.Default.GetService<IScriptQuest>()!.UpdateQuest(questId), t);
-            p.Report($"Quest {questId} updated.");
+            p.Report($"Fake completed {questName}.");
         }
         catch
         {
             if (t.IsCancellationRequested)
                 p.Report("Task cancelled.");
             else
-                p.Report("Failed to update quest.");
+                p.Report("Failed to complete quest.");
         }
     }
 
