@@ -8,8 +8,8 @@
     xmlns:system="clr-namespace:System;assembly=mscorlib"
     xmlns:vms="clr-namespace:Skua.Core.ViewModels;assembly=Skua.Core"
     d:DataContext="{d:DesignInstance vms:LoaderViewModel}"
-    d:DesignHeight="270"
-    d:DesignWidth="550"
+    d:DesignWidth="720"
+    d:DesignHeight="375"
     mc:Ignorable="d">
     <Grid Margin="6">
         <Grid.RowDefinitions>
@@ -142,10 +142,10 @@
                     Grid.Column="3"
                     Margin="3,3,3,0"
                     Command="{Binding UpdateSelectedQuestCommand}"
-                    CommandParameter="{Binding ElementName=QuestIDsListBox, Path=SelectedItem}"
-                    Content="Update Quest"
-                    IsEnabled="{Binding ElementName=QuestIDsListBox, Path=SelectedItems.Count, Converter={StaticResource EqualToConverter}, ConverterParameter=1}"
-                    ToolTip="Update the selected quest in the game client (single selection only)" />
+                    CommandParameter="{Binding ElementName=QuestIDsListBox, Path=SelectedItems}"
+                    Content="Update Selected"
+                    IsEnabled="{Binding ElementName=QuestIDsListBox, Path=SelectedItems.Count, Converter={StaticResource GreaterThanConverter}, ConverterParameter=1}"
+                    ToolTip="Update the selected quest(s) in the game client." />
                 <Button
                     Grid.Row="0"
                     Grid.Column="4"

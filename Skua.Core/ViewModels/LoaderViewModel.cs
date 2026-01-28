@@ -9,7 +9,7 @@ namespace Skua.Core.ViewModels;
 public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
 {
     public LoaderViewModel(IScriptShop shops, IScriptQuest quests, IQuestDataLoaderService questLoader, IClipboardService clipboardService)
-        : base("Loader", 550, 320)
+        : base("Loader", 720, 375)
     {
         _shops = shops;
         _quests = quests;
@@ -211,11 +211,41 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     }
 
     [RelayCommand]
-    private async Task UpdateSelectedQuest(object? selectedItem)
+    private async Task UpdateSelectedQuest(IList<object>? items)
     {
-        if (selectedItem is QuestData questData)
+        if (items is null || items.Count == 0)
+            return;
+
+        QuestData[] selectedQuests = items.Cast<QuestData>().ToArray();
+
+        if (selectedQuests.Length == 0)
+            return;
+
+        _loaderCTS = new();
+        QuestIDs.Clear();
+        Progress<string> progress = new(p =>
         {
-            await Task.Run(() => _quests.UpdateQuest(questData.ID));
+            IsLoading = true;
+            ProgressReport = p;
+        });
+
+        try
+        {
+            int[] questIds = selectedQuests.Select(q => q.ID).ToArray();
+
+            List<QuestData> questData = await _questLoader.UpdateRangeAsync("QuestData.json", questIds.Min(), questIds.Max(), progress, _loaderCTS.Token);
+            QuestIDs.Clear();
+            QuestIDs.AddRange(questData);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        finally
+        {
+            IsLoading = false;
+            ProgressReport = string.Empty;
+            _loaderCTS?.Dispose();
+            _loaderCTS = null;
         }
     }
 }

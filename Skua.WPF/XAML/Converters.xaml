@@ -12,4 +12,5 @@
     <converters:BrushToHexConverter x:Key="BrushToHexConverter" />
     <converters:MultiValueEqualityConverter x:Key="MultiValueEqualityConverter" />
     <converters:EqualToConverter x:Key="EqualToConverter" />
+    <converters:GreaterThanConverter x:Key="GreaterThanConverter" />
 </ResourceDictionary>
