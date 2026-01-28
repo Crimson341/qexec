@@ -1,3 +1,51 @@
+# 1.4.0.5
+## Released: January 28, 2026
+
+# Things Added
+
+## UI / Menu Changes
+- `Options > CoreBots` & the Class dropdown from the `Auto` menu
+  - Equipment & Classes are now sorted alphabetically
+
+## Tools
+- Tool for us Script-Devs / Those that wish to see a Boss/Shop that is quest locked;
+  - Available in:
+    - `Tools > Grabber > Quests`
+    - `Tools > Loader`
+  - Added a `Fake Complete` button
+    - Runs `Bot.Quests.UpdateQuest(ID)`
+
+  - **Previously** this had to be done via:
+    - `Tools > Console`
+    - Manually typing `Bot.Quests.UpdateQuest(<QuestID>);`
+
+  - **Now** you can:
+    - Open either `Tools > Loader` **or** `Tools > Grabber > Quests`
+    - For **Grabber > Quests**:
+      - Quests must already be loaded in-game
+      - Press **Grab**
+      - Select the quest
+      - Click **Fake Complete**
+    - For **Loader**:
+      - Select the quest
+      - Click **Fake Complete**
+
+  - Usage notes:
+    - Run this **outside** the map you want to see the shop/mob in, then join the map
+    - You will **not** be able to:
+      - Buy items (they are still quest locked)
+      - Complete quests you have "fake" progressed to
+    - *But* you **will** be able to see the boss/shop
+
+## Script-Dev Stuff
+- Added the rest of the `Bot.Lite.*` options for code fill-in  
+  - **Script-dev only** (normal users can ignore this)
+  - Mirrors the in-game `Options > Advanced` menu
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.4.0.4...1.4.0.5
+
+---
+
 # Skua 1.4.0.4
 ## Released: January 23, 2026
 
