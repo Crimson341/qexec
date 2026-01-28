@@ -68,7 +68,7 @@
         "state": "uploaded",
         "size": 23506334,
         "digest": "sha256:9ea77f5ac2419219aed9eb97cffcc1f73a836f0e32107bca018d1f40c6394dd7",
-        "download_count": 1164,
+        "download_count": 1326,
         "created_at": "2026-01-23T19:42:31Z",
         "updated_at": "2026-01-23T19:42:37Z",
         "browser_download_url": "https://github.com/auqw/Skua/releases/download/1.4.0.4/Skua-1.4.0.4-Release-x64.msi"
@@ -104,7 +104,7 @@
         "state": "uploaded",
         "size": 23489954,
         "digest": "sha256:dc037083b7a4d87e2a772f21dc4c8882a16e139a77d133f8d4b812eedd70e5bd",
-        "download_count": 85,
+        "download_count": 106,
         "created_at": "2026-01-23T19:42:37Z",
         "updated_at": "2026-01-23T19:42:42Z",
         "browser_download_url": "https://github.com/auqw/Skua/releases/download/1.4.0.4/Skua-1.4.0.4-Release-x86.msi"
@@ -183,7 +183,7 @@
         "state": "uploaded",
         "size": 23518622,
         "digest": "sha256:1dfadf12bebfd3c5e37f347efbab4a37bb44a6c751a107a782f67bfcd90bd275",
-        "download_count": 2197,
+        "download_count": 2202,
         "created_at": "2026-01-19T06:37:28Z",
         "updated_at": "2026-01-19T06:37:34Z",
         "browser_download_url": "https://github.com/auqw/Skua/releases/download/1.4.0.3/Skua-1.4.0.3-Release-x64.msi"
@@ -909,7 +909,7 @@
         "state": "uploaded",
         "size": 25334811,
         "digest": "sha256:5c9439de6a7691e7a6fa03d3e03cf21b9546a22f96bf947fef8cdfcffda81bbb",
-        "download_count": 446,
+        "download_count": 447,
         "created_at": "2025-12-20T18:42:16Z",
         "updated_at": "2025-12-20T18:42:22Z",
         "browser_download_url": "https://github.com/auqw/Skua/releases/download/1.3.3.0/Skua-1.3.3.0-Release-x86.msi"
@@ -1103,7 +1103,7 @@
         "state": "uploaded",
         "size": 25342999,
         "digest": "sha256:b5962fd36b30449b4908c160fa210f5feb7bfde3c8c8af16abad68fab0479579",
-        "download_count": 3507,
+        "download_count": 3508,
         "created_at": "2025-12-08T08:04:17Z",
         "updated_at": "2025-12-08T08:04:35Z",
         "browser_download_url": "https://github.com/auqw/Skua/releases/download/1.3.1.0/Skua-1.3.1.0-Release-x64.msi"
