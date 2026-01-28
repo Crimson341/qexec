@@ -211,41 +211,26 @@ public partial class LoaderViewModel : BotControlViewModelBase, IManagedWindow
     }
 
     [RelayCommand]
-    private async Task UpdateSelectedQuest(IList<object>? items)
+    private async Task UpdateSelectedQuest(object? item)
     {
-        if (items is null || items.Count == 0)
+        if (item is null)
             return;
 
-        QuestData[] selectedQuests = items.Cast<QuestData>().ToArray();
+        QuestData selectedQuest = (QuestData)item;
 
-        if (selectedQuests.Length == 0)
+        if (selectedQuest is null)
             return;
 
-        _loaderCTS = new();
-        QuestIDs.Clear();
-        Progress<string> progress = new(p =>
-        {
-            IsLoading = true;
-            ProgressReport = p;
-        });
 
         try
         {
-            int[] questIds = selectedQuests.Select(q => q.ID).ToArray();
-
-            List<QuestData> questData = await _questLoader.UpdateRangeAsync("QuestData.json", questIds.Min(), questIds.Max(), progress, _loaderCTS.Token);
-            QuestIDs.Clear();
-            QuestIDs.AddRange(questData);
+            IsLoading = true;
+            ProgressReport = $"Fake completing quest: {selectedQuest.Name}.";
+            bool questData = await Task.Run(() => _quests.UpdateQuest(selectedQuest.ID));
+            IsLoading = false;
         }
         catch (OperationCanceledException)
         {
-        }
-        finally
-        {
-            IsLoading = false;
-            ProgressReport = string.Empty;
-            _loaderCTS?.Dispose();
-            _loaderCTS = null;
         }
     }
 }
