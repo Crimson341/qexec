@@ -234,6 +234,7 @@ internal class Grabber
         string questName = i.First() switch
         {
             Quest quest => quest.Name,
+            MapItem mapItem => $"Map Item Quest [{mapItem.QuestID}]",
             _ => "unknown"
         };
 
@@ -245,7 +246,7 @@ internal class Grabber
 
         try
         {
-            p.Report($"Fake completing quest {questName}...");
+            p.Report($"Fake completing {questName}...");
             await Task.Run(() => Ioc.Default.GetService<IScriptQuest>()!.UpdateQuest(questId), t);
             p.Report($"Fake completed {questName}.");
         }
