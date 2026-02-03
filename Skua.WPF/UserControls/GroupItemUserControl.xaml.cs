@@ -23,7 +23,7 @@ public partial class GroupItemUserControl : UserControl
             button.DataContext is AccountItemViewModel account &&
             DataContext is GroupItemViewModel group)
         {
-            WeakReferenceMessenger.Default.Send(new RemoveAccountFromGroupMessage(account, group));
+            WeakReferenceMessenger.Default.Send(new RemoveAccountFromGroupMessage(group, account));
         }
     }
 }

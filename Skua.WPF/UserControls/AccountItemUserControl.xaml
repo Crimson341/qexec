@@ -13,83 +13,147 @@
     d:DesignWidth="800"
     mc:Ignorable="d">
     <Grid>
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="auto" />
-            <ColumnDefinition />
-            <ColumnDefinition Width="auto" />
-        </Grid.ColumnDefinitions>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="auto" />
-            <RowDefinition Height="auto" />
-        </Grid.RowDefinitions>
-        <CheckBox
-            Grid.Row="0"
-            Grid.Column="0"
-            Margin="0,0,6,0"
-            HorizontalAlignment="Center"
-            VerticalAlignment="Center"
-            materialDesign:CheckBoxAssist.CheckBoxSize="24"
-            IsChecked="{Binding UseCheck}" />
-        <Expander
-            Grid.Row="0"
-            Grid.Column="1"
-            Padding="0"
-            Margin="0"
-            VerticalAlignment="Center"
+        <Grid.Resources>
+            <ContextMenu x:Key="AccountContextMenu">
+                <MenuItem Header="Edit Tags" Command="{Binding AddTagsCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="TagEdit" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Add to Group" Command="{Binding AddToGroupCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="AccountMultiplePlus" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <Separator />
+                <MenuItem Header="Start" Command="{Binding StartCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="PlayCircleOutline" />
+                    </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Start With Script" Command="{Binding StartWithScriptCommand}">
+                    <MenuItem.Icon>
+                        <materialDesign:PackIcon Kind="ScriptTextPlayOutline" />
+                    </MenuItem.Icon>
+                </MenuItem>
+            </ContextMenu>
+        </Grid.Resources>
+
+        <!-- List View Style (simple version) -->
+        <Border
+            BorderBrush="{DynamicResource MaterialDesignDivider}"
+            BorderThickness="1"
             Background="Transparent"
-            HorizontalAlignment="Stretch"
-            HorizontalContentAlignment="Stretch"
-            ExpandDirection="Down"
-            materialDesign:ExpanderAssist.HorizontalHeaderPadding="0"
-            Visibility="{Binding Tags.Count, Converter={StaticResource IntToVisibilityConverter}}">
-            <Expander.Header>
-                <DockPanel HorizontalAlignment="Stretch">
+            Margin="0,0,0,0"
+            Cursor="Hand"
+            MouseLeftButtonUp="Border_MouseLeftButtonUp"
+            ContextMenu="{StaticResource AccountContextMenu}">
+            <Border.Style>
+                <Style TargetType="Border">
+                    <Setter Property="Padding" Value="8,6" />
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Background" Value="{DynamicResource MaterialDesignSelection}" />
+                        </Trigger>
+                        <DataTrigger Binding="{Binding UseCheck}" Value="True">
+                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}" />
+                            <Setter Property="BorderThickness" Value="2" />
+                        </DataTrigger>
+                    </Style.Triggers>
+                </Style>
+            </Border.Style>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <CheckBox
+                    Grid.Column="0"
+                    Margin="0,0,8,0"
+                    VerticalAlignment="Center"
+                    materialDesign:CheckBoxAssist.CheckBoxSize="20"
+                    IsChecked="{Binding UseCheck}"
+                    ToolTip="Select for batch operations" />
+
+                <Grid Grid.Column="1" VerticalAlignment="Center">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
                     <TextBlock
-                        DockPanel.Dock="Left"
-                        VerticalAlignment="Center"
+                        Grid.Row="0"
+                        FontSize="13"
+                        FontWeight="Medium"
                         Text="{Binding DisplayName, FallbackValue=Test1}" />
-                </DockPanel>
-            </Expander.Header>
-            <DockPanel Margin="24,0,0,0">
-                <TextBlock Text="Tags:"
-                    Foreground="#919191"
-                    Margin="0,0,5,0"
-                    VerticalAlignment="Top" />
-                <ItemsControl ItemsSource="{Binding Tags}">
-                    <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate>
-                            <WrapPanel />
-                        </ItemsPanelTemplate>
-                    </ItemsControl.ItemsPanel>
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Border
-                                BorderBrush="{DynamicResource PrimaryHueMidBrush}"
-                                BorderThickness="1"
-                                CornerRadius="5"
-                                Padding="5,0,5,2"
-                                Margin="0,1,5,3">
-                                <TextBlock
-                                    Foreground="{DynamicResource PrimaryHueMidBrush}"
-                                    Text="{Binding}" />
-                            </Border>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </DockPanel>
-        </Expander>
-        <TextBlock
-            Grid.Row="0"
-            Grid.Column="1"
-            VerticalAlignment="Center"
-            Text="{Binding DisplayName, FallbackValue=Test1}"
-            Visibility="{Binding Tags.Count, Converter={StaticResource IntToVisibilityConverter}, ConverterParameter=Inverse}" />
-        <Button
-            Grid.Row="0"
-            Grid.Column="2"
-            VerticalAlignment="Center"
-            Command="{Binding RemoveCommand}"
-            Content="{materialDesign:PackIcon Kind=Delete}"
-            Style="{StaticResource MaterialDesignFlatButton}" />
+
+                    <ItemsControl
+                        Grid.Row="1"
+                        ItemsSource="{Binding Tags}"
+                        Margin="0,3,0,0">
+                        <ItemsControl.Style>
+                            <Style TargetType="ItemsControl">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=views:AccountManagerView}, Path=DataContext.ShowTags}" Value="True">
+                                        <Setter Property="Visibility" Value="Visible" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </ItemsControl.Style>
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border
+                                    Background="{DynamicResource PrimaryHueMidBrush}"
+                                    CornerRadius="2"
+                                    Padding="5,1"
+                                    Margin="0,0,3,2"
+                                    Opacity="0.85">
+                                    <TextBlock
+                                        FontSize="10"
+                                        FontWeight="Medium"
+                                        Foreground="White"
+                                        Text="{Binding}" />
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </Grid>
+
+                <Button
+                    Grid.Column="2"
+                    Width="28"
+                    Height="28"
+                    Padding="0"
+                    VerticalAlignment="Center"
+                    Command="{Binding RemoveCommand}"
+                    ToolTip="Remove Account"
+                    Background="Transparent"
+                    BorderThickness="0">
+                    <Button.Style>
+                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
+                            <Setter Property="Opacity" Value="0" />
+                            <Style.Triggers>
+                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                    <Setter Property="Opacity" Value="1" />
+                                </DataTrigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <materialDesign:PackIcon
+                        Kind="DeleteOutline"
+                        Width="16"
+                        Height="16" />
+                </Button>
+            </Grid>
+        </Border>
     </Grid>
 </UserControl>

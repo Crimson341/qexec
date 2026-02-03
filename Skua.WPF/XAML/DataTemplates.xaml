@@ -141,4 +141,7 @@
     <DataTemplate DataType="{x:Type managerVms:AccountManagerViewModel}">
         <views:AccountManagerView />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type managerVms:SelectGroupDialogViewModel}">
+        <usercontrols:SelectGroupDialog />
+    </DataTemplate>
 </ResourceDictionary>

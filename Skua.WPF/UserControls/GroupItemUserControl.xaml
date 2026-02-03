@@ -23,6 +23,7 @@
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
                 <TextBlock
@@ -64,6 +65,23 @@
 
                 <Button
                     Grid.Column="3"
+                    Width="28"
+                    Height="28"
+                    Padding="0"
+                    Margin="0,0,4,0"
+                    Command="{Binding RenameCommand}"
+                    Style="{StaticResource MaterialDesignIconButton}"
+                    ToolTip="Rename Group"
+                    Foreground="{DynamicResource MaterialDesignBodyLight}"
+                    Opacity="0.7">
+                    <materialDesign:PackIcon
+                        Kind="PencilOutline"
+                        Width="16"
+                        Height="16" />
+                </Button>
+
+                <Button
+                    Grid.Column="4"
                     Width="28"
                     Height="28"
                     Padding="0"
