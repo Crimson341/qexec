@@ -6,6 +6,15 @@ namespace Skua.WPF.Converters;
 
 public class ColumnWidthConverter : IMultiValueConverter
 {
+    // Layout constants (matching AccountManager.xaml)
+    private const double DefaultItemWidth = 200.0;
+    private const double MinimumItemWidth = 100.0;
+    private const double ScrollViewerPaddingLeft = 4.0;
+    private const double ScrollViewerPaddingRight = 4.0;
+    private const double CardMarginRight = 4.0;
+    private const double CardMarginBottom = 4.0;
+    private const double ScrollbarWidth = 9.0;
+
     public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
     {
         // Check for unset or null values
@@ -13,24 +22,28 @@ public class ColumnWidthConverter : IMultiValueConverter
             values[0] == System.Windows.DependencyProperty.UnsetValue ||
             values[1] == System.Windows.DependencyProperty.UnsetValue)
         {
-            return 200.0; // Default fallback width
+            return DefaultItemWidth;
         }
 
         if (values[0] is double containerWidth && values[1] is int columns)
         {
             if (columns <= 0) columns = 1;
-            if (containerWidth <= 0) return 200.0;
+            if (containerWidth <= 0) return DefaultItemWidth;
 
-            // Calculate width: (containerWidth - scrollbar - padding - margins) / columns
-            // Account for: 6px right margin per item, 4px padding on each side of ScrollViewer
-            double totalMargin = 6 * columns + 8; // 8 for ScrollViewer padding (4 * 2)
-            double availableWidth = containerWidth - totalMargin - 20; // 20 for potential scrollbar
+            // Calculate item width based on available space
+            // Formula: (containerWidth - scrollViewerPadding - cardMargins - scrollbarSpace) / columns
+
+            double scrollViewerPadding = ScrollViewerPaddingLeft + ScrollViewerPaddingRight;
+            double totalCardMargins = CardMarginRight * columns; // Right margin for each card
+            double reservedSpace = scrollViewerPadding + totalCardMargins + ScrollbarWidth;
+
+            double availableWidth = containerWidth - reservedSpace;
             double itemWidth = availableWidth / columns;
 
-            return Math.Max(100, itemWidth); // Minimum width of 100
+            return Math.Max(MinimumItemWidth, itemWidth);
         }
 
-        return 200.0; // Default fallback width
+        return DefaultItemWidth;
     }
 
     public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)

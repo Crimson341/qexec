@@ -598,6 +598,10 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
                 return;
 
             _cachedServers = servers;
+
+            // Measure pings before displaying servers
+            await _MeasureServerPings(_cachedServers);
+
             ServerList.AddRange(_cachedServers);
 
             string lastServer = _settingsService.Get<string>("LastServer");
@@ -609,6 +613,32 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         catch
         {
         }
+    }
+
+    private async Task _MeasureServerPings(List<Server> servers)
+    {
+        const int TimeoutMs = 2000;
+        const long FailedPing = 9999;
+
+        List<Task> pingTasks = servers.Select(server => Task.Run(async () =>
+        {
+            using (System.Net.NetworkInformation.Ping pinger = new System.Net.NetworkInformation.Ping())
+            {
+                try
+                {
+                    System.Net.NetworkInformation.PingReply reply = await pinger.SendPingAsync(server.IP, TimeoutMs);
+                    server.Ping = reply.Status == System.Net.NetworkInformation.IPStatus.Success
+                        ? reply.RoundtripTime
+                        : FailedPing;
+                }
+                catch
+                {
+                    server.Ping = FailedPing;
+                }
+            }
+        })).ToList();
+
+        await Task.WhenAll(pingTasks);
     }
 
     // Script Commands

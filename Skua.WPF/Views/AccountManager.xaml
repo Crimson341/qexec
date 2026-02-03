@@ -356,10 +356,10 @@
                     <ScrollViewer
                         x:Name="AccountsScrollViewer"
                         Grid.Row="1"
-                        Padding="4"
+                        Padding="4,4,4,4"
                         materialDesign:ScrollViewerAssist.IsAutoHideEnabled="True"
                         ContextMenu="{StaticResource BulkAccountContextMenu}">
-                        <Grid>
+                            <Grid>
                             <!-- List View -->
                             <ItemsControl
                                 ItemsSource="{Binding FilteredAccounts}">
@@ -401,7 +401,7 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border
-                                            Margin="0,0,6,6"
+                                            Margin="0,0,4,4"
                                             Background="{DynamicResource MaterialDesignCardBackground}"
                                             BorderBrush="{DynamicResource MaterialDesignDivider}"
                                             BorderThickness="2"
@@ -590,7 +590,64 @@
                     ItemsSource="{Binding ServerList, UpdateSourceTrigger=PropertyChanged}"
                     SelectedItem="{Binding SelectedServer}"
                     Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                    ToolTip="Which server to login when launching accounts" />
+                    ToolTip="Which server to login when launching accounts">
+                    <ComboBox.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                                <TextBlock Opacity="0.6" FontWeight="Medium">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Upgrade}" Value="True">
+                                                    <Setter Property="Text" Value=" [M]" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <TextBlock Text=" - " Opacity="0.6" />
+                                <TextBlock Opacity="0.6">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="{Binding Ping, StringFormat='{}{0}ms'}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Online}" Value="False">
+                                                    <Setter Property="Text" Value="Offline" />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Ping}" Value="-1">
+                                                    <Setter Property="Text" Value="..." />
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding Ping}" Value="9999">
+                                                    <Setter Property="Text" Value="timeout" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                                <StackPanel Orientation="Horizontal">
+                                    <StackPanel.Style>
+                                        <Style TargetType="StackPanel">
+                                            <Setter Property="Visibility" Value="Visible" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding Online}" Value="False">
+                                                    <Setter Property="Visibility" Value="Collapsed" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </StackPanel.Style>
+                                    <TextBlock Text=" - " Opacity="0.6" />
+                                    <TextBlock Opacity="0.6">
+                                        <Run Text="{Binding PlayerCount, Mode=OneWay}" />
+                                        <Run Text="/" />
+                                        <Run Text="{Binding MaxPlayers, Mode=OneWay}" />
+                                    </TextBlock>
+                                </StackPanel>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                </ComboBox>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button
                         Margin="6,0,6,0"
@@ -623,6 +680,7 @@
                 </Grid.ColumnDefinitions>
                 <DockPanel Grid.Column="0">
                     <Button
+                        Height="40"
                         VerticalAlignment="Center"
                         materialDesign:ButtonAssist.CornerRadius="0"
                         Command="{Binding OpenGetScriptsCommand}"
@@ -631,8 +689,9 @@
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         ToolTip="Browse and download scripts" />
                     <Button
+                        Height="40"
                         VerticalAlignment="Center"
-                        materialDesign:ButtonAssist.CornerRadius="0 4 4 0"
+                        materialDesign:ButtonAssist.CornerRadius="0"
                         Command="{Binding ChangeScriptPathCommand}"
                         Content="{materialDesign:PackIcon Kind=Folder}"
                         DockPanel.Dock="Right"
