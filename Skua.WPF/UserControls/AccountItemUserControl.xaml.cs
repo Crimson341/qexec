@@ -1,6 +1,6 @@
-﻿using System.Windows.Controls;
+﻿using Skua.Core.ViewModels;
+using System.Windows.Controls;
 using System.Windows.Input;
-using Skua.Core.ViewModels;
 
 namespace Skua.WPF.UserControls;
 

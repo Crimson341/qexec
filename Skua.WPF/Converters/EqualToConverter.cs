@@ -10,10 +10,10 @@ public class EqualToConverter : IValueConverter
     {
         if (value is null && parameter is null)
             return true;
-            
+
         if (value is null || parameter is null)
             return false;
-            
+
         return value.Equals(parameter) || value.ToString().Equals(parameter.ToString());
     }
 

@@ -163,7 +163,7 @@
                     </Grid.RowDefinitions>
 
                     <!-- Accounts Header with Controls -->
-                    <Grid Grid.Row="0" Margin="0,4,0,6">
+                    <Grid Grid.Row="0" Margin="0,6,0,6">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
@@ -220,7 +220,7 @@
 
                         <ToggleButton
                             x:Name="FilterButton"
-                            Grid.Column="3"
+                            Grid.Column="4"
                             Width="32"
                             Height="32"
                             Margin="0,0,8,0"
@@ -303,7 +303,7 @@
                         </Popup>
 
                         <ToggleButton
-                            Grid.Column="4"
+                            Grid.Column="5"
                             Width="32"
                             Height="32"
                             Margin="0,0,8,0"
@@ -320,7 +320,7 @@
                         </ToggleButton>
 
                         <ToggleButton
-                            Grid.Column="5"
+                            Grid.Column="6"
                             Width="32"
                             Height="32"
                             Margin="0,0,8,0"
@@ -338,7 +338,7 @@
 
                         <Button
                             x:Name="ShowAddAccountButton"
-                            Grid.Column="6"
+                            Grid.Column="3"
                             Height="32"
                             Padding="8,4"
                             VerticalAlignment="Center"
@@ -570,84 +570,81 @@
         </TabControl>
 
         <!-- Start Controls -->
-        <Border
-            Grid.Row="2"
-            Margin="0,6,0,0"
-            Background="{DynamicResource MaterialDesignCardBackground}"
-            BorderBrush="{DynamicResource MaterialDesignDivider}"
-            BorderThickness="1"
-            CornerRadius="4"
-            Padding="8">
-            <Grid>
+            <Grid Grid.Row="2">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="2*" />
+                    <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
-                <ComboBox
-                    Grid.Column="0"
-                    Margin="0,0,6,0"
-                    materialDesign:HintAssist.Hint="Login Server"
-                    ItemsSource="{Binding ServerList, UpdateSourceTrigger=PropertyChanged}"
-                    SelectedItem="{Binding SelectedServer}"
-                    Style="{StaticResource MaterialDesignOutlinedComboBox}"
-                    ToolTip="Which server to login when launching accounts">
-                    <ComboBox.ItemTemplate>
-                        <DataTemplate>
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Name}" FontWeight="Medium" />
-                                <TextBlock Opacity="0.6" FontWeight="Medium">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value="" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Upgrade}" Value="True">
-                                                    <Setter Property="Text" Value=" [M]" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
-                                <TextBlock Text=" - " Opacity="0.6" />
-                                <TextBlock Opacity="0.6">
-                                    <TextBlock.Style>
-                                        <Style TargetType="TextBlock">
-                                            <Setter Property="Text" Value="{Binding Ping, StringFormat='{}{0}ms'}" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Online}" Value="False">
-                                                    <Setter Property="Text" Value="Offline" />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Ping}" Value="-1">
-                                                    <Setter Property="Text" Value="..." />
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding Ping}" Value="9999">
-                                                    <Setter Property="Text" Value="timeout" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </TextBlock.Style>
-                                </TextBlock>
+                <StackPanel Margin="6,0,6,0">
+                    <ComboBox
+                        Grid.Column="0"
+                        materialDesign:HintAssist.Hint="Login Server"
+                        ItemsSource="{Binding ServerList, UpdateSourceTrigger=PropertyChanged}"
+                        SelectedItem="{Binding SelectedServer}"
+                        Style="{StaticResource MaterialDesignOutlinedComboBox}"
+                        ToolTip="Which server to login when launching accounts">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
                                 <StackPanel Orientation="Horizontal">
-                                    <StackPanel.Style>
-                                        <Style TargetType="StackPanel">
-                                            <Setter Property="Visibility" Value="Visible" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding Online}" Value="False">
-                                                    <Setter Property="Visibility" Value="Collapsed" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </StackPanel.Style>
+                                    <TextBlock Text="{Binding Name}" FontWeight="Medium" />
+                                    <TextBlock Opacity="0.6" FontWeight="Medium">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Upgrade}" Value="True">
+                                                        <Setter Property="Text" Value=" [M]" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                     <TextBlock Text=" - " Opacity="0.6" />
                                     <TextBlock Opacity="0.6">
-                                        <Run Text="{Binding PlayerCount, Mode=OneWay}" />
-                                        <Run Text="/" />
-                                        <Run Text="{Binding MaxPlayers, Mode=OneWay}" />
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Text" Value="{Binding Ping, StringFormat='{}{0}ms'}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Online}" Value="False">
+                                                        <Setter Property="Text" Value="Offline" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Ping}" Value="-1">
+                                                        <Setter Property="Text" Value="..." />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding Ping}" Value="9999">
+                                                        <Setter Property="Text" Value="timeout" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
                                     </TextBlock>
+                                    <StackPanel Orientation="Horizontal">
+                                        <StackPanel.Style>
+                                            <Style TargetType="StackPanel">
+                                                <Setter Property="Visibility" Value="Visible" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding Online}" Value="False">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </StackPanel.Style>
+                                        <TextBlock Text=" - " Opacity="0.6" />
+                                        <TextBlock Opacity="0.6">
+                                            <Run Text="{Binding PlayerCount, Mode=OneWay}" />
+                                            <Run Text="/" />
+                                            <Run Text="{Binding MaxPlayers, Mode=OneWay}" />
+                                        </TextBlock>
+                                    </StackPanel>
                                 </StackPanel>
-                            </StackPanel>
-                        </DataTemplate>
-                    </ComboBox.ItemTemplate>
-                </ComboBox>
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
+                </StackPanel>
                 <StackPanel Grid.Column="1" Orientation="Horizontal">
                     <Button
                         Margin="6,0,6,0"
@@ -661,25 +658,24 @@
                         Style="{StaticResource MaterialDesignRaisedButton}"
                         ToolTip="Launch all saved accounts" />
                 </StackPanel>
-            </Grid>
-        </Border>
-
-        <!-- Script Section -->
-        <Border
-            Grid.Row="3"
-            Margin="0,6,0,0"
-            Background="{DynamicResource MaterialDesignCardBackground}"
-            BorderBrush="{DynamicResource MaterialDesignDivider}"
-            BorderThickness="1"
-            CornerRadius="4"
-            Padding="8">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*" />
-                    <ColumnDefinition Width="Auto" />
-                </Grid.ColumnDefinitions>
-                <DockPanel Grid.Column="0">
-                    <Button
+            <StackPanel Grid.Row="1" Margin="6,6,0,6">
+                <Border
+                        Height="40"
+                        BorderBrush="{DynamicResource MaterialDesignDivider}"
+                        BorderThickness="1,1,0,1"
+                        CornerRadius="4 0 0 4"
+                        Background="{DynamicResource MaterialDesignToolBarBackground}"
+                        ToolTip="Path to a script which will be loaded and started after launching an account">
+                    <TextBlock
+                            Margin="12,0,0,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding ScriptPath, FallbackValue='No script selected'}"
+                            Foreground="{DynamicResource MaterialDesignBody}" />
+                </Border>
+            </StackPanel>
+            <StackPanel Grid.Row="1" Grid.Column="1" Orientation="Horizontal">
+                <DockPanel>
+                        <Button
                         Height="40"
                         VerticalAlignment="Center"
                         materialDesign:ButtonAssist.CornerRadius="0"
@@ -688,7 +684,7 @@
                         DockPanel.Dock="Right"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         ToolTip="Browse and download scripts" />
-                    <Button
+                        <Button
                         Height="40"
                         VerticalAlignment="Center"
                         materialDesign:ButtonAssist.CornerRadius="0"
@@ -697,29 +693,15 @@
                         DockPanel.Dock="Right"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
                         ToolTip="Select script file from folder" />
-                    <Border
-                        Height="40"
-                        BorderBrush="{DynamicResource MaterialDesignDivider}"
-                        BorderThickness="1,1,0,1"
-                        CornerRadius="4 0 0 4"
-                        Background="{DynamicResource MaterialDesignToolBarBackground}"
-                        ToolTip="Path to a script which will be loaded and started after launching an account">
-                        <TextBlock
-                            Margin="12,0,0,0"
-                            VerticalAlignment="Center"
-                            Text="{Binding ScriptPath, FallbackValue='No script selected'}"
-                            Foreground="{DynamicResource MaterialDesignBody}" />
-                    </Border>
-                </DockPanel>
-                <CheckBox
-                    Grid.Column="1"
-                    Margin="12,0,0,0"
-                    VerticalAlignment="Center"
-                    materialDesign:CheckBoxAssist.CheckBoxSize="20"
-                    Content="Auto-start"
-                    IsChecked="{Binding StartWithScript}"
-                    ToolTip="After launching and logging in to the accounts, starts the specified script" />
+                    </DockPanel>
+                    <CheckBox
+                     Margin="12,0,0,0"
+                     VerticalAlignment="Center"
+                     materialDesign:CheckBoxAssist.CheckBoxSize="20"
+                     Content="Auto-start"
+                     IsChecked="{Binding StartWithScript}"
+                     ToolTip="After launching and logging in to the accounts, starts the specified script" />
+                </StackPanel>
             </Grid>
-        </Border>
     </Grid>
 </UserControl>

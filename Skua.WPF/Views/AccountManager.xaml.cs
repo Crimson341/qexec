@@ -84,7 +84,7 @@ public sealed partial class AccountManagerView : UserControl
             return;
         }
 
-        InputDialogViewModel inputDialogViewModel = new InputDialogViewModel(
+        InputDialogViewModel inputDialogViewModel = new(
             "Add Tags to Selected", "Enter tags (comma-separated)", "Tags", numericInputOnly: false);
         bool? result = dialogService.ShowDialog(inputDialogViewModel, "Add Tags");
 
@@ -112,7 +112,7 @@ public sealed partial class AccountManagerView : UserControl
     public void EditAccountTags(AccountItemViewModel account)
     {
         string existingTags = string.Join(", ", account.Tags);
-        InputDialogViewModel inputDialogViewModel = new InputDialogViewModel(
+        InputDialogViewModel inputDialogViewModel = new(
             "Edit Tags", "Enter tags (comma-separated)", "Tags", numericInputOnly: false)
         {
             DialogTextInput = existingTags
@@ -146,7 +146,7 @@ public sealed partial class AccountManagerView : UserControl
             return;
         }
 
-        SelectGroupDialogViewModel dialogViewModel = new SelectGroupDialogViewModel(viewModel.Groups);
+        SelectGroupDialogViewModel dialogViewModel = new(viewModel.Groups);
         bool? result = dialogService.ShowDialog(dialogViewModel, "Add Selected to Group");
 
         if (result == true && dialogViewModel.SelectedGroup != null)
@@ -160,7 +160,7 @@ public sealed partial class AccountManagerView : UserControl
 
     private void AddAccountToGroup(AccountItemViewModel account)
     {
-        SelectGroupDialogViewModel dialogViewModel = new SelectGroupDialogViewModel(viewModel.Groups);
+        SelectGroupDialogViewModel dialogViewModel = new(viewModel.Groups);
         bool? result = dialogService.ShowDialog(dialogViewModel, "Add to Group");
 
         if (result == true && dialogViewModel.SelectedGroup != null)
@@ -171,7 +171,7 @@ public sealed partial class AccountManagerView : UserControl
 
     private void AddGroup_Click(object sender, RoutedEventArgs e)
     {
-        InputDialogViewModel inputDialogViewModel = new InputDialogViewModel(
+        InputDialogViewModel inputDialogViewModel = new(
             "Create Group", "Enter group name", "Group Name", numericInputOnly: false);
         bool? result = dialogService.ShowDialog(inputDialogViewModel, "Create Group");
 

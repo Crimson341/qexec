@@ -9,10 +9,8 @@ using Skua.Core.Messaging;
 using Skua.Core.Models;
 using Skua.Core.Models.Servers;
 using Skua.Core.Utils;
-using Skua.Core.ViewModels.Manager;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
 
 namespace Skua.Core.ViewModels.Manager;
 
@@ -136,7 +134,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     {
         if (string.IsNullOrEmpty(UsernameInput) || string.IsNullOrEmpty(PasswordInput))
         {
-            _dialogService.ShowMessageBox("Username and/or password must not be empty", "Missing Input");
+            _dialogService.ShowMessageBox("Username or password must not be empty", "Missing Input");
             return;
         }
 
@@ -321,7 +319,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
             return;
         }
 
-        GroupItemViewModel newGroup = new GroupItemViewModel(groupName);
+        GroupItemViewModel newGroup = new(groupName);
         Groups.Add(newGroup);
         _SaveGroups();
     }
@@ -346,7 +344,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
     private void _RenameGroup(GroupItemViewModel group)
     {
-        InputDialogViewModel inputDialogViewModel = new InputDialogViewModel(
+        InputDialogViewModel inputDialogViewModel = new(
             "Rename Group", "Enter new group name", "Group Name", numericInputOnly: false)
         {
             DialogTextInput = group.Name
@@ -386,10 +384,10 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
     public void RefreshTagFilters()
     {
         // Remember which tags were selected before refresh
-        HashSet<string> previouslySelected = new HashSet<string>(_selectedTagFilters, StringComparer.OrdinalIgnoreCase);
+        HashSet<string> previouslySelected = new(_selectedTagFilters, StringComparer.OrdinalIgnoreCase);
 
         AllTags.Clear();
-        Dictionary<string, int> tagCounts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        Dictionary<string, int> tagCounts = new(StringComparer.OrdinalIgnoreCase);
 
         foreach (AccountItemViewModel account in Accounts)
         {
@@ -404,7 +402,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
         foreach (KeyValuePair<string, int> kvp in tagCounts.OrderBy(x => x.Key))
         {
-            TagFilterItem tagItem = new TagFilterItem(kvp.Key, kvp.Value);
+            TagFilterItem tagItem = new(kvp.Key, kvp.Value);
 
             // Restore selection state if this tag was previously selected
             if (previouslySelected.Contains(kvp.Key))
@@ -547,7 +545,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
                 return;
             }
 
-            List<GroupItemViewModel> loadedGroups = new List<GroupItemViewModel>();
+            List<GroupItemViewModel> loadedGroups = new();
 
             foreach (GroupData groupData in groupsData)
             {
@@ -556,7 +554,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
                     if (string.IsNullOrEmpty(groupData.Name))
                         continue;
 
-                    GroupItemViewModel group = new GroupItemViewModel(groupData.Name);
+                    GroupItemViewModel group = new(groupData.Name);
 
                     foreach (string username in groupData.Accounts)
                     {
@@ -622,7 +620,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
 
         List<Task> pingTasks = servers.Select(server => Task.Run(async () =>
         {
-            using (System.Net.NetworkInformation.Ping pinger = new System.Net.NetworkInformation.Ping())
+            using (System.Net.NetworkInformation.Ping pinger = new())
             {
                 try
                 {

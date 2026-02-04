@@ -1,9 +1,9 @@
-using System.Windows;
-using System.Windows.Controls;
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Messaging;
 using Skua.Core.ViewModels;
 using Skua.Core.ViewModels.Manager;
+using System.Windows;
+using System.Windows.Controls;
 
 namespace Skua.WPF.UserControls;
 
