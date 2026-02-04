@@ -41,9 +41,6 @@
 
         <!-- List View Style (simple version) -->
         <Border
-            BorderBrush="{DynamicResource MaterialDesignDivider}"
-            BorderThickness="1"
-            Background="Transparent"
             Margin="0,0,0,0"
             Cursor="Hand"
             MouseLeftButtonUp="Border_MouseLeftButtonUp"
@@ -51,14 +48,13 @@
             <Border.Style>
                 <Style TargetType="Border">
                     <Setter Property="Padding" Value="8,6" />
+                    <Setter Property="Background" Value="Transparent" />
+                    <Setter Property="BorderBrush" Value="Transparent" />
+                    <Setter Property="BorderThickness" Value="1" />
                     <Style.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Setter Property="Background" Value="{DynamicResource MaterialDesignSelection}" />
+                            <Setter Property="BorderBrush" Value="{DynamicResource MaterialDesignDivider}" />
                         </Trigger>
-                        <DataTrigger Binding="{Binding UseCheck}" Value="True">
-                            <Setter Property="BorderBrush" Value="{DynamicResource PrimaryHueMidBrush}" />
-                            <Setter Property="BorderThickness" Value="2" />
-                        </DataTrigger>
                     </Style.Triggers>
                 </Style>
             </Border.Style>
@@ -135,19 +131,7 @@
                     VerticalAlignment="Center"
                     Command="{Binding RemoveCommand}"
                     ToolTip="Remove Account"
-                    Background="Transparent"
-                    BorderThickness="0">
-                    <Button.Style>
-                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
-                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesignBody}" />
-                            <Setter Property="Opacity" Value="0" />
-                            <Style.Triggers>
-                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
-                                    <Setter Property="Opacity" Value="1" />
-                                </DataTrigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
+                    Style="{StaticResource MaterialDesignIconButton}">
                     <materialDesign:PackIcon
                         Kind="DeleteOutline"
                         Width="16"
