@@ -60,13 +60,32 @@
                                 </StackPanel>
                                 <Button
                                     Grid.Column="2"
+                                    Width="28"
+                                    Height="28"
+                                    Padding="0"
                                     Margin="10,0,0,0"
-                                    Style="{StaticResource MaterialDesignFlatButton}"
                                     ToolTip="Kill Process"
                                     Command="{Binding RelativeSource={RelativeSource AncestorType=UserControl}, Path=DataContext.StopProcessCommand}"
                                     CommandParameter="{Binding}"
-                                    Content="{materialDesign:PackIcon Kind=Close, Size=20}"
-                                    Foreground="{DynamicResource MaterialDesignValidationErrorBrush}" />
+                                    Background="{DynamicResource MaterialDesignPaper}"
+                                    BorderBrush="{DynamicResource MaterialDesignDivider}"
+                                    BorderThickness="1">
+                                    <Button.Style>
+                                        <Style TargetType="Button" BasedOn="{StaticResource MaterialDesignIconButton}">
+                                            <Setter Property="Visibility" Value="Collapsed" />
+                                            <Setter Property="Foreground" Value="{DynamicResource MaterialDesignValidationErrorBrush}" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding RelativeSource={RelativeSource AncestorType=Border}, Path=IsMouseOver}" Value="True">
+                                                    <Setter Property="Visibility" Value="Visible" />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Button.Style>
+                                    <materialDesign:PackIcon
+                                        Kind="Close"
+                                        Width="16"
+                                        Height="16" />
+                                </Button>
                             </Grid>
                         </Border>
                     </DataTemplate>

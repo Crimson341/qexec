@@ -2,22 +2,26 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using Skua.Core.Interfaces;
 using Skua.Core.Utils;
+using System.Diagnostics;
 
 namespace Skua.Core.ViewModels;
 
 public class ChangeLogsViewModel : BotControlViewModelBase
 {
     private string _markDownContent = "Loading content...";
-    private bool _hasLoadedOnce = false;
 
     public ChangeLogsViewModel() : base("Change Logs", 460, 500)
     {
         _markDownContent = string.Empty;
 
+        Task.Run(async () => await GetChangeLogsContent());
+
         OpenDonationLink = new RelayCommand(() => Ioc.Default.GetRequiredService<IProcessService>().OpenLink("https://ko-fi.com/sharpthenightmare"));
+        NavigateCommand = new RelayCommand<string>(NavigateToUrl);
     }
 
     public IRelayCommand OpenDonationLink { get; }
+    public IRelayCommand NavigateCommand { get; }
 
     public string MarkdownDoc
     {
@@ -30,23 +34,31 @@ public class ChangeLogsViewModel : BotControlViewModelBase
         {
             MarkdownDoc = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, "auqw/Skua/refs/heads/master/changelogs.md").ConfigureAwait(false);
         }
-        catch (Exception ex)
+        catch
         {
-            // Show error message with exception details for debugging
-            MarkdownDoc = $"### Unable to Load Changelog\r\n\r\nError: {ex.Message}\r\n\r\nThis might be due to:\r\n- No internet connection\r\n- GitHub service issues\r\n- Repository access problems\r\n\r\nPlease check your internet connection and try again later.\r\n\r\nYou can also view the latest releases at: [Skua Releases](https://github.com/auqw/Skua/releases)";
+            MarkdownDoc = "### No content found. Please check your internet connection.";
         }
     }
 
-    private async Task RefreshChangelogContent()
+    private void NavigateToUrl(string? url)
     {
-        MarkdownDoc = "Refreshing changelog...";
-        await GetChangeLogsContent();
-    }
+        if (string.IsNullOrEmpty(url))
+            return;
 
-    public async void OnActivated()
-    {
-        MarkdownDoc = "Loading changelog...";
-        await GetChangeLogsContent();
-        _hasLoadedOnce = true;
+        try
+        {
+            if (url.StartsWith("./"))
+            {
+                Process.Start(new ProcessStartInfo($"https://github.com/auqw/Skua/blob/master/{url.Substring(2)}") { UseShellExecute = true });
+            }
+            else
+            {
+                Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+            }
+        }
+        catch
+        {
+            /* ignored */
+        }
     }
 }

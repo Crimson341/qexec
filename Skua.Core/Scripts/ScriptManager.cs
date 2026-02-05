@@ -104,17 +104,17 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             object? script = await Task.Run(() => Compile(scriptContent));
 
             LoadScriptConfig(script);
-            
+
             bool needsConfig;
             lock (_configuredLock)
             {
                 needsConfig = _configured.TryGetValue(Config!.Storage, out bool b) && !b;
             }
-            
+
             ManualResetEventSlim scriptReady = new(false);
 
             Handlers.Clear();
-            
+
             lock (_stateLock)
             {
                 _runScriptStoppingBool = false;
@@ -146,7 +146,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                         Trace.WriteLine($"Error while running script:\r\nMessage: {(e.InnerException is not null ? e.InnerException.Message : e.Message)}\r\nStackTrace: {(e.InnerException is not null ? e.InnerException.StackTrace : e.StackTrace)}");
 
                         StrongReferenceMessenger.Default.Send<ScriptErrorMessage, int>(new(e), (int)MessageChannels.ScriptStatus);
-                        
+
                         lock (_stateLock)
                         {
                             _runScriptStoppingBool = true;
@@ -161,7 +161,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                         _stoppedByScript = false;
                         shouldSendStoppingMessage = _runScriptStoppingBool;
                     }
-                    
+
                     if (shouldSendStoppingMessage)
                     {
                         StrongReferenceMessenger.Default.Send<ScriptStoppingMessage, int>((int)MessageChannels.ScriptStatus);
@@ -260,7 +260,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             _runScriptStoppingBool = runScriptStoppingEvent;
             _stoppedByScript = true;
         }
-        
+
         ScriptCts?.Cancel();
 
         if (Thread.CurrentThread.Name == "Script Thread")
@@ -324,7 +324,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         CheckScriptVersionRequirement(source);
 
         Stopwatch sw = Stopwatch.StartNew();
-        
+
         _includedFilesLock.EnterWriteLock();
         try
         {
@@ -334,7 +334,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             _includedFilesLock.ExitWriteLock();
         }
-        
+
         HashSet<string> references = GetReferences();
         string final = ProcessSources(source, ref references);
 
@@ -403,7 +403,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     private HashSet<string> GetReferences()
     {
         HashSet<string> references = new();
-        
+
         lock (_refCacheLock)
         {
             if (_refCache.Count == 0 && Directory.Exists(ClientFileSources.SkuaPluginsDIR))
@@ -867,7 +867,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             _includedFilesLock.ExitReadLock();
         }
-        
+
         List<string> newlyAddedFiles = new();
         foreach (KeyValuePair<string, List<string>> kvp in dependencyGraph)
         {

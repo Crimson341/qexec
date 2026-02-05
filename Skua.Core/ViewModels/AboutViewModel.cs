@@ -31,30 +31,12 @@ public class AboutViewModel : BotControlViewModelBase
 
         try
         {
-            // Handle relative file paths that start with "./"
             if (url.StartsWith("./"))
             {
-                // Get the relative path without the "./" prefix
-                string relativePath = url.Substring(2);
-
-                // Combine with the current directory to get the full path
-                string fullPath = System.IO.Path.Combine(Environment.CurrentDirectory, relativePath);
-
-                // Check if the file exists
-                if (System.IO.File.Exists(fullPath))
-                {
-                    Process.Start(new ProcessStartInfo(fullPath) { UseShellExecute = true });
-                }
-                else
-                {
-                    // If file doesn't exist locally, try to open it from the GitHub repository
-                    string githubUrl = $"https://raw.githubusercontent.com/auqw/Skua/refs/heads/master/{relativePath}";
-                    Process.Start(new ProcessStartInfo(githubUrl) { UseShellExecute = true });
-                }
+                Process.Start(new ProcessStartInfo($"https://github.com/auqw/Skua/blob/master/{url.Substring(2)}") { UseShellExecute = true });
             }
             else
             {
-                // Handle regular URLs
                 Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
             }
         }

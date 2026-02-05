@@ -64,6 +64,12 @@ public class Server
     [JsonProperty("iLevel")]
     public int Level { get; set; }
 
+    /// <summary>
+    /// The ping/latency to this server in milliseconds (calculated client-side).
+    /// </summary>
+    [JsonIgnore]
+    public long Ping { get; set; } = -1;
+
     public override string ToString()
     {
         return $"{Name} - {PlayerCount}";
