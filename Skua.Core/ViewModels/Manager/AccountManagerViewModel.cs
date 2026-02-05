@@ -26,6 +26,7 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         Messenger.Register<AccountManagerViewModel, RemoveGroupMessage>(this, (r, m) => r._RemoveGroup(m.Group));
         Messenger.Register<AccountManagerViewModel, RenameGroupMessage>(this, (r, m) => r._RenameGroup(m.Group));
         Messenger.Register<AccountManagerViewModel, RemoveAccountFromGroupMessage>(this, (r, m) => r._RemoveAccountFromGroup(m.Group, m.Account));
+        Messenger.Register<AccountManagerViewModel, StartGroupMessage>(this, (r, m) => r._StartGroup(m.Group, m.WithScript));
         StrongReferenceMessenger.Default.Register<AccountManagerViewModel, LoadScriptMessage, int>(this,
             (int)MessageChannels.ScriptStatus, (r, m) => r.HandleLoadScript(m));
         _settingsService = settingsService;
@@ -261,6 +262,23 @@ public sealed partial class AccountManagerViewModel : BotControlViewModelBase
         }
 
         _LaunchAcc(account.Username, account.Password, account.DisplayName, withScript);
+    }
+
+    private async void _StartGroup(GroupItemViewModel group, bool withScript)
+    {
+        _syncThemes = _settingsService.Get("syncTheme", false);
+
+        if (withScript && string.IsNullOrEmpty(ScriptPath))
+        {
+            _dialogService.ShowMessageBox("No script selected. Please select a script first.", "No Script");
+            return;
+        }
+
+        foreach (AccountItemViewModel account in group.Accounts)
+        {
+            _LaunchAcc(account.Username, account.Password, account.DisplayName, withScript);
+            await Task.Delay(1000);
+        }
     }
 
     private void _LaunchAcc(string username, string password, string displayName = null, bool? withScript = null)
