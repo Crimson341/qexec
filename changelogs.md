@@ -1,3 +1,16 @@
+# Skua 1.4.1.0
+## Released: February 05, 2026
+
+## Changes
+- UI/account manager refresh by @ArrowDev123 in https://github.com/auqw/Skua/pull/33
+
+## New Contributors
+- @ArrowDev123 made their first contribution in https://github.com/auqw/Skua/pull/33
+
+**Full Changelog**: [`1.4.0.5...1.4.1.0`](<https://github.com/auqw/Skua/compare/1.4.0.5...1.4.1.0>)
+
+---
+
 # Skua 1.4.0.5
 ## Released: January 28, 2026
 
