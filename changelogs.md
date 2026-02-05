@@ -1,3 +1,14 @@
+# Skua 1.4.1.1
+## Released: February 05, 2026
+
+## What's Changed
+* Fix: Add handler for group start by @ArrowDev123 in https://github.com/auqw/Skua/pull/34
+
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.4.1.0...1.4.1.1
+
+---
+
 # Skua 1.4.1.0
 ## Released: February 05, 2026
 
