@@ -266,7 +266,7 @@ public class Compiler : CSharpScriptExecution
             return source;
 
         int currentHash = Namespaces.Count > 0 ? string.Join(";", Namespaces).GetHashCode() : 0;
-        
+
         lock (_namespaceCacheLock)
         {
             if (_cachedNamespacePrefix == null || _lastNamespaceHash != currentHash)

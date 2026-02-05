@@ -41,7 +41,7 @@ public class ScriptLoadContext : AssemblyLoadContext
         if (matchingFiles.Length > 0)
         {
             string latestFile = matchingFiles.OrderByDescending(f => File.GetLastWriteTimeUtc(f)).First();
-            
+
             if (!File.Exists(latestFile))
                 return null;
 

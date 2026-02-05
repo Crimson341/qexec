@@ -44,4 +44,34 @@ public partial class AccountItemViewModel : ObservableObject
     {
         WeakReferenceMessenger.Default.Send<RemoveAccountMessage>(new(this));
     }
+
+    [RelayCommand]
+    private void AddTags()
+    {
+        WeakReferenceMessenger.Default.Send<AddTagsMessage>(new(this));
+    }
+
+    [RelayCommand]
+    private void Start()
+    {
+        WeakReferenceMessenger.Default.Send<StartAccountMessage>(new(this, false));
+    }
+
+    [RelayCommand]
+    private void StartWithScript()
+    {
+        WeakReferenceMessenger.Default.Send<StartAccountMessage>(new(this, true));
+    }
+
+    [RelayCommand]
+    private void ToggleSelection()
+    {
+        UseCheck = !UseCheck;
+    }
+
+    [RelayCommand]
+    private void AddToGroup()
+    {
+        WeakReferenceMessenger.Default.Send<AddAccountToGroupMessage>(new(this));
+    }
 }

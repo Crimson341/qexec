@@ -16,6 +16,15 @@ public class AccountData
     public List<string> Tags { get; set; } = new();
 }
 
+public class GroupData
+{
+    [JsonPropertyName("Name")]
+    public string Name { get; set; } = string.Empty;
+
+    [JsonPropertyName("Accounts")]
+    public List<string> Accounts { get; set; } = new();
+}
+
 public class AccountDataDictionaryJsonConverter : JsonConverter<Dictionary<string, AccountData>>
 {
     private const string LegacySeparator = "{=}";
@@ -284,6 +293,9 @@ public class ManagerSettings
     [JsonPropertyName("ManagedAccounts")]
     [JsonConverter(typeof(AccountDataDictionaryJsonConverter))]
     public Dictionary<string, AccountData> ManagedAccounts { get; set; } = new(StringComparer.OrdinalIgnoreCase);
+
+    [JsonPropertyName("AccountGroups")]
+    public List<GroupData>? AccountGroups { get; set; } = new();
 
     [JsonPropertyName("LastServer")]
     public string LastServer { get; set; } = string.Empty;

@@ -1,8 +1,14 @@
 using CommunityToolkit.Mvvm.DependencyInjection;
 using MdXaml;
 using Skua.Core.ViewModels;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Threading;
 
 namespace Skua.WPF.Views;
 
@@ -11,22 +17,40 @@ namespace Skua.WPF.Views;
 /// </summary>
 public partial class ChangeLogsView : UserControl
 {
-    private readonly ChangeLogsViewModel _viewModel;
-
     public ChangeLogsView()
     {
         InitializeComponent();
-        _viewModel = Ioc.Default.GetRequiredService<ChangeLogsViewModel>();
-        DataContext = _viewModel;
+        DataContext = Ioc.Default.GetRequiredService<ChangeLogsViewModel>();
         Markdownview.MarkdownStyle = MarkdownStyle.SasabuneStandard;
-        IsVisibleChanged += OnVisibilityChanged;
     }
 
-    private void OnVisibilityChanged(object sender, DependencyPropertyChangedEventArgs e)
+    private void Markdownview_DataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
-        if (e.NewValue is bool isVisible && isVisible && _viewModel != null)
+        Dispatcher.BeginInvoke(new Action(() =>
         {
-            _viewModel.OnActivated();
+            SubscribeToAllHyperlinks(Markdownview.Document);
+        }), DispatcherPriority.Loaded);
+    }
+
+    private void SubscribeToAllHyperlinks(FlowDocument flowDocument)
+    {
+        foreach (Hyperlink link in GetVisuals(flowDocument).OfType<Hyperlink>())
+            link.Command = ((ChangeLogsViewModel)DataContext).NavigateCommand;
+    }
+
+    private IEnumerable<DependencyObject> GetVisuals(DependencyObject root)
+    {
+        foreach (DependencyObject child in LogicalTreeHelper.GetChildren(root).OfType<DependencyObject>())
+        {
+            yield return child;
+            foreach (DependencyObject descendants in GetVisuals(child))
+                yield return descendants;
         }
+    }
+
+    private void link_RequestNavigate(object sender, System.Windows.Navigation.RequestNavigateEventArgs e)
+    {
+        Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri) { UseShellExecute = true });
+        e.Handled = true;
     }
 }

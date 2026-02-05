@@ -13,4 +13,5 @@
     <converters:MultiValueEqualityConverter x:Key="MultiValueEqualityConverter" />
     <converters:EqualToConverter x:Key="EqualToConverter" />
     <converters:GreaterThanConverter x:Key="GreaterThanConverter" />
+    <converters:ColumnWidthConverter x:Key="ColumnWidthConverter" />
 </ResourceDictionary>

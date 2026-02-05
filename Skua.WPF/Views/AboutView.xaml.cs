@@ -34,8 +34,7 @@ public partial class AboutView : UserControl
 
     private void SubscribeToAllHyperlinks(FlowDocument flowDocument)
     {
-        IEnumerable<Hyperlink> hyperlinks = GetVisuals(flowDocument).OfType<Hyperlink>();
-        foreach (Hyperlink link in hyperlinks)
+        foreach (Hyperlink link in GetVisuals(flowDocument).OfType<Hyperlink>())
             link.Command = ((AboutViewModel)DataContext).NavigateCommand;
     }
 
