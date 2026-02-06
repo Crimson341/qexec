@@ -56,7 +56,7 @@ Skua developers need your support to improve Skua. You can donate or sponsor us 
 
 ### [Breno Henrike's PayPal (Inactive) (Creator)](https://www.paypal.com/donate?hosted_button_id=QVQ4Q7XSH9VBY)
 
-### [Lord Exelot's PayPal (Inactive) (Brief work on Skua Ex Scripts Manager)](www.paypal.me/LordExelot)
+### [Lord Exelot's PayPal (Inactive) (Brief work on Skua, Ex Scripts Manager)](www.paypal.me/LordExelot)
 
 ## Contributors
 
