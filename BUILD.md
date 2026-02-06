@@ -15,7 +15,7 @@ This document provides instructions for building the Skua project from source, i
 ### Required Software
 
 1. **.NET 10.0 SDK or later**
-   - Download from: https://dotnet.microsoft.com/download
+   - Download from: [Microsoft](https://dotnet.microsoft.com/download)
    - Verify installation: `dotnet --version`
    - Project targets: `net10.0-windows` for applications and libraries
 
@@ -26,17 +26,17 @@ This document provides instructions for building the Skua project from source, i
    - Or install Build Tools for Visual Studio separately
 
 3. **WiX CLI v6.0+** (for installer)
-   - Install using: https://github.com/wixtoolset/wix/releases/tag/v6.0.2
-   - Install both: `wix-cli-x64.msi` and `WixAdditionalTools.exe`
-   - and the Visual Studio extension https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17
-   - Documentation: https://wixtoolset.org/docs/tools/
+   - Install using: [WiX Toolset v6.0.2](https://github.com/wixtoolset/wix/releases/tag/v6.0.2)
+      - Install both: `wix-cli-x64.msi` and `WixAdditionalTools.exe`
+   - The Visual Studio extension: [HeatWave](https://marketplace.visualstudio.com/items?itemName=FireGiant.FireGiantHeatWaveDev17)
+   - [WiX Documentation](https://wixtoolset.org/docs/tools/)
 
 4. **PowerShell 7 or later**
-   - For PowerShell: https://github.com/PowerShell/PowerShell/releases
+   - For PowerShell: [PowerShell Github](https://github.com/PowerShell/PowerShell/releases)
 
 5. **FlashDevelop or IntelliJ IDEA Ultimate (for building Skua.AS3 project - skua.swf)**
-   - **Option A - FlashDevelop**: https://github.com/fdorg/flashdevelop/raw/refs/heads/development/Releases/FlashDevelop-5.3.3.exe
-   - **Option B - IntelliJ IDEA Ultimate**: https://www.jetbrains.com/idea/download/
+   - **Option A - FlashDevelop**: [download](https://github.com/fdorg/flashdevelop/raw/refs/heads/development/Releases/FlashDevelop-5.3.3.exe)
+   - **Option B - IntelliJ IDEA Ultimate**: [download](https://www.jetbrains.com/idea/download/)
      - Requires ActionScript & Flash plugin
 
 ### Optional Software
@@ -49,44 +49,17 @@ This document provides instructions for building the Skua project from source, i
 ### Easiest Method: PowerShell Script
 
 1. Clone the repository:
+
    ```bash
    git clone https://github.com/auqw/Skua.git
    cd Skua
    ```
 
 2. Right-click `Build-Skua.ps1` and select "Run with PowerShell"
-   - This builds the Release configuration for both x64 and x86
+   - This builds the Release configuration for both `x64` and `x86`
    - Includes WiX installer creation
    - Output is placed in the `build` folder
    - **The window stays open after completion**, showing build results
-
-### Alternative: Run from Terminal
-
-```powershell
-# Build Release (default)
-.\Build-Skua.ps1
-
-# Fast parallel build (recommended for full builds)
-.\Build-Skua.ps1 -Parallel
-
-# Fastest for development
-.\Build-Skua.ps1 -Parallel -SkipClean -SkipInstaller
-
-# Build Debug configuration
-.\Build-Skua.ps1 -Configuration Debug
-
-# Skip cleaning
-.\Build-Skua.ps1 -SkipClean
-
-# Skip installer
-.\Build-Skua.ps1 -SkipInstaller
-
-# Enable binary logging for build analysis
-.\Build-Skua.ps1 -BinaryLog
-
-# Combine options
-.\Build-Skua.ps1 -Parallel -Platforms "64" -Configuration Debug -SkipInstaller
-```
 
 ## Build Scripts
 
@@ -122,7 +95,7 @@ The main build automation script with full control over the build process.
 | Parameter | Type | Default | Description |
 |-----------|------|---------|-------------|
 | Configuration | String | Release | Build configuration (Debug/Release) |
-| Platforms | String[] | @("x64", "x86") | Target platforms to build |
+| Platforms | String | "x64", "x86" | Target platforms to build |
 | SkipInstaller | Switch | $false | Skip building WiX installer |
 | SkipClean | Switch | $false | Skip cleaning before build (faster incremental builds) |
 | Parallel | Switch | $false | Build platforms and installers in parallel (~23% faster) |
@@ -131,7 +104,7 @@ The main build automation script with full control over the build process.
 
 #### Output Structure
 
-```
+```powershell
 build/
 ├── Release/
 │   ├── x64/
@@ -151,8 +124,10 @@ The PowerShell script can be run in several ways:
 
 1. **Right-click method**: Right-click `Build-Skua.ps1` → "Run with PowerShell"
 2. **Command line**: Open PowerShell and run `.\Build-Skua.ps1`
-3. **Create a shortcut**: Make a shortcut with target:
-   ```
+3. **Batch files**: We have 3 next to the powershell script `Build.bat`, `Buildx64.bat`, and `Buildx64noInstaller.bat`
+4. **Make your own**: Make a batch script with target:
+
+   ```powershell
    powershell.exe -ExecutionPolicy Bypass -File "Build-Skua.ps1"
    ```
 
@@ -166,7 +141,7 @@ The PowerShell script can be run in several ways:
 
 ### Using .NET CLI
 
-```bash
+```powershell
 # Restore packages
 dotnet restore
 
@@ -184,7 +159,7 @@ dotnet build Skua.App.WPF\Skua.App.WPF.csproj --configuration Release
 
 Requires WiX CLI and MSBuild:
 
-```bash
+```powershell
 # First install WiX CLI if not already installed
 dotnet tool install --global wix
 
@@ -199,35 +174,6 @@ msbuild Skua.Installer\Skua.Installer.wixproj /p:Configuration=Release /p:Platfo
 ```
 
 ## CI/CD
-
-### GitHub Actions
-
-The project includes a GitHub Actions workflow (`.github/workflows/build.yml`) that automatically:
-
-1. Builds on every push to the main/master/develop branches
-2. Builds on pull requests
-3. Creates releases when tags starting with 'v' are pushed
-4. Supports manual workflow dispatch
-
-#### Triggering a Release
-
-```bash
-# Tag a release
-git tag v1.0.0
-git push origin v1.0.0
-
-# This triggers:
-# 1. Build for all platforms
-# 2. Create installers
-# 3. Generate release artifacts
-# 4. Create a GitHub release with downloads
-```
-
-#### GitHub Secrets (Optional)
-
-For signed installers, add these repository secrets:
-- `SIGNING_CERTIFICATE`: Base64-encoded PFX certificate
-- `SIGNING_PASSWORD`: Certificate password
 
 ### Local CI Testing
 
@@ -246,18 +192,20 @@ Test the build process locally before pushing:
 ### Common Issues
 
 #### WiX CLI Not Found
+
 - **Error**: "WiX CLI v6+ not found"
-- **Solution**: Install WiX CLI using: `dotnet tool install --global wix` or https://github.com/wixtoolset/wix/releases/tag/v6.0.2
+- **Solution**: Install WiX CLI using: `dotnet tool install --global wix` or [get it here](https://github.com/wixtoolset/wix/releases/tag/v6.0.2)
 - **Verify**: Run `wix --version` to confirm installation
-- **Documentation**: https://wixtoolset.org/docs/tools/
 
 #### MSBuild Not Found
+
 - **Error**: "MSBuild not found"
 - **Solution**: Install Visual Studio or Build Tools for Visual Studio
 - Alternative: Use Developer Command Prompt
 
 #### NuGet Restore Failures
-```bash
+
+```powershell
 # Clear NuGet cache
 dotnet nuget locals all --clear
 
@@ -266,7 +214,8 @@ dotnet restore --verbosity detailed
 ```
 
 #### Platform Build Issues
-```bash
+
+```powershell
 # Ensure platform is specified correctly
 dotnet build -p:Platform=x64  # Not "--platform x64"
 
@@ -275,21 +224,10 @@ dotnet build -p:Platform=x86 -p:PlatformTarget=x86
 ```
 
 #### Permission Errors
+
 - Run PowerShell as Administrator if needed
 - Check execution policy: `Get-ExecutionPolicy`
 - Temporarily bypass: `powershell -ExecutionPolicy Bypass -File Build-Skua.ps1`
-
-### Build Performance
-
-Speed up builds with these optimizations:
-
-#### Performance Comparison
-
-| Build Type | Time (Sequential) | Time (Parallel) | Improvement |
-|------------|------------------|-----------------|-------------|
-| Full build with installers | ~84s | ~65s | **23% faster** |
-| Build without installers | ~50s | ~37s | **26% faster** |
-| Incremental build (SkipClean) | ~15-20s | ~10-15s | **33-40% faster** |
 
 #### Optimization Tips
 
@@ -328,18 +266,6 @@ msiexec /i "build\Installers\Skua_Release_x64_Skua.Installer.msi" /quiet
 
 ## Advanced Configuration
 
-### Custom Build Configurations
-
-Edit project files to add custom configurations:
-
-```xml
-<!-- In .csproj files -->
-<PropertyGroup Condition="'$(Configuration)'=='Custom'">
-  <DefineConstants>CUSTOM_BUILD</DefineConstants>
-  <Optimize>true</Optimize>
-</PropertyGroup>
-```
-
 ### Build Version Management
 
 Versions are centrally managed in `Directory.Build.props` at the repository root:
@@ -369,6 +295,7 @@ When contributing build system changes:
 ## Support
 
 For build issues:
+
 1. Check [Prerequisites](#prerequisites) are installed
 2. Review [Troubleshooting](#troubleshooting) section
 3. Check existing GitHub issues
