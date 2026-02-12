@@ -179,6 +179,12 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
         return Task.Run(async () => { await Task.Delay(delay); action(this); });
     }
 
+    public void SellJunk()
+    {
+        IJunkService? junkService = Ioc.Default.GetService<IJunkService>();
+        junkService?.SellAllJunk();
+    }
+
     public void Log(string message)
     {
         CheckScriptTermination();

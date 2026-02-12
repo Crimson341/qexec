@@ -52,5 +52,18 @@ public class ClientFilesService : IClientFilesService
             else
                 File.Create(ClientFileSources.SkuaQuestsFile);
         }
+
+        if (!File.Exists(ClientFileSources.SkuaJunkItemsFile))
+        {
+            try
+            {
+                Directory.CreateDirectory(Path.GetDirectoryName(ClientFileSources.SkuaJunkItemsFile)!);
+                File.WriteAllText(ClientFileSources.SkuaJunkItemsFile, "[]");
+            }
+            catch
+            {
+                // ignored
+            }
+        }
     }
 }

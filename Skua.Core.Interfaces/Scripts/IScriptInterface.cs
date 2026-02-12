@@ -230,6 +230,11 @@ public interface IScriptInterface
     Random Random { get; set; }
 
     /// <summary>
+    /// Sells all items marked as junk in the Junk Items configuration.
+    /// </summary>
+    void SellJunk();
+
+    /// <summary>
     /// Sleeps the bot for the specified time period.
     /// </summary>
     /// <param name="ms">Time in milliseconds for the bot to sleep.</param>

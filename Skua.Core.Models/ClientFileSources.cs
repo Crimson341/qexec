@@ -14,4 +14,5 @@ public static class ClientFileSources
     public static string SkuaAdvancedSkillsFile { get; } = Path.Combine(SkuaDIR, "AdvancedSkills.json");
     public static string SkuaQuestsFile { get; } = Path.Combine(SkuaDIR, "QuestData.json");
     public static string SkuaScriptsCommitFile { get; } = Path.Combine(SkuaDIR, "scripts-commit.txt");
+    public static string SkuaJunkItemsFile { get; } = Path.Combine(SkuaDIR, "JunkItems.json");
 }

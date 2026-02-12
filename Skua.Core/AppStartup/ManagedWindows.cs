@@ -24,6 +24,7 @@ public class ManagedWindows
         windowService.RegisterManagedWindow("Notify Drop", s.GetRequiredService<NotifyDropViewModel>());
         windowService.RegisterManagedWindow("Fast Travel", s.GetRequiredService<FastTravelViewModel>());
         windowService.RegisterManagedWindow("Current Drops", s.GetRequiredService<CurrentDropsViewModel>());
+        windowService.RegisterManagedWindow("Junk Items", s.GetRequiredService<JunkItemsViewModel>());
 
         windowService.RegisterManagedWindow("Loader", s.GetRequiredService<LoaderViewModel>());
         windowService.RegisterManagedWindow("Grabber", s.GetRequiredService<GrabberViewModel>());

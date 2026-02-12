@@ -97,6 +97,7 @@ public static class Services
         services.AddSingleton<IGrabberService, GrabberService>();
         services.AddSingleton<IClientFilesService, ClientFilesService>();
         services.AddSingleton<IAuraMonitorService, AuraMonitorService>();
+        services.AddSingleton<IJunkService, JunkService>();
         services.AddSingleton<BackgroundThemeService>();
 
         return services;
@@ -116,6 +117,7 @@ public static class Services
             s.GetRequiredService<JumpViewModel>(),
             s.GetRequiredService<FastTravelViewModel>(),
             s.GetRequiredService<CurrentDropsViewModel>(),
+            s.GetRequiredService<JunkItemsViewModel>(),
             s.GetRequiredService<RuntimeHelpersViewModel>(),
             s.GetRequiredService<LoaderViewModel>(),
             s.GetRequiredService<GrabberViewModel>(),
@@ -171,6 +173,7 @@ public static class Services
         services.AddSingleton<ToPickupDropsViewModel>();
         services.AddSingleton<RegisteredQuestsViewModel>();
         services.AddSingleton<CurrentDropsViewModel>();
+        services.AddSingleton<JunkItemsViewModel>();
 
         services.AddThemeViewModels();
 

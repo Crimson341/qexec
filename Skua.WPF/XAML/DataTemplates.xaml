@@ -80,6 +80,9 @@
     <DataTemplate DataType="{x:Type vms:CurrentDropsViewModel}">
         <usercontrols:CurrentDropsUserControl />
     </DataTemplate>
+    <DataTemplate DataType="{x:Type vms:JunkItemsViewModel}">
+        <usercontrols:JunkItemsUserControl />
+    </DataTemplate>
     <DataTemplate DataType="{x:Type vms:GitHubAuthViewModel}">
         <views:GitHubAuthView />
     </DataTemplate>

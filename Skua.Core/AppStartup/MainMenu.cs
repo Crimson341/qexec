@@ -33,6 +33,7 @@ internal class MainMenu
             {
                 new("Loader"),
                 new("Grabber"),
+                new("Junk Items"),
                 new("Stats"),
                 new("Console")
             }),
