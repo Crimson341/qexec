@@ -1,4 +1,4 @@
-# Skua use Guide
+# Usage Guide
 
 ## Installation & Setup
 
@@ -6,9 +6,9 @@
 
 2. [CleanFlash](<https://github.com/wtffidy/CleanFlashBackUp/blob/main/CleanFlash_34.0.0.175_Installer.exe>) (and for it to be installed properly do this: [CleanFlash Installation](https://imgur.com/ztsLYZ1))
 
-3. [Skua Latest Release](<https://github.com/auqw/Skua/releases/latest>)
+3. Install both `.net 10 SDK` and `CleanFlash` before continuing to install `Skua`.
 
-- Install both `.net 10 SDK` and `CleanFlash` before installing `Skua`.
+4. [Skua Latest Release](<https://github.com/auqw/Skua/releases/latest>)
 
 ## Once everything is properly installed and working
 
@@ -44,9 +44,9 @@
                 - Toggle the use of Boosters during scripts if needed.
             - **Nation Farms**
                 - Toggle Sell Voucher of Nulgath if the voucher is not needed during scripts/farming things such as `Supplies to spin the wheel` it will sell the voucher when its not the item its going for.
-                - Toggle Do Swindles Return during Supplies: Wether it should do the quest `Swindles Return` during scripts / farming methods such as `Supplies to spin the wheel`)
+                - Toggle Do Swindles Return during Supplies: Wether it should do the quest `Swindles Return` during scripts / farming methods such as `Supplies to spin the wheel`
             - **Bludrut Brawl (PVP)**
-                - This is deprecated (no longer used), as killing all mobs returns 10 trophies rather then a measily 2..or 3 (I do not remember).
+                - This is deprecated (no longer used), as killing all mobs returns 10 trophies rather then a measily 2..or 3.
             - **Bot Creatures Only**
                 - **you will not use this unless told by a developer**
 
@@ -54,8 +54,8 @@
 
     - To start a script you can do one of two ways:
 
-        - (Recommended) Press `Get Scripts` (if no scripts appear press the `⟳` button) then you can search for / load a script from here.
-        - Press `Load script`, (this will take you to the `Documents > Skua > Scripts` folder.
+        - (Recommended) Press `Search Scripts` (if no scripts appear press the `⟳` button) then you can search for / load a script from here.
+        - Press `Load script`, this will take you to the `%APPDATA% > Skua > Scripts` folder.
 
     - Once a script is loaded press `Start` on the `scripts` window.
 
@@ -129,10 +129,10 @@
     - Will Load your bank, this can also be brought up by pressing `B` (check hotkeys)
 
 8. `Logs` - (preferably the `Scripts` tab)
-    - Usually what the devs will ask for if you're having script issues (before crying to a script dev, please do these:
-      1. Relog & restart the script
-      2. in the 3rd tab in the `Skua Manager` press `Updates`, then `Scripts`, then `Reset Scripts`
-      3. If none of this worked you may now come to us with your issue and provide screenshots and a good explanation of the issue.
+    - Usually what the devs will ask for if you're having script issues before crying to a script dev, please do these:
+        1. Check for a client update
+        2. in the `Skua Manager` press `Updates`, then `Scripts`, then `Reset Scripts`
+        3. If none of this worked you may now come to us with your issue and provide screenshots and a good explanation of the issue.
 
 9. `Plugins`
     - this will be Empty as of Current (unless you have the `Cosmetics Plugin [Beta]` by Lord Exelot [CosmeticsPlugin](<https://drive.google.com/file/d/1scL9o5bgaQLNZe-dRwrZbS-LOKx4jKeR/view?usp=share_link>))
@@ -148,15 +148,15 @@
     - **Current** gets the current cell and pad you're in.
     - **Jump** Jumps to selected cell and pad.
 
-### How to install the Cosmetics Plugin for Skua
+### How to install the Plugin for Skua
 
 1. Download the .dll file from the link in the pins.
 2. Locate the file on your PC (usually in your `/Downloads/` folder).
-3. Copy (`ctrl+c`) or Cut (`ctrl+x`) the .dll file.
-4. Go to the Skua plugin directory in your Documents (example: `C:\Users\YourName\Documents\Skua\plugins\`)
-5. Paste (`ctrl+v`) the file.
+3. Copy (`CTRL+C`) or Cut (`CTRL+X`) the .dll file.
+4. Go to the Skua plugin directory in your Documents (example: `%APPDATA%\Skua\plugins\`)
+5. Paste (`CTRL+V`) the file.
 6. Restart any Skua instances so you can see the plugin.
-7. Within the Skua window, go to plugins (last option from the left) and then Cosmetics Plugin.
+7. Within the Skua window, go to plugins (last option from the left) and then `Plugin Name`.
 8. Repeat step 7 every time you wish to access the plugin.
 
 
