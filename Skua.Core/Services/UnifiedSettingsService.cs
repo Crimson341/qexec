@@ -246,6 +246,14 @@ public class UnifiedSettingsService
             if (bool.TryParse(val?.ToString(), out bool autoUpdateScripts))
                 newRoot.Client.AutoUpdateBotScripts = autoUpdateScripts;
 
+        if (oldData.TryGetValue("CheckJunkItemsUpdates", out val))
+            if (bool.TryParse(val?.ToString(), out bool checkJunk))
+                newRoot.Client.CheckJunkItemsUpdates = checkJunk;
+
+        if (oldData.TryGetValue("AutoUpdateJunkItems", out val))
+            if (bool.TryParse(val?.ToString(), out bool autoUpdateJunk))
+                newRoot.Client.AutoUpdateJunkItems = autoUpdateJunk;
+
         if (oldData.TryGetValue("CheckBotScriptsUpdates", out val))
             if (bool.TryParse(val?.ToString(), out bool checkScripts))
                 newRoot.Shared.CheckBotScriptsUpdates = checkScripts;

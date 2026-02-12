@@ -1,6 +1,6 @@
 <wpf:CustomWindow
     x:Class="Skua.App.WPF.MainWindow"
-    HideWindow="True"
+    HideWindow="False"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Skua.WPF.UserControls;assembly=Skua.WPF"
@@ -30,9 +30,10 @@
             MenuActivation="RightClick"
             ToolTipText="Skua"
             Visibility="Visible">
-            <tb:TaskbarIcon.ContextMenu>
+        <tb:TaskbarIcon.ContextMenu>
                 <ContextMenu>
                     <MenuItem Click="MenuItem_Click" Header="Toggle Bot" />
+                    <MenuItem Click="Exit_Click" Header="Exit" />
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>

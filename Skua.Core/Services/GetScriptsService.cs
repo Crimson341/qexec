@@ -13,6 +13,7 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
     private const string _rawScriptsJsonUrl = "auqw/Scripts/refs/heads/Skua/scripts.json";
     private const string _skillsSetsRawUrl = "auqw/Scripts/refs/heads/Skua/Skills/AdvancedSkills.json";
     private const string _questDataRawUrl = "auqw/Scripts/refs/heads/Skua/QuestData.json";
+    private const string _junkItemsRawUrl = "auqw/Scripts/refs/heads/Skua/JunkItems.json";
     private const string _repoOwner = "auqw";
     private const string _repoName = "Scripts";
     private const string _repoBranch = "Skua";
@@ -159,6 +160,42 @@ public partial class GetScriptsService : ObservableObject, IGetScriptsService
         {
             string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _questDataRawUrl);
             await File.WriteAllTextAsync(ClientFileSources.SkuaQuestsFile, content);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<long> CheckJunkItemsUpdates()
+    {
+        try
+        {
+            long localSize = 0;
+            if (File.Exists(ClientFileSources.SkuaJunkItemsFile))
+            {
+                FileInfo fileInfo = new(ClientFileSources.SkuaJunkItemsFile);
+                localSize = fileInfo.Length;
+            }
+
+            string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _junkItemsRawUrl);
+            long remoteSize = content.Length;
+
+            return remoteSize != localSize ? remoteSize : 0;
+        }
+        catch
+        {
+            return -1;
+        }
+    }
+
+    public async Task<bool> UpdateJunkItemsFile()
+    {
+        try
+        {
+            string content = await ValidatedHttpExtensions.GetStringAsync(HttpClients.GitHubRaw, _junkItemsRawUrl);
+            await File.WriteAllTextAsync(ClientFileSources.SkuaJunkItemsFile, content);
             return true;
         }
         catch

@@ -166,7 +166,7 @@ public sealed partial class JunkItemsViewModel : BotControlViewModelBase
         Refresh();
     }
 
-    private partial void OnSkipSellWarningChanged(bool value)
+    partial void OnSkipSellWarningChanged(bool value)
     {
         // When enabling skip, double-check user intent once.
         if (value)

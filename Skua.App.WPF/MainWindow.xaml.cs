@@ -1,4 +1,5 @@
-﻿using CommunityToolkit.Mvvm.DependencyInjection;
+using System;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
 using Skua.Core.Interfaces;
 using Skua.Core.Messaging;
@@ -28,6 +29,19 @@ public partial class MainWindow : CustomWindow
         StrongReferenceMessenger.Default.Register<MainWindow, ReloginTriggeredMessage, int>(this, (int)MessageChannels.GameEvents, NotifyRelogin);
         StrongReferenceMessenger.Default.Register<MainWindow, ScriptStoppedMessage, int>(this, (int)MessageChannels.ScriptStatus, NotifyScriptStopped);
         StrongReferenceMessenger.Default.Register<MainWindow, ScriptErrorMessage, int>(this, (int)MessageChannels.ScriptStatus, NotifyScriptError);
+        Closed += MainWindow_Closed;
+    }
+
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
+        StrongReferenceMessenger.Default.UnregisterAll(this);
+        NotifyIcon.Dispose();
+        Application.Current.Shutdown();
+    }
+
+    private void Exit_Click(object sender, RoutedEventArgs e)
+    {
+        Close();
     }
 
     private void NotifyScriptError(MainWindow recipient, ScriptErrorMessage message)

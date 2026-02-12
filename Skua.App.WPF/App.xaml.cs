@@ -155,6 +155,33 @@ public sealed partial class App : Application
             await getScripts.UpdateQuestDataFile();
         });
 
+        if (Services.GetRequiredService<ISettingsService>().Get<bool>("CheckJunkItemsUpdates"))
+        {
+            IJunkService junkService = Services.GetRequiredService<IJunkService>();
+            Task.Factory.StartNew(async () =>
+            {
+                long remoteSize = await getScripts.CheckJunkItemsUpdates();
+                if (remoteSize > 0)
+                {
+                    if (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateJunkItems") || Services.GetRequiredService<IDialogService>().ShowMessageBox("Would you like to update your Junk Items list?", "Junk Items Update", true) == true)
+                    {
+                        if (await getScripts.UpdateJunkItemsFile())
+                        {
+                            junkService.Load();
+                            if (Services.GetRequiredService<ISettingsService>().Get<bool>("AutoUpdateJunkItems"))
+                                Services.GetRequiredService<IDialogService>().ShowMessageBox("Junk Items list has been updated.\r\nYou can disable auto Junk Items updates in Options > Application.", "Junk Items Update");
+                            else
+                                Services.GetRequiredService<IDialogService>().ShowMessageBox("Junk Items list has been updated.\r\nYou can enable auto Junk Items updates in Options > Application.", "Junk Items Update");
+                        }
+                        else
+                        {
+                            Services.GetRequiredService<IDialogService>().ShowMessageBox("Junk Items update error.\r\nYou can disable auto Junk Items updates in Options > Application.", "Junk Items Update");
+                        }
+                    }
+                }
+            });
+        }
+
         Services.GetRequiredService<IPluginManager>().Initialize();
 
         Services.GetRequiredService<IHotKeyService>().Reload();

@@ -206,6 +206,12 @@ public class ClientSettings
     [JsonPropertyName("AutoUpdateBotScripts")]
     public bool AutoUpdateBotScripts { get; set; } = true;
 
+    [JsonPropertyName("CheckJunkItemsUpdates")]
+    public bool CheckJunkItemsUpdates { get; set; } = true;
+
+    [JsonPropertyName("AutoUpdateJunkItems")]
+    public bool AutoUpdateJunkItems { get; set; } = true;
+
     [JsonPropertyName("IgnoreGHAuth")]
     public bool IgnoreGHAuth { get; set; } = false;
 

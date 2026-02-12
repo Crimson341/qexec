@@ -29,4 +29,8 @@ public interface IGetScriptsService : INotifyPropertyChanged
     Task<bool> UpdateSkillSetsFile();
 
     Task<bool> UpdateQuestDataFile();
+
+    Task<long> CheckJunkItemsUpdates();
+
+    Task<bool> UpdateJunkItemsFile();
 }
