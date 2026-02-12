@@ -166,13 +166,13 @@ public sealed partial class JunkItemsViewModel : BotControlViewModelBase
         Refresh();
     }
 
-    partial void OnSkipSellWarningChanged(bool value)
+    private partial void OnSkipSellWarningChanged(bool value)
     {
         // When enabling skip, double-check user intent once.
         if (value)
         {
             bool? confirm = _dialogService.ShowMessageBox(
-                "Are you sure you want to skip the confirmation when selling all junk? This cannot be undone.",
+                "Are you sure you want to skip the confirmation when selling all junk?",
                 "Skip Sell Warning",
                 yesAndNo: true);
 
