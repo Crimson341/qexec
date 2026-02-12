@@ -436,8 +436,6 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
                         case "moveToArea":
                             Stats.GetSpace();
-                            Options.CustomName = !string.IsNullOrWhiteSpace(Options.CustomName) ? Options.CustomName : Player.Username;
-                            Options.CustomGuild = !string.IsNullOrWhiteSpace(Options.CustomGuild) ? Options.CustomGuild : Player.Guild;
                             Messenger.Send<MapChangedMessage, int>(new(Convert.ToString(data.strMapName)), (int)MessageChannels.GameEvents);
                             Map.FilePath = Convert.ToString(data.strMapFileName);
                             Map.LastMap = Convert.ToString(data.strMapName);
@@ -579,6 +577,8 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
 
                         case "loginResponse":
                             Stats.GetSpace();
+                            Options.CustomName = string.Empty;
+                            Options.CustomGuild = string.Empty;
                             Messenger.Send<LoginMessage, int>(new(Convert.ToString(data[4])), (int)MessageChannels.GameEvents);
                             break;
                     }
