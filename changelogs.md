@@ -1,3 +1,31 @@
+# Skua 1.4.2.0
+## Released: February 12, 2026
+
+# Additions:
+ - `Tools > Junk Items`
+ 
+<img width="128" height="141" alt="image" src="https://github.com/user-attachments/assets/b581be1d-d021-4ea6-9acd-85b915954b6f" /> 
+
+   * A new window to tag items as junk & sell them once your done.
+   
+<img width="796" height="449" alt="image" src="https://github.com/user-attachments/assets/27ba9e2d-f547-4898-be50-255791c12bb5" />
+   
+   * A Search Feature to narrow down items to `ItemName/ItemID/Category`
+   
+ <img width="278" height="205" alt="image" src="https://github.com/user-attachments/assets/976b1601-3b48-4129-85e3-252d0fcb06dd" />
+ 
+   * Marked items will also show with the [junk] tag in the tools > grabber > inventory
+   
+<img width="322" height="252" alt="image" src="https://github.com/user-attachments/assets/87b9574c-8d57-406e-b98e-0319c99455ca" />
+
+   
+   * the `JunkItems.json` file is in `%appdata%/skua/scripts/JunkItems.json`, and can be updated and pushed by the devs to add more junk items that will be marked as junk by default -- as well as helpful lists added by the community.
+ - A small fix to the show & hide that had a potential crash related to it
+
+**Full Changelog**: https://github.com/auqw/Skua/compare/1.4.1.1...1.4.2.0
+
+---
+
 # Skua 1.4.1.1
 ## Released: February 05, 2026
 
