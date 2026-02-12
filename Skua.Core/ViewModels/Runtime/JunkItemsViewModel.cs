@@ -23,7 +23,7 @@ public sealed partial class JunkItemsViewModel : BotControlViewModelBase
         IJunkService junkService,
         IDialogService dialogService,
         ISettingsService settings)
-        : base("Junk Items", 500, 500)
+       : base("Junk Items")
     {
         _inventory = inventory;
         _bank = bank;
