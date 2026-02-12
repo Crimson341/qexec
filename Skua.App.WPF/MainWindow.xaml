@@ -1,5 +1,6 @@
-﻿<wpf:CustomWindow
+<wpf:CustomWindow
     x:Class="Skua.App.WPF.MainWindow"
+    HideWindow="True"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:controls="clr-namespace:Skua.WPF.UserControls;assembly=Skua.WPF"
