@@ -43,6 +43,7 @@ internal class Grabber
         {
             new("Equip", EquipItems),
             new("Sell", SellItem),
+            new("Sell All", SellAllItems),
             new("To Bank", InvToBank)
         };
         List<GrabberTaskViewModel> mapMonstersCommands = new()
@@ -447,6 +448,41 @@ internal class Grabber
 
             await Task.Run(() => shop.SellItem(item.ID, result), t);
             p.Report($"Sold {result} {item.Name}");
+        }
+        catch
+        {
+            if (t.IsCancellationRequested)
+                p.Report("Task cancelled.");
+        }
+    }
+
+    private static async Task SellAllItems(IList<object>? i, IProgress<string> p, CancellationToken t)
+    {
+        IDialogService dialogService = Ioc.Default.GetService<IDialogService>()!;
+        if (i is null || i.Count == 0)
+        {
+            p.Report("No items found/selected.");
+            return;
+        }
+        if (i.Count > 1)
+        {
+            p.Report("Warning");
+            dialogService.ShowMessageBox($"ATTENTION - {i.Count} items selected!\nPlease sell 1 item at a time to prevent losses.", "Selling item - Warning");
+            return;
+        }
+        InventoryItem item = i.Cast<InventoryItem>().First();
+        if (item.Equipped)
+        {
+            dialogService.ShowMessageBox("Cannot sell equipped item.", "Sell item");
+            return;
+        }
+        IScriptShop shop = Ioc.Default.GetService<IScriptShop>()!;
+        try
+        {
+            int quantity = item.Category == ItemCategory.Class ? 1 : item.Quantity;
+            p.Report($"Selling all {quantity} {item.Name}");
+            await Task.Run(() => shop.SellItem(item.ID), t);
+            p.Report($"Sold {quantity} {item.Name}");
         }
         catch
         {
