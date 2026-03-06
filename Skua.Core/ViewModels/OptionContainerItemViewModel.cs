@@ -1,4 +1,4 @@
-﻿using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.ComponentModel;
 using Skua.Core.Interfaces;
 using Skua.Core.Options;
 
@@ -11,6 +11,7 @@ public partial class OptionContainerItemViewModel : ObservableObject
         Container = container;
         Option = option;
         Type = option.Type;
+        Category = option.Category;
         if (Type.IsEnum)
         {
             string[] enumNames = Enum.GetNames(Type);
@@ -21,7 +22,6 @@ public partial class OptionContainerItemViewModel : ObservableObject
             return;
         }
         _value = GetValue();
-        Category = option.Category;
     }
 
     [ObservableProperty]
@@ -46,3 +46,4 @@ public partial class OptionContainerItemViewModel : ObservableObject
         return value;
     }
 }
+
