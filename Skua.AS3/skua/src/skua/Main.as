@@ -430,6 +430,33 @@ public class Main extends MovieClip {
         if (packet.params.message.indexOf('%xt%zm%') > -1) {
             instance.external.call('packet', packet.params.message.split(':', 2)[1].trim());
         }
+        else
+        {
+            instance.external.call("packetFromServer",ProcessPacket(packet.params.message));
+        }
+    }
+
+    private static function ProcessPacket(param1:String) : String
+    {
+        var _loc2_:int = 0;
+        if(param1.indexOf("[Sending - STR]: ") > -1)
+        {
+            param1 = param1.replace("[Sending - STR]: ","");
+        }
+        if(param1.indexOf("[ RECEIVED ]: ") > -1)
+        {
+            param1 = param1.replace("[ RECEIVED ]: ","");
+        }
+        if(param1.indexOf("[Sending]: ") > -1)
+        {
+            param1 = param1.replace("[Sending]: ","");
+        }
+        if(param1.indexOf(", (len: ") > -1)
+        {
+            _loc2_ = param1.indexOf(", (len: ");
+            param1 = param1.slice(0,_loc2_);
+        }
+        return param1;
     }
 }
 }
