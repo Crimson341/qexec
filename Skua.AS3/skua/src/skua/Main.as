@@ -429,7 +429,23 @@ public class Main extends MovieClip {
     public static function packetReceived(packet:*):void {
         if (packet.params.message.indexOf('%xt%zm%') > -1) {
             instance.external.call('packet', packet.params.message.split(':', 2)[1].trim());
+        } else {
+            instance.external.call("packetFromServer",processPacket(packet.params.message));
         }
+    }
+
+    private static function processPacket(param1:String) : String
+    {
+        var _loc2_:int = 0;
+        param1 = param1.replace("[Sending - STR]: ", "");
+        param1 = param1.replace("[ RECEIVED ]: ", "");
+        param1 = param1.replace("[Sending]: ", "");
+        if(param1.indexOf(", (len: ") > -1)
+        {
+            _loc2_ = param1.indexOf(", (len: ");
+            param1 = param1.slice(0,_loc2_);
+        }
+        return param1;
     }
 }
 }
