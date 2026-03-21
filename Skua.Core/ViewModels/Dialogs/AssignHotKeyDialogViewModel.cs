@@ -32,5 +32,8 @@ public partial class AssignHotKeyDialogViewModel : DialogViewModelBase
     [ObservableProperty]
     private string _keyInput;
 
+    [ObservableProperty]
+    private string _inputHint = string.Empty;
+
     public string KeyGesture => $"{(CtrlCheck ? "Ctrl+" : string.Empty)}{(ShiftCheck ? "Shift+" : string.Empty)}{(AltCheck ? "Alt+" : string.Empty)}{KeyInput}";
 }

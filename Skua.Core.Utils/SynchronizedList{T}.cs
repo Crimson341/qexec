@@ -12,12 +12,26 @@ public class SynchronizedList<T>
     /// <summary>
     /// The items contained in this list.
     /// </summary>
-    public IEnumerable<T> Items => list;
+    public IEnumerable<T> Items
+    {
+        get
+        {
+            lock (sync)
+                return list.ToArray();
+        }
+    }
 
     /// <summary>
     /// Gets the number of elements contained in the <see cref="SynchronizedList{T}"/>
     /// </summary>
-    public int Count => list.Count;
+    public int Count
+    {
+        get
+        {
+            lock (sync)
+                return list.Count;
+        }
+    }
 
     /// <summary>
     /// Adds an object to the end of the <see cref="List{T}"/>.

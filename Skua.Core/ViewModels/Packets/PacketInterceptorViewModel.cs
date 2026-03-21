@@ -14,11 +14,12 @@ namespace Skua.Core.ViewModels;
 public partial class PacketInterceptorViewModel : BotControlViewModelBase
 {
 
-    public PacketInterceptorViewModel(ICaptureProxy gameProxy, IScriptServers server)
+    public PacketInterceptorViewModel(IEnumerable<PacketLogFilterViewModel> filters, ICaptureProxy gameProxy, IScriptServers server)
         : base("Packet Interceptor")
     {
         _gameProxy = gameProxy;
         _server = server;
+        _packetFilters = filters.ToList();
         ClearPacketsCommand = new RelayCommand(Packets.Clear);
         SynchronizationContext? context = SynchronizationContext.Current;
         void addFunc(InterceptedPacketViewModel st) => context?.Send(obj => Packets.Add((InterceptedPacketViewModel)obj!), st);
@@ -41,6 +42,9 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
 
     [ObservableProperty]
     private RangedObservableCollection<InterceptedPacketViewModel> _packets = new();
+
+    [ObservableProperty]
+    private List<PacketLogFilterViewModel> _packetFilters;
 
     private bool _isLogging;
 
@@ -67,6 +71,12 @@ public partial class PacketInterceptorViewModel : BotControlViewModelBase
     public bool Running => _gameProxy.Running;
     public List<Server> ServerList => _server.CachedServers;
     public IRelayCommand ClearPacketsCommand { get; }
+
+    [RelayCommand]
+    private void ClearFilters()
+    {
+        _packetFilters.ForEach(f => f.IsChecked = false);
+    }
 
     [RelayCommand]
     private void ConnectInterceptor()

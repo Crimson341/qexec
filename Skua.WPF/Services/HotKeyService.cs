@@ -123,13 +123,31 @@ public class HotKeyService : IHotKeyService, IDisposable
                .Replace("alt", string.Empty)
                .Replace("shift", string.Empty)
                .Replace("ctrl", string.Empty)
-               .Replace("ctl", string.Empty);
+               .Replace("ctl", string.Empty)
+               .Trim();
 
         key = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(key);
         if (!string.IsNullOrEmpty(key))
         {
-            KeyConverter k = new();
-            kb.Key = (Key)k.ConvertFromString(key);
+            KeyConverter keyConverter = new();
+            object? convertedKey;
+            try
+            {
+                convertedKey = keyConverter.ConvertFromString(key);
+            }
+            catch (NotSupportedException)
+            {
+                return null;
+            }
+            catch (FormatException)
+            {
+                return null;
+            }
+
+            if (convertedKey is not Key parsedKey)
+                return null;
+
+            kb.Key = parsedKey;
         }
 
         return kb.Key == Key.None ? null : kb;

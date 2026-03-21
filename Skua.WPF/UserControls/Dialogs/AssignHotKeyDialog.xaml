@@ -12,6 +12,7 @@
     mc:Ignorable="d">
     <StackPanel Margin="6">
         <Button Click="AssignKey" Content="{Binding KeyInput, UpdateSourceTrigger=PropertyChanged}" />
+        <TextBlock Margin="0,4,0,6" Foreground="OrangeRed" Text="{Binding InputHint}" TextWrapping="Wrap" />
         <Grid Grid.Row="1">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />

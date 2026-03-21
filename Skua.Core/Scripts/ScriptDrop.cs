@@ -56,7 +56,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
     [ObservableProperty]
     private bool _rejectElse;
 
-    public bool Enabled => _taskDrops is not null;
+    public bool Enabled => _taskDrops is { IsCompleted: false };
     private readonly SynchronizedList<string> _toPickup = new();
     public IEnumerable<string> ToPickup => _toPickup.Items;
     private readonly SynchronizedList<int> _toPickupIDs = new();
@@ -146,8 +146,9 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
 
     public void Start()
     {
-        if (_taskDrops is not null)
+        if (_taskDrops is { IsCompleted: false })
             return;
+        _ctsDrops?.Dispose();
 
         _ctsDrops = new();
         _taskDrops = HandleDrops(_timerDrops, _ctsDrops.Token);
@@ -190,7 +191,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
     {
         _toPickupIDs.AddRange(ids.Except(_toPickupIDs.Items));
         OnPropertyChanged(nameof(ToPickupIDs));
-        Broadcast(null, ToPickup, nameof(ToPickupIDs));
+        Broadcast(null, ToPickupIDs, nameof(ToPickupIDs));
     }
 
     public void Clear()
@@ -198,7 +199,7 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
         _toPickupIDs.Clear();
         _toPickup.Clear();
         OnPropertyChanged(nameof(ToPickupIDs));
-        Broadcast(null, ToPickup, nameof(ToPickupIDs));
+        Broadcast(null, ToPickupIDs, nameof(ToPickupIDs));
         OnPropertyChanged(nameof(ToPickup));
         Broadcast(null, ToPickup, nameof(ToPickup));
     }
@@ -206,19 +207,25 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
     public void Remove(params string[] names)
     {
         _toPickup.Remove(names.Contains);
+        OnPropertyChanged(nameof(ToPickup));
+        Broadcast(null, ToPickup, nameof(ToPickup));
     }
 
     public void Remove(params int[] ids)
     {
         _toPickupIDs.Remove(ids.Contains);
+        OnPropertyChanged(nameof(ToPickupIDs));
+        Broadcast(null, ToPickupIDs, nameof(ToPickupIDs));
     }
 
     private async Task HandleDrops(PeriodicTimer timer, CancellationToken token)
     {
-        try
+        while (!token.IsCancellationRequested)
         {
-            while (await timer.WaitForNextTickAsync(token))
+            try
             {
+                if (!await timer.WaitForNextTickAsync(token))
+                    break;
                 if (!Player.Playing)
                     continue;
 
@@ -240,17 +247,42 @@ public partial class ScriptDrop : ObservableRecipient, IScriptDrop, IAsyncDispos
                     continue;
                 }
 
-                if (_toPickupIDs.Count > 0)
-                    Pickup(_toPickupIDs.Items.ToArray());
+                int[] pickupIDs = _toPickupIDs.Items.ToArray();
+                if (pickupIDs.Length > 0)
+                    Pickup(pickupIDs);
 
-                if (_toPickup.Count > 0)
-                    Pickup(_toPickup.Items.ToArray());
+                string[] pickupNames = _toPickup.Items.ToArray();
+                if (pickupNames.Length > 0)
+                    Pickup(pickupNames);
 
                 if (RejectElse)
-                    RejectExcept(_toPickup.Items.ToArray());
+                    RejectExcept(BuildRejectElseWhitelist(pickupNames, pickupIDs));
+            }
+            catch (OperationCanceledException) when (token.IsCancellationRequested)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine($"Error in drop handler: {ex.Message}");
             }
         }
-        catch { /* ignored */ }
+    }
+
+    private string[] BuildRejectElseWhitelist(string[] pickupNames, int[] pickupIDs)
+    {
+        HashSet<string> whitelist = new(pickupNames, StringComparer.OrdinalIgnoreCase);
+        if (pickupIDs.Length == 0)
+            return whitelist.ToArray();
+
+        HashSet<int> idWhitelist = new(pickupIDs);
+        foreach (ItemBase drop in _currentDropInfos.Items)
+        {
+            if (idWhitelist.Contains(drop.ID))
+                whitelist.Add(drop.Name);
+        }
+
+        return whitelist.ToArray();
     }
 
     private void OptionsChanged(ScriptDrop recipient, PropertyChangedMessage<bool> message)

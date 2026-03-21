@@ -152,7 +152,7 @@ public static class Services
 
         services.AddSingleton(PacketLogger.CreateViewModel);
         services.AddSingleton<PacketSpammerViewModel>();
-        services.AddSingleton<PacketInterceptorViewModel>();
+        services.AddSingleton(PacketInterceptor.CreateViewModel);
 
         services.AddTransient<ConsoleViewModel>();
 

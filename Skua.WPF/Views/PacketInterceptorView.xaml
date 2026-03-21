@@ -13,7 +13,11 @@
     d:DesignHeight="450"
     d:DesignWidth="800"
     mc:Ignorable="d">
-    <Grid>
+    <Grid Margin="6">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="2*" />
+            <ColumnDefinition />
+        </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="auto" />
             <RowDefinition Height="auto" />
@@ -22,8 +26,9 @@
         </Grid.RowDefinitions>
         <Grid
             Grid.Row="0"
+            Grid.Column="0"
             Height="auto"
-            Margin="6,6,6,3">
+            Margin="0,0,3,3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition />
                 <ColumnDefinition Width="auto" />
@@ -58,13 +63,45 @@
             </Button>
         </Grid>
         <TextBox
+            x:Name="FilterSearchBox"
+            Grid.Row="0"
+            Grid.Column="1"
+            Margin="3,0,0,3"
+            materialDesign:HintAssist.Hint="Search filters"
+            TextChanged="FilterSearchBox_TextChanged" />
+        <TextBox
             x:Name="SearchBox"
             Grid.Row="1"
-            Margin="6,0,6,3"
+            Grid.Column="0"
+            Margin="0,0,3,3"
             materialDesign:HintAssist.Hint="Search packets..."
             Style="{StaticResource MaterialDesignOutlinedTextBox}"
             TextChanged="TextBox_TextChanged" />
-        <Grid Grid.Row="2" Margin="6,3">
+        <ScrollViewer
+            Grid.Row="1"
+            Grid.RowSpan="3"
+            Grid.Column="1"
+            Margin="3,0,0,0"
+            HorizontalScrollBarVisibility="Disabled"
+            VerticalScrollBarVisibility="Auto">
+            <ItemsControl ItemsSource="{Binding PacketFilters}">
+                <ItemsControl.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Command="{Binding ClearFiltersCommand}" Header="Clear Filters" />
+                    </ContextMenu>
+                </ItemsControl.ContextMenu>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <CheckBox
+                            HorizontalAlignment="Stretch"
+                            Content="{Binding Content}"
+                            IsChecked="{Binding IsChecked}"
+                            Style="{StaticResource MaterialDesignFilterChipPrimaryOutlineCheckBox}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+        <Grid Grid.Row="2" Grid.Column="0" Margin="0,3,3,3">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="auto" />
                 <ColumnDefinition />
@@ -136,7 +173,8 @@
         </Grid>
         <ListBox
             Grid.Row="3"
-            Margin="6,3,6,6"
+            Grid.Column="0"
+            Margin="0,3,3,0"
             ItemsSource="{Binding Packets, UpdateSourceTrigger=PropertyChanged}"
             ScrollViewer.HorizontalScrollBarVisibility="Disabled"
             ScrollViewer.VerticalScrollBarVisibility="Visible"
