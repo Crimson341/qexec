@@ -56,7 +56,7 @@
                 Margin="3,0,0,0"
                 materialDesign:HintAssist.Hint="Private Number"
                 materialDesign:TextFieldAssist.CharacterCounterVisibility="Collapsed"
-                MaxLength="8"
+                MaxLength="6"
                 Text="{Binding MapService.PrivateRoomNumber}">
                 <b:Interaction.Behaviors>
                     <wpf:TextBoxOnlyNumbersBehavior />
