@@ -9,3 +9,5 @@ The compatibility CoreStory source and LordOfOrder test fixture originate from t
 AQWorlds, Artix names, and in-game assets belong to their respective owners. The Flash plugin is obtained through an existing Artix Game Launcher installation and is not redistributed here.
 
 The images in `docs/images` were generated as UI design concepts during qexec development. They illustrate direction rather than actual gameplay, accurate game data, or delivered feature coverage.
+
+For this public import, `Skua.App.WPF/Properties/launchSettings.json` was removed from the entire published history after GitHub push protection found a credential in an old upstream commit. The remaining authorship and history are preserved, with affected commit IDs rewritten.
