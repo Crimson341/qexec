@@ -1,0 +1,24 @@
+package
+{
+   import flash.display.MovieClip;
+
+   public class PickupFixture extends MovieClip
+   {
+
+      public function PickupFixture()
+      {
+         super();
+         decoder();
+      }
+
+      public function decoder() : void
+      {
+         getMapItem(106);
+      }
+
+      public function getMapItem(param1:int) : void
+      {
+         trace(param1);
+      }
+   }
+}

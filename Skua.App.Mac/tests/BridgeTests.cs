@@ -202,6 +202,118 @@ var bankedQuest=ActiveQuestMaker.Generate(42,-1,new[]{new Skua.Core.Models.Items
 Assert(bankedQuest.Contains("core.Unbank(456)") && !bankedQuest.Contains("HuntMonster"),"Use banked materials without farming duplicates.");
 Console.WriteLine("PASS: Single accepted quest, exact objectives/reward, abandonment, ready-only turn-in, banked requirements, unknown-route rejection.");
 
+Assert(!autoQuest.Contains("Bank.Load") && !autoQuest.Contains("core.SetOptions();"), "Temporary objectives never trigger bank preflight or CoreBots bank startup.");
+Assert(bankedQuest.Contains("Bank.Load"), "Permanent objectives retain ownership verification.");
+var magusRequirement=new Skua.Core.Models.Items.ItemBase{ID=79629,Name="Mage Construct Defeated",Temp=true,Quantity=1};
+var magusRoutes=AcceptedQuestRoutes.Parse("class StoryFixture { void Run() { Story.KillQuest(9356, \"infernalarena\", \"Infernal Mage\"); Story.KillQuest(9357, \"wrong\", \"Wrong Monster\"); } }",9356,new[]{magusRequirement},"fixture");
+Assert(magusRoutes.Count==1 && magusRoutes[0].Map=="infernalarena" && magusRoutes[0].Monster=="Infernal Mage", "Resolve only the exact accepted quest's literal KillQuest route.");
+var magusScript=ActiveQuestMaker.Generate(9356,-1,new[]{magusRequirement},magusRoutes,(_,_)=>null);
+Assert(magusScript.Contains("HuntMonster(\"infernalarena\",\"Infernal Mage\",\"Mage Construct Defeated\",1,true)") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
+Assert(AcceptedQuestRoutes.Parse("// Story.KillQuest(9356, \"wrong\", \"wrong\");",9356,new[]{magusRequirement},"fixture").Count==0, "Ignore commented routes.");
+Console.WriteLine("PASS: Temporary quest bank bypass and exact Maligned Magus route generation.");
+
+// Reduced factual fixtures based on aqwwiki.wikidot.com/valencia-s-quests and linked monster/map pages.
+var wikiItems=new[]{new Skua.Core.Models.Items.ItemBase{ID=101976,Name="Polearm Handle",Quantity=1,Temp=true},new Skua.Core.Models.Items.ItemBase{ID=101977,Name="Polearm Blade",Quantity=1,Temp=true},new Skua.Core.Models.Items.ItemBase{ID=101978,Name="Elemental Spirit Core",Quantity=1,Temp=true}};
+const string wikiQuest="The Scythe That Stops The Screams";
+var wikiPages=new Dictionary<string,string>{
+["/demnra-s-deception-polearm"]="<div id='page-title'>Demnra's Deception Polearm</div><p><strong>Price:</strong> N/A (Reward from '<a href='/valencia-s-quests#Hunt'>The Scythe That Stops the Screams</a>' quest)<br></p>",
+["/valencia-s-quests"]="<div class='yui-navset'><ul class='yui-nav'><li>Wrong Quest</li><li>The Scythe That Stops The Screams</li></ul><div class='yui-content'><div><p>Unrelated quest</p></div><div><p><strong>Items Required</strong></p><ul><li>Polearm Handle x1 (Stacks up to 2)<ul><li>Dropped by <a href='/chaosweaver-warrior'>ChaosWeaver Warrior</a></li></ul></li><li>Polearm Blade x1 (Stacks up to 2)<ul><li>Dropped by <a href='/chaosweaver-cleric-monster'>ChaosWeaver Cleric (Monster)</a></li></ul></li><li>Elemental Spirit Core x1 (Stacks up to 2)<ul><li>Dropped by <a href='/breken-the-vile'>Breken the Vile (Level 18)</a></li></ul></li></ul></div></div></div>",
+["/twilight-s-edge"]="<p><strong>Map Name:</strong> twilightedge<br></p>",
+["/chaos-web"]="<p><strong>Map Name:</strong> chaosweb<br></p>",
+["/greenguard-west"]="<p><strong>Map Name:</strong> greenguardwest<br></p>"};
+string MonsterFixture(string name,string map,string item)=>"<div id='page-title'>"+name+"</div><div id='page-content'><p><strong>Location:</strong> <a href='"+map+"'>Map</a><br></p><ul><li>"+item+" (Dropped during the '<a href='/valencia-s-quests#Hunt'>"+wikiQuest+"</a>' quest)</li></ul></div>";
+wikiPages["/chaosweaver-warrior"]=MonsterFixture("ChaosWeaver Warrior","/twilight-s-edge","Polearm Handle");
+wikiPages["/chaosweaver-cleric-monster"]=MonsterFixture("ChaosWeaver Cleric (Monster)","/chaos-web","Polearm Blade");
+wikiPages["/breken-the-vile"]="<div id='page-title'>Breken the Vile</div><div id='page-content'><div class='yui-content'><div><p><strong>Location:</strong><a href='/wrong-map'>Rare old location</a><br></p></div><div><p><strong>Location:</strong><a href='/greenguard-west'>Greenguard West</a><br></p><ul><li>Elemental Spirit Core (Dropped during the '<a href='/valencia-s-quests#Hunt'>"+wikiQuest+"</a>' quest)</li></ul></div></div></div>";
+var wikiResolver=new QuestWikiResolver(path=>Task.FromResult(wikiPages[path]));
+var wikiRoutes=await wikiResolver.Resolve(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems);
+Assert(wikiRoutes.Count==3 && wikiRoutes.Any(r=>r.Monster=="ChaosWeaver Cleric" && r.Map=="chaosweb") && wikiRoutes.Any(r=>r.Monster=="Breken the Vile" && r.Map=="greenguardwest"),"Discover reward quest and all three monster routes, selecting the correct Breken variant.");
+var wikiScript=ActiveQuestMaker.Generate(10799,-1,wikiItems,wikiRoutes,(_,_)=>null);
+Assert(wikiScript.Contains("101978,1") && wikiScript.Contains("twilightedge") && !wikiScript.Contains("Bank.Load"),"Generate complete multi-map quest with exact objective checks and no unnecessary bank load.");
+File.WriteAllText("/tmp/qexec-wiki-generated-test.cs",wikiScript);
+Assert((await wikiResolver.Resolve("Other Quest",new[]{"Demnra's Deception Polearm"},wikiItems)).Count==0,"Never mix another quest's objective routes.");
+wikiItems[0].Quantity=2;
+Assert((await wikiResolver.Resolve(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems)).Count==2,"Reject a mismatched live quantity.");
+wikiItems[0].Quantity=1;
+wikiPages["/chaos-web"]="<p>Map name unavailable</p>";
+var partialWiki=await wikiResolver.Resolve(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems);
+bool partialRejected=false;try {ActiveQuestMaker.Generate(10799,-1,wikiItems,partialWiki,(_,_)=>null);}catch(InvalidOperationException){partialRejected=true;}
+Assert(partialRejected,"Partial wiki evidence never generates a complete-looking script.");
+bool externalRejected=false;try{QuestWikiResolver.WikiPath("https://example.com/monster");}catch(InvalidOperationException){externalRejected=true;}
+Assert(externalRejected,"Reject off-origin wiki links.");
+Console.WriteLine("PASS: Automatic wiki quest discovery, multi-map routes, variant selection, quantity mismatch, partial evidence and origin restrictions.");
+
+// Script-independent discovery fixtures, reduced from the linked AQW Wiki pages.
+var decoder=new Skua.Core.Models.Items.ItemBase{ID=4733,Name="Dwakel Decoder",Temp=false,Quantity=1};
+var mapOfLore=new Skua.Core.Models.Items.ItemBase{ID=30995,Name="Map of Lore",Temp=true,Quantity=1};
+var lotus=new Skua.Core.Models.Items.ItemBase{ID=10332,Name="Lotus Flower",Temp=true,Quantity=4};
+string QuestFixture(string name,string items)=>"<div class='yui-navset'><ul class='yui-nav'><li>"+name+"</li></ul><div class='yui-content'><div><p><strong>Items Required:</strong></p><ul>"+items+"</ul></div></div></div>";
+var autonomousPages=new Dictionary<string,string>{
+["/dwakel-decoder"]="<div id='page-title'>Dwakel Decoder</div><div id='page-content'><p><strong>Location:</strong><a href='/dwakel-crash-site'>Dwakel Crash Site</a><br><strong>Price:</strong>N/A (Click on the red dot to receive the decoder in Screen 3)<br></p><ul><li>Used in the '<a href='/aranx-s-quests#1'>Find the Map</a>' quest.</li></ul></div>",
+["/aranx-s-quests"]=QuestFixture("Find the Map","<li><a href='/dwakel-decoder'>Dwakel Decoder</a> x1</li><li>Map of Lore x1<ul><li>Dropped by <a href='/infernal-knight-monster-1'>Infernal Knight (Monster) (1) (Level 20)</a></li></ul></li>"),
+["/dwakel-crash-site"]="<p><strong>Map Name:</strong> crashsite<br></p>",
+["/infernal-knight-monster-1"]="<div id='page-title'>Infernal Knight (Monster) (1)</div><div id='page-content'><p><strong>Location:</strong><a href='/celestial-realm'>Celestial Realm</a><br></p><ul><li>Map of Lore (Dropped during the '<a href='/aranx-s-quests'>Find the Map</a>' quest)</li></ul></div>",
+["/celestial-realm"]="<p><strong>Map Name:</strong> celestialrealm<br></p>",
+["/fuchsia-dye"]="<div id='page-title'>Fuchsia Dye</div><div id='page-content'><p><strong>Price:</strong>N/A<br></p><ul><li><a href='/beleen-s-quests'>Flowers for the Pink Gal</a></li><li><a href='/beleen-s-quests'>Dyeing for Gemstones</a></li></ul></div>",
+["/beleen-s-quests"]=QuestFixture("Flowers for the Pink Gal","<li>Lotus Flower x4<ul><li>Dropped by <a href='/lotus-spider'>Lotus Spider (Level 33)</a></li></ul></li>"),
+["/lotus-spider"]="<div id='page-title'>Lotus Spider</div><div id='page-content'><div class='yui-content'><div><p><strong>Location:</strong><a href='/wrong-map'>Wrong</a><br></p></div><div><p><strong>Location:</strong><a href='/cave-of-wanders'>Cave of Wanders</a><br></p><ul><li>Lotus Flower (Dropped during the '<a href='/beleen-s-quests#1'>Flowers for the Pink Gal</a>' quest</li></ul></div></div></div>",
+["/cave-of-wanders"]="<p><strong>Map Name:</strong> wanders<br></p>"};
+var independentResolver=new QuestWikiResolver(path=>Task.FromResult(autonomousPages[path]));
+var decoderPlan=await independentResolver.ResolvePlan("Find the Map",Array.Empty<string>(),new[]{decoder,mapOfLore});
+Assert(decoderPlan.Pickups.Count==1 && decoderPlan.Pickups[0].Map=="crashsite" && decoderPlan.Drops.Single().Monster=="Infernal Knight","No-reward quest resolves through required item backlink, separately from its monster objective.");
+var decoderScript=ActiveQuestMaker.Generate(4498,-1,new[]{decoder,mapOfLore},decoderPlan.Drops,(_,_)=>null,null,decoderPlan.Pickups,false);
+Assert(decoderScript.Contains("QuestMapPickup.Acquire(bot,4498,4733") && decoderScript.Contains("core.Join(\"crashsite\")") && !decoderScript.Contains("Bank.Load()") && !decoderScript.Contains("core.SetOptions();"),"Free pickups and monster drops proceed without requiring a bank load.");
+File.WriteAllText("/tmp/qexec-decoder-generated-test.cs",decoderScript);
+var lotusPlan=await independentResolver.ResolvePlan("Flowers for the Pink Gal",new[]{"Fuchsia Dye"},new[]{lotus});
+Assert(lotusPlan.Drops.Single().Map=="wanders","Reward quest links outside Price are followed, preserving monster variant.");
+var searchResolver=new QuestWikiResolver(path=>Task.FromResult(autonomousPages[path]),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/beleen-s-quests"}));
+Assert((await searchResolver.ResolvePlan("Flowers for the Pink Gal",Array.Empty<string>(),new[]{lotus})).Drops.Count==1,"Unknown quest without any rewards discovers its own source through search.");
+Assert(AcceptedQuestRoutes.Parse("class T { void Run(){ Story.KillQuest(4498,\"celestialrealm\",\"Infernal Knight\"); }}",4498,new[]{decoder,mapOfLore},"fixture").All(r=>r.Temporary),"Generic KillQuest must never assign monster sources to permanent pickups.");
+Assert(GearOwnership.IsCompleteBankSnapshot("[{\"ItemID\":4733}]","1") && !GearOwnership.IsCompleteBankSnapshot("[]","1") && !GearOwnership.IsCompleteBankSnapshot(null,"0"),"Only complete bank snapshots are adopted; unavailable is never empty.");
+var parsedPickups=Skua.Core.Scripts.QuestMapPickup.Parse("package { class Map { function other():void { if(root.world.isQuestInProgress(100)) root.world.getMapItem(200); } function decoder():void { root.world.getMapItem(106); } } }");
+Assert(Skua.Core.Scripts.QuestMapPickup.Select(parsedPickups,4498)==106,"Discover unbound pickup without mixing another quest handler.");
+Assert(Skua.Core.Scripts.QuestMapPickup.Select(Skua.Core.Scripts.QuestMapPickup.Parse("function frame1():void { this.button.mapItem = 800; this.button.questNum = 4498; }"),4498)==800,"Discover timeline pickup metadata by matching the same instance.");
+bool ambiguousPickup=false;try {Skua.Core.Scripts.QuestMapPickup.Select(new[]{new Skua.Core.Scripts.QuestMapPickup.PickupCall(1,0),new Skua.Core.Scripts.QuestMapPickup.PickupCall(2,0)},4498);}catch(InvalidOperationException){ambiguousPickup=true;}
+Assert(ambiguousPickup,"Never brute-force multiple unverified map buttons.");
+Console.WriteLine("PASS: No-script quest discovery, no-reward quests, permanent map pickups, complete bank snapshots and dynamic pickup ID extraction.");
+
+Assert(Skua.Core.Scripts.QuestMapPickup.Select(Skua.Core.Scripts.QuestMapPickup.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"fixtures","PickupFixture.as.txt"))),4498)==106,"Parse pickup ID from an actual compiled and decompiled Flash fixture.");
+Assert(Skua.Core.Scripts.QuestMapPickup.Parse("function sample():void { trace(\"getMapItem(999)\"); /* getMapItem(998); */ getMapItem(106); }").Single().ID==106,"Ignore strings and comments when discovering executable pickup calls.");
+autonomousPages["/collection-quests"]="<p><strong>Quest Location:</strong><a href='/dwakel-crash-site'>Crash Site</a><br></p>"+QuestFixture("Collect Clues","<li>Clue x2<ul><li>Click on the blue arrows around the map.</li></ul></li>");
+var collectionResolver=new QuestWikiResolver(path=>Task.FromResult(autonomousPages[path]),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/collection-quests"}));
+var collectionPlan=await collectionResolver.ResolvePlan("Collect Clues",Array.Empty<string>(),new[]{new Skua.Core.Models.Items.ItemBase{ID=123,Name="Clue",Temp=true,Quantity=2}});
+Assert(collectionPlan.Pickups.Single().Map=="crashsite","Discover collection objectives from the quest's location when the objective has no item page.");
+using(var canceledLookup=new CancellationTokenSource()) {
+    canceledLookup.Cancel();bool canceled=false;
+    try {await independentResolver.ResolvePlan("Find the Map",Array.Empty<string>(),new[]{decoder},null,canceledLookup.Token);}catch(OperationCanceledException){canceled=true;}
+    Assert(canceled,"Canceled planning stops before reading sources or writing a script.");
+}
+Console.WriteLine("PASS: Compiled map fixture, literal filtering, collection location discovery and planning cancellation.");
+
+// Permanent material recovery: facts from Star Scrap Metal, Troblor and Dread Space wiki pages.
+var scrap=new Skua.Core.Models.Items.ItemBase{ID=30018,Name="Star Scrap Metal",Temp=false,Quantity=10};
+var materialPages=new Dictionary<string,string>{
+["/star-scrap-metal"]="<div id='page-title'>Star Scrap Metal</div><div id='page-content'><p><strong>Location:</strong><a href='/dread-space-location'>Dread Space (Location)</a><br><strong>Price:</strong>N/A</p><ul><li>Dropped by <a href='/troblor'>Troblor</a></li></ul><ul><li>Used in the '<a href='/lezard-man-s-quests'>Blinded by the Black Light</a>' quest.</li></ul></div>",
+["/lezard-man-s-quests"]=QuestFixture("Blinded by the Black Light","<li><a href='/star-scrap-metal'>Star Scrap Metal</a> x10</li>"),
+["/troblor"]="<div id='page-title'>Troblor</div><div id='page-content'><p><strong>Location:</strong><a href='/dread-space-location'>Dread Space (Location)</a><br></p><p><strong>Temporary Items Dropped:</strong></p><ul><li>Unrelated Temporary Drop</li></ul><p><strong>Items Dropped:</strong></p><ul><li><a href='/star-scrap-metal'>Star Scrap Metal</a></li></ul></div>",
+["/dread-space-location"]="<p><strong>Map Name:</strong> dreadspace<br></p>"};
+int transientAttempts=0;var recoveryMessages=new List<string>();
+var materialResolver=new QuestWikiResolver(path=>{if(path=="/star-scrap-metal" && transientAttempts++==0) throw new HttpRequestException("temporary",null,System.Net.HttpStatusCode.ServiceUnavailable);return Task.FromResult(materialPages[path]);});
+var materialPlan=await materialResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{scrap},recoveryMessages.Add);
+Assert(materialPlan.Drops.Single() is {Map:"dreadspace",Monster:"Troblor",Temporary:false} && recoveryMessages.Any(m=>m.StartsWith("Retrying")),"Recover transient lookup and trace a permanent material's monster source without a quest-only drop backlink.");
+var scrapScript=ActiveQuestMaker.Generate(9679,-1,new[]{scrap},materialPlan.Drops,(_,_)=>null,null,null,false);
+Assert(scrapScript.Contains("HuntMonster(\"dreadspace\",\"Troblor\",\"Star Scrap Metal\",10,false)") && scrapScript.Contains("bot.Inventory.Contains(30018,10)"),"Farm permanent material with the exact live inventory ID and quantity.");
+File.WriteAllText("/tmp/qexec-scrap-generated-test.cs",scrapScript);
+var noQuestPageResolver=new QuestWikiResolver(path=>Task.FromResult(materialPages[path]));
+Assert((await noQuestPageResolver.ResolvePlan("A Different Quest Using Scrap",Array.Empty<string>(),new[]{scrap})).Drops.Count==1,"Recover permanent material sources independently when the quest page cannot be found.");
+var unavailableSearch=new QuestWikiResolver(path=>Task.FromResult(materialPages[path]),_=>throw new HttpRequestException("search unavailable"));
+Assert((await unavailableSearch.ResolvePlan("A Different Quest Using Scrap",Array.Empty<string>(),new[]{scrap})).Drops.Count==1,"Search provider failure falls back to direct material discovery.");
+materialPages["/troblor"]=materialPages["/troblor"].Replace("<strong>Items Dropped:</strong>","<strong>Unrelated Links:</strong>");
+Assert((await noQuestPageResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{scrap})).Drops.Count==0,"An unrelated item link is not proof of a monster drop.");
+materialPages["/troblor"]=materialPages["/troblor"].Replace("<strong>Unrelated Links:</strong>","<strong>Items Dropped:</strong>").Replace("href='/star-scrap-metal'","href='/different-item'");
+Assert((await noQuestPageResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{scrap})).Drops.Count==0,"Require reciprocal exact item link, not just matching visible text.");
+Console.WriteLine("PASS: Permanent material recovery, transient retries, absent quest-page fallback and reciprocal drop evidence.");
+
 sealed class MessageWriter : StringWriter
 {
     public BlockingCollection<string> Messages { get; } = new();

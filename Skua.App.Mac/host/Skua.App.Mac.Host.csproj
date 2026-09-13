@@ -8,7 +8,11 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="../../Skua.Core/Skua.Core.csproj" AdditionalProperties="SkuaPortable=true" />
+    <Content Include="../../FFDec/**/*" Link="FFDec/%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="../../Skua.App.WPF/AdvancedSkills.json" Link="defaults/AdvancedSkills.json" CopyToOutputDirectory="PreserveNewest" />
     <Content Include="../../Skua.App.WPF/QuestData.json" Link="defaults/QuestData.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="HtmlAgilityPack" Version="1.13.0" />
   </ItemGroup>
 </Project>

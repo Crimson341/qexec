@@ -8,6 +8,7 @@ window.skua = {
 };
 const byId = id => document.getElementById(id);
 let autoEnabled = false;
+let stopping = false;
 let startedAt = null, elapsedMs = 0;
 let game, engineReady = false, gameReady = false, selected = false, running = false, optionRequest;
 const log = (message, kind = '') => {
@@ -54,7 +55,10 @@ for (const [id, target] of [['nav-game','game'], ['nav-script','choose'], ['nav-
     element.scrollIntoView({block:'nearest'});
   };
 }
-for (const [id, name] of [['choose','choose'],['run','start'],['stop','stop']]) byId(id).onclick = () => window.skua.command(name);
+for (const [id, name] of [['choose','choose'],['run','start'],['stop','stop']]) byId(id).onclick = () => {
+  if (name === 'stop') { stopping = true; restoreGameRendering(); }
+  window.skua.command(name);
+};
 byId('auto-toggle').onclick = () => window.skua.command(autoEnabled ? 'auto-stop' : 'auto-start');
 byId('clear').onclick = () => { byId('logs').replaceChildren(); byId('log-count').textContent = '0'; };
 for (const name of ['requestLoadGame','loaded','debug','pext','packet','pre-load','game-error']) window[name] = (...args) => {
@@ -75,7 +79,14 @@ window.invokeFlash = message => new Promise((resolve,reject) => {
   flashReplies.set(id,{resolve,reject,timer});
   flashCommands.push({id,function:message.function,args:message.args});
 });
-window.skuaNextFlashCommands = () => JSON.stringify(flashCommands.splice(0));
+// Recheck at dispatch: a queued timer/script call may outlive the run that created it.
+window.skuaNextFlashCommands = () => JSON.stringify(flashCommands.splice(0).map(command =>
+  command.function === 'killLag' && (!running || stopping || !engineReady)
+    ? {...command,args:[false]} : command));
+function restoreGameRendering() {
+  if (!gameReady) return;
+  window.invokeFlash({function:'killLag',args:[false]}).catch(error => log('Could not restore game rendering: '+error.message,'Error'));
+}
 window.skuaFlashReply = (id,value,error) => {
   const pending = flashReplies.get(id);
   if (!pending) return;
@@ -165,14 +176,20 @@ function renderLedger(quests, note) {
   }
 }
 byId('ledger-refresh').onclick=()=>pollActiveQuests(true);
+let activeQuestGenerating=false;
+byId('active-quest-cancel').onclick=()=>window.skua.command('cancel-active-quest');
 window.skua.onMessage(message => {
   switch (message.type) {
     case 'active-quests-error':
       renderLedger([], 'Quest list unavailable. Use Refresh to retry.');
       activeQuestPending=false; activeQuestSignature=''; byId('active-quest-list').replaceChildren(); byId('active-quest-status').textContent='Could not read accepted quests: '+message.message; break;
     case 'active-quest-error':
-      byId('active-quest-status').textContent=message.message; byId('active-quest-dialog').showModal(); break;
+      activeQuestGenerating=false; byId('active-quest-cancel').hidden=true;
+      byId('active-quest-status').textContent=message.message; if(!byId('active-quest-dialog').open) byId('active-quest-dialog').showModal(); break;
+    case 'active-quest-progress':
+      byId('active-quest-status').textContent=message.message; break;
     case 'active-quest-starting':
+      activeQuestGenerating=false; byId('active-quest-cancel').hidden=true;
       byId('active-quest-status').textContent='Generated '+message.path; byId('active-quest-dialog').close(); break;
     case 'active-quests': {
       activeQuestPending=false;
@@ -192,6 +209,7 @@ window.skua.onMessage(message => {
         const go=document.createElement('button');go.textContent=quest.ready?'Auto-do — turn in once':'Auto-do this quest';
         go.onclick=()=>{
           if(quest.rewards.length && !reward.value) {byId('active-quest-status').textContent='Select the reward you want first.';return;}
+          if(activeQuestGenerating) return; activeQuestGenerating=true; byId('active-quest-cancel').hidden=false;
           byId('active-quest-status').textContent='Generating a script for '+quest.name+'…';
           window.skua.command('active-quest-go',JSON.stringify({id:quest.id,reward:quest.rewards.length?Number(reward.value):-1}));
         };
@@ -307,10 +325,17 @@ window.skua.onMessage(message => {
     case 'game-error': gameReady = false; byId('game-status').textContent = 'Game could not load'; log(message.message,'Error'); break;
     case 'setup-error': byId('game-status').textContent = 'Setup required'; if (byId('setup')) byId('setup').textContent = message.message; log(message.message, 'Error'); break;
     case 'engine-exit':
+      stopping = true; restoreGameRendering();
       renderLedger([], 'Engine stopped. Reopen the app to reconnect.');
       activeQuestPending=false; activeQuestSignature=''; byId('active-quest-open').hidden=true; byId('active-quest-list').replaceChildren(); autoEnabled = false; byId('auto-toggle').textContent = 'Enable'; byId('auto-toggle').setAttribute('aria-pressed','false'); byId('auto-detail').textContent = 'Engine stopped.'; engineReady = false; running = false; byId('engine').textContent = 'Engine stopped'; log('C# engine exited (' + message.code + '). Reopen the app to retry.', 'Error'); break;
     case 'selected': selected = true; byId('selected').textContent = message.path.split('/').pop(); byId('selected').title = message.path; byId('script-hint').textContent = 'Ready to run when the game is connected.'; log('Selected ' + byId('selected').textContent); break;
-    case 'status': running = message.running; byId('engine').textContent = running ? 'Script running' : 'Script idle'; break;
+    case 'status': {
+      const wasRunning = running;
+      running = message.running;
+      if (!running) restoreGameRendering();
+      else if (!wasRunning) stopping = false;
+      byId('engine').textContent = running ? 'Script running' : 'Script idle'; break;
+    }
     case 'log': log(message.message, message.kind); break;
     case 'request':
       if (message.kind === 'options') { showOptions(message); break; }

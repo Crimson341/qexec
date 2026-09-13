@@ -185,8 +185,13 @@ try
     using var commandGate = new SemaphoreSlim(1);
     string? watchedQuestScript = null;
     int watchedQuestId = 0;
+    CancellationTokenSource? questPlanningCancellation=null;
     async Task Command(JObject message)
     {
+        if((string?)message["command"] is "stop" or "cancel-active-quest") {
+            questPlanningCancellation?.Cancel();
+            if((string?)message["command"]=="cancel-active-quest") return;
+        }
         if ((string?)message["command"] == "active-quests")
         {
             try {
@@ -257,9 +262,16 @@ try
                 case "active-quest-go":
                     if(manager.ScriptRunning || adaptive.Enabled) throw new InvalidOperationException("Stop the current script or auto attack first.");
                     if(!gameReady || !bot.Player.LoggedIn) throw new InvalidOperationException("Log in first.");
+                    questPlanningCancellation?.Dispose();
+                    questPlanningCancellation=new CancellationTokenSource();
                     var questRequest=JObject.Parse((string?)message["value"] ?? "{}");
-                    if(!bot.Quests.CanComplete((int?)questRequest["id"] ?? 0) && !await gearOwnership.LoadBank()) throw new InvalidOperationException("Bank could not be checked. Retry before generating a quest farm.");
-                    string activeScript=activeQuestMaker.Create((int?)questRequest["id"] ?? 0,(int?)questRequest["reward"] ?? -1);
+                    if(activeQuestMaker.NeedsBank((int?)questRequest["id"] ?? 0)) {
+                        rpc.Send(new {type="active-quest-progress",message="Checking inventory and bank for permanent materials…"});
+                        if(!await gearOwnership.LoadBank()) rpc.Send(new {type="active-quest-progress",message="Bank did not respond. Resolving free acquisition routes; purchases remain blocked."});
+                    }
+                    rpc.Send(new {type="active-quest-progress",message="Checking objective routes and looking up missing wiki sources…"});
+                    string activeScript=await activeQuestMaker.CreateAsync((int?)questRequest["id"] ?? 0,(int?)questRequest["reward"] ?? -1,detail=>rpc.Send(new {type="active-quest-progress",message=detail}),questPlanningCancellation.Token);
+                    questPlanningCancellation.Token.ThrowIfCancellationRequested();
                     watchedQuestScript=activeScript; watchedQuestId=(int?)questRequest["id"] ?? 0;
                     manager.SetLoadedScript(activeScript);
                     rpc.Send(new {type="selected",path=activeScript});

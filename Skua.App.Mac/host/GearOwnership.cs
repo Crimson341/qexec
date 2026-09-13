@@ -19,8 +19,26 @@ public sealed class GearOwnership(IScriptInterface bot, IFlashUtil? flash = null
         if (!bot.Player.LoggedIn) return false;
         if (bot.Bank.Loaded) return true;
         bot.Bank.Load(false);
-        for (int i=0; i<40 && !bot.Bank.Loaded; i++) await Task.Delay(200);
+        for (int i=0; i<60 && !bot.Bank.Loaded && bot.Player.LoggedIn; i++) {
+            await Task.Delay(200);
+            // The bank can already be present even if its event preceded this host instance.
+            if(flash!=null) {
+                try {
+                    var raw=flash.GetGameObject("world.bankinfo.items");
+                    var count=flash.GetGameObject("world.myAvatar.iBankCount");
+                    if(IsCompleteBankSnapshot(raw,count)) bot.Bank.Loaded=true;
+                } catch { /* A missing snapshot is not an empty bank. */ }
+            }
+            if(i==19 && !bot.Bank.Loaded) bot.Bank.Open();
+            if(i==29 && !bot.Bank.Loaded) bot.Bank.Load(false);
+        }
         return bot.Player.LoggedIn && bot.Bank.Loaded;
+    }
+    public static bool IsCompleteBankSnapshot(string? json,string? count)
+    {
+        if(!int.TryParse(count?.Trim('"'),out int expected) || expected<0 || string.IsNullOrWhiteSpace(json)) return false;
+        try { return JToken.Parse(json) is JArray items && items.Count==expected && items.All(i=>i is JObject && (int?)i["ItemID"]>0); }
+        catch {return false;}
     }
     public static List<InventoryItem> ParseOwnershipItems(string json)
     {

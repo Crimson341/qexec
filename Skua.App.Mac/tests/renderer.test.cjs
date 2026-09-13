@@ -63,8 +63,19 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   assert.equal(elements.get('stop').disabled,false);
   assert.equal(elements.get('vibe-questing').hidden,false);
   now=65000; timer(); assert.equal(elements.get('elapsed').textContent,'00:01:05');
+  context.window.invokeFlash({function:'killLag',args:[true]});
+  let commands=JSON.parse(context.window.skuaNextFlashCommands());
+  assert.ok(commands.some(c=>c.function==='killLag' && c.args[0]===true),'Running script may enable anti-lag');
+  context.window.invokeFlash({function:'killLag',args:[true]});
+  elements.get('stop').onclick();
+  commands=JSON.parse(context.window.skuaNextFlashCommands());
+  assert.ok(commands.length>=2,'Stop queues an explicit restore');
+  assert.ok(commands.filter(c=>c.function==='killLag').every(c=>c.args[0]===false),'Queued anti-lag must not re-enable after Stop');
+
   receive({type:'status',running:false});
   assert.equal(elements.get('vibe-questing').hidden,true);
+  context.window.invokeFlash({function:'killLag',args:[true]});
+  assert.ok(JSON.parse(context.window.skuaNextFlashCommands()).every(c=>c.function!=='killLag'||c.args[0]===false),'Late timer calls stay disabled after completion');
   now=90000; timer(); assert.equal(elements.get('elapsed').textContent,'00:01:05');
   receive({type:'status',running:true});
   assert.equal(elements.get('elapsed').textContent,'00:00:00');

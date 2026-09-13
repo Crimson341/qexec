@@ -4,4 +4,5 @@
     <ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../host/Skua.App.Mac.Host.csproj" AdditionalProperties="SkuaPortable=true" /></ItemGroup>
+  <ItemGroup><None Update="fixtures/PickupFixture.as.txt" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

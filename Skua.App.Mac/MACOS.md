@@ -7,7 +7,7 @@ It is not yet a feature-complete or verified gameplay release.
 
 ## Current verification
 
-- The packaged `build/Skua Mac.app` launches on macOS 26.3 / Apple Silicon.
+- The packaged `build/qexec.app` launches on macOS 26.3 / Apple Silicon.
 - The existing Artix Mac Flash plugin executes ActionScript 3 through Rosetta.
 - A diagnostic SWF completed a real Flash → C# → Flash round trip.
 - The maintained Skua SWF loads the live AQW login screen.
@@ -21,12 +21,14 @@ It is not yet a feature-complete or verified gameplay release.
 
 The current build uses a trusted local desktop SWF. Flash polls a command queue
 in the application page and returns typed results to the native C# engine.
-Account login and existing farming scripts remain unverified. CoreBots compilation
+The game login screen and connection have been observed; the new generated quest farms still need live completion validation. CoreBots compilation
 has been verified both directly and through the real script include loader.
 
 ## Run
 
-Open `build/Skua Mac.app`. The app includes its .NET runtime; an SDK is not needed
+Download the Apple Silicon preview from [GitHub Releases](https://github.com/Crimson341/qexec/releases/tag/v0.1.0). Extract it, move `qexec.app` to Applications, and follow the included setup instructions. The application is ad-hoc signed and not notarized. OpenJDK is required for automatic map pickup inspection; Homebrew OpenJDK is detected automatically.
+
+Open `build/qexec.app`. The app includes its .NET runtime; an SDK is not needed
 to run the packaged build. Apple Silicon requires Rosetta. The renderer uses the
 Flash plugin from an existing installation of the official Artix Game Launcher:
 
@@ -75,7 +77,7 @@ cd Skua.App.Mac
 The script downloads pinned npm dependencies, compiles the ActionScript bridge,
 publishes a self-contained native host for the build Mac's architecture, and
 packages the Intel renderer in an ad-hoc-signed `.app`. Move an earlier generated
-`build/Skua Mac.app` aside before rebuilding. The app is not notarized.
+`build/qexec.app` aside before rebuilding. The app is not notarized.
 
 For development:
 
@@ -83,7 +85,7 @@ For development:
 dotnet build host -c Release -p:SkuaPortable=true
 ./build-flash.sh
 npm ci --prefix desktop --arch=x64
-SKUA_SWF="$PWD/build/Skua Mac.app/Contents/Resources/app/assets/skua.swf" npm start --prefix desktop
+SKUA_SWF="$PWD/build/qexec.app/Contents/Resources/app/assets/skua.swf" npm start --prefix desktop
 ```
 
 Optional environment overrides: `SKUA_DATA_DIR` (data root), `SKUA_SCRIPTS_DIR` (script collection), `SKUA_FLASH_PLUGIN`

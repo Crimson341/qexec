@@ -31,8 +31,10 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
 
     private void ScriptStopped(ScriptOption recipient, ScriptStoppedMessage message)
     {
+        recipient._lagKiller = false;
+        try { recipient.Flash.Call("killLag", false); }
+        catch (Exception error) { System.Diagnostics.Trace.WriteLine("Restore game rendering: " + error.Message); }
         recipient.AutoRelogin = false;
-        recipient.LagKiller = false;
         recipient.AggroAllMonsters = false;
         recipient.AggroMonsters = false;
         recipient.SkipCutscenes = false;
@@ -96,8 +98,17 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
     [CallBinding("magnetize", UseValue = false, Get = false, HasSetter = true)]
     private bool _magnetise;
 
-    [CallBinding("killLag", Get = false, HasSetter = true)]
     private bool _lagKiller;
+    public bool LagKiller
+    {
+        get => _lagKiller;
+        set
+        {
+            // Clear intent before the RPC: a failed restore must not leave the timer re-enabling it.
+            _lagKiller = value;
+            Flash.Call("killLag", value);
+        }
+    }
 
     [ObjectBinding("stage.frameRate", Get = false, HasSetter = true)]
     private int _setFPS = 30;

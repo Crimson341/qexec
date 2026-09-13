@@ -14,7 +14,7 @@ esac
 npm ci --prefix desktop --arch=x64
 ./build-flash.sh
 dotnet publish host -c Release -r "$skua_rid" --self-contained true -p:SkuaPortable=true -p:PublishSingleFile=false -o build/backend --nologo -v:quiet
-skua_app="$skua_root/build/Skua Mac.app"
+skua_app="$skua_root/build/qexec.app"
 if [[ -e "$skua_app" ]]; then
   echo "Move the previous build out of $skua_app before packaging again." >&2
   exit 1
@@ -23,9 +23,14 @@ ditto desktop/node_modules/electron/dist/Electron.app "$skua_app"
 mkdir -p "$skua_app/Contents/Resources/app/assets"
 cp desktop/*.cjs desktop/*.html desktop/*.css desktop/package.json "$skua_app/Contents/Resources/app/"
 cp desktop/assets/skua.swf "$skua_app/Contents/Resources/app/assets/"
+ditto desktop/brand "$skua_app/Contents/Resources/app/brand"
+cp desktop/brand/qexec.icns "$skua_app/Contents/Resources/qexec.icns"
 ditto build/backend "$skua_app/Contents/Resources/backend"
 /usr/libexec/PlistBuddy -c 'Set :CFBundleIdentifier org.skua.mac.dev' "$skua_app/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c 'Set :CFBundleName Skua Mac' "$skua_app/Contents/Info.plist"
-/usr/libexec/PlistBuddy -c 'Set :CFBundleDisplayName Skua Mac' "$skua_app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleName qexec' "$skua_app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleDisplayName qexec' "$skua_app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleIconFile qexec.icns' "$skua_app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleShortVersionString 0.1.0' "$skua_app/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c 'Set :CFBundleVersion 1' "$skua_app/Contents/Info.plist"
 codesign --force --deep --sign - "$skua_app"
 echo "Built $skua_app"

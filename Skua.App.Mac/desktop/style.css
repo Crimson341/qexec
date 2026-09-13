@@ -73,3 +73,6 @@ main{grid-column:2;grid-row:2}aside{grid-column:1;grid-row:1/4;border-left:0;bor
 @media(max-height:700px){.workspace{grid-template-rows:40px minmax(0,1fr) 90px}.ledger{padding-top:12px}.script-panel,.session-panel,.auto-panel{padding:12px 0}}
 @media(max-width:700px){.workspace{grid-template-columns:210px minmax(300px,1fr);grid-template-rows:40px minmax(300px,1fr) 100px;overflow:auto}.nav-item{padding:0 8px;font-size:11px}aside{grid-column:1;grid-row:1/4;display:block;border-top:0}.game-controls .hint{display:none}.game-controls{gap:8px}.game-controls button{min-width:60px;padding:7px}.logs-panel{grid-column:2;grid-row:3}}
 @media(prefers-reduced-motion:reduce){.ledger-quest{animation:none}}
+
+/* Selected qexec wordmark, release 0.1.0. */
+.titlebar{background:#11111c}.titlebar h1{display:flex;align-items:center;gap:9px}.brand-wordmark{width:105px;height:35px;object-fit:contain;display:block}

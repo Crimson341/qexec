@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 skua_root="$(cd "$(dirname "$0")" && pwd)"
-skua_app="${2:-$skua_root/build/Skua Mac.app}"
+skua_app="${2:-$skua_root/build/qexec.app}"
 skua_swf="$skua_app/Contents/Resources/app/assets/skua.swf"
 skua_config="$HOME/Library/Application Support/Skua Mac/Pepper Data/Shockwave Flash/WritableRoot/#Security/FlashPlayerTrust/SkuaMac.cfg"
 if [[ ! -f "$skua_swf" ]]; then

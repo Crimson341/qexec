@@ -1,10 +1,14 @@
 # qexec
 
+![qexec logo](Skua.App.Mac/desktop/brand/qexec-wordmark.png)
+
 **Inspect. Plan. Execute.** An experimental AQWorlds automation client built on Skua, with a macOS port and a quest-first interface.
 
 The goal is to go beyond choosing a bot file: understand what your character needs, explain the route, generate the script, and recover when something goes wrong. This is active development, not a claim that every quest or item can already be automated.
 
 [Roadmap](docs/ROADMAP.md) · [Build and setup](Skua.App.Mac/MACOS.md) · [Contributing](CONTRIBUTING.md) · [Upstream credits](docs/ATTRIBUTION.md)
+
+[First release notes](docs/release-notes/v0.1.0.md) · [Quest generation details](Skua.App.Mac/QUEST-GENERATION.md)
 
 ## Quest Ledger
 
@@ -15,10 +19,10 @@ The goal is to go beyond choosing a bot file: understand what your character nee
 ## What is implemented
 
 - **Accepted quest detection:** reads live accepted quests and offers an Auto-do action.
-- **Generated quest scripts:** creates a C# script for supported objectives and attempts one quest turn-in. Required reward choices stay explicit.
+- **Generated quest scripts:** discovers supported wiki sources, traces permanent materials and map pickups, creates a fresh C# script and attempts one quest turn-in. A matching farming bot is optional. Required reward choices stay explicit.
 - **Inspect gear:** reads another player's equipped items, resolves names where possible, and looks for acquisition routes.
 - **Shop and farming routes:** generates supported travel, shop, drop, and quest steps. A shop-opening route does not automatically purchase the item.
-- **Ownership checks:** uses inventory and bank data where available; unavailable data remains unknown.
+- **Ownership checks:** uses inventory and bank data where available; unavailable data remains unknown. Bank loading retries; free quest objectives can proceed with an explicit notice while purchases stay blocked.
 - **Progression discovery:** builds a searchable catalog from available quest data and local scripts, alongside curated progression goals.
 - **Adaptive combat:** selects saved class profiles with health thresholds and boss estimates. Coverage depends on the available profiles.
 - **Vibe questing:** a click-through pixel effect while scripts run, plus subtle interface animations and reduced-motion support.
@@ -41,7 +45,7 @@ See the [full roadmap and completion criteria](docs/ROADMAP.md).
 
 ## Build and run
 
-The current macOS build needs macOS, .NET 10 SDK, Node.js/npm, Java, and an existing Artix Game Launcher Flash plugin. Apple Silicon also needs Rosetta for the Intel renderer. No packaged download is published yet.
+The current macOS build needs macOS, .NET 10 SDK, Node.js/npm, Java, and an existing Artix Game Launcher Flash plugin. Apple Silicon also needs Rosetta for the Intel renderer. The [v0.1.0 preview release](https://github.com/Crimson341/qexec/releases/tag/v0.1.0) includes an Apple Silicon Mac app download and setup instructions. It is ad-hoc signed, not notarized.
 
 ```sh
 git clone https://github.com/Crimson341/qexec.git
@@ -49,7 +53,7 @@ cd qexec/Skua.App.Mac
 ./build-macos.sh
 ```
 
-Follow [MACOS.md](Skua.App.Mac/MACOS.md) for Flash trust setup, scripts, runtime paths, and environment overrides before launching. The generated bundle and compatibility namespaces still use `Skua Mac` / `Skua.*`; keeping these stable avoids breaking existing scripts and settings. The legacy renderer is not a modern supported browser.
+Follow [MACOS.md](Skua.App.Mac/MACOS.md) for Flash trust setup, scripts, runtime paths, and environment overrides before launching. The app bundle is named `qexec.app`. The settings directory and compatibility namespaces retain `Skua Mac` / `Skua.*` to preserve existing scripts and settings. The legacy renderer is not a modern supported browser.
 
 Quest automation requires a compatible external Skua script collection, including CoreBots. Personal scripts, account settings, bank data, cached assemblies, and the proprietary Flash plugin are not included. See the [compatibility notes](Skua.App.Mac/compat/README.md).
 

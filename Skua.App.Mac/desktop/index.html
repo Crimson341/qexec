@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="titlebar"><h1>qexec <span class="platform">— Quest Ledger</span></h1><span class="title-caption">AdventureQuest Worlds</span><span class="preview">Development build</span></header>
+  <header class="titlebar"><h1><img class="brand-wordmark" src="brand/qexec-wordmark.png" alt="qexec"> <span class="platform">— Quest Ledger</span></h1><span class="title-caption">AdventureQuest Worlds</span><span class="preview">v0.1.0 · Preview</span></header>
   <div class="workspace">
     <nav aria-label="Workspace">
       <button class="nav-item active" id="nav-game" aria-current="page">Game</button>
@@ -63,7 +63,7 @@
   <footer class="statusbar"><span id="app-status">Connecting…</span><span><span class="small-dot" id="status-dot"></span><span id="footer-script">Script idle</span></span></footer>
   <dialog id="options"><form id="option-form"><h2>Script options</h2><div id="fields"></div><p id="option-error" role="alert"></p><div class="actions"><button id="cancel-options" type="button">Cancel</button><button type="submit">Save and continue</button></div></form></dialog>
   <dialog id="gear-dialog"><div class="panel-heading"><h2>Inspect gear</h2><button id="gear-close">Close</button></div><p class="hint">Select a player in the game, then inspect their equipped items.</p><button id="gear-refresh">Inspect selected player</button><p id="gear-status" class="hint" role="status"></p><div id="gear-sources"></div><div id="gear-items"></div></dialog>
-  <dialog id="active-quest-dialog"><div class="panel-heading"><h2>Accepted quests</h2><button id="active-quest-close">Close</button></div><p class="hint">Choose one accepted quest. Auto-do generates a C# script, runs it, and turns in that quest once. Other accepted quests are left alone.</p><button id="active-quest-refresh">Refresh accepted quests</button><p id="active-quest-status" class="hint" role="status"></p><div id="active-quest-list"></div></dialog>
+  <dialog id="active-quest-dialog"><div class="panel-heading"><h2>Accepted quests</h2><button id="active-quest-close">Close</button></div><p class="hint">Choose one accepted quest. Auto-do generates a C# script, runs it, and turns in that quest once. Other accepted quests are left alone.</p><button id="active-quest-refresh">Refresh accepted quests</button><button id="active-quest-cancel" hidden>Cancel planning</button><p id="active-quest-status" class="hint" role="status"></p><div id="active-quest-list"></div></dialog>
   <script src="renderer.cjs"></script>
 </body>
 </html>
