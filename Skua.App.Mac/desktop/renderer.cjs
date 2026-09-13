@@ -7,6 +7,32 @@ window.skua = {
   onMessage: callback => {window.receiveHostMessage = callback;}
 };
 const byId = id => document.getElementById(id);
+const itemPictures=new Map(),picturePending=new Set();
+function requestPicture(name){if(!picturePending.has(name)){picturePending.add(name);window.skua.command('item-preview',name);}}
+const pictureObserver=typeof IntersectionObserver==='function'?new IntersectionObserver(entries=>{
+  for(const entry of entries)if(entry.isIntersecting){pictureObserver.unobserve(entry.target);requestPicture(entry.target.dataset.itemName);}
+},{rootMargin:'120px'}):null;
+function safePicture(url){return typeof url==='string' && /^https:\/\/(?:i\.imgur\.com|aqwwiki\.wikidot\.com|aqwwiki\.wdfiles\.com)\//.test(url);}
+function paintPicture(button,picture){
+  const images=(picture.Images||[]).filter(safePicture);button.replaceChildren();
+  if(images.length){const img=document.createElement('img');img.alt=button.dataset.itemName;img.loading='lazy';img.referrerPolicy='no-referrer';img.src=images[0];img.onerror=()=>{button.textContent='Preview unavailable';};button.append(img);button.title='Enlarge '+button.dataset.itemName;}
+  else {button.textContent='Preview unavailable';button.title=picture.Note||'No image available';}
+}
+function itemPicture(parent,name){
+  if(!name)return;
+  const button=document.createElement('button');button.className='item-picture';button.dataset.itemName=name;button.textContent='Preview';button.setAttribute('aria-label','Preview '+name);
+  button.onclick=()=>{
+    const picture=itemPictures.get(name),images=(picture?.Images||[]).filter(safePicture);
+    if(!images.length){button.textContent='Loading preview…';requestPicture(name);return;}
+    byId('item-image-title').textContent=name;byId('item-image-gallery').replaceChildren();
+    for(const url of images){const img=document.createElement('img');img.src=url;img.alt=name;img.referrerPolicy='no-referrer';byId('item-image-gallery').append(img);}
+    byId('item-image-dialog').showModal();
+  };
+  parent.append(button);
+  if(itemPictures.has(name))paintPicture(button,itemPictures.get(name));else if(pictureObserver)pictureObserver.observe(button);
+}
+byId('item-image-close').onclick=()=>byId('item-image-dialog').close();
+byId('become-op').onclick=()=>{window.skua.command('become-op');byId('nav-activity').onclick();};
 let autoEnabled = false;
 let stopping = false;
 let startedAt = null, elapsedMs = 0;
@@ -20,6 +46,7 @@ const log = (message, kind = '') => {
   byId('log-count').textContent = byId('logs').childElementCount;
 };
 const controls = () => {
+  byId('become-op').disabled=!engineReady||!gameReady||running||autoEnabled;
   byId('choose').disabled = !engineReady || running;
   byId('run').disabled = !engineReady || !gameReady || !selected || running || autoEnabled;
   byId('stop').disabled = !running;
@@ -43,7 +70,7 @@ function updateElapsed() {
 setInterval(() => {updateElapsed(); pollActiveQuests();}, 1000);
 for (const [id, target] of [['nav-game','game'], ['nav-script','choose'], ['nav-activity','logs']]) {
   byId(id).onclick = () => {
-    byId('quest-view').hidden = true; document.body.classList.remove('quest-open');
+    byId('area-view').hidden=true;document.body.classList.remove('area-open');byId('quest-view').hidden = true; document.body.classList.remove('quest-open');
     for (const item of document.querySelectorAll('.nav-item')) {
       item.classList.toggle('active', item.id === id);
       if (item.id === id) item.setAttribute('aria-current', 'location');
@@ -144,6 +171,7 @@ function refreshQuests() {
   window.skua.command('quest-refresh');
 }
 byId('nav-quest').onclick = () => {
+  byId('area-view').hidden=true;document.body.classList.remove('area-open');
   byId('quest-view').hidden = false; document.body.classList.add('quest-open');
   for (const item of document.querySelectorAll('.nav-item')) {
     item.classList.toggle('active', item.id === 'nav-quest');
@@ -171,24 +199,144 @@ function renderLedger(quests, note) {
     const name=document.createElement('strong');name.textContent=quest.name;
     const state=document.createElement('span');state.textContent='#'+quest.id+' · '+(quest.ready?'Ready to turn in':'In progress');
     row.append(name,state);
-    row.onclick=()=>{byId('active-quest-dialog').showModal();byId('active-quest-status').textContent='Choose '+quest.name+' below, then select Auto-do.';};
-    byId('ledger-list').append(row);
+    if(quest.rewards.length>1){
+      const group=document.createElement('div'),choice=document.createElement('select');choice.setAttribute('aria-label','Reward for '+quest.name);
+      const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose reward';choice.append(placeholder);
+      for(const item of quest.rewards){const option=document.createElement('option');option.value=String(item.id);option.textContent=item.name;choice.append(option);}
+      row.onclick=()=>{if(!choice.value){byId('ledger-status').textContent='Choose a reward for '+quest.name+' below.';choice.focus();return;}startAcceptedQuest(quest,Number(choice.value),true);};
+      group.append(row,choice);byId('ledger-list').append(group);
+    }else {row.onclick=()=>startAcceptedQuest(quest,quest.rewards.length?quest.rewards[0].id:-1,true);byId('ledger-list').append(row);}
   }
 }
 byId('ledger-refresh').onclick=()=>pollActiveQuests(true);
-let activeQuestGenerating=false;
+let activeQuestGenerating=false,questFromLedger=false;
+function startAcceptedQuest(quest,reward,fromLedger=false){
+  if(activeQuestGenerating)return;
+  activeQuestGenerating=true;questFromLedger=fromLedger;
+  byId('active-quest-cancel').hidden=false;byId('ledger-cancel').hidden=!fromLedger;
+  const message='Generating a script for '+quest.name+'…';
+  byId('active-quest-status').textContent=message;if(fromLedger)byId('ledger-status').textContent=message;
+  window.skua.command('active-quest-go',JSON.stringify({id:quest.id,reward}));
+}
+byId('ledger-cancel').onclick=()=>window.skua.command('cancel-active-quest');
 byId('active-quest-cancel').onclick=()=>window.skua.command('cancel-active-quest');
+let areaBusy=false, areaPlanKey='', areaMap='';
+setInterval(()=>{if(engineReady&&gameReady&&!byId('area-view').hidden)window.skua.command('area-location');},5000);
+function areaRequest(command,value) {
+  if(areaBusy)return;
+  areaBusy=true;for(const b of document.querySelectorAll('#area-view button'))b.disabled=true;byId('area-quantity').disabled=true;byId('area-refresh').disabled=true;byId('area-cancel').disabled=false;byId('area-cancel').hidden=false;
+  byId('area-status').textContent=(command==='area-plan'||command==='area-acquire')?'Resolving the item and generating its farm…':'Reading area sources…';
+  byId('area-go').disabled=true;
+  window.skua.command(command,value);
+}
+function areaFinished(message) {areaBusy=false;for(const b of document.querySelectorAll('#area-view button'))b.disabled=b.id==='area-go'||b.dataset.blocked==='true';byId('area-quantity').disabled=false;byId('area-refresh').disabled=false;byId('area-cancel').hidden=true;byId('area-status').textContent=message||'Ready to explore.';}
+function areaButton(label,action) {const b=document.createElement('button');b.textContent=label;b.onclick=()=>{if(!areaBusy)action();};return b;}
+function areaList(id,entries,label,action) {
+  byId(id).replaceChildren();
+  if(!entries.length){const p=document.createElement('p');p.className='hint';p.textContent='None discovered.';byId(id).append(p);}
+  for(const entry of entries)byId(id).append(areaButton(label(entry),()=>action(entry)));
+}
+function areaPlanItem(key) {
+  const quantity=Number(byId('area-quantity').value);
+  if(!Number.isInteger(quantity)||quantity<1||quantity>999){byId('area-status').textContent='Enter a target quantity from 1 to 999.';return;}
+  areaPlanKey='';byId('area-plan-view').hidden=true;areaRequest('area-acquire',JSON.stringify({key,quantity}));
+}
+function areaOwned(owned) {return (owned?owned.inventory:0)+' in inventory · '+(!owned||owned.bank===null?'bank unknown':owned.bank+' in bank');}
+function areaRows(rows) {
+  byId('area-items').replaceChildren();byId('area-plan-view').hidden=true;areaPlanKey='';
+  if(!rows.length){const p=document.createElement('p');p.className='hint';p.textContent='No items returned for this source.';byId('area-items').append(p);}
+  for(const item of rows) {
+    const row=document.createElement('div');row.className='area-item';
+    const text=document.createElement('div'),name=document.createElement('strong'),detail=document.createElement('p');
+    name.textContent=item.name;detail.className='hint';
+    detail.textContent=item.temporary?'Quest drop · '+item.quest:(item.id?'#'+item.id+' · ':'')+(item.owned?areaOwned(item.owned):'Permanent monster drop');
+    text.append(name,detail);itemPicture(text,item.name);
+    if(item.cost!==undefined) {const price=document.createElement('p');price.className='hint';price.textContent=item.cost+' '+(item.coins?'ACs':'gold')+(item.member?' · Membership':'');text.append(price);}
+    for(const req of item.requirements||[]) {const ingredient=document.createElement('p');ingredient.className='area-ingredient';ingredient.textContent=req.name+' ×'+req.quantity+' · '+areaOwned(req.owned);itemPicture(ingredient,req.name);text.append(ingredient);}
+    const action=areaButton(item.temporary?'Open accepted quests':item.requirements&&item.requirements.length?'Farm & merge':item.cost!==undefined?'Buy item':'Farm item',()=> {
+      if(item.temporary){byId('active-quest-dialog').showModal();pollActiveQuests(true);}else areaPlanItem(item.key);
+    });
+    if(item.coins&&item.cost>0){action.textContent='Open shop in game';action.onclick=()=>areaRequest('area-item-shop',item.key);}
+    row.append(text,action);byId('area-items').append(row);
+  }
+}
+function areaTree(node,depth=0) {
+  const row=document.createElement('p');row.className='area-plan-step';row.style.paddingLeft=(depth*16)+'px';
+  const descriptions={owned:'Already owned',drop:'Farm '+node.Monster+' in /'+node.Map,shop:'Shop #'+node.Shop+' in /'+node.Map+' · '+node.Cost+' gold per purchase',quest:'Complete quest #'+node.Quest,pickup:'Collect in /'+node.Map};
+  row.textContent=node.Name+' ×'+node.Quantity+' — '+(descriptions[node.Kind]||node.Kind);itemPicture(row,node.Name);byId('area-plan-tree').append(row);
+  for(const child of node.Children||[])areaTree(child,depth+1);
+}
+byId('nav-area').onclick=()=>{
+  byId('quest-view').hidden=true;byId('area-view').hidden=false;document.body.classList.remove('quest-open');document.body.classList.add('area-open');
+  for(const item of document.querySelectorAll('.nav-item')) {item.classList.toggle('active',item.id==='nav-area');if(item.id==='nav-area')item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');}
+  if(!byId('area-shops').childElementCount)areaRequest('area-scan');
+};
+byId('area-refresh').onclick=()=>{areaPlanKey='';byId('area-plan-view').hidden=true;areaRequest('area-scan');};
+byId('area-deep').onclick=()=>areaRequest('area-deep');
+byId('area-cancel').onclick=()=>window.skua.command('area-cancel');
+byId('area-go').onclick=()=>{if(areaPlanKey)areaRequest('area-go',areaPlanKey);};
+function receiveArea(message) {
+  switch(message.type) {
+    case 'area-location':
+      if(message.map!==areaMap&&!areaBusy&&!running&&!autoEnabled&&!byId('area-view').hidden){areaMap=message.map;areaPlanKey='';byId('area-plan-view').hidden=true;if(message.map)areaRequest('area-scan');else areaFinished('Log in to discover an area.');}return true;
+    case 'area-progress':byId('area-status').textContent=message.message;return true;
+    case 'area-error':areaPlanKey='';byId('area-go').disabled=true;areaFinished(message.message);return true;
+    case 'area-snapshot':
+      areaMap=message.map;areaFinished(message.note);byId('area-title').textContent='What to do in /'+message.map;byId('area-items').replaceChildren();byId('area-plan-view').hidden=true;
+      areaList('area-shops',message.shops,s=>s.Name+(s.ID?' · #'+s.ID:''),s=>areaRequest('area-shop',s.Key));
+      areaList('area-monsters',message.monsters,m=>m.Name+' · '+m.HP+' HP',m=>areaRequest('area-monster',m.Key));
+      areaList('area-quests',message.quests,q=>q.Name,q=>areaRequest('area-quests',q.Path));
+      areaList('area-accepted',message.accepted,q=>q.name+(q.ready?' · Ready':''),()=>{byId('active-quest-dialog').showModal();pollActiveQuests(true);});return true;
+    case 'area-shop':
+      areaFinished();byId('area-detail-title').textContent=message.name+(message.id?' · #'+message.id:'');byId('area-detail-note').textContent=message.note;areaRows(message.items);
+      for(const item of message.wikiItems||[]) {const p=document.createElement('p');p.textContent=item.Name;itemPicture(p,item.Name);byId('area-items').append(p);}return true;
+    case 'area-drops':areaFinished();byId('area-detail-title').textContent=message.name+' drops';byId('area-detail-note').textContent=message.note;areaRows(message.items);return true;
+    case 'area-quests':
+      areaFinished();byId('area-detail-title').textContent='Area quests';byId('area-detail-note').textContent=message.note;byId('area-items').replaceChildren();byId('area-plan-view').hidden=true;areaPlanKey='';
+      for(const quest of message.quests){
+        const row=document.createElement('div');row.className='area-item';
+        const title=document.createElement('p');title.textContent=quest.name+(quest.id?' · #'+quest.id:' · Quest ID unavailable');row.append(title);
+        if(quest.id){
+          row.append(areaButton('Open in game',()=>areaRequest('area-quest-open',quest.key)));
+          const accept=areaButton(quest.accepted?'Accepted':'Accept quest',()=>areaRequest('area-quest-accept',quest.key));
+          accept.dataset.questKey=quest.key;accept.disabled=quest.accepted;accept.dataset.blocked=String(quest.accepted);row.append(accept);
+        }
+        byId('area-items').append(row);
+      }return true;
+    case 'area-quest-action':
+      areaFinished(message.message);
+      if(message.accepted)for(const button of document.querySelectorAll('#area-items button'))if(button.dataset.questKey===message.key){button.textContent='Accepted';button.disabled=true;button.dataset.blocked='true';}
+      pollActiveQuests(true);
+      if(message.opened)byId('nav-game').onclick();
+      return true;
+    case 'area-plan':
+      areaFinished('Farm plan ready. Review the ingredients below.');areaPlanKey=message.key;byId('area-plan-view').hidden=false;byId('area-plan-note').textContent=message.note;byId('area-plan-tree').replaceChildren();areaTree(message.root);byId('area-plan-code').textContent=message.code;byId('area-go').disabled=false;return true;
+    case 'area-shop-opened':areaFinished(message.message);byId('nav-game').onclick();return true;
+    case 'area-starting':areaPlanKey='';areaFinished('Generated script started. Follow its progress in Activity.');byId('area-go').disabled=true;byId('nav-game').onclick();return true;
+    default:return false;
+  }
+}
+
 window.skua.onMessage(message => {
+  if(message.type==='item-preview'){
+    picturePending.delete(message.name);if(itemPictures.size>=500)itemPictures.clear();itemPictures.set(message.name,message.picture);
+    for(const button of document.querySelectorAll('.item-picture'))if(button.dataset.itemName===message.name)paintPicture(button,message.picture);
+    return;
+  }
+  if(receiveArea(message))return;
   switch (message.type) {
     case 'active-quests-error':
       renderLedger([], 'Quest list unavailable. Use Refresh to retry.');
       activeQuestPending=false; activeQuestSignature=''; byId('active-quest-list').replaceChildren(); byId('active-quest-status').textContent='Could not read accepted quests: '+message.message; break;
     case 'active-quest-error':
       activeQuestGenerating=false; byId('active-quest-cancel').hidden=true;
+      byId('ledger-cancel').hidden=true;if(questFromLedger){byId('ledger-status').textContent=message.message;break;}
       byId('active-quest-status').textContent=message.message; if(!byId('active-quest-dialog').open) byId('active-quest-dialog').showModal(); break;
     case 'active-quest-progress':
+      if(questFromLedger)byId('ledger-status').textContent=message.message;
       byId('active-quest-status').textContent=message.message; break;
     case 'active-quest-starting':
+      byId('ledger-cancel').hidden=true;if(questFromLedger)byId('ledger-status').textContent='Quest script started.';
       activeQuestGenerating=false; byId('active-quest-cancel').hidden=true;
       byId('active-quest-status').textContent='Generated '+message.path; byId('active-quest-dialog').close(); break;
     case 'active-quests': {
@@ -209,11 +357,12 @@ window.skua.onMessage(message => {
         const go=document.createElement('button');go.textContent=quest.ready?'Auto-do — turn in once':'Auto-do this quest';
         go.onclick=()=>{
           if(quest.rewards.length && !reward.value) {byId('active-quest-status').textContent='Select the reward you want first.';return;}
-          if(activeQuestGenerating) return; activeQuestGenerating=true; byId('active-quest-cancel').hidden=false;
-          byId('active-quest-status').textContent='Generating a script for '+quest.name+'…';
-          window.skua.command('active-quest-go',JSON.stringify({id:quest.id,reward:quest.rewards.length?Number(reward.value):-1}));
+          startAcceptedQuest(quest,quest.rewards.length?Number(reward.value):-1);
         };
-        row.append(title,reward,go);byId('active-quest-list').append(row);
+        const rewardPreview=document.createElement('div');
+        const updateRewardPreview=()=>{rewardPreview.replaceChildren();const chosen=quest.rewards.find(item=>String(item.id)===reward.value);if(chosen)itemPicture(rewardPreview,chosen.name);};
+        reward.onchange=updateRewardPreview;updateRewardPreview();
+        row.append(title,reward,go,rewardPreview);byId('active-quest-list').append(row);
       }
       break;
     }
@@ -228,7 +377,7 @@ window.skua.onMessage(message => {
         const row = document.createElement('div'); row.className = 'quest-row';
         const body = document.createElement('div'); const title = document.createElement('strong'); title.textContent = item.name + (item.id ? ' · #' + item.id : '');
         const detail = document.createElement('p'); detail.className = 'hint'; detail.textContent = item.category + ' · ' + item.ownership + ' · ' + item.detail;
-        const more = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Item information'; const info = document.createElement('p'); info.textContent = (item.description || '') + ' ' + item.availability; more.append(summary,info); body.append(title,detail,more);
+        const more = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Item information'; const info = document.createElement('p'); info.textContent = (item.description || '') + ' ' + item.availability; more.append(summary,info); body.append(title,detail,more);itemPicture(body,item.name);
         const find = document.createElement('button'); find.textContent = item.canFind ? 'Find farming plan' : (item.routeNote || item.ownership); find.disabled = !item.canFind;
         find.onclick = () => { byId('gear-dialog').showModal(); byId('gear-items').replaceChildren(); byId('gear-sources').replaceChildren(); byId('gear-status').textContent = 'Resolving an item-specific route for ' + item.name + '…'; window.skua.command('gear-find',JSON.stringify({name:item.name,id:Number(item.id)||0})); };
         row.append(body,find); byId('catalog-items').append(row);
@@ -249,7 +398,7 @@ window.skua.onMessage(message => {
         const row = document.createElement('div'); row.className = 'quest-row';
         const body = document.createElement('div'); const title = document.createElement('strong'); title.textContent = goal.Item;
         const detail = document.createElement('p'); detail.className = 'hint'; detail.textContent = goal.Detail;
-        body.append(title,detail);
+        body.append(title,detail);itemPicture(body,goal.Item);
         const go = document.createElement('button'); go.textContent = goal.Action; go.disabled = !goal.CanRun;
         go.onclick = () => launchQuest(goal.Id); row.append(body,go); byId('quest-goals').append(row);
       }
@@ -277,12 +426,12 @@ window.skua.onMessage(message => {
         const label = document.createElement('span'); label.textContent = (item.label || item.slot) + ' · ' + (item.name || 'Item #' + item.id + ' — unresolved') + (item.identitySource ? '\n' + item.identitySource + ' · #' + item.id : '');
         const find = document.createElement('button'); const owned = item.ownership === 'Inventory' || item.ownership === 'Bank'; find.textContent = owned ? 'Owned · ' + item.ownership : !item.name ? 'Name unresolved' : 'Find source'; find.disabled = !item.name || owned;
         find.onclick = () => { byId('gear-sources').replaceChildren(); byId('gear-status').textContent = 'Searching scripts for ' + item.name + '…'; window.skua.command('gear-find',JSON.stringify({name:item.name,id:Number(item.id)||0})); };
-        row.append(label,find); byId('gear-items').append(row);
+        itemPicture(label,item.name);row.append(label,find); byId('gear-items').append(row);
       }
       break;
     }
     case 'gear-starting':
-      byId('gear-status').textContent = message.message; byId('gear-dialog').close(); byId('quest-view').hidden = true; document.body.classList.remove('quest-open'); break;
+      byId('gear-status').textContent = message.message; byId('gear-dialog').close(); byId('area-view').hidden=true;document.body.classList.remove('area-open');byId('quest-view').hidden = true; document.body.classList.remove('quest-open'); break;
     case 'gear-sources': {
       byId('gear-sources').replaceChildren();
       byId('gear-status').textContent = message.message || (message.sources.length ? 'Generated item-specific routes. Review the action before Go.' : 'No verified route found for this item.');
@@ -293,7 +442,7 @@ window.skua.onMessage(message => {
         const detail = document.createElement('p'); detail.className = 'hint'; detail.textContent = (source.Description || 'No source description available.') + '\n' + source.File;
         const go = document.createElement('button'); go.textContent = source.Action || 'Go — farm item';
         go.onclick = () => { byId('gear-status').textContent = 'Starting ' + source.Name + '…'; window.skua.command('gear-go',source.Id); };
-        const preview = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Generated script'; const code = document.createElement('pre'); code.textContent = source.Code; preview.append(summary,code); row.append(title,detail,preview,go); byId('gear-sources').append(row);
+        const preview = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Generated script'; const code = document.createElement('pre'); code.textContent = source.Code; preview.append(summary,code); itemPicture(detail,source.Item);row.append(title,detail,preview,go); byId('gear-sources').append(row);
       }
       byId('gear-status').scrollIntoView?.({block:'start'});
       break;

@@ -147,9 +147,12 @@ try
     var adaptive = new AdaptiveCombat(bot, provider.GetRequiredService<IAdvancedSkillContainer>(), rpc);
     var gearFinder = new GearFinder(ClientFileSources.SkuaScriptsDIR);
     var activeQuestMaker = new ActiveQuestMaker(bot,gearFinder,ClientFileSources.SkuaScriptsDIR);
+    var itemPreview = new ItemPreview();
     var gearIdentity = new GearIdentity(ClientFileSources.SkuaQuestsFile);
     var gearOwnership = new GearOwnership(bot, flash);
     var questPlanner = new QuestPlanner(bot, ClientFileSources.SkuaScriptsDIR, gearOwnership);
+    var areaActivities = new AreaActivities(bot,gearFinder,gearOwnership,ClientFileSources.SkuaScriptsDIR);
+    CancellationTokenSource? areaCancellation=null;
     var questCatalog = new QuestCatalog(ClientFileSources.SkuaQuestsFile, gearFinder);
     using var catalogGate = new SemaphoreSlim(1);
     using var gearLookupGate = new SemaphoreSlim(1);
@@ -188,10 +191,12 @@ try
     CancellationTokenSource? questPlanningCancellation=null;
     async Task Command(JObject message)
     {
+        if((string?)message["command"] is "stop" or "area-cancel") {areaCancellation?.Cancel();if((string?)message["command"]=="area-cancel")return;}
         if((string?)message["command"] is "stop" or "cancel-active-quest") {
             questPlanningCancellation?.Cancel();
             if((string?)message["command"]=="cancel-active-quest") return;
         }
+        if((string?)message["command"]=="area-location") {rpc.Send(new {type="area-location",map=bot.Player.LoggedIn?bot.Map.Name:""});return;}
         if ((string?)message["command"] == "active-quests")
         {
             try {
@@ -242,6 +247,12 @@ try
             rpc.Send(await news);
             return;
         }
+        if ((string?)message["command"] == "item-preview") {
+            string name=(string?)message["value"]??"";
+            try { rpc.Send(new {type="item-preview",name,picture=await itemPreview.Get(name)}); }
+            catch(Exception) { rpc.Send(new {type="item-preview",name,picture=new ItemPicture(name,[],"Preview unavailable. Retry shortly.")}); }
+            return;
+        }
         // Read-only web resolution must not hold the script start/stop gate.
         if ((string?)message["command"] == "gear-inspect")
         {
@@ -259,6 +270,62 @@ try
         {
             switch ((string?)message["command"])
             {
+                case "area-deep":
+                case "area-scan":
+                case "area-shop":
+                case "area-monster":
+                case "area-quest-open":
+                case "area-quest-accept":
+                case "area-quests":
+                case "area-plan":
+                    if(manager.ScriptRunning || adaptive.Enabled)throw new InvalidOperationException("Stop the current script or auto attack before exploring area sources.");
+                    areaCancellation?.Dispose();areaCancellation=new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                    var areaToken=areaCancellation.Token;
+                    void AreaProgress(string detail)=>rpc.Send(new {type="area-progress",message=detail});
+                    string areaValue=(string?)message["value"]??"";
+                    object areaResult;
+                    switch((string?)message["command"]) {
+                        case "area-deep": areaResult=await areaActivities.Scan(AreaProgress,areaToken,true);break;
+                        case "area-scan": areaResult=await areaActivities.Scan(AreaProgress,areaToken);break;
+                        case "area-shop": areaResult=await areaActivities.Shop(areaValue,areaToken);break;
+                        case "area-monster": areaResult=await areaActivities.Monster(areaValue,areaToken);break;
+                        case "area-quest-open": areaResult=await areaActivities.QuestAction(areaValue,false,areaToken);break;
+                        case "area-quest-accept": areaResult=await areaActivities.QuestAction(areaValue,true,areaToken);break;
+                        case "area-quests": areaResult=await areaActivities.QuestPage(areaValue,areaToken);break;
+                        default:
+                            var planRequest=JObject.Parse(areaValue);
+                            areaResult=await areaActivities.Plan((string?)planRequest["key"]??"",(int?)planRequest["quantity"]??1,AreaProgress,areaToken);break;
+                    }
+                    rpc.Send(areaResult);break;
+                case "area-item-shop":
+                    if(manager.ScriptRunning || adaptive.Enabled)throw new InvalidOperationException("Stop the current script or auto attack first.");
+                    rpc.Send(areaActivities.OpenItemShop((string?)message["value"]??""));break;
+                case "area-acquire":
+                    if(manager.ScriptRunning || adaptive.Enabled)throw new InvalidOperationException("Stop the current script or auto attack first.");
+                    areaCancellation?.Dispose();areaCancellation=new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                    var acquireRequest=JObject.Parse((string?)message["value"]??"{}");
+                    string acquireScript=await areaActivities.Acquire((string?)acquireRequest["key"]??"",(int?)acquireRequest["quantity"]??1,
+                        detail=>rpc.Send(new {type="area-progress",message=detail}),areaCancellation.Token);
+                    areaCancellation.Token.ThrowIfCancellationRequested();
+                    manager.SetLoadedScript(acquireScript);rpc.Send(new {type="selected",path=acquireScript});
+                    rpc.Send(new {type="area-progress",message="Starting the generated item farm…"});
+                    var acquireError=await manager.StartScript();if(acquireError!=null)throw acquireError;
+                    rpc.Send(new {type="area-starting",path=acquireScript});rpc.Send(new {type="status",running=manager.ScriptRunning});break;
+                case "become-op":
+                    if(manager.ScriptRunning || adaptive.Enabled)throw new InvalidOperationException("Stop the current script or auto attack first.");
+                    if(!bot.Player.LoggedIn)throw new InvalidOperationException("Log in and equip a class first.");
+                    string opCode=BecomeOP.Generate(bot.Player.CurrentClass?.Name??"");
+                    string opDirectory=Path.Combine(ClientFileSources.SkuaScriptsDIR,"Generated-Setup");Directory.CreateDirectory(opDirectory);
+                    string opScript=Path.Combine(opDirectory,"BecomeOP-"+Guid.NewGuid().ToString("N")+".cs");File.WriteAllText(opScript,opCode);
+                    manager.SetLoadedScript(opScript);rpc.Send(new {type="selected",path=opScript});
+                    var opError=await manager.StartScript();if(opError!=null)throw opError;
+                    rpc.Send(new {type="status",running=manager.ScriptRunning});break;
+                case "area-go":
+                    if(manager.ScriptRunning || adaptive.Enabled)throw new InvalidOperationException("Stop the current script or auto attack first.");
+                    string areaScript=areaActivities.Script((string?)message["value"]??"");
+                    manager.SetLoadedScript(areaScript);rpc.Send(new {type="selected",path=areaScript});
+                    var areaError=await manager.StartScript();if(areaError!=null)throw areaError;
+                    rpc.Send(new {type="area-starting",path=areaScript});rpc.Send(new {type="status",running=manager.ScriptRunning});break;
                 case "active-quest-go":
                     if(manager.ScriptRunning || adaptive.Enabled) throw new InvalidOperationException("Stop the current script or auto attack first.");
                     if(!gameReady || !bot.Player.LoggedIn) throw new InvalidOperationException("Log in first.");
@@ -335,6 +402,7 @@ try
         }
         catch (Exception ex) {
             rpc.Send(new { type = "log", kind = "Error", message = ex.GetBaseException().Message });
+            if (((string?)message["command"])?.StartsWith("area-") == true) rpc.Send(new {type="area-error",message=ex is OperationCanceledException ? "Area lookup canceled or timed out. Refresh to retry." : ex.GetBaseException().Message});
             if (((string?)message["command"])?.StartsWith("active-quest") == true)
                 rpc.Send(new {type="active-quest-error",message=ex.GetBaseException().Message});
             if (((string?)message["command"])?.StartsWith("quest-") == true)

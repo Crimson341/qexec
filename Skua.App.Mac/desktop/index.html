@@ -2,18 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="utf-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; object-src 'self' https://game.aq.com; img-src 'self' data:; connect-src https://game.aq.com; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; object-src 'self' https://game.aq.com; img-src 'self' data: https://i.imgur.com https://aqwwiki.wikidot.com https://aqwwiki.wdfiles.com; connect-src https://game.aq.com; base-uri 'none'; form-action 'none'">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>qexec</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="titlebar"><h1><img class="brand-wordmark" src="brand/qexec-wordmark.png" alt="qexec"> <span class="platform">— Quest Ledger</span></h1><span class="title-caption">AdventureQuest Worlds</span><span class="preview">v0.1.0 · Preview</span></header>
+  <header class="titlebar"><h1><img class="brand-wordmark" src="brand/qexec-wordmark.png" alt="qexec"> <span class="platform">— Quest Ledger</span></h1><span class="title-caption">AdventureQuest Worlds</span><span class="preview">v0.2.0 · Preview</span></header>
   <div class="workspace">
     <nav aria-label="Workspace">
       <button class="nav-item active" id="nav-game" aria-current="page">Game</button>
       <button class="nav-item" id="nav-script">Scripts</button>
       <button class="nav-item" id="nav-activity">Activity</button>
+      <button class="nav-item" id="become-op" title="Apply class enhancements and owned consumables">Become OP</button>
+      <button class="nav-item" id="nav-area">What to do</button>
       <button class="nav-item" id="nav-quest">Quests</button>
       <button class="nav-item" id="gear-open">Inspect gear</button>
       <div class="nav-footer"><span class="small-dot"></span> macOS client</div>
@@ -32,6 +34,15 @@
         <div class="game-controls"><span id="elapsed">00:00:00</span><span class="hint">Script controls</span><div class="actions"><button id="run" disabled>Run script</button><button id="stop" disabled>Stop</button></div></div>
       </section>
 
+      <section id="area-view" hidden aria-label="What to do in this area">
+        <div class="panel-heading"><div><p class="area-kicker">AREA EXPLORER</p><h2 id="area-title">What to do</h2></div><div class="actions"><button id="area-deep">Find additional shops</button><button id="area-refresh">Refresh area</button></div></div>
+        <p id="area-status" class="hint" role="status">Discover the area you are in, then choose what to work toward.</p>
+        <button id="area-cancel" hidden>Cancel discovery</button>
+        <div class="area-layout"><div class="area-directory"><h3>Shops &amp; merges</h3><div id="area-shops"></div><h3>Monsters</h3><div id="area-monsters"></div><h3>Area quests</h3><div id="area-quests"></div><h3>Accepted quests</h3><div id="area-accepted"></div></div>
+          <div class="area-detail"><div class="panel-heading"><h3 id="area-detail-title">Choose a source</h3><label class="area-quantity">Target quantity <input id="area-quantity" type="number" value="1" min="1" max="999" aria-label="Target item quantity"></label></div><p id="area-detail-note" class="hint">Shop items, merge ingredients and monster drops appear here.</p><div id="area-items"></div>
+          <section id="area-plan-view" hidden><h3>Your farm plan</h3><p id="area-plan-note" class="hint"></p><div id="area-plan-tree"></div><details><summary>Generated script</summary><pre id="area-plan-code"></pre></details><button id="area-go" disabled>Farm selected item</button></section></div>
+        </div>
+      </section>
       <section id="quest-view" hidden aria-label="Intelligent questing">
         <div class="panel-heading"><h2>Intelligent questing</h2><button id="quest-refresh">Refresh</button></div>
         <p id="quest-status" class="hint" role="status">Log in, then scan your character.</p>
@@ -48,7 +59,7 @@
       </section>
     </main>
     <aside aria-label="Quest ledger and script controls">
-      <section class="ledger"><div class="panel-heading"><h2>Quest ledger</h2><button id="ledger-refresh" aria-label="Refresh quest ledger">Refresh</button></div><p id="ledger-status" class="hint" role="status">Accept a quest in the game to get started.</p><div id="ledger-list"></div></section>
+      <section class="ledger"><div class="panel-heading"><h2>Quest ledger</h2><button id="ledger-refresh" aria-label="Refresh quest ledger">Refresh</button><button id="ledger-cancel" hidden>Cancel planning</button></div><p id="ledger-status" class="hint" role="status">Accept a quest in the game to get started.</p><div id="ledger-list"></div></section>
       <section class="script-panel"><div class="panel-heading"><h2>Script</h2><span id="script-state" class="state" role="status">Idle</span></div>
         <p class="field-caption">Filename</p><p id="selected">No script selected</p><p class="hint" id="script-hint">Choose a C# script from your collection to get started.</p>
         <button id="choose">Choose script… <kbd>⌘O</kbd></button>
@@ -64,6 +75,7 @@
   <dialog id="options"><form id="option-form"><h2>Script options</h2><div id="fields"></div><p id="option-error" role="alert"></p><div class="actions"><button id="cancel-options" type="button">Cancel</button><button type="submit">Save and continue</button></div></form></dialog>
   <dialog id="gear-dialog"><div class="panel-heading"><h2>Inspect gear</h2><button id="gear-close">Close</button></div><p class="hint">Select a player in the game, then inspect their equipped items.</p><button id="gear-refresh">Inspect selected player</button><p id="gear-status" class="hint" role="status"></p><div id="gear-sources"></div><div id="gear-items"></div></dialog>
   <dialog id="active-quest-dialog"><div class="panel-heading"><h2>Accepted quests</h2><button id="active-quest-close">Close</button></div><p class="hint">Choose one accepted quest. Auto-do generates a C# script, runs it, and turns in that quest once. Other accepted quests are left alone.</p><button id="active-quest-refresh">Refresh accepted quests</button><button id="active-quest-cancel" hidden>Cancel planning</button><p id="active-quest-status" class="hint" role="status"></p><div id="active-quest-list"></div></dialog>
+  <dialog id="item-image-dialog"><button id="item-image-close">Close</button><h2 id="item-image-title"></h2><div id="item-image-gallery"></div></dialog>
   <script src="renderer.cjs"></script>
 </body>
 </html>

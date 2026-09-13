@@ -11,7 +11,7 @@ public static class GearQuestRecipes
     {
         var results=new List<GearQuestRecipe>();
         foreach(var file in Directory.EnumerateFiles(root,"*.cs",SearchOption.AllDirectories)) {
-            if((file.Contains(Path.DirectorySeparatorChar+"Generated-Gear"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Quests"+Path.DirectorySeparatorChar)) || new FileInfo(file).Length>2_000_000) continue;
+            if((file.Contains(Path.DirectorySeparatorChar+"Generated-Area"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Gear"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Quests"+Path.DirectorySeparatorChar)) || new FileInfo(file).Length>2_000_000) continue;
             string text=File.ReadAllText(file);
             if(!text.Contains(itemId.ToString()) || !text.Contains(questId.ToString())) continue;
             var tree=CSharpSyntaxTree.ParseText(text).GetRoot();

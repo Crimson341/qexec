@@ -18,7 +18,7 @@ public sealed class GearFinder(string scriptsRoot, string? questsPath = null)
         var drops = new List<GearDrop>();
         foreach (string file in Directory.EnumerateFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories))
         {
-            if (Path.GetRelativePath(scriptsRoot,file).Split(Path.DirectorySeparatorChar).Any(part=>part is "Generated-Gear" or "Generated-Quests")) continue;
+            if (Path.GetRelativePath(scriptsRoot,file).Split(Path.DirectorySeparatorChar).Any(part=>part is "Generated-Gear" or "Generated-Quests" or "Generated-Area")) continue;
             if (new FileInfo(file).Length > 2_000_000) continue;
             string text = File.ReadAllText(file);
             if (!text.Contains("HuntMonster(")) continue;

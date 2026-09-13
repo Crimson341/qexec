@@ -5,4 +5,5 @@
   </PropertyGroup>
   <ItemGroup><ProjectReference Include="../host/Skua.App.Mac.Host.csproj" AdditionalProperties="SkuaPortable=true" /></ItemGroup>
   <ItemGroup><None Update="fixtures/PickupFixture.as.txt" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Update="fixtures/*.html" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

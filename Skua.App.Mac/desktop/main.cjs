@@ -19,13 +19,21 @@ let window, host, selected, running = false, pageURL;
 const requests = new Map();
 const events = new Set(['requestLoadGame','loaded','debug','pext','packet','pre-load','game-error']);
 function send(value) { if (host && !host.killed && host.stdin.writable) host.stdin.write(JSON.stringify(value) + '\n'); }
+function liveContents() {
+  if (!window || window.isDestroyed()) return null;
+  const contents = window.webContents;
+  return contents && !contents.isDestroyed() ? contents : null;
+}
 function toWindow(value) {
-  if (window && !window.isDestroyed()) window.webContents.executeJavaScript('window.receiveHostMessage(' + JSON.stringify(value) + ')').catch(error => diagnostic('UI delivery: '+error.message));
+  try {
+    const contents = liveContents();
+    if (contents) contents.executeJavaScript('window.receiveHostMessage(' + JSON.stringify(value) + ')').catch(error => diagnostic('UI delivery: '+error.message));
+  } catch (error) { diagnostic('UI delivery: '+error.message); }
 }
 function reply(id, value, error) { send({type:'reply', id, value, error}); }
 function log(message, kind = 'Error') { toWindow({type:'log', kind, message}); }
 async function chooseScript() {
-  if (running) return;
+  if (running || !liveContents()) return;
   const result = await dialog.showOpenDialog(window, {title:'Choose a Skua script', defaultPath:path.join(app.getPath('documents'), 'Skua', 'Scripts'), properties:['openFile'], filters:[{name:'C# scripts', extensions:['cs']}]});
   if (!result.canceled && result.filePaths.length === 1) send({type:'command', command:'load', path:result.filePaths[0]});
 }
@@ -40,7 +48,7 @@ function command(name, value) {
     browser.on('error',error => log('Could not open Chrome: ' + error.message));
     return;
   }
-  if (['gear-inspect','gear-find','gear-go','quest-refresh','quest-go','quest-catalog','active-quests','active-quest-go'].includes(name)) {
+  if (['become-op','area-acquire','area-item-shop','item-preview','area-quest-open','area-quest-accept','area-deep','area-location','area-scan','area-shop','area-monster','area-quests','area-plan','area-go','area-cancel','gear-inspect','gear-find','gear-go','quest-refresh','quest-go','quest-catalog','active-quests','active-quest-go'].includes(name)) {
     if (value !== undefined && (typeof value !== 'string' || value.length > (name === 'gear-find' ? 512 : 200))) return;
     return send({type:'command',command:name,value});
   }
@@ -52,11 +60,15 @@ async function request(message) {
   const {id,kind,data} = message;
   try {
     if (kind === 'flash') {
-      const value = await window.webContents.executeJavaScript('window.invokeFlash(' + JSON.stringify(data) + ')');
+      const contents = liveContents();
+      if (!contents) throw new Error('Game window closed.');
+      const value = await contents.executeJavaScript('window.invokeFlash(' + JSON.stringify(data) + ')');
       return reply(id,value === undefined ? null : value);
     }
+    if (kind === 'options' && !liveContents()) throw new Error('Game window closed.');
     if (kind === 'options') { requests.set(id,kind); toWindow(message); return; }
     if (kind === 'dialog') {
+      if (!liveContents()) throw new Error('Game window closed.');
       const {response} = await dialog.showMessageBox(window, {title:data.caption,message:data.message || ' ',buttons:data.buttons,cancelId:-1,noLink:true});
       return reply(id,response);
     }
@@ -95,6 +107,8 @@ app.whenReady().then(async()=>{
   window = new BrowserWindow({title:'Skua Mac',width:1280,height:850,minWidth:900,minHeight:620,backgroundColor:'#191b1d',
     webPreferences:{plugins:true,nodeIntegration:false,contextIsolation:false,sandbox:true,enableRemoteModule:false,
       webSecurity:true,backgroundThrottling:false}});
+  const contents = window.webContents;
+  window.on('closed',()=>{window=null;requests.clear();if(host && !host.killed)host.kill();});
   window.webContents.on('will-navigate',event=>event.preventDefault());
   window.webContents.on('new-window',event=>event.preventDefault());
   window.webContents.session.setPermissionRequestHandler((_contents,permission,callback)=>callback(permission==='plugins'));
@@ -110,9 +124,10 @@ app.whenReady().then(async()=>{
   window.webContents.on('plugin-crashed',()=>log('The Flash renderer crashed. Reopen Skua Mac.'));
   window.webContents.on('render-process-gone',()=>{if(host)host.kill();});
   window.webContents.on('console-message',(_event,level,text)=>{
+    if (!window || window.isDestroyed() || contents.isDestroyed()) return;
     if (!text.startsWith('__SKUA_UI__')) {if(level>=2)diagnostic('Renderer: '+text);return;}
-    if (window.webContents.getURL()!==pageURL || text.length>8*1024*1024) return;
     try {
+      if (contents.getURL()!==pageURL || text.length>8*1024*1024) return;
       const message = JSON.parse(text.slice('__SKUA_UI__'.length));
       if (message.type==='event' && events.has(message.name) && Array.isArray(message.args)) {
         if(['requestLoadGame','loaded'].includes(message.name))diagnostic('Flash event: '+message.name);
@@ -124,6 +139,7 @@ app.whenReady().then(async()=>{
     } catch(error) {log('Invalid client message: '+error.message);}
   });
   window.webContents.once('did-finish-load',()=>{
+    if (!liveContents()) return;
     startHost();
     const missing=[];
     if(!fs.existsSync(flashPath))missing.push('Mac Flash plugin: '+flashPath);

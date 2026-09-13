@@ -8,7 +8,7 @@ The goal is to go beyond choosing a bot file: understand what your character nee
 
 [Roadmap](docs/ROADMAP.md) · [Build and setup](Skua.App.Mac/MACOS.md) · [Contributing](CONTRIBUTING.md) · [Upstream credits](docs/ATTRIBUTION.md)
 
-[First release notes](docs/release-notes/v0.1.0.md) · [Quest generation details](Skua.App.Mac/QUEST-GENERATION.md)
+[Latest release notes](docs/release-notes/v0.2.0.md) · [Quest generation details](Skua.App.Mac/QUEST-GENERATION.md)
 
 ## Quest Ledger
 
@@ -18,7 +18,10 @@ The goal is to go beyond choosing a bot file: understand what your character nee
 
 ## What is implemented
 
-- **Accepted quest detection:** reads live accepted quests and offers an Auto-do action.
+- **Quest Ledger:** click an accepted quest to generate and start its script, with inline reward choices and progress. Completed objectives return to the recorded acceptance location (or starting location) before turn-in.
+- **What to do:** discover area quests, shops and monster drops; open or accept quests; farm drops, buy gold items and plan nested merges from one action.
+- **Item previews:** cached wiki thumbnails with an enlarged gallery.
+- **Become OP:** run the installed class enhancement profile and activate owned consumables for supported presets. Missing consumables are reported; they are not automatically farmed.
 - **Generated quest scripts:** discovers supported wiki sources, traces permanent materials and map pickups, creates a fresh C# script and attempts one quest turn-in. A matching farming bot is optional. Required reward choices stay explicit.
 - **Inspect gear:** reads another player's equipped items, resolves names where possible, and looks for acquisition routes.
 - **Shop and farming routes:** generates supported travel, shop, drop, and quest steps. A shop-opening route does not automatically purchase the item.
@@ -45,7 +48,7 @@ See the [full roadmap and completion criteria](docs/ROADMAP.md).
 
 ## Build and run
 
-The current macOS build needs macOS, .NET 10 SDK, Node.js/npm, Java, and an existing Artix Game Launcher Flash plugin. Apple Silicon also needs Rosetta for the Intel renderer. The [v0.1.0 preview release](https://github.com/Crimson341/qexec/releases/tag/v0.1.0) includes an Apple Silicon Mac app download and setup instructions. It is ad-hoc signed, not notarized.
+The current macOS build needs macOS, .NET 10 SDK, Node.js/npm, Java, and an existing Artix Game Launcher Flash plugin. Apple Silicon also needs Rosetta for the Intel renderer. The [v0.2.0 preview release](https://github.com/Crimson341/qexec/releases/tag/v0.2.0) includes an Apple Silicon Mac app download and setup instructions. It is ad-hoc signed, not notarized.
 
 ```sh
 git clone https://github.com/Crimson341/qexec.git

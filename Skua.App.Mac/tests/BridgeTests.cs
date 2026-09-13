@@ -54,6 +54,14 @@ Assert(CombatPolicy.Select(profiles,"Mage",true,true)?.Skills == "3", "Defense t
 Assert(CombatPolicy.Select(profiles,"Unknown",false,false) == null, "Never use another class's combo.");
 Console.WriteLine("PASS: Adaptive combat health thresholds, recovery hysteresis, encounter estimate, and class profile selection.");
 
+var heroSouls = new[] {new Skua.Core.Models.Items.ItemBase { ID=13949, Name="Hero Souls", Quantity=5, Temp=true }};
+try { ActiveQuestMaker.ThrowIfManualObjective(2423,heroSouls); throw new Exception("PvP objective was treated as an ordinary drop."); }
+catch(InvalidOperationException ex) { Assert(ex.Message.Contains("player kills") && ex.Message.Contains("/doomarena"),"Give actionable PvP guidance."); }
+ActiveQuestMaker.ThrowIfManualObjective(2423,[]);
+ActiveQuestMaker.ThrowIfManualObjective(9999,heroSouls);
+Assert(ActiveQuestMaker.Generate(2423,-1,[],[],(_,_)=>null).Contains("EnsureComplete(2423,-1)"),"Completed PvP quests can still be turned in.");
+Console.WriteLine("PASS: PvP objective guidance, exact quest scope, and completed quest turn-in.");
+
 var gearRoot = Path.Combine(Path.GetTempPath(), "skua-gear-" + Guid.NewGuid().ToString("N"));
 Directory.CreateDirectory(gearRoot);
 try {
@@ -313,6 +321,29 @@ Assert((await noQuestPageResolver.ResolvePlan("Blinded by the Black Light",Array
 materialPages["/troblor"]=materialPages["/troblor"].Replace("<strong>Unrelated Links:</strong>","<strong>Items Dropped:</strong>").Replace("href='/star-scrap-metal'","href='/different-item'");
 Assert((await noQuestPageResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{scrap})).Drops.Count==0,"Require reciprocal exact item link, not just matching visible text.");
 Console.WriteLine("PASS: Permanent material recovery, transient retries, absent quest-page fallback and reciprocal drop evidence.");
+
+// Reduced fixtures from Twilly's Quests and Kuro: plural location list with a seasonal alternative.
+var chest=new Skua.Core.Models.Items.ItemBase{ID=2570,Name="Muck Covered Chest",Temp=true,Quantity=1};
+var chestPages=new Dictionary<string,string>{
+["/twilly-s-quests"]=QuestFixture("Chest Thumping","<li>Muck Covered Chest x1<ul><li>Dropped by <a href='/kuro'>Kuro</a></li></ul></li>"),
+["/kuro"]="<div id='page-title'>Kuro</div><div id='page-content'><p><strong>Locations:</strong></p>\n<ul><li><a href='/pollution'>Pollution</a><img src='seasonalsmall.png'></li><li><a href='/river'>River</a></li></ul><p><strong>Temporary Items Dropped:</strong></p><ul><li>Muck Covered Chest (Dropped during the '<a href='/twilly-s-quests'>Chest Thumping</a>' quest)</li></ul><p><strong>Notes:</strong></p><ul><li><a href='/unrelated'>Unrelated</a></li></ul></div>",
+["/river"]="<p><strong>Map Name:</strong> river<br></p>"};
+var chestResolver=new QuestWikiResolver(path=>Task.FromResult(chestPages[path]),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/twilly-s-quests"}));
+var chestPlan=await chestResolver.ResolvePlan("Chest Thumping",Array.Empty<string>(),new[]{chest});
+Assert(chestPlan.Drops.Single() is {Map:"river",Monster:"Kuro",Temporary:true},"Plural sibling location lists resolve Kuro via its unrestricted River map.");
+var chestScript=ActiveQuestMaker.Generate(446,-1,new[]{chest},chestPlan.Drops,(_,_)=>null);
+Assert(chestScript.Contains("core.HuntMonster(\"river\",\"Kuro\",\"Muck Covered Chest\",1,true)") && chestScript.Contains("bot.TempInv.Contains(2570,1)") && chestScript.Contains("EnsureComplete(446,-1)"),"Chest script farms the exact objective and turns in only quest 446.");
+File.WriteAllText("/tmp/qexec-chest-generated-test.cs",chestScript);
+var kuroFixture=chestPages["/kuro"];
+chestPages["/kuro"]=kuroFixture.Replace("href='/twilly-s-quests'","href='/other-quests'");
+Assert((await chestResolver.ResolvePlan("Chest Thumping",Array.Empty<string>(),new[]{chest})).Drops.Count==0,"Plural map support still requires the exact quest backlink.");
+chestPages["/kuro"]=kuroFixture.Replace("<p><strong>Locations:</strong></p>\n<ul><li><a href='/pollution'>Pollution</a><img src='seasonalsmall.png'></li><li><a href='/river'>River</a></li></ul>","<p><strong>Locations:</strong><a href='/river'>River</a><br></p>");
+Assert((await chestResolver.ResolvePlan("Chest Thumping",Array.Empty<string>(),new[]{chest})).Drops.Single().Map=="river","Inline plural locations remain supported.");
+chestPages["/kuro"]=kuroFixture.Replace("<strong>Locations:</strong>","<strong>Notes:</strong>");
+Assert((await chestResolver.ResolvePlan("Chest Thumping",Array.Empty<string>(),new[]{chest})).Drops.Count==0,"Never interpret an unrelated sibling list as locations.");
+Console.WriteLine("PASS: Chest Thumping plural location lists, restricted alternatives and exact generated objective.");
+
+await AreaTests.Run();
 
 sealed class MessageWriter : StringWriter
 {

@@ -6,7 +6,7 @@ using System.Text.RegularExpressions;
 namespace Skua.Mac;
 
 // Reads structured wiki evidence, never executable code. Live IDs remain authoritative.
-public sealed record QuestPickup(string Map,string Item,bool Temporary,string Evidence);
+public sealed record QuestPickup(string Map,string Item,bool Temporary,string Evidence,int MapItemID=0);
 public sealed record QuestResolution(IReadOnlyList<GearDrop> Drops,IReadOnlyList<QuestPickup> Pickups);
 public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Func<string,Task<IReadOnlyList<string>>>? searcher=null)
 {
@@ -21,7 +21,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
             throw new InvalidOperationException("Unsupported wiki source link.");
         return uri.AbsolutePath;
     }
-    static async Task<string> Download(string path)
+    internal static async Task<string> Download(string path)
     {
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
         using var request=new HttpRequestMessage(HttpMethod.Get,"http://aqwwiki.wikidot.com"+path);
@@ -39,6 +39,27 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
         if(heading==null) yield break;
         for(var n=heading.NextSibling;n!=null && n.Name!="br" && n.Name!="strong";n=n.NextSibling) yield return n;
     }
+    static IEnumerable<HtmlNode> Locations(HtmlNode scope)
+    {
+        foreach(string label in new[]{"Location","Locations"}) {
+            var heading=scope.Descendants("strong").FirstOrDefault(n=>Same(Text(n).TrimEnd(':'),label));
+            if(heading==null) continue;
+            var links=Links(Field(scope,label)).ToArray();
+            // Wikidot renders plural fields as a standalone paragraph followed by a list.
+            // Only use its immediate list; never scan forward into drops or notes.
+            if(links.Length==0 && heading.ParentNode?.Name=="p" && Same(Text(heading.ParentNode).TrimEnd(':'),label)) {
+                var next=heading.ParentNode.NextSibling;
+                while(next!=null && (next.NodeType==HtmlNodeType.Comment || next.NodeType==HtmlNodeType.Text && string.IsNullOrWhiteSpace(next.InnerText))) next=next.NextSibling;
+                if(next?.Name is "ul" or "ol") links=next.Descendants("a").ToArray();
+            }
+            foreach(var link in links) {
+                var row=link.Ancestors("li").FirstOrDefault() ?? link.ParentNode;
+                // A documented seasonal/rare/member-only alternative is not an always-available route.
+                if(row!=null && row.Descendants("img").Any(img=>Regex.IsMatch(img.GetAttributeValue("src",""),@"(?:seasonal|rare|legend)(?:small|large)\.png",RegexOptions.IgnoreCase))) continue;
+                yield return link;
+            }
+        }
+    }
     static HtmlNode? QuestSection(HtmlNode root,string quest)
     {
         var matches=new List<HtmlNode>();
@@ -53,7 +74,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
         => (await ResolvePlan(quest,rewards,requirements)).Drops;
 
     static string MonsterName(string value)=>Regex.Replace(value,@"(?:\s+\((?:Monster|Level \d+|Version \d+|\d+)\))+$","",RegexOptions.IgnoreCase);
-    static async Task<IReadOnlyList<string>> Search(string quest)
+    internal static async Task<IReadOnlyList<string>> Search(string quest)
     {
         // Search provides candidate URLs only. Quest/objective evidence is verified on the wiki.
         string query=Uri.EscapeDataString("site:aqwwiki.wikidot.com \""+quest+"\"");
@@ -96,7 +117,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                 if(drops==null || !drops.Descendants("a").Any(a=>Same(Text(a),item.Name) && WikiPath(a.GetAttributeValue("href",""))==itemPath)) continue;
                 var scope=heading.Ancestors("div").FirstOrDefault(n=>n.ParentNode!=null && HasClass(n.ParentNode,"yui-content")) ?? monster.SelectSingleNode("//*[@id='page-content']");
                 if(scope==null) continue;
-                var locations=Links(Field(scope,"Location").Concat(Field(scope,"Locations"))).ToArray();
+                var locations=Locations(scope).ToArray();
                 foreach(var location in locations.Take(4)) {
                     string mapPath=WikiPath(location.GetAttributeValue("href",""));var map=await page(mapPath);
                     string mapName=Normalize(string.Concat(Field(map,"Map Name").Select(Text)));
@@ -108,7 +129,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
         return result.DistinctBy(d=>(d.Map,d.Monster)).Take(1).ToArray();
     }
 
-    public async Task<QuestResolution> ResolvePlan(string quest,IEnumerable<string> rewards,IReadOnlyList<ItemBase> requirements,Action<string>? progress=null,CancellationToken cancellation=default)
+    public async Task<QuestResolution> ResolvePlan(string quest,IEnumerable<string> rewards,IReadOnlyList<ItemBase> requirements,Action<string>? progress=null,CancellationToken cancellation=default,IEnumerable<string>? questSources=null,string? pickupMap=null)
     {
         var pages=new Dictionary<string,HtmlNode>();var started=DateTime.UtcNow;
         async Task<HtmlNode> Page(string href) {
@@ -129,8 +150,12 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
             var doc=new HtmlDocument();doc.LoadHtml(html);pages[path]=doc.DocumentNode;return doc.DocumentNode;
         }
         HtmlNode? section=null;string questPath="";
+        foreach(string candidate in (questSources??[]).Take(8)) {
+            try {var found=QuestSection(await Page(candidate),quest);if(found!=null){section=found;questPath=WikiPath(candidate);break;}}
+            catch(HttpRequestException) { }
+        }
         progress?.Invoke("Finding wiki evidence for "+quest+"…");
-        foreach(string reward in requirements.Where(r=>!r.Temp).Select(r=>r.Name).Concat(rewards).Where(n=>!string.IsNullOrWhiteSpace(n)).Distinct().Take(4)) {
+        foreach(string reward in (section!=null?Array.Empty<string>():requirements.Where(r=>!r.Temp).Select(r=>r.Name).Concat(rewards).Where(n=>!string.IsNullOrWhiteSpace(n)).Distinct().Take(4))) {
             string slug="/"+Regex.Replace(Normalize(reward).ToLowerInvariant(),"[^a-z0-9]+","-").Trim('-');
             HtmlNode page;
             try { page=await Page(slug); } catch(HttpRequestException) { continue; }
@@ -140,7 +165,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
             questPath=WikiPath(links[0].GetAttributeValue("href",""));
             section=QuestSection(await Page(questPath),quest);if(section!=null) break;
         }
-        if(section==null && (loader==null || searcher!=null)) {
+        if(section==null && !string.IsNullOrWhiteSpace(quest) && (loader==null || searcher!=null)) {
             progress?.Invoke("Searching for the accepted quest independently of installed scripts…");
             IReadOnlyList<string> candidates=[];
             try {candidates=await (searcher??Search)(quest).WaitAsync(cancellation);}
@@ -191,7 +216,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                 var itemTitle=detail.SelectSingleNode("//*[@id='page-title']");
                 string price=Normalize(string.Concat(Field(detail,"Price").Select(Text)));
                 if(itemTitle!=null && Same(Text(itemTitle),item.Name) && Regex.IsMatch(price,@"\bClick(?:ing)?\b",RegexOptions.IgnoreCase)) {
-                    var locations=Field(detail,"Location").SelectMany(n=>n.Name=="a" ? new[]{n} : n.Descendants("a")).ToArray();
+                    var locations=Locations(detail).ToArray();
                     foreach(var location in locations.Take(3)) {
                         string mapPath=WikiPath(location.GetAttributeValue("href",""));var mapPage=await Page(mapPath);
                         string map=Normalize(string.Concat(Field(mapPage,"Map Name").Select(Text)));
@@ -205,6 +230,12 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                     var navset=section.Ancestors("div").FirstOrDefault(n=>HasClass(n,"yui-navset"));
                     for(var prev=navset?.PreviousSibling;prev!=null;prev=prev.PreviousSibling) {
                         var fields=Field(prev,"Quest Location").ToArray();
+                        var plural=prev.Descendants("strong").FirstOrDefault(n=>Same(Text(n).TrimEnd(':'),"Quest Locations"));
+                        if(plural!=null) {
+                            var listNode=prev.SelectSingleNode("following-sibling::ul[1]");
+                            if(listNode!=null)locationLinks.AddRange(listNode.Descendants("a"));
+                            break;
+                        }
                         if(fields.Length==0) continue;
                         locationLinks.AddRange(fields.SelectMany(n=>n.Name=="a" ? new[]{n} : n.Descendants("a")));break;
                     }
@@ -212,7 +243,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                 foreach(var link in locationLinks.Take(3)) {
                     string mapPath=WikiPath(link.GetAttributeValue("href",""));var mapPage=await Page(mapPath);
                     string map=Normalize(string.Concat(Field(mapPage,"Map Name").Select(Text)));
-                    if(Regex.IsMatch(map,@"^[a-zA-Z0-9_-]+$")) pickups.Add(new(map,item.Name,item.Temp,"http://aqwwiki.wikidot.com"+questPath+" -> "+mapPath));
+                    if(Regex.IsMatch(map,@"^[a-zA-Z0-9_-]+$") && (locationLinks.Count<=1 || pickupMap==null || Same(map,pickupMap))) pickups.Add(new(map,item.Name,item.Temp,"http://aqwwiki.wikidot.com"+questPath+" -> "+mapPath));
                 }
             }
             var sources=entries[0].Descendants("li").Where(n=>Regex.IsMatch(Text(n),@"^Dropped by\b",RegexOptions.IgnoreCase)).SelectMany(n=>n.Descendants("a")).ToArray();
@@ -230,7 +261,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                     var requiredLevel=Regex.Match(Text(source),@"\(Level (\d+)\)");
                     string level=Normalize(string.Concat(Field(scope,"Level").Select(Text)));
                     if(requiredLevel.Success && level.Length>0 && level!=requiredLevel.Groups[1].Value) continue;
-                    var locations=Field(scope,"Location").SelectMany(n=>n.Name=="a" ? new[]{n} : n.Descendants("a")).ToArray();
+                    var locations=Locations(scope).ToArray();
                     foreach(var location in locations.Take(4)) {
                         string mapPath=WikiPath(location.GetAttributeValue("href",""));var mapPage=await Page(mapPath);
                         string map=Normalize(string.Concat(Field(mapPage,"Map Name").Select(n=>WebUtility.HtmlDecode(n.InnerText))));

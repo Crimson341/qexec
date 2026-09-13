@@ -6,7 +6,7 @@ const vm = require('node:vm');
 
 test('script controls and elapsed time follow host lifecycle, and logs remain bounded', () => {
   const elements = new Map();
-  const element = () => ({textContent:'', children:[], disabled:false, dataset:{},
+  const element = () => ({textContent:'', children:[], disabled:false, dataset:{},style:{},
     classList:{toggle(){}}, setAttribute(){}, hasAttribute(){return true;},
     addEventListener(){}, append(...items){this.children.push(...items);},
     replaceChildren(){this.children=[];}, get childElementCount(){return this.children.length;},
@@ -17,14 +17,72 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   const context = {document:{getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
     createElement:element, createTextNode:text=>text, body:element(), querySelectorAll:()=>[]},
     window:{}, console:{log(){}}, Date:class extends Date {static now(){return now;}},
-    setInterval:callback=>{timer=callback;}, setTimeout(){}, clearTimeout(){}};
+    setInterval:(callback,ms)=>{if(ms===1000)timer=callback;}, setTimeout(){}, clearTimeout(){}};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/renderer.cjs'),'utf8'),context);
   const receive = context.window.receiveHostMessage;
+  receive({type:'area-snapshot',map:'river',shops:[{Key:'shop',Name:'Chest Shop',ID:123}],monsters:[{Key:'monster',Name:'Kuro',HP:4060}],quests:[],accepted:[],note:'Discovered'});
+  assert.equal(elements.get('area-title').textContent,'What to do in /river');
+  assert.equal(elements.get('area-shops').childElementCount,1);
+  receive({type:'area-shop',name:'Chest Shop',id:123,note:'Live',items:[{key:'item',id:1,name:'Blade',cost:0,owned:{inventory:0,bank:1},requirements:[{id:2,name:'Token',quantity:5,owned:{inventory:2,bank:null}}]}]});
+  assert.equal(elements.get('area-items').childElementCount,1);
+  const pictureButton=elements.get('area-items').children[0].children[0].children.find(child=>child.className==='item-picture');
+  assert.equal(pictureButton.dataset.itemName,'Blade','Shop items get an image preview');
+  assert.equal(vm.runInNewContext("safePicture('https://i.imgur.com.evil.test/x')",context),false);
+  context.testPictureButton=pictureButton;
+  vm.runInNewContext("paintPicture(testPictureButton,{Images:['https://i.imgur.com/blade.png']})",context);
+  assert.equal(pictureButton.children[0].src,'https://i.imgur.com/blade.png');
+  assert.equal(pictureButton.children[0].alt,'Blade');
+  const farmCommands=[];context.window.skua.command=(...args)=>farmCommands.push(args);
+  elements.get('area-quantity').value='1';
+  const farmButton=elements.get('area-items').children[0].children[1];
+  assert.equal(farmButton.textContent,'Farm & merge');
+  farmButton.onclick();
+  assert.equal(farmCommands[0][0],'area-acquire','Primary item action starts acquisition instead of stopping at a preview');
+  assert.deepEqual(JSON.parse(farmCommands[0][1]),{key:'item',quantity:1});
+  receive({type:'area-error',message:'Reset request'});
+  receive({type:'area-shop',name:'AC Shop',id:1,note:'',items:[{key:'premium',name:'Premium item',cost:100,coins:true}]});
+  const shopButton=elements.get('area-items').children[0].children[1];
+  assert.equal(shopButton.textContent,'Open shop in game');shopButton.onclick();
+  assert.deepEqual(farmCommands.pop(),['area-item-shop','premium'],'Premium items open the shop without buying');
+  receive({type:'area-error',message:'Reset request'});
+  receive({type:'area-quests',quests:[{key:'q374',name:'Ring Bearer',id:374,accepted:false},{key:'unknown',name:'Unknown',id:0,accepted:false}],note:'Open or accept'});
+  const questRows=elements.get('area-items').children;
+  assert.equal(questRows.length,2,'No misleading empty items message for quest pages');
+  assert.equal(questRows[0].children[1].textContent,'Open in game');
+  assert.equal(questRows[0].children[2].textContent,'Accept quest');
+  assert.equal(questRows[1].children.length,1,'Unknown IDs do not produce executable buttons');
+  const questCommands=[];context.window.skua.command=(...args)=>questCommands.push(args);
+  questRows[0].children[1].onclick();
+  assert.deepEqual(questCommands.pop(),['area-quest-open','q374']);
+  receive({type:'area-error',message:'Reset pending request'});
+  questRows[0].children[2].onclick();
+  assert.deepEqual(questCommands.pop(),['area-quest-accept','q374']);
+  receive({type:'area-error',message:'Reset pending request'});
+  receive({type:'area-plan',key:'plan',root:{Name:'Blade',Kind:'shop',Map:'river',Shop:123,Cost:0,Quantity:1,Children:[]},code:'generated',note:'Ready'});
+  assert.equal(elements.get('area-go').disabled,false);
+  receive({type:'area-error',message:'Map changed'});
+  assert.equal(elements.get('area-go').disabled,true);
+  assert.equal(elements.get('area-status').textContent,'Map changed');
+
   assert.equal(elements.get('vibe-questing').hidden,true);
   receive({type:'active-quests',quests:[{id:42,name:'Quest',ready:false,rewards:[]}]});
   assert.equal(elements.get('active-quest-open').hidden,false);
   assert.equal(elements.get('active-quest-list').childElementCount,1);
   assert.equal(elements.get('ledger-list').childElementCount,1);
+  const ledgerCommands=[];context.window.skua.command=(...args)=>ledgerCommands.push(args);
+  elements.get('ledger-list').children[0].onclick();
+  elements.get('ledger-list').children[0].onclick();
+  assert.equal(ledgerCommands.length,1,'Repeated clicks do not start duplicate quest generation');
+  assert.equal(ledgerCommands[0][0],'active-quest-go');
+  assert.deepEqual(JSON.parse(ledgerCommands[0][1]),{id:42,reward:-1});
+  receive({type:'active-quest-progress',message:'Finding objectives'});
+  assert.equal(elements.get('ledger-status').textContent,'Finding objectives');
+  receive({type:'active-quest-error',message:'Quest locked'});
+  assert.equal(elements.get('ledger-status').textContent,'Quest locked','Ledger failures stay inline without a dialog');
+  receive({type:'active-quests',quests:[{id:43,name:'Choose reward',ready:false,rewards:[{id:1,name:'Sword'},{id:2,name:'Cape'}]}]});
+  const rewardGroup=elements.get('ledger-list').children[0];rewardGroup.children[1].value='2';rewardGroup.children[0].onclick();
+  assert.deepEqual(JSON.parse(ledgerCommands.pop()[1]),{id:43,reward:2},'Inline reward selection starts the chosen quest');
+  receive({type:'active-quest-error',message:'Reset'});
   receive({type:'active-quests',quests:[]});
   assert.equal(elements.get('active-quest-open').hidden,true);
   assert.equal(elements.get('active-quest-list').childElementCount,0);

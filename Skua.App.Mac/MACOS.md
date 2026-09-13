@@ -26,7 +26,7 @@ has been verified both directly and through the real script include loader.
 
 ## Run
 
-Download the Apple Silicon preview from [GitHub Releases](https://github.com/Crimson341/qexec/releases/tag/v0.1.0). Extract it, move `qexec.app` to Applications, and follow the included setup instructions. The application is ad-hoc signed and not notarized. OpenJDK is required for automatic map pickup inspection; Homebrew OpenJDK is detected automatically.
+Download the Apple Silicon preview from [GitHub Releases](https://github.com/Crimson341/qexec/releases/tag/v0.2.0). Extract it, move `qexec.app` to Applications, and follow the included setup instructions. The application is ad-hoc signed and not notarized. OpenJDK is required for automatic map pickup inspection; Homebrew OpenJDK is detected automatically.
 
 Open `build/qexec.app`. The app includes its .NET runtime; an SDK is not needed
 to run the packaged build. Apple Silicon requires Rosetta. The renderer uses the

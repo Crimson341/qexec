@@ -3,6 +3,7 @@ import flash.display.DisplayObject;
 import flash.events.TimerEvent;
 import flash.utils.getQualifiedClassName;
 import flash.utils.Timer;
+import flash.utils.ByteArray;
 
 import skua.Main;
 
@@ -14,6 +15,45 @@ public class World {
     private static const PAD_CLASS_REGEX:RegExp = /::Pad_\d+$/;
     private static const JUMP_CORRECTION_INTERVAL:int = 50;
     private static const JUMP_CORRECTION_ATTEMPTS:int = 40;
+
+    private static var mapBytes:ByteArray;
+    private static var mapBytesMap:Object;
+    private static var mapBytesToken:uint = 0;
+
+    public static function beginMapBytes():String {
+        mapBytes = null;
+        var world:* = Main.instance.game.world;
+        if (world == null || world.map == null || world.mapLoadInProgress)
+            throw new Error("Wait for the current map to finish loading.");
+        var bytes:ByteArray = world.map.loaderInfo.bytes;
+        if (bytes == null || bytes.length < 8 || bytes.length > 30000000)
+            throw new Error("Loaded map bytes are unavailable or exceed the discovery limit.");
+        mapBytes = bytes;
+        mapBytesMap = world.map;
+        ++mapBytesToken;
+        return JSON.stringify({token:mapBytesToken, length:bytes.length, map:String(world.strMapName), url:String(world.map.loaderInfo.url)});
+    }
+
+    public static function readMapBytes(token:uint, offset:uint, count:uint):String {
+        if (mapBytes == null || token != mapBytesToken || Main.instance.game.world.map !== mapBytesMap)
+            throw new Error("Map changed during discovery. Retry in the new area.");
+        if (count == 0 || count > 65536 || offset > mapBytes.length || count > mapBytes.length - offset)
+            throw new Error("Invalid map byte range.");
+        var hex:String = "0123456789abcdef";
+        var chunks:Array = [];
+        var previous:uint = mapBytes.position;
+        mapBytes.position = offset;
+        for (var i:uint = 0; i < count; i++) {
+            var b:uint = mapBytes.readUnsignedByte();
+            chunks.push(hex.charAt(b >> 4) + hex.charAt(b & 15));
+        }
+        mapBytes.position = previous;
+        return chunks.join("");
+    }
+
+    public static function endMapBytes(token:uint):void {
+        if (token == mapBytesToken) {mapBytes = null; mapBytesMap = null;}
+    }
 
     public function World() {
         super();

@@ -62,6 +62,9 @@ public class Externalizer {
 
 
         // World
+        this.addCallback("beginMapBytes", World.beginMapBytes);
+        this.addCallback("readMapBytes", World.readMapBytes);
+        this.addCallback("endMapBytes", World.endMapBytes);
         this.addCallback("jumpCorrectRoom", World.jumpCorrectRoom);
         this.addCallback("disableDeathAd", World.disableDeathAd);
         this.addCallback("skipCutscenes", World.skipCutscenes);

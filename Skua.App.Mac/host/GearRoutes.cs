@@ -13,7 +13,7 @@ public static class GearRoutes
     {
         var found=new List<(string,string)>();
         foreach(var file in Directory.EnumerateFiles(root,"*.cs",SearchOption.AllDirectories)) {
-            if((file.Contains(Path.DirectorySeparatorChar+"Generated-Gear"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Quests"+Path.DirectorySeparatorChar)) || new FileInfo(file).Length>2_000_000) continue;
+            if((file.Contains(Path.DirectorySeparatorChar+"Generated-Area"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Gear"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Quests"+Path.DirectorySeparatorChar)) || new FileInfo(file).Length>2_000_000) continue;
             string text=File.ReadAllText(file);
             var metadata=Regex.Match(text,@"\A\s*/\*(.*?)\*/",RegexOptions.Singleline);
             var title=Regex.Match(metadata.Groups[1].Value,@"(?m)^name:\s*([^\r\n]+)");
@@ -31,7 +31,7 @@ public static class GearRoutes
     {
         var result = new List<GearShop>();
         foreach (var file in Directory.EnumerateFiles(root,"*.cs",SearchOption.AllDirectories)) {
-            if ((file.Contains(Path.DirectorySeparatorChar+"Generated-Gear"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Quests"+Path.DirectorySeparatorChar)) || new FileInfo(file).Length>2_000_000) continue;
+            if ((file.Contains(Path.DirectorySeparatorChar+"Generated-Area"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Gear"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Quests"+Path.DirectorySeparatorChar)) || new FileInfo(file).Length>2_000_000) continue;
             string text=File.ReadAllText(file);
             if (!text.Contains(name,StringComparison.OrdinalIgnoreCase)) continue;
             var tree=CSharpSyntaxTree.ParseText(text).GetRoot();
