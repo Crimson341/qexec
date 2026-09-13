@@ -21,7 +21,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
 {
     private static readonly Regex _versionRegex = new(@"^/\*[\s\S]*?version:\s*(\d+\.\d+\.\d+\.\d+)[\s\S]*?\*/", RegexOptions.Multiline | RegexOptions.Compiled);
     private static readonly Regex _accessibilityRegex = new(@"\b(public\s+|internal\s+|private\s+)?class\s+\w+", RegexOptions.Multiline | RegexOptions.Compiled);
-    private static readonly string _cacheScriptsDir = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
+    private static readonly string _cacheScriptsDir = ClientFileSources.SkuaCompiledScriptsDIR;
     public ScriptManager(
         ILogService logger,
         Lazy<IScriptInterface> scriptInterface,
@@ -66,6 +66,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
     private readonly ReaderWriterLockSlim _includedFilesLock = new();
     private readonly List<string> _includedFiles = new();
     private ScriptLoadContext? _currentLoadContext;
+    public bool IsCleaningUp { get; private set; }
 
     [ObservableProperty]
     private bool _scriptRunning = false;
@@ -155,6 +156,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 }
                 finally
                 {
+                    IsCleaningUp = true;
                     bool shouldSendStoppingMessage;
                     lock (_stateLock)
                     {
@@ -193,15 +195,20 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                     }
 
                     script = null;
-                    Skills.Stop();
-                    Drops.Stop();
-
-                    AuraMonitor.StopMonitoring();
-                    UnloadPreviousScript();
+                    void Cleanup(Action action)
+                    {
+                        try { action(); }
+                        catch (Exception cleanupError) { Trace.WriteLine("Script cleanup: " + cleanupError.GetBaseException().Message); }
+                    }
+                    Cleanup(Skills.Stop);
+                    Cleanup(Drops.Stop);
+                    Cleanup(AuraMonitor.StopMonitoring);
+                    Cleanup(UnloadPreviousScript);
                     ScriptCts?.Dispose();
                     ScriptCts = null;
-                    StrongReferenceMessenger.Default.Send<ScriptStoppedMessage, int>((int)MessageChannels.ScriptStatus);
+                    Cleanup(() => StrongReferenceMessenger.Default.Send<ScriptStoppedMessage, int>((int)MessageChannels.ScriptStatus));
                     ScriptRunning = false;
+                    IsCleaningUp = false;
                 }
             })
             {
@@ -378,7 +385,18 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
         {
             _includedFilesLock.ExitReadLock();
         }
-        CompiledScript = final;
+        // Story helpers inspect this text to preload quests from included classes.
+        // Includes compile into separate assemblies, but must remain visible here.
+        _includedFilesLock.EnterReadLock();
+        try
+        {
+            CompiledScript = final + Environment.NewLine + string.Join(Environment.NewLine,
+                _includedFiles.Distinct().Select(File.ReadAllText));
+        }
+        finally
+        {
+            _includedFilesLock.ExitReadLock();
+        }
         string scriptName = Path.GetFileNameWithoutExtension(LoadedScript);
 
         Compiler compiler = Ioc.Default.GetRequiredService<Compiler>();
@@ -450,6 +468,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 continue;
 
             string cmd = parts[0][5..];
+                    if (!OperatingSystem.IsWindows()) parts[1] = parts[1].Replace('\\', '/');
             switch (cmd)
             {
                 case "ref":
@@ -611,6 +630,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
                 if (parts.Length >= 2)
                 {
                     string cmd = parts[0][5..];
+                    if (!OperatingSystem.IsWindows()) parts[1] = parts[1].Replace('\\', '/');
                     switch (cmd)
                     {
                         case "ref":
@@ -1057,7 +1077,8 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             if (includeReferences.Count > 0)
                 includeCompiler.AddAssemblies(includeReferences.ToArray());
 
-            dynamic? assembly = includeCompiler.CompileClass(processedInclude, includeHash, loadContext, includeFileName);
+            // Includes are libraries, not script entry points. Static helper classes need no constructor.
+            Type? assembly = includeCompiler.CompileClassToType(processedInclude, includeHash, loadContext, includeFileName);
 
             if (includeCompiler.Error)
             {
@@ -1276,6 +1297,7 @@ public partial class ScriptManager : ObservableObject, IScriptManager, IDisposab
             }
 
             string cmd = parts[0][5..];
+                    if (!OperatingSystem.IsWindows()) parts[1] = parts[1].Replace('\\', '/');
             if (cmd == "ref")
             {
                 string local = Path.Combine(ClientFileSources.SkuaScriptsDIR, parts[1].Replace("Scripts/", ""));

@@ -27,8 +27,8 @@ public partial class ScriptBank : IScriptBank
         _lazyManager = manager;
         _lazyPlayer = player;
 
-        StrongReferenceMessenger.Default.Register<ScriptBank, BankLoadedMessage>(this, (r, m) => r.Loaded = true);
-        StrongReferenceMessenger.Default.Register<ScriptBank, LogoutMessage>(this, (r, m) => r.Loaded = false);
+        StrongReferenceMessenger.Default.Register<ScriptBank, BankLoadedMessage, int>(this, (int)MessageChannels.GameEvents, (r, m) => r.Loaded = true);
+        StrongReferenceMessenger.Default.Register<ScriptBank, LogoutMessage, int>(this, (int)MessageChannels.GameEvents, (r, m) => r.Loaded = false);
     }
 
     private readonly Lazy<IFlashUtil> _lazyFlash;
@@ -69,8 +69,8 @@ public partial class ScriptBank : IScriptBank
 
     public void Load(bool waitForLoad = true)
     {
-        if (Flash.GetGameObject("ui.mcPopup.currentLabel") == "Bank")
-            return;
+        // An open bank panel does not prove this instance observed its load response.
+        if (Loaded) return;
         Send.Packet($"%xt%zm%loadBank%{Map.RoomID}%All%");
         if (waitForLoad)
             Wait.ForBankLoad(20);

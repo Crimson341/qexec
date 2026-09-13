@@ -1,0 +1,9 @@
+{
+  "name": "skua-flash-build-tools",
+  "version": "0.1.0",
+  "private": true,
+  "devDependencies": {
+    "@apache-royale/royale-js": "0.9.12",
+    "playerglobal": "0.1.9"
+  }
+}

@@ -101,7 +101,11 @@ public partial class ScriptSkill : IScriptSkill
             {
                 await _Timer(_skillsCTS.Token);
             }
-            catch { }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Trace.WriteLine("Skill timer stopped: " + ex.GetBaseException().Message);
+            }
             finally
             {
                 _skillsCTS?.Dispose();

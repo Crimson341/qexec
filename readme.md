@@ -1,68 +1,78 @@
-<div align="center">
+# qexec
 
-![Skua Icon](https://raw.githubusercontent.com/auqw/Skua/refs/heads/master/SkuaIcon.ico)
+**Inspect. Plan. Execute.** An experimental AQWorlds automation client built on Skua, with a macOS port and a quest-first interface.
 
-## [Usage](./usage.md) | [Contributors](#contributors) | [Build Guide](./BUILD.md) | [Support](#skua-developers)
+The goal is to go beyond choosing a bot file: understand what your character needs, explain the route, generate the script, and recover when something goes wrong. This is active development, not a claim that every quest or item can already be automated.
 
-</div>
+[Roadmap](docs/ROADMAP.md) · [Build and setup](Skua.App.Mac/MACOS.md) · [Contributing](CONTRIBUTING.md) · [Upstream credits](docs/ATTRIBUTION.md)
 
-### About Skua
+## Quest Ledger
 
-Skua is the successor to [RBot](https://github.com/rodit/RBot) (originally made by "[rodit](https://github.com/rodit)"), now remade and rebranded by [BrenoHenrike](https://github.com/BrenoHenrike/), with the help of [Lord Exelot](https://github.com/BrenoHenrike/), and a handful of scripters. It is a third-party client made by the people mentioned above. It also has many "features" and quirks. Overall, it will make this glorified flash game on steroids a piece of cake.
+![Quest Ledger design concept](docs/images/03-quest-ledger.png)
 
-### Do we store information online?
+*AI-generated design reference selected for qexec. This is not an app screenshot; the game art and quest data are illustrative. The concept predates the qexec name. The current implementation uses a joined left quest ledger, top navigation, and game controls beneath the viewport.*
 
-The *only* things that get recorded are: the auto-generated number **(not your actual game user ID)** to identify you, the number of scripts run (stopped & started), and the start and stop timestamps. This can be completely opted out of when first running a script, or you can edit the text file ***“DataCollectionSettings”*** in your `Documents\Skua > DataCollectionSettings.txt`. If you make it look as shown below, it will send absolutely nothing 👍
+## What is implemented
 
-```txt
-UserID: null
-genericDataConsent: false
-scriptNameConsent: false
-stopTimeConsent: false
+- **Accepted quest detection:** reads live accepted quests and offers an Auto-do action.
+- **Generated quest scripts:** creates a C# script for supported objectives and attempts one quest turn-in. Required reward choices stay explicit.
+- **Inspect gear:** reads another player's equipped items, resolves names where possible, and looks for acquisition routes.
+- **Shop and farming routes:** generates supported travel, shop, drop, and quest steps. A shop-opening route does not automatically purchase the item.
+- **Ownership checks:** uses inventory and bank data where available; unavailable data remains unknown.
+- **Progression discovery:** builds a searchable catalog from available quest data and local scripts, alongside curated progression goals.
+- **Adaptive combat:** selects saved class profiles with health thresholds and boss estimates. Coverage depends on the available profiles.
+- **Vibe questing:** a click-through pixel effect while scripts run, plus subtle interface animations and reduced-motion support.
+
+These features still need broader live-game validation. Unknown prerequisites, incomplete source information, bank failures, and complex quest chains can block automation. The client must show those limits instead of pretending a travel route is a completed farm.
+
+## Where we're taking it
+
+Our goal is to make qexec more reliable, understandable, and capable than the Skua workflow it grew from. We will measure that against reproducible tests and real quest outcomes.
+
+| Priority | Outcome |
+| --- | --- |
+| Reliability first | Scripts start consistently, stop cleanly, and explain failures. |
+| Complete acquisition plans | Resolve prerequisites, quest chains, merge materials, and the final reward. |
+| Character-aware planning | Check inventory and bank, skip owned items, and recommend useful next upgrades. |
+| Recoverable execution | Detect stalled objectives, retry within limits, and resume safely. |
+| Better daily use | Show current objectives, progress, and actionable controls without covering the game. |
+
+See the [full roadmap and completion criteria](docs/ROADMAP.md).
+
+## Build and run
+
+The current macOS build needs macOS, .NET 10 SDK, Node.js/npm, Java, and an existing Artix Game Launcher Flash plugin. Apple Silicon also needs Rosetta for the Intel renderer. No packaged download is published yet.
+
+```sh
+git clone https://github.com/Crimson341/qexec.git
+cd qexec/Skua.App.Mac
+./build-macos.sh
 ```
 
-### What do we use this data for?
+Follow [MACOS.md](Skua.App.Mac/MACOS.md) for Flash trust setup, scripts, runtime paths, and environment overrides before launching. The generated bundle and compatibility namespaces still use `Skua Mac` / `Skua.*`; keeping these stable avoids breaking existing scripts and settings. The legacy renderer is not a modern supported browser.
 
-To keep track of what bots are run, how often, how long, and just how popular some bots are.
+Quest automation requires a compatible external Skua script collection, including CoreBots. Personal scripts, account settings, bank data, cached assemblies, and the proprietary Flash plugin are not included. See the [compatibility notes](Skua.App.Mac/compat/README.md).
 
-### For Account Manager
+## Verification
 
-Your **Account Info** will be stored only in your **appdata** and never shown anywhere, nor in a text file. We **DO NOT** store it online because we intended to make an account manager with **no database**.
+```sh
+cd Skua.App.Mac
+dotnet build host -c Release -p:SkuaPortable=true
+npm ci --prefix desktop --arch=x64
+npm test --prefix desktop
+dotnet run --project tests/BridgeTests.csproj -p:SkuaPortable=true
+```
 
-### Some examples of the types of scripts Skua has
+Tests cover the script/bridge lifecycle, included source resolution, quest preloading, renderer state, and generation logic. Passing them is not proof that every live quest is supported.
 
-- **Story scripts** found in the `Story` folder.
-- **Merge scripts** found in the `Other > MergeShops` folder.
-- **Farming scripts** found in the `Farm` folder. These include, but are not limited to, Gold, Experience, Class Points, and Reputation.
-- **Faction-specific** (nation/legion/etc) can be found in their respective folders.
-- Specific tools such as **Butler** (a follow and kill [doesn't support quests]), "ChooseBestGear" (a script that will look at your inv, and equip the appropriate setting for the race type you select.), BuyOut ( will either buy **all/non-ac/ac** (will prompt due to ACs) from a specified shop)
-- **Core Script Files** are not meant to be run.
-- **0ScriptName.cs** are basically "Do everything required for this script."
-- If you wanted to have a new farming script that doesn't exist, though, please request it
-in the Discord
+## Longer-term direction
 
-### [Skua Discord](https://discord.com/invite/CKKbk2zr3p) Join the community and get help with Skua
+![Minimal HUD design concept](docs/images/06-minimal-hud.png)
 
-### For questions or help, go to the [#skua-help](https://discord.com/channels/1090693457586176013/1090741396970938399) channel
+*An alternate AI-generated concept for a future optional compact mode. The Quest Ledger remains the selected primary layout.*
 
-## Skua Developers
+## Credits and licensing
 
-Skua developers need your support to improve Skua. You can donate or sponsor us by clicking the PayPal link below. Thank you for your support.
+qexec is derived from [Skua](https://github.com/auqw/Skua), including the work of [BrenoHenrike](https://github.com/BrenoHenrike/Skua), the maintained Skua contributors, and the earlier RBot project. Git history and existing third-party notices are retained. AQWorlds and its game assets belong to their respective owners; qexec is not an official Artix client.
 
-### purple/SharpTheNightmare (Current Dev)
-
-- [Ko-Fi](https://ko-fi.com/sharpthenightmare)
-- ETH: `0xd66fb89f503c9c14093479178d817c9e87d7c0de`
-
-### [Breno Henrike's PayPal (Inactive) (Creator)](https://www.paypal.com/donate?hosted_button_id=QVQ4Q7XSH9VBY)
-
-### [Lord Exelot's PayPal (Inactive) (Brief work on Skua, Ex Scripts Manager)](www.paypal.me/LordExelot)
-
-## Contributors
-
-- **Breno Henrike**, the artist of Skua.
-- **SharpTheNightmare**, Lead Developer from 1.2.4.0-Current.
-- **Lord Exelot**, Ex scripts manager.
-- **Tato**, the current scripts manager and Skua Discord owner.
-- **Skua Heroes**, the script makers and helpers.
-- **Boaters** are the ones who sail overnight using Skua and help the Skua team to improve, thanks to their feedback and suggestions **which is you**.
+No replacement license is asserted over upstream code. See [attribution and licensing status](docs/ATTRIBUTION.md).

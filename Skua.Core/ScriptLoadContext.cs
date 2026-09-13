@@ -6,7 +6,7 @@ namespace Skua.Core;
 
 public class ScriptLoadContext : AssemblyLoadContext
 {
-    private static readonly string _cacheDirectory = Path.Combine(ClientFileSources.SkuaScriptsDIR, "Cached-Scripts");
+    private static readonly string _cacheDirectory = ClientFileSources.SkuaCompiledScriptsDIR;
     private volatile bool _isUnloading;
 
     public ScriptLoadContext() : base(isCollectible: true)

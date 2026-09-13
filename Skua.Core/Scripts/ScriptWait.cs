@@ -60,7 +60,7 @@ public class ScriptWait : IScriptWait
 
         StrongReferenceMessenger.Default.Register<ScriptWait, ItemBoughtMessage>(this, (r, m) => r._itemBuyEvent.Set());
         StrongReferenceMessenger.Default.Register<ScriptWait, ItemSoldMessage>(this, (r, m) => r._itemSellEvent.Set());
-        StrongReferenceMessenger.Default.Register<ScriptWait, BankLoadedMessage>(this, (r, m) => r._bankLoadEvent.Set());
+        StrongReferenceMessenger.Default.Register<ScriptWait, BankLoadedMessage, int>(this, (int)MessageChannels.GameEvents, (r, m) => r._bankLoadEvent.Set());
     }
 
     public int WAIT_SLEEP { get; set; } = 100;

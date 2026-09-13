@@ -1,0 +1,9 @@
+desktop/node_modules/
+desktop/assets/*.swf
+tools/node_modules/
+build/
+host/bin/
+host/obj/
+tests/bin/
+tests/obj/
+tests/*.swf

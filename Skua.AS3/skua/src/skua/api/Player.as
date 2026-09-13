@@ -39,6 +39,20 @@ public class Player {
         return false.toString();
     }
 
+    public static function inspectGear():String {
+        var world:* = Main.instance.game ? Main.instance.game.world : null;
+        var avatar:* = world && world.myAvatar ? world.myAvatar.target : null;
+        if (!avatar || !avatar.objData || !avatar.objData.eqp)
+            return JSON.stringify({error:"Select a player in the game first, then inspect again."});
+        var items:Array = [];
+        for (var slot:String in avatar.objData.eqp) {
+            var item:* = avatar.objData.eqp[slot];
+            if (!item) continue;
+            items.push({slot:slot, name:item.sName || item.strName || "", id:item.ItemID || 0});
+        }
+        return JSON.stringify({player:avatar.objData.strUsername || avatar.objData.sName || "Selected player",items:items});
+    }
+
     public static function getAvatar(id:int):String {
         return JSON.stringify(Main.instance.game.world.avatars[id].objData);
     }

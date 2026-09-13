@@ -31,7 +31,8 @@ public class GameApiThreadSafeWrapper : IGameApiThreadSafeWrapper
         _processingCts?.Cancel();
         if (_processingTask != null)
         {
-            await _processingTask;
+            try { await _processingTask.ConfigureAwait(false); }
+            catch (OperationCanceledException) when (_processingCts?.IsCancellationRequested == true) { }
         }
         _apiAccessSemaphore.Dispose();
     }

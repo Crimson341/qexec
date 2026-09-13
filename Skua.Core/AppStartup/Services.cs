@@ -243,6 +243,10 @@ public static class Services
                     string[] refPaths = {
                         typeof(object).GetTypeInfo().Assembly.Location,
                         typeof(Console).GetTypeInfo().Assembly.Location,
+                        typeof(System.Net.Http.HttpClient).Assembly.Location,
+                        typeof(System.Net.Dns).Assembly.Location,
+                        typeof(System.Net.IPAddress).Assembly.Location,
+                        typeof(System.Diagnostics.Process).Assembly.Location,
                         typeof(object).Assembly.Location,
                         typeof(Enumerable).Assembly.Location,
                         typeof(ScriptManager).Assembly.Location,
@@ -291,7 +295,6 @@ public static class Services
             "System.Threading",
             "System.Threading.Tasks",
             "System.Timers",
-            "System.Windows.Forms",
             "Skua.Core",
             "Skua.Core.Interfaces",
             "Skua.Core.Models",
@@ -310,6 +313,7 @@ public static class Services
             "Newtonsoft.Json",
             "Newtonsoft.Json.Linq",
         });
+        if (OperatingSystem.IsWindows()) compiler.AddNamespaces(new[] { "System.Windows.Forms" });
         compiler.SaveGeneratedCode = true;
         return compiler;
     }

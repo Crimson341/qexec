@@ -33,8 +33,6 @@ public partial class ScriptOption : ObservableRecipient, IScriptOption, IOptionD
     {
         recipient.AutoRelogin = false;
         recipient.LagKiller = false;
-        recipient.LagKiller = true;
-        recipient.LagKiller = false;
         recipient.AggroAllMonsters = false;
         recipient.AggroMonsters = false;
         recipient.SkipCutscenes = false;

@@ -1,0 +1,33 @@
+--- a/CoreBots.cs
++++ b/CoreBots.cs
+@@ -32,9 +32,13 @@
+ using System.Text;
+ using System.Globalization;
+ using Skua.Core.Models.Auras;
++#if !SKUA_MAC
+ using System.Windows.Forms;
++#endif
+ using Newtonsoft.Json.Linq;
++#if !SKUA_MAC
+ using System.Drawing;
++#endif
+ 
+ public class CoreBots
+ {
+@@ -9743,6 +9747,7 @@
+ 
+     private void AprilFools(int Case = -1)
+     {
++#if !SKUA_MAC
+         if (Case == -1 && DateTime.Now.Date != new DateTime(DateTime.Now.Year, 4, 1).Date)
+             return;
+ 
+@@ -10042,7 +10047,7 @@
+                 Bot.Wait.ForTrue(() => Bot.Player.Loaded, 10);
+             }
+         });
+-
++#endif
+     }
+ 
+     #endregion

@@ -9,6 +9,9 @@ public class Skills {
     }
 
     private static function actionTimeCheck(skill:*):Boolean {
+        if (!skill || !Main.instance.game || !Main.instance.game.world ||
+            !Main.instance.game.world.myAvatar || !Main.instance.game.world.myAvatar.dataLeaf ||
+            !Main.instance.game.world.myAvatar.dataLeaf.sta) return false;
         var finalCD:int = 0;
         var currentTime:Number = new Date().getTime();
         var hasteMultiplier:Number = 1 - Math.min(Math.max(Main.instance.game.world.myAvatar.dataLeaf.sta.$tha, -1), 0.5);
@@ -28,12 +31,17 @@ public class Skills {
     }
 
     public static function canUseSkill(index:int):String {
-        var skill:* = Main.instance.game.world.actions.active[index];
-        return (Main.instance.game.world.myAvatar.target != null && Main.instance.game.world.myAvatar.target.dataLeaf.intHP > 0 && actionTimeCheck(skill) && skill.isOK && !skill.skillLock && !skill.lock).toString();
+        var world:* = Main.instance.game ? Main.instance.game.world : null;
+        if (!world || !world.actions || !world.actions.active || !world.myAvatar) return false.toString();
+        var skill:* = world.actions.active[index];
+        var target:* = world.myAvatar.target;
+        return (skill != null && target != null && target.dataLeaf != null && target.dataLeaf.intHP > 0 && actionTimeCheck(skill) && skill.isOK && !skill.skillLock && !skill.lock).toString();
     }
 
     public static function useSkill(index:int):String {
-        var skill:* = Main.instance.game.world.actions.active[index];
+        var world:* = Main.instance.game ? Main.instance.game.world : null;
+        if (!world || !world.actions || !world.actions.active) return false.toString();
+        var skill:* = world.actions.active[index];
         if (skill != null && actionTimeCheck(skill)) {
             Main.instance.game.world.testAction(skill);
             return true.toString();

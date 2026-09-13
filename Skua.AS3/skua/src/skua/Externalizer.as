@@ -1,5 +1,8 @@
 package skua {
 import flash.external.ExternalInterface;
+import flash.system.Security;
+import flash.events.TimerEvent;
+import flash.utils.Timer;
 
 import skua.api.Auras;
 import skua.api.Combat;
@@ -13,12 +16,16 @@ import skua.module.Modules;
 import skua.remote.RemoteRegistry;
 
 public class Externalizer {
+    private var browserBridge:Boolean = false;
+    private var callbacks:Object = {};
+    private var browserTimer:Timer;
 
     public function Externalizer() {
         super();
     }
 
     public function init(root:Main):void {
+        browserBridge = root.loaderInfo.parameters.skuaMac == "1";
         // Core initialization
         this.addCallback("loadClient", Main.loadGame);
         this.addCallback("setBackgroundValues", Main.setBackgroundValues);
@@ -48,6 +55,7 @@ public class Externalizer {
         this.addCallback("untargetSelf", Player.untargetSelf);
         this.addCallback("attackPlayer", Player.attackPlayer);
         this.addCallback("getAvatar", Player.getAvatar);
+        this.addCallback("inspectGear", Player.inspectGear);
         this.addCallback("getLoadouts", Player.getLoadouts);
         this.addCallback("gender", Player.Gender);
         this.addCallback("rejectExcept", Player.rejectExcept);
@@ -124,14 +132,41 @@ public class Externalizer {
         this.addCallback("modDisable", Modules.disable);
 
 		this.debug("Externalizer::init done.");
+        if (browserBridge) this.debug("Flash sandbox: " + Security.sandboxType);
+        if (browserBridge) {
+            browserTimer = new Timer(10);
+            browserTimer.addEventListener(TimerEvent.TIMER, pollBrowserCommands);
+            browserTimer.start();
+        }
         this.call("requestLoadGame");
     }
 
     public function addCallback(name:String, func:Function):void {
+        callbacks[name] = func;
         ExternalInterface.addCallback(name, func);
     }
 
+    private function pollBrowserCommands(event:TimerEvent):void {
+        var json:String = ExternalInterface.call("skuaNextFlashCommands");
+        if (!json || json == "[]") return;
+        var commands:Array = JSON.parse(json) as Array;
+        for each (var command:Object in commands) {
+            var result:* = null;
+            var error:String = null;
+            try {
+                var callback:Function = callbacks[command["function"]] as Function;
+                if (callback == null) throw new Error("Unknown Flash callback: " + command["function"]);
+                result = callback.apply(null, command.args);
+                if (result === undefined) result = null;
+            } catch (failure:Error) {
+                error = failure.toString();
+            }
+            ExternalInterface.call("skuaFlashReply", command.id, result, error);
+        }
+    }
+
     public function call(name:String, ...rest):* {
+        if (browserBridge) return ExternalInterface.call("skuaFlashEvent", name, rest);
         return ExternalInterface.call(name, rest);
     }
 

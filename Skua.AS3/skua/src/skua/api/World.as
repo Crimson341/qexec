@@ -151,6 +151,8 @@ public class World {
     }
 
     public static function killLag(enable:Boolean):void {
+        // Script cleanup can run on the login screen or after disconnection.
+        if (!Main.instance.game || !Main.instance.game.world) return;
         Main.instance.game.world.visible = !enable;
         
         if (Main.instance.customBGLagKiller) {

@@ -390,3 +390,12 @@ Skua.Installer/FFDecComponentsGenerated.wxs
 Skua.Installer/ComponentsGenerated.wxs
 Skua.Installer/FFDecComponentsGenerated.wxs
 .aider*
+
+# qexec local state
+.DS_Store
+.env
+.env.*
+!.env.example
+Cached-Scripts/
+Skua.settings.json
+UserAdvancedSkills.*

@@ -560,8 +560,8 @@ public class ScriptInterface : IScriptInterface, IScriptInterfaceManager, IDispo
                             break;
 
                         case "loadBank":
-                            Stats.GetSpace();
                             Messenger.Send<BankLoadedMessage, int>((int)MessageChannels.GameEvents);
+                            Stats.GetSpace();
                             break;
 
                         case "loadShop":

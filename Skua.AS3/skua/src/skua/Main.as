@@ -7,6 +7,8 @@ import flash.display.Stage;
 import flash.display.StageAlign;
 import flash.display.StageScaleMode;
 import flash.events.Event;
+import flash.events.IOErrorEvent;
+import flash.events.SecurityErrorEvent;
 import flash.events.KeyboardEvent;
 import flash.events.MouseEvent;
 import flash.events.TimerEvent;
@@ -62,7 +64,12 @@ public class Main extends MovieClip {
     }
 
     public static function loadGame():void {
-        Main.instance.onAddedToStage();
+        Main.instance.external.call('debug', 'Requesting AQW game version.');
+        try {
+            Main.instance.onAddedToStage();
+        } catch (error:Error) {
+            Main.instance.external.call('game-error', error.toString());
+        }
         Main.instance.external.call('pre-load');
     }
 
@@ -91,10 +98,13 @@ public class Main extends MovieClip {
         Security.allowDomain('*');
         this.urlLoader = new URLLoader();
         this.urlLoader.addEventListener(Event.COMPLETE, this.onDataComplete);
+        this.urlLoader.addEventListener(IOErrorEvent.IO_ERROR, this.onLoadError);
+        this.urlLoader.addEventListener(SecurityErrorEvent.SECURITY_ERROR, this.onLoadError);
         this.urlLoader.load(new URLRequest(this.versionUrl));
     }
 
     private function onDataComplete(event:Event):void {
+        this.external.call('debug', 'Received AQW game version.');
         this.urlLoader.removeEventListener(Event.COMPLETE, this.onDataComplete);
         this.vars = JSON.parse(event.target.data);
         this.sFile = ((this.vars.sFile + '?ver=') + Math.random());
@@ -102,12 +112,28 @@ public class Main extends MovieClip {
     }
 
     private function loadGame():void {
+        this.external.call('debug', 'Loading AQW game file.');
         this.loader = new Loader();
         this.loader.contentLoaderInfo.addEventListener(Event.COMPLETE, this.onComplete);
+        this.loader.contentLoaderInfo.addEventListener(IOErrorEvent.IO_ERROR, this.onLoadError);
+        this.loader.contentLoaderInfo.addEventListener(SecurityErrorEvent.SECURITY_ERROR, this.onLoadError);
         this.loader.load(new URLRequest(this.sURL + 'gamefiles/' + this.sFile));
     }
 
+    private function onLoadError(event:Event):void {
+        var message:String = "The game could not load: " + event.toString();
+        var label:TextField = new TextField();
+        label.width = 900;
+        label.height = 240;
+        label.textColor = 0xFFFFFF;
+        label.wordWrap = true;
+        label.text = message;
+        addChild(label);
+        this.external.call('game-error', message);
+    }
+
     private function onComplete(event:Event):void {
+        this.external.call('debug', 'AQW game file loaded.');
         this.loader.contentLoaderInfo.removeEventListener(Event.COMPLETE, this.onComplete);
 
         this.stg = stage;
