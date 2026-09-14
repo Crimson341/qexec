@@ -7,8 +7,9 @@ const vm = require('node:vm');
 test('script controls and elapsed time follow host lifecycle, and logs remain bounded', () => {
   const elements = new Map();
   const element = () => ({textContent:'', children:[], disabled:false, dataset:{},style:{},
-    classList:{toggle(){}}, setAttribute(){}, hasAttribute(){return true;},
-    addEventListener(){}, append(...items){this.children.push(...items);},
+    classList:{toggle(){}, add(){}, remove(){}}, setAttribute(){}, hasAttribute(){return true;},
+    addEventListener(){}, focus(){}, scrollIntoView(){}, close(){}, showModal(){},
+    append(...items){this.children.push(...items);},
     replaceChildren(){this.children=[];}, get childElementCount(){return this.children.length;},
     get firstElementChild(){const owner=this; return {remove(){owner.children.shift();}};}});
   const html = fs.readFileSync(path.join(__dirname,'../desktop/index.html'),'utf8');
@@ -72,17 +73,29 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   assert.equal(elements.get('active-quest-list').childElementCount,1);
   assert.equal(elements.get('ledger-list').childElementCount,1);
   const ledgerCommands=[];context.window.skua.command=(...args)=>ledgerCommands.push(args);
-  elements.get('ledger-list').children[0].onclick();
-  elements.get('ledger-list').children[0].onclick();
+  const ledgerRow=elements.get('ledger-list').children[0];
+  assert.equal(ledgerRow.children[1].textContent,'Open');
+  ledgerRow.children[0].onclick();
+  ledgerRow.children[0].onclick();
   assert.equal(ledgerCommands.length,1,'Repeated clicks do not start duplicate quest generation');
   assert.equal(ledgerCommands[0][0],'active-quest-go');
   assert.deepEqual(JSON.parse(ledgerCommands[0][1]),{id:42,reward:-1});
   receive({type:'active-quest-progress',message:'Finding objectives'});
   assert.equal(elements.get('ledger-status').textContent,'Finding objectives');
+  receive({type:'active-quest-starting',path:'/tmp/q.cs'});
+  assert.equal(elements.get('ledger-status').textContent,'Quest script started.');
+  receive({type:'active-quest-progress',message:'Quest step: hunt Quest Fang'});
+  assert.equal(elements.get('ledger-status').textContent,'Quest step: hunt Quest Fang','Step logs keep updating the ledger after start');
   receive({type:'active-quest-error',message:'Quest locked'});
   assert.equal(elements.get('ledger-status').textContent,'Quest locked','Ledger failures stay inline without a dialog');
   receive({type:'active-quests',quests:[{id:43,name:'Choose reward',ready:false,rewards:[{id:1,name:'Sword'},{id:2,name:'Cape'}]}]});
-  const rewardGroup=elements.get('ledger-list').children[0];rewardGroup.children[1].value='2';rewardGroup.children[0].onclick();
+  const rewardGroup=elements.get('ledger-list').children[0];
+  assert.equal(rewardGroup.children[1].textContent,'Open');
+  rewardGroup.children[1].onclick();
+  assert.deepEqual(ledgerCommands.pop(),['active-quest-open','43'],'Open loads the quest in the game panel without Auto-do');
+  receive({type:'active-quest-opened',opened:true,message:'Choose reward opened in game.'});
+  assert.equal(elements.get('ledger-status').textContent,'Choose reward opened in game.');
+  rewardGroup.children[2].value='2';rewardGroup.children[0].onclick();
   assert.deepEqual(JSON.parse(ledgerCommands.pop()[1]),{id:43,reward:2},'Inline reward selection starts the chosen quest');
   receive({type:'active-quest-error',message:'Reset'});
   receive({type:'active-quests',quests:[]});
@@ -96,6 +109,27 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   context.window.receiveHostMessages([{type:'quest-catalog',total:19065,matches:1,page:0,bankLoaded:true,items:[{id:100,name:'Sword',category:'Sword',ownership:'Bank',detail:'Reward',description:'',availability:'Unverified',canFind:false}]}]);
   assert.equal(elements.get('catalog-items').children[0].children[1].disabled,true);
   assert.equal(elements.get('catalog-next').disabled,true);
+  const catalogCommands=[];context.window.skua.command=(...args)=>catalogCommands.push(args);
+  receive({type:'quest-catalog',total:2,matches:1,page:0,bankLoaded:true,items:[{id:200,name:'Ore',category:'Item',ownership:'Missing',detail:'',description:'',availability:'Unverified',canFind:true}]});
+  const find=elements.get('catalog-items').children[0].children[1];
+  assert.equal(find.textContent,'Find farming plan');
+  find.onclick();
+  assert.equal(catalogCommands[0][0],'catalog-farm','Catalog farming stays in quests instead of opening Inspect gear');
+  assert.deepEqual(JSON.parse(catalogCommands[0][1]),{name:'Ore',id:200});
+  receive({type:'catalog-plan',key:'cat',root:{Name:'Ore',Kind:'drop',Map:'mine',Monster:'Slime',Quantity:1,Children:[]},code:'farm',note:'Ready'});
+  assert.equal(elements.get('catalog-plan-view').hidden,false);
+  assert.equal(elements.get('catalog-go').disabled,false);
+  elements.get('catalog-go').onclick();
+  assert.equal(catalogCommands.at(-1)[0],'catalog-go');
+  receive({type:'catalog-starting',path:'/tmp/farm.cs'});
+  receive({type:'quest-catalog',total:2,matches:1,page:0,bankLoaded:true,items:[{id:100,name:'Sword',category:'Sword',ownership:'Missing',detail:'',description:'',availability:'Unverified',canFind:true,acceptedQuestId:42}]});
+  const autodo=elements.get('catalog-items').children[0].children[1];
+  assert.equal(autodo.textContent,'Auto-do this quest');
+  autodo.onclick();
+  assert.equal(catalogCommands.at(-1)[0],'catalog-farm');
+  receive({type:'catalog-autodo',quest:{id:42,name:'Quest',ready:false,rewards:[]},reward:-1});
+  assert.equal(catalogCommands.at(-1)[0],'active-quest-go');
+  assert.deepEqual(JSON.parse(catalogCommands.at(-1)[1]),{id:42,reward:-1});
   receive({type:'gear-sources',sources:[{Name:'Open shop',Description:'Shop route',File:'Evidence',Code:'script',Action:'Go — open shop',Id:'route'}],message:'Generated route'});
   assert.equal(elements.get('gear-sources').children[0].children[3].textContent,'Go — open shop');
   assert.equal(elements.get('gear-status').textContent,'Generated route');

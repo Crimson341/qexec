@@ -166,6 +166,13 @@ function loadCatalog(page = 0) {
 byId('catalog-form').onsubmit = event => { event.preventDefault(); loadCatalog(); };
 byId('catalog-prev').onclick = () => loadCatalog(catalogPage-1);
 byId('catalog-next').onclick = () => loadCatalog(catalogPage+1);
+let catalogBusy=false,catalogPlanKey='';
+function catalogFinished(message) {
+  catalogBusy=false;byId('catalog-cancel').hidden=true;byId('catalog-go').disabled=!catalogPlanKey;
+  if(message)byId('catalog-status').textContent=message;
+}
+byId('catalog-go').onclick=()=>{if(!catalogPlanKey||catalogBusy)return;catalogBusy=true;byId('catalog-go').disabled=true;byId('catalog-cancel').hidden=false;byId('catalog-status').textContent='Starting the generated item farm…';window.skua.command('catalog-go',catalogPlanKey);};
+byId('catalog-cancel').onclick=()=>window.skua.command('area-cancel');
 function refreshQuests() {
   byId('quest-refresh').disabled = true;
   byId('quest-status').textContent = 'Checking inventory, equipped gear and bank…';
@@ -200,19 +207,27 @@ byId('gear-refresh').onclick = () => {
 };
 function renderLedger(quests, note) {
   byId('ledger-list').replaceChildren();
-  byId('ledger-status').textContent=note || (quests.length ? quests.length+' accepted · choose a quest to auto-do' : 'Accept a quest in the game to get started.');
+  byId('ledger-status').textContent=note || (quests.length ? quests.length+' accepted · Auto-do a quest, or Open it in game' : 'Accept a quest in the game to get started.');
   for (const quest of quests) {
+    const group=document.createElement('div');group.className='ledger-row';
     const row=document.createElement('button');row.className='ledger-quest';
     const name=document.createElement('strong');name.textContent=quest.name;
     const state=document.createElement('span');state.textContent='#'+quest.id+' · '+(quest.ready?'Ready to turn in':'In progress');
     row.append(name,state);
+    const open=document.createElement('button');open.className='ledger-open';open.textContent='Open';
+    open.setAttribute('aria-label','Open '+quest.name+' in game');
+    open.onclick=()=>window.skua.command('active-quest-open',String(quest.id));
     if(quest.rewards.length>1){
-      const group=document.createElement('div'),choice=document.createElement('select');choice.setAttribute('aria-label','Reward for '+quest.name);
+      const choice=document.createElement('select');choice.setAttribute('aria-label','Reward for '+quest.name);
       const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose reward';choice.append(placeholder);
       for(const item of quest.rewards){const option=document.createElement('option');option.value=String(item.id);option.textContent=item.name;choice.append(option);}
       row.onclick=()=>{if(!choice.value){byId('ledger-status').textContent='Choose a reward for '+quest.name+' below.';choice.focus();return;}startAcceptedQuest(quest,Number(choice.value),true);};
-      group.append(row,choice);byId('ledger-list').append(group);
-    }else {row.onclick=()=>startAcceptedQuest(quest,quest.rewards.length?quest.rewards[0].id:-1,true);byId('ledger-list').append(row);}
+      group.append(row,open,choice);
+    }else {
+      row.onclick=()=>startAcceptedQuest(quest,quest.rewards.length?quest.rewards[0].id:-1,true);
+      group.append(row,open);
+    }
+    byId('ledger-list').append(group);
   }
 }
 byId('ledger-refresh').onclick=()=>pollActiveQuests(true);
@@ -267,11 +282,12 @@ function areaRows(rows) {
     row.append(text,action);byId('area-items').append(row);
   }
 }
-function areaTree(node,depth=0) {
+function areaTree(node,depth=0,parent) {
+  parent=parent||byId('area-plan-tree');
   const row=document.createElement('p');row.className='area-plan-step';row.style.paddingLeft=(depth*16)+'px';
   const descriptions={owned:'Already owned',drop:'Farm '+node.Monster+' in /'+node.Map,shop:'Shop #'+node.Shop+' in /'+node.Map+' · '+node.Cost+' gold per purchase',quest:'Complete quest #'+node.Quest,pickup:'Collect in /'+node.Map};
-  row.textContent=node.Name+' ×'+node.Quantity+' — '+(descriptions[node.Kind]||node.Kind);itemPicture(row,node.Name);byId('area-plan-tree').append(row);
-  for(const child of node.Children||[])areaTree(child,depth+1);
+  row.textContent=node.Name+' ×'+node.Quantity+' — '+(descriptions[node.Kind]||node.Kind);itemPicture(row,node.Name);parent.append(row);
+  for(const child of node.Children||[])areaTree(child,depth+1,parent);
 }
 byId('nav-area').onclick=()=>{
   byId('quest-view').hidden=true;byId('area-view').hidden=false;document.body.classList.remove('quest-open');document.body.classList.add('area-open');
@@ -346,6 +362,10 @@ function handleHostMessage(message) {
       byId('ledger-cancel').hidden=true;if(questFromLedger)byId('ledger-status').textContent='Quest script started.';
       activeQuestGenerating=false; byId('active-quest-cancel').hidden=true;
       byId('active-quest-status').textContent='Generated '+message.path; byId('active-quest-dialog').close(); break;
+    case 'active-quest-opened':
+      byId('ledger-status').textContent=message.message;
+      if(message.opened)byId('nav-game').onclick();
+      break;
     case 'active-quests': {
       activeQuestPending=false;
       byId('active-quest-open').hidden=message.quests.length===0;
@@ -373,6 +393,19 @@ function handleHostMessage(message) {
       }
       break;
     }
+    case 'catalog-progress': byId('catalog-status').textContent=message.message; break;
+    case 'catalog-error': catalogPlanKey='';byId('catalog-plan-view').hidden=true;catalogFinished(message.message); break;
+    case 'catalog-plan':
+      catalogPlanKey=message.key;byId('catalog-plan-view').hidden=false;byId('catalog-plan-note').textContent=message.note;
+      byId('catalog-plan-tree').replaceChildren();areaTree(message.root,0,byId('catalog-plan-tree'));
+      byId('catalog-plan-code').textContent=message.code;catalogFinished('Farm plan ready. Review the ingredients below.');
+      byId('catalog-go').disabled=false; break;
+    case 'catalog-autodo':
+      catalogFinished('This item is a reward on an accepted quest. Starting Auto-do…');
+      startAcceptedQuest(message.quest,message.reward,true); break;
+    case 'catalog-starting':
+      catalogPlanKey='';byId('catalog-plan-view').hidden=true;catalogFinished('Generated script started. Follow its progress in Activity.');
+      byId('catalog-go').disabled=true;byId('nav-game').onclick(); break;
     case 'quest-catalog-error':
       byId('catalog-search-button').disabled = false; byId('catalog-status').textContent = message.message; break;
     case 'quest-catalog': {
@@ -385,8 +418,13 @@ function handleHostMessage(message) {
         const body = document.createElement('div'); const title = document.createElement('strong'); title.textContent = item.name + (item.id ? ' · #' + item.id : '');
         const detail = document.createElement('p'); detail.className = 'hint'; detail.textContent = item.category + ' · ' + item.ownership + ' · ' + item.detail;
         const more = document.createElement('details'); const summary = document.createElement('summary'); summary.textContent = 'Item information'; const info = document.createElement('p'); info.textContent = (item.description || '') + ' ' + item.availability; more.append(summary,info); body.append(title,detail,more);itemPicture(body,item.name);
-        const find = document.createElement('button'); find.textContent = item.canFind ? 'Find farming plan' : (item.routeNote || item.ownership); find.disabled = !item.canFind;
-        find.onclick = () => { byId('gear-dialog').showModal(); byId('gear-items').replaceChildren(); byId('gear-sources').replaceChildren(); byId('gear-status').textContent = 'Resolving an item-specific route for ' + item.name + '…'; window.skua.command('gear-find',JSON.stringify({name:item.name,id:Number(item.id)||0})); };
+        const find = document.createElement('button'); find.textContent = item.acceptedQuestId ? 'Auto-do this quest' : item.canFind ? 'Find farming plan' : (item.routeNote || item.ownership); find.disabled = !item.canFind;
+        find.onclick = () => {
+          if(catalogBusy)return;
+          catalogBusy=true;catalogPlanKey='';byId('catalog-plan-view').hidden=true;byId('catalog-go').disabled=true;byId('catalog-cancel').hidden=false;
+          byId('catalog-status').textContent=(item.acceptedQuestId?'Checking accepted quests for ':'Planning a farm for ')+item.name+'…';
+          window.skua.command('catalog-farm',JSON.stringify({name:item.name,id:Number(item.id)||0}));
+        };
         row.append(body,find); byId('catalog-items').append(row);
       }
       break;

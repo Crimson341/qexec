@@ -233,10 +233,22 @@ try
                 bool bankLoaded = await gearOwnership.LoadBank();
                 var inventory = bot.Inventory.Items.ToList();
                 var bank = bankLoaded ? bot.Bank.Items.ToList() : new List<Skua.Core.Models.Items.InventoryItem>();
-                var result = await Task.Run(() => questCatalog.Query((string?)message["value"] ?? "",inventory,bank,bankLoaded));
+                var accepted = bot.Quests.Active.Select(q => q.ID).ToHashSet();
+                var result = await Task.Run(() => questCatalog.Query((string?)message["value"] ?? "",inventory,bank,bankLoaded,accepted));
                 rpc.Send(result);
             } catch (Exception ex) { rpc.Send(new { type="quest-catalog-error", message=ex.GetBaseException().Message }); }
             finally { catalogGate.Release(); }
+            return;
+        }
+        if ((string?)message["command"] == "active-quest-open")
+        {
+            try {
+                if (!int.TryParse((string?)message["value"], out var questId) || questId <= 0)
+                    rpc.Send(new { type = "active-quest-opened", opened = false, message = "Need a quest id." });
+                else
+                    rpc.Send(activeQuestMaker.OpenInGame(questId));
+            }
+            catch (Exception ex) { rpc.Send(new { type = "active-quest-opened", opened = false, message = ex.GetBaseException().Message }); }
             return;
         }
         if ((string?)message["command"] == "quest-refresh")
@@ -326,6 +338,25 @@ try
                     manager.SetLoadedScript(areaScript);rpc.Send(new {type="selected",path=areaScript});
                     var areaError=await manager.StartScript();if(areaError!=null)throw areaError;
                     rpc.Send(new {type="area-starting",path=areaScript});rpc.Send(new {type="status",running=manager.ScriptRunning});break;
+                case "catalog-farm":
+                    if(manager.ScriptRunning || adaptive.Enabled)throw new InvalidOperationException("Stop the current script or auto attack before planning a catalog farm.");
+                    if(!bot.Player.LoggedIn)throw new InvalidOperationException("Log in first.");
+                    string catalogValue=(string?)message["value"]??"";
+                    JObject catalogRequest=catalogValue.StartsWith("{") ? JObject.Parse(catalogValue) : new JObject { ["name"]=catalogValue };
+                    string catalogName=(string?)catalogRequest["name"]??"";
+                    int catalogId=Math.Max(0,(int?)catalogRequest["id"]??0);
+                    var catalogAutodo=activeQuestMaker.AutoDoForReward(catalogId);
+                    if(catalogAutodo is not null){rpc.Send(catalogAutodo);break;}
+                    areaCancellation?.Dispose();areaCancellation=new CancellationTokenSource(TimeSpan.FromMinutes(3));
+                    rpc.Send(await areaActivities.PlanKnownItem(catalogId,catalogName,1,
+                        detail=>rpc.Send(new {type="catalog-progress",message=detail}),areaCancellation.Token));
+                    break;
+                case "catalog-go":
+                    if(manager.ScriptRunning || adaptive.Enabled)throw new InvalidOperationException("Stop the current script or auto attack first.");
+                    string catalogScript=areaActivities.Script((string?)message["value"]??"");
+                    manager.SetLoadedScript(catalogScript);rpc.Send(new {type="selected",path=catalogScript});
+                    var catalogError=await manager.StartScript();if(catalogError!=null)throw catalogError;
+                    rpc.Send(new {type="catalog-starting",path=catalogScript});rpc.Send(new {type="status",running=manager.ScriptRunning});break;
                 case "active-quest-go":
                     if(manager.ScriptRunning || adaptive.Enabled) throw new InvalidOperationException("Stop the current script or auto attack first.");
                     if(!gameReady || !bot.Player.LoggedIn) throw new InvalidOperationException("Log in first.");
@@ -409,6 +440,8 @@ try
                 rpc.Send(new { type = "quest-error", message = ex.GetBaseException().Message });
             if (((string?)message["command"])?.StartsWith("gear-") == true)
                 rpc.Send(new { type = "gear-error", message = ex.GetBaseException().Message });
+            if (((string?)message["command"])?.StartsWith("catalog-") == true)
+                rpc.Send(new { type = "catalog-error", message = ex is OperationCanceledException ? "Catalog lookup canceled or timed out. Retry Find farming plan." : ex.GetBaseException().Message });
         }
         finally { commandGate.Release(); }
     }
