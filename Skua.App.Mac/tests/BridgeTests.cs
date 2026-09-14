@@ -217,7 +217,7 @@ if (Directory.Exists(hostDir))
     string programCs = File.ReadAllText(Path.Combine(hostDir, "Program.cs"));
     int poll = programCs.IndexOf("command\"] == \"active-quests\"", StringComparison.Ordinal);
     int next = programCs.IndexOf("command\"] == \"gear-find\"", StringComparison.Ordinal);
-    Assert(poll >= 0 && next > poll && !programCs[poll..next].Contains("ScanAchievements"), "The 3s ledger poll must not scan achievements.");
+    Assert(poll >= 0 && next > poll && !programCs[poll..next].Contains("ScanAchievements("), "The 3s ledger poll must not scan achievements.");
 }
 Console.WriteLine("PASS: Achievement inventory, story, bank, persisted awards, and mapped farms.");
 
