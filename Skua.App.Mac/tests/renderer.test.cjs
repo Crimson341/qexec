@@ -81,6 +81,14 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   assert.equal(elements.get('ledger-status').textContent,'Finding objectives');
   receive({type:'active-quest-error',message:'Quest locked'});
   assert.equal(elements.get('ledger-status').textContent,'Quest locked','Ledger failures stay inline without a dialog');
+  receive({type:'active-quests',quests:[{id:50,name:'Plant hunt',ready:false,rewards:[],objectives:[{name:'Plant Found',have:1,need:3}],dailyDone:false,member:false,locked:false,blocked:false}]});
+  assert.match(elements.get('ledger-list').children[0].children[1].textContent,/In progress/);
+  assert.match(elements.get('ledger-list').children[0].children[2].textContent,/Plant Found 1\/3/);
+  receive({type:'active-quests',quests:[{id:51,name:'Member daily',ready:false,rewards:[],objectives:[],dailyDone:true,member:true,locked:true,blocked:true}]});
+  assert.match(elements.get('ledger-list').children[0].children[1].textContent,/Daily done/);
+  assert.match(elements.get('ledger-list').children[0].children[1].textContent,/Member/);
+  assert.match(elements.get('ledger-list').children[0].children[1].textContent,/Locked/);
+  assert.equal(elements.get('ledger-list').children[0].disabled,true);
   receive({type:'active-quests',quests:[{id:43,name:'Choose reward',ready:false,rewards:[{id:1,name:'Sword'},{id:2,name:'Cape'}]}]});
   const rewardGroup=elements.get('ledger-list').children[0];rewardGroup.children[1].value='2';rewardGroup.children[0].onclick();
   assert.deepEqual(JSON.parse(ledgerCommands.pop()[1]),{id:43,reward:2},'Inline reward selection starts the chosen quest');

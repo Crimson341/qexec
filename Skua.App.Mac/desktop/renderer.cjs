@@ -198,21 +198,40 @@ byId('gear-refresh').onclick = () => {
   byId('gear-items').replaceChildren(); byId('gear-sources').replaceChildren();
   byId('gear-refresh').disabled = true; byId('gear-status').textContent = 'Reading gear and resolving item names…'; window.skua.command('gear-inspect');
 };
+function questBadges(quest) {
+  const badges=[];
+  if(quest.ready) badges.push('Ready to turn in'); else badges.push('In progress');
+  if(quest.dailyDone) badges.push('Daily done');
+  if(quest.member) badges.push('Member');
+  if(quest.locked) badges.push('Locked');
+  return '#'+quest.id+' · '+badges.join(' · ');
+}
+function questObjectiveLine(quest) {
+  return (quest.objectives||[]).map(o=>o.name+' '+o.have+'/'+o.need).join(' · ');
+}
 function renderLedger(quests, note) {
   byId('ledger-list').replaceChildren();
   byId('ledger-status').textContent=note || (quests.length ? quests.length+' accepted · choose a quest to auto-do' : 'Accept a quest in the game to get started.');
   for (const quest of quests) {
     const row=document.createElement('button');row.className='ledger-quest';
     const name=document.createElement('strong');name.textContent=quest.name;
-    const state=document.createElement('span');state.textContent='#'+quest.id+' · '+(quest.ready?'Ready to turn in':'In progress');
+    const state=document.createElement('span');state.textContent=questBadges(quest);
     row.append(name,state);
+    const objectives=questObjectiveLine(quest);
+    if(objectives){const counts=document.createElement('span');counts.className='ledger-objectives';counts.textContent=objectives;row.append(counts);}
+    row.disabled=!!quest.blocked;
+    const start=()=>{
+      if(quest.blocked){byId('ledger-status').textContent=quest.dailyDone?'This daily quest is already completed today.':quest.locked?'This quest is locked.':quest.member?'This quest requires membership.':'This quest cannot be auto-done yet.';return;}
+      if(quest.rewards.length>1)return;
+      startAcceptedQuest(quest,quest.rewards.length?quest.rewards[0].id:-1,true);
+    };
     if(quest.rewards.length>1){
       const group=document.createElement('div'),choice=document.createElement('select');choice.setAttribute('aria-label','Reward for '+quest.name);
       const placeholder=document.createElement('option');placeholder.value='';placeholder.textContent='Choose reward';choice.append(placeholder);
       for(const item of quest.rewards){const option=document.createElement('option');option.value=String(item.id);option.textContent=item.name;choice.append(option);}
-      row.onclick=()=>{if(!choice.value){byId('ledger-status').textContent='Choose a reward for '+quest.name+' below.';choice.focus();return;}startAcceptedQuest(quest,Number(choice.value),true);};
+      row.onclick=()=>{if(quest.blocked){start();return;}if(!choice.value){byId('ledger-status').textContent='Choose a reward for '+quest.name+' below.';choice.focus();return;}startAcceptedQuest(quest,Number(choice.value),true);};
       group.append(row,choice);byId('ledger-list').append(group);
-    }else {row.onclick=()=>startAcceptedQuest(quest,quest.rewards.length?quest.rewards[0].id:-1,true);byId('ledger-list').append(row);}
+    }else {row.onclick=start;byId('ledger-list').append(row);}
   }
 }
 byId('ledger-refresh').onclick=()=>pollActiveQuests(true);
@@ -356,20 +375,25 @@ function handleHostMessage(message) {
       byId('active-quest-status').textContent=message.quests.length ? 'Live accepted quests. Select a reward where required.' : 'No accepted quests. Accept one in the game to enable Auto-do.';
       for(const quest of message.quests) {
         const row=document.createElement('div'); row.className='quest-source';
-        const title=document.createElement('p'); title.textContent=quest.name+' · #'+quest.id+(quest.ready?' · Ready to turn in':'');
+        const title=document.createElement('p'); title.textContent=quest.name+' · '+questBadges(quest);
+        const counts=questObjectiveLine(quest);
+        const objectives=document.createElement('p');objectives.className='hint';objectives.textContent=counts;
         const reward=document.createElement('select'); reward.setAttribute('aria-label','Reward for '+quest.name);
         if(quest.rewards.length>1) {const option=document.createElement('option');option.value='';option.textContent='Choose your reward';reward.append(option);}
         for(const item of quest.rewards) {const option=document.createElement('option');option.value=String(item.id);option.textContent=item.name;reward.append(option);}
         reward.hidden=quest.rewards.length===0;
-        const go=document.createElement('button');go.textContent=quest.ready?'Auto-do — turn in once':'Auto-do this quest';
+        const go=document.createElement('button');
+        go.textContent=quest.blocked?(quest.dailyDone?'Daily already done':quest.locked?'Quest locked':quest.member?'Membership required':'Cannot Auto-do'):quest.ready?'Auto-do — turn in once':'Auto-do this quest';
+        go.disabled=!!quest.blocked;
         go.onclick=()=>{
+          if(quest.blocked) return;
           if(quest.rewards.length && !reward.value) {byId('active-quest-status').textContent='Select the reward you want first.';return;}
           startAcceptedQuest(quest,quest.rewards.length?Number(reward.value):-1);
         };
         const rewardPreview=document.createElement('div');
         const updateRewardPreview=()=>{rewardPreview.replaceChildren();const chosen=quest.rewards.find(item=>String(item.id)===reward.value);if(chosen)itemPicture(rewardPreview,chosen.name);};
         reward.onchange=updateRewardPreview;updateRewardPreview();
-        row.append(title,reward,go,rewardPreview);byId('active-quest-list').append(row);
+        row.append(title);if(counts)row.append(objectives);row.append(reward,go,rewardPreview);byId('active-quest-list').append(row);
       }
       break;
     }
