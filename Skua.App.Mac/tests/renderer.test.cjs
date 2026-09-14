@@ -275,10 +275,12 @@ test('achievements panel shows images and earned state from host checks', () => 
     window:{}, console:{log(){}}, Date, setInterval(){}, setTimeout(){}, clearTimeout(){}};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/renderer.cjs'),'utf8'),context);
   context.window.skua.command=(...args)=>commands.push(args);
+  context.window.receiveHostMessage({type:'game-ready'});
+  assert.deepEqual(commands.pop(),['achievements']);
   elements.get('nav-achievements').onclick();
   assert.equal(elements.get('achievements-view').hidden,false);
   assert.deepEqual(commands.pop(),['achievements']);
-  context.window.receiveHostMessage({type:'achievements',character:'Scott',earned:1,total:2,note:'Inventory, bank, and story progress checked.',newlyEarned:['vhl'],
+  context.window.receiveHostMessage({type:'achievements',character:'Scott',earned:1,total:2,note:'Showing saved milestones from the first complete check. Recheck to scan inventory, bank, and story again.',newlyEarned:[],
     items:[
       {Id:'vhl',Title:'Void Highlord',Detail:'Nation grind',Image:'vhl.png',Earned:true,Reason:'Inventory',Location:'Inventory',Script:'Nation/VHL/0VoidHighlord.cs',CanRun:false},
       {Id:'blod',Title:'Blinding Light of Destiny',Detail:'Good-path axe',Image:'blod.png',Earned:false,Reason:'Not earned yet',Location:'Missing',Script:'Good/BLoD/0TheBlindingLightofDestiny.cs',CanRun:true}
@@ -295,6 +297,11 @@ test('achievements panel shows images and earned state from host checks', () => 
   assert.equal(cards[1].children[0].src,'brand/achievements/blod.png');
   assert.equal(cards[1].children[4].textContent,'Go');
   assert.match(elements.get('achievements-status').textContent,/Scott · 1\/2 earned/);
+  assert.match(elements.get('achievements-status').textContent,/saved milestones/);
+  elements.get('nav-achievements').onclick();
+  assert.equal(commands.length,0,'Opening Achievements again does not start another pass.');
+  elements.get('achievements-refresh').onclick();
+  assert.deepEqual(commands.pop(),['achievements-refresh']);
   cards[1].children[4].onclick();
   assert.deepEqual(commands.pop(),['achievements-go','blod']);
   context.window.receiveHostMessage({type:'achievements-started',running:true,id:'blod'});

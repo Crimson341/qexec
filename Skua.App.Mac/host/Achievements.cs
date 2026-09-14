@@ -82,6 +82,8 @@ public sealed class Achievements(IScriptInterface bot, GearOwnership ownership, 
     public static AchievementDef Entry(string id, string title, string detail, string[] itemNames, int[] itemIds, int[] storyQuests, string script)
         => new(id, title, detail, id + ".png", itemNames, itemIds, storyQuests, script);
 
+    public const int StoreVersion = 1;
+
     public static string StoreFile(string root) => Path.Combine(root, "achievements.json");
 
     public static bool SafeScript(string relative)
@@ -225,10 +227,96 @@ public sealed class Achievements(IScriptInterface bot, GearOwnership ownership, 
     public static void WriteAwards(JObject store, string character, IReadOnlyDictionary<string, AchievementAward> awards)
     {
         var characters = (JObject)store["characters"]!;
+        var previous = characters[character] as JObject;
         var bag = new JObject();
         foreach (var award in awards.Values.OrderBy(a => a.Id))
             bag[award.Id] = new JObject { ["earnedAt"] = award.EarnedAt, ["reason"] = award.Reason };
-        characters[character] = new JObject { ["awards"] = bag };
+        var row = new JObject { ["awards"] = bag };
+        if (previous?["snapshot"] is JToken snapshot) row["snapshot"] = snapshot;
+        characters[character] = row;
+    }
+
+    public static JObject? ReadSnapshot(JObject store, string? character)
+    {
+        if (store["characters"] is not JObject characters) return null;
+        string key = character ?? "";
+        if (key.Length == 0) key = (string?)store["lastCharacter"] ?? "";
+        if (key.Length == 0) return null;
+        return characters[key] is JObject row ? row["snapshot"] as JObject : null;
+    }
+
+    public static bool SnapshotComplete(JObject? snapshot)
+    {
+        if (snapshot is null || (bool?)snapshot["complete"] != true || (int?)snapshot["version"] != StoreVersion)
+            return false;
+        if (string.IsNullOrWhiteSpace((string?)snapshot["character"])) return false;
+        if (snapshot["items"] is not JArray items || snapshot["catalogIds"] is not JArray ids) return false;
+        var catalog = Catalog.Select(def => def.Id).ToHashSet(StringComparer.Ordinal);
+        if (ids.Count != catalog.Count || items.Count != catalog.Count) return false;
+        var storedIds = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var token in ids)
+        {
+            if (token.Type != JTokenType.String) return false;
+            string id = (string)token!;
+            if (string.IsNullOrWhiteSpace(id) || !catalog.Contains(id) || !storedIds.Add(id)) return false;
+        }
+        if (storedIds.Count != catalog.Count) return false;
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var token in items)
+        {
+            if (token is not JObject row) return false;
+            string? id = (string?)row["Id"];
+            if (string.IsNullOrWhiteSpace(id) || string.IsNullOrWhiteSpace((string?)row["Title"]) || string.IsNullOrWhiteSpace((string?)row["Image"]))
+                return false;
+            if (row["Earned"] is null || (row["Earned"]!.Type != JTokenType.Boolean && row["Earned"]!.Type != JTokenType.Integer))
+                return false;
+            if (!storedIds.Contains(id) || !seen.Add(id)) return false;
+        }
+        return seen.Count == catalog.Count;
+    }
+
+    public static object? RestoredPayload(JObject store, string? character)
+    {
+        var snapshot = ReadSnapshot(store, character);
+        if (!SnapshotComplete(snapshot)) return null;
+        try { return PayloadFromSnapshot(snapshot!); }
+        catch (Exception) { return null; }
+    }
+
+    public static object PayloadFromSnapshot(JObject snapshot)
+    {
+        var items = snapshot["items"]!.ToObject<List<AchievementState>>();
+        if (items == null || items.Count != Catalog.Length || items.Any(item => string.IsNullOrWhiteSpace(item.Id) || string.IsNullOrWhiteSpace(item.Title)))
+            throw new InvalidDataException("Achievement snapshot items are incomplete.");
+        return Payload(
+            ((string?)snapshot["character"] ?? "").Trim(),
+            (bool?)snapshot["bankLoaded"] ?? false,
+            "Showing saved milestones from the first complete check. Recheck to scan inventory, bank, and story again.",
+            items,
+            []);
+    }
+
+    public static JObject BuildSnapshot(string character, bool bankLoaded, string note, IReadOnlyList<AchievementState> items)
+    {
+        return new JObject
+        {
+            ["complete"] = true,
+            ["version"] = StoreVersion,
+            ["character"] = character,
+            ["bankLoaded"] = bankLoaded,
+            ["note"] = note,
+            ["scannedAt"] = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds(),
+            ["catalogIds"] = new JArray(Catalog.Select(def => def.Id)),
+            ["items"] = JArray.FromObject(items)
+        };
+    }
+
+    public static void WriteComplete(JObject store, string character, IReadOnlyDictionary<string, AchievementAward> awards, JObject snapshot)
+    {
+        WriteAwards(store, character, awards);
+        ((JObject)store["characters"]![character]!)["snapshot"] = snapshot;
+        store["lastCharacter"] = character;
+        store["version"] = StoreVersion;
     }
 
     public static void SaveStore(string path, JObject store)
@@ -289,17 +377,26 @@ public sealed class Achievements(IScriptInterface bot, GearOwnership ownership, 
         return ResolvePath(id, scriptsRoot, File.Exists);
     }
 
-    public async Task<object> Scan()
+    public async Task<object> Scan(bool force = false)
     {
         bool Installed(string script) => File.Exists(Path.Combine(scriptsRoot, script));
+        var store = LoadStore(storePath);
+        string? characterKey = null;
+        if (bot.Player.LoggedIn)
+        {
+            try { characterKey = CharacterKey(bot.Player.Username); }
+            catch (ArgumentException) { characterKey = null; }
+        }
+        if (!force)
+        {
+            var restored = RestoredPayload(store, characterKey);
+            if (restored != null) return restored;
+        }
         if (!bot.Player.LoggedIn)
             return Payload("", false, "Log in to check inventory and story progress.", Evaluate([], [], true, _ => false, new Dictionary<string, AchievementAward>(), Installed), []);
-        string character;
-        try { character = CharacterKey(bot.Player.Username); }
-        catch (ArgumentException)
-        {
+        if (characterKey is null)
             return Payload("", false, "Character name unavailable. Log in again, then Recheck.", Evaluate([], [], true, _ => false, new Dictionary<string, AchievementAward>(), Installed), []);
-        }
+        string character = characterKey;
         bool loaded = await ownership.LoadBank();
         List<InventoryItem> inventory;
         List<InventoryItem> bank;
@@ -313,21 +410,17 @@ public sealed class Achievements(IScriptInterface bot, GearOwnership ownership, 
         }
         try { bot.Quests.LoadCachedQuests(); }
         catch (Exception) { /* Story checks then report incomplete; inventory awards still apply. */ }
-        var store = LoadStore(storePath);
         var persisted = ReadAwards(store, character);
         var evaluated = Evaluate(inventory, bank, loaded, StoryComplete, persisted, Installed);
         long now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var merged = MergeAwards(persisted, evaluated, now);
         var newly = merged.Keys.Where(id => !persisted.ContainsKey(id)).ToArray();
-        if (newly.Length > 0)
-        {
-            WriteAwards(store, character, merged);
-            SaveStore(storePath, store);
-        }
         var stamped = Evaluate(inventory, bank, loaded, StoryComplete, merged, Installed);
         string note = loaded
             ? "Inventory, bank, and story progress checked."
             : "Inventory checked; bank unavailable. Story quests were still read. Missing-item awards wait for a bank check.";
+        WriteComplete(store, character, merged, BuildSnapshot(bot.Player.Username.Trim(), loaded, note, stamped));
+        SaveStore(storePath, store);
         return Payload(bot.Player.Username.Trim(), loaded, note, stamped, newly);
     }
 }

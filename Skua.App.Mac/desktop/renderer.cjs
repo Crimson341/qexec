@@ -356,10 +356,13 @@ function renderAchievements(items,note){
     byId('achievements-grid').append(card);
   }
 }
+function loadAchievements(){
+  window.skua.command('achievements');
+}
 function refreshAchievements(){
   byId('achievements-refresh').disabled=true;
   byId('achievements-status').textContent='Checking inventory, bank, and story quests…';
-  window.skua.command('achievements');
+  window.skua.command('achievements-refresh');
 }
 byId('nav-achievements').onclick=()=>{
   hideWorkspaceViews();
@@ -368,7 +371,7 @@ byId('nav-achievements').onclick=()=>{
     item.classList.toggle('active',item.id==='nav-achievements');
     if(item.id==='nav-achievements')item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');
   }
-  refreshAchievements();
+  if(!byId('achievements-grid').children.length) loadAchievements();
 };
 byId('achievements-refresh').onclick=refreshAchievements;
 byId('nav-area').onclick=()=>{
@@ -612,7 +615,7 @@ function handleHostMessage(message) {
         }
       }, 15000);
       break;
-    case 'game-ready': gameReady = true; byId('game-status').textContent = 'Game loaded'; log('Game bridge connected. Log in to play.'); refreshAchievements(); break;
+    case 'game-ready': gameReady = true; byId('game-status').textContent = 'Game loaded'; log('Game bridge connected. Log in to play.'); loadAchievements(); break;
     case 'achievements':
       byId('achievements-refresh').disabled = false;
       renderAchievements(message.items, (message.character ? message.character + ' · ' : '') + (message.earned||0) + '/' + (message.total||0) + ' earned. ' + (message.note||''));
@@ -657,7 +660,6 @@ function handleHostMessage(message) {
       running = message.running;
       if (!running) restoreGameRendering();
       else if (!wasRunning) stopping = false;
-      if (wasRunning && !running) refreshAchievements();
       byId('engine').textContent = running ? 'Script running' : 'Script idle'; break;
     }
     case 'log': log(message.message, message.kind); break;

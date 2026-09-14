@@ -159,16 +159,10 @@ try
     var questPlanner = new QuestPlanner(bot, ClientFileSources.SkuaScriptsDIR, gearOwnership);
     var achievements = new Achievements(bot, gearOwnership, Achievements.StoreFile(ClientFileSources.SkuaDIR), ClientFileSources.SkuaScriptsDIR);
     using var achievementGate = new SemaphoreSlim(1, 1);
-    long lastAchievementScan = 0;
     async Task ScanAchievements(bool force = false)
     {
-        if (!force && DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - lastAchievementScan < 8000) return;
         if (!await achievementGate.WaitAsync(0)) return;
-        try
-        {
-            lastAchievementScan = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            rpc.Send(await achievements.Scan());
-        }
+        try { rpc.Send(await achievements.Scan(force)); }
         catch (Exception ex) { rpc.Send(new { type = "achievements-error", message = ex.GetBaseException().Message }); }
         finally { achievementGate.Release(); }
     }
@@ -219,6 +213,11 @@ try
         }
         if((string?)message["command"]=="area-location") {rpc.Send(new {type="area-location",map=bot.Player.LoggedIn?bot.Map.Name:""});return;}
         if ((string?)message["command"] == "achievements")
+        {
+            await ScanAchievements(false);
+            return;
+        }
+        if ((string?)message["command"] == "achievements-refresh")
         {
             await ScanAchievements(true);
             return;
@@ -285,7 +284,6 @@ try
             try { rpc.Send(await questPlanner.Scan()); }
             catch (Exception ex) { rpc.Send(new { type = "quest-error", message = ex.GetBaseException().Message }); }
             rpc.Send(await news);
-            _ = ScanAchievements(true);
             return;
         }
         if ((string?)message["command"] == "item-preview") {
@@ -485,7 +483,6 @@ try
                 case "stop":
                     await manager.StopScript();
                     rpc.Send(new { type = "status", running = manager.ScriptRunning });
-                    _ = ScanAchievements(true);
                     break;
                 default: throw new ArgumentException("Unknown host command.");
             }
