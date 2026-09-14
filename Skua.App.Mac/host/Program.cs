@@ -226,8 +226,8 @@ try
         if ((string?)message["command"] == "active-quests")
         {
             try {
+                // Do not ScanAchievements on this 3s poll: Scan used to Quests.Load → world.showQuests.
                 rpc.Send(activeQuestMaker.Snapshot());
-                if (bot.Player.LoggedIn) _ = ScanAchievements();
                 if(manager.ScriptRunning && manager.LoadedScript==watchedQuestScript && bot.Player.Playing && watchedQuestId>0 && !bot.Quests.IsInProgress(watchedQuestId)) {
                     await commandGate.WaitAsync();
                     try {

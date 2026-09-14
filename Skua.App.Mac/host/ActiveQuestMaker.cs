@@ -26,14 +26,19 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         }
         return new {type="active-quests",quests=active.Select(DescribeQuest).ToArray()};
     }
-    object DescribeQuest(Quest q) => Describe(q.ID,q.Name,q.Requirements,
-        (id,temp)=>temp?bot.TempInv.GetQuantity(id):bot.Inventory.GetQuantity(id)+(bot.Bank.Loaded?bot.Bank.GetQuantity(id):0),
-        Try(()=>bot.Quests.CanCompleteFullCheck(q.ID),q.Status=="c"),
-        Try(()=>bot.Quests.IsDailyComplete(q)),
-        !Try(()=>bot.Quests.IsUnlocked(q),true),
-        q.Upgrade,Try(()=>bot.Player.IsMember,true),
-        q.SimpleRewards.Where(r=>r.Type==2).Select(r=>new {id=r.ID,name=q.Rewards.FirstOrDefault(i=>i.ID==r.ID)?.Name??"Item #"+r.ID}),
-        q.Once);
+    object DescribeQuest(Quest q)
+    {
+        int Qty(int id, bool temp) => temp ? bot.TempInv.GetQuantity(id) : bot.Inventory.GetQuantity(id) + (bot.Bank.Loaded ? bot.Bank.GetQuantity(id) : 0);
+        // CanComplete / inventory only — CanCompleteFullCheck(id) calls EnsureLoad → world.showQuests.
+        bool ready = Try(() => bot.Quests.CanComplete(q.ID), q.Status == "c")
+            || q.Requirements.Where(r => r.ID > 0 && r.Quantity > 0).All(r => Qty(r.ID, r.Temp) >= r.Quantity);
+        return Describe(q.ID, q.Name, q.Requirements, Qty, ready,
+            Try(() => bot.Quests.IsDailyComplete(q)),
+            !Try(() => bot.Quests.IsUnlocked(q), true),
+            q.Upgrade, Try(() => bot.Player.IsMember, true),
+            q.SimpleRewards.Where(r => r.Type == 2).Select(r => new { id = r.ID, name = q.Rewards.FirstOrDefault(i => i.ID == r.ID)?.Name ?? "Item #" + r.ID }),
+            q.Once);
+    }
     static bool Try(Func<bool> check, bool fallback=false) { try { return check(); } catch { return fallback; } }
     public static object Describe(int id,string name,IEnumerable<ItemBase> requirements,Func<int,bool,int> quantity,bool ready,bool dailyDone,bool locked,bool member,bool isMember,IEnumerable<object> rewards,bool once=false)
     {
