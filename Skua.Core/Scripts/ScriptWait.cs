@@ -115,8 +115,8 @@ public class ScriptWait : IScriptWait
     public bool ForMapLoad(string name, int timeout = 20)
     {
         int dashIndex = name.IndexOf('-');
-        string cleanName = (dashIndex >= 0 ? name.Substring(0, dashIndex) : name).ToLower();
-        bool mapNameWait = ForTrue(() => Map.Name == cleanName, OverrideTimeout ? MapActionTimeout : timeout);
+        string cleanName = dashIndex >= 0 ? name.Substring(0, dashIndex) : name;
+        bool mapNameWait = ForTrue(() => string.Equals(Map.Name, cleanName, StringComparison.OrdinalIgnoreCase), OverrideTimeout ? MapActionTimeout : timeout);
         return mapNameWait && ForTrue(() => !Player.Playing || Map.Loaded, OverrideTimeout ? MapActionTimeout : timeout);
     }
 

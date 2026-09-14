@@ -97,10 +97,10 @@ public partial class ScriptMap : IScriptMap
     {
         string mapName = map.Split('-')[0];
         LastMap = mapName;
-        if (!Player.Playing || !Player.Loaded || (!ignoreCheck && Name == map))
+        if (!Player.Playing || !Player.Loaded || (!ignoreCheck && string.Equals(Name, map, StringComparison.OrdinalIgnoreCase)))
             return;
         int i = 0;
-        while (Name != mapName && !Manager.ShouldExit && ++i < Options.JoinMapTries)
+        while (!string.Equals(Name, mapName, StringComparison.OrdinalIgnoreCase) && !Manager.ShouldExit && ++i < Options.JoinMapTries)
         {
             if ((Options.PrivateRooms && !map.Contains('-')) || map.Contains("-1e9"))
                 map = $"{mapName}{(Options.PrivateNumber != -1 ? Options.PrivateNumber : "-100000")}";

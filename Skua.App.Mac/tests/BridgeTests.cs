@@ -415,6 +415,22 @@ Assert(vortexScript.Contains("map:\"voidvortex\"") && vortexScript.Contains("Que
 Assert(!vortexScript.Contains("JoinIfNeeded(bot,\"battleon\")") && !vortexScript.Contains("map:\"battleon\""),"Generated Vortex hunts never join the map Scott happened to be standing in.");
 var unverifiedHunt=ActiveQuestMaker.Generate(8800,-1,new[]{new Skua.Core.Models.Items.ItemBase{ID=88001,Name="Vortex Essence",Quantity=12,Temp=false}},new[]{new GearDrop("voidvortex","Vortex Guardian","Vortex Essence",false,"wiki")},(_,_)=>null,null,null,false);
 Assert(unverifiedHunt.Contains("Bank could not be verified") && unverifiedHunt.Contains("QuestHunt.JoinIfNeeded(bot,\"voidvortex\")") && unverifiedHunt.Contains("map:\"voidvortex\"") && !unverifiedHunt.Contains("Bank.Load()") && !unverifiedHunt.Contains("bot.Shops.BuyItem"),"Bank-unverified still joins and hunts; it only skips purchases.");
+Assert(QuestWikiResolver.JoinHints("Vortex Essence from the Vortex Guardian in /Whitehole","Vortex Essence","Vortex Guardian").SequenceEqual(new[]{"whitehole"}),"Quest flavor /Whitehole is a hunt join, not the accept town.");
+Assert(!QuestWikiResolver.JoinHints("Star Scrap Metal from /Dreadssssspace","Star Scrap Metal","Troblor").Contains("dreadssssspace"),"leZard snake-speech /Dreadssssspace is not a join name.");
+string lezardHtml=File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"fixtures","LezardManQuests.html"));
+var lezardPages=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase){
+    ["/lezard-man-s-quests"]=lezardHtml,
+    ["/battleon"]="<div id='page-title'>Battleon</div><div id='page-content'><p><strong>Map Name:</strong> battleon<br></p><p><strong>Quests:</strong></p><ul><li><a href='/lezard-man-s-quests'>leZard Man's Quests</a></li></ul></div>",
+    ["/vortex-guardian"]="<div id='page-title'>Vortex Guardian</div><div id='page-content'><div class='yui-navset'><ul class='yui-nav'><li>Level 25</li><li>Level 60</li></ul><div class='yui-content'><div><p><strong>Location:</strong> <a href='/shifting-pyramid'>Shifting Pyramid</a><br></p><p><strong>Level:</strong> 25<br></p><ul><li>Vortex Essence (Dropped during the '<a href='/lezard-man-s-quests'>Blinded by the Black Light</a>' quest)</li></ul></div><div><p><strong>Location:</strong> <a href='/shifting-pyramid-b'>Shifting Pyramid B</a><br></p><p><strong>Level:</strong> 60<br></p></div></div></div></div>",
+    ["/shifting-pyramid"]="<div id='page-title'>Shifting Pyramid</div><div id='page-content'><p><strong>Map Name:</strong> whitehole<br></p></div>",
+    ["/shifting-pyramid-b"]="<div id='page-title'>Shifting Pyramid B</div><div id='page-content'><p><strong>Map Name:</strong> whitehole2<br></p></div>"};
+var lezardItem=new Skua.Core.Models.Items.ItemBase{ID=30019,Name="Vortex Essence",Quantity=12,Temp=true};
+var lezardResolver=new QuestWikiResolver(path=>lezardPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound));
+var lezardPlan=await lezardResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{lezardItem},questSources:new[]{"/lezard-man-s-quests"},pickupMap:"battleon");
+Assert(lezardPlan.Drops.Single() is {Map:"whitehole",Monster:"Vortex Guardian"},"Standing in Battleon must join /whitehole for Vortex Guardian, not hunt the accept town.");
+Assert(lezardPlan.Drops.Single().Alternates==null || lezardPlan.Drops.Single().Alternates!.All(a=>a.Map!="battleon"),"Quest Location Battleon is not a hunt alternate.");
+var lezardScript=ActiveQuestMaker.Generate(9679,-1,new[]{lezardItem},lezardPlan.Drops,(_,_)=>null,null,null,false);
+Assert(lezardScript.Contains("map:\"whitehole\"") && lezardScript.Contains("QuestHunt.JoinIfNeeded(bot,\"whitehole\")") && !lezardScript.Contains("map:\"battleon\"") && !lezardScript.Contains("JoinIfNeeded(bot,\"battleon\")"),"Generated Blinded-by-the-Black-Light hunts join /whitehole.");
 Console.WriteLine("PASS: Automatic wiki quest discovery, multi-map routes, variant selection, quantity mismatch, partial evidence and origin restrictions.");
 
 var wayfarerItems=new[]{

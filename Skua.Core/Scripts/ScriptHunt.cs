@@ -145,6 +145,12 @@ public class ScriptHunt : IScriptHunt
                 cells = new(cellsSet);
             }
 
+            if (cells.Count == 0)
+            {
+                Thread.Sleep(200);
+                continue;
+            }
+
             foreach (string cell in cells.TakeWhile(cell => !(token?.IsCancellationRequested ?? false)))
             {
                 if ((!cells.Contains(Player.Cell) || cell != Player.Cell) && (!token?.IsCancellationRequested ?? true))
@@ -180,6 +186,12 @@ public class ScriptHunt : IScriptHunt
 
             if (cells.Count == 0)
                 cells = Monsters.GetLivingMonsterDataLeafCells(id);
+
+            if (cells.Count == 0)
+            {
+                Thread.Sleep(200);
+                continue;
+            }
 
             foreach (string cell in cells.TakeWhile(cell => !(token?.IsCancellationRequested ?? false)))
             {
