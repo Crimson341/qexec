@@ -7,22 +7,8 @@ namespace Skua.Mac;
 
 public static class AcceptedQuestRoutes
 {
-    // Verified against Aranx's quest page, Underworld Hound (1), and
-    // Story/QueenofMonsters/CoreQOM.cs (pickup 3694), 2026-09-13.
-    public static QuestResolution Verified(int questId,IEnumerable<ItemBase> requirements) {
-        var drops=new List<GearDrop>();var pickups=new List<QuestPickup>();
-        if(questId!=4500)return new(drops,pickups);
-        const string evidence="https://aqwwiki.wikidot.com/aranx-s-quests";
-        foreach(var item in requirements) {
-            if(!item.Temp)continue;
-            if(item.ID==30997 && item.Name=="Plant Found" && item.Quantity==3)
-                pickups.Add(new("lostruins",item.Name,true,evidence,3694));
-            if(item.ID==30998 && item.Name=="Underworld Hound Defeated" && item.Quantity==5)
-                drops.Add(new("lostruins","Underworld Hound",item.Name,true,evidence+" -> https://aqwwiki.wikidot.com/underworld-hound-1"));
-        }
-        return new(drops,pickups);
-    }
-    // Only literal, exact quest IDs and unambiguous map/monster pairs are usable.
+    // Parser helpers for tests and leftover Story.cs inspection.
+    // Auto-do no longer requires these C# quest scripts or a verified-route table.
     public static List<GearDrop> Find(string root, int questId, IEnumerable<ItemBase> requirements)
     {
         var all=requirements.ToList();

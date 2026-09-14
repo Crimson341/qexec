@@ -46,11 +46,18 @@ public sealed class AreaDiscovery(Func<string,Task<string>>? loader=null,Func<st
         if(!Same(found,map)) return null;
         return new(map,path,Links(Field(root,"Monsters")),Links(Field(root,"Shops")),Links(Field(root,"Quests")));
     }
+    internal static IEnumerable<string> MapPaths(string map)
+    {
+        if(string.IsNullOrWhiteSpace(map)) yield break;
+        if(Same(map,"lostruins")) yield return "/lost-ruins";
+        yield return Slug(map);
+    }
     public async Task<AreaPage?> Map(string map,CancellationToken ct) {
         ct.ThrowIfCancellationRequested();
         if(mapCache.TryGetValue(map,out var cached) && DateTime.UtcNow-cached.At<TimeSpan.FromMinutes(5))return cached.Page;
-        string directPath=Same(map,"lostruins")?"/lost-ruins":Slug(map);
-        try {var direct=ParseMap(await Page(directPath,ct),map,directPath);if(direct!=null){mapCache[map]=(DateTime.UtcNow,direct);return direct;}}catch(HttpRequestException) { }
+        foreach(string directPath in MapPaths(map).Distinct(StringComparer.OrdinalIgnoreCase)) {
+            try {var direct=ParseMap(await Page(directPath,ct),map,directPath);if(direct!=null){mapCache[map]=(DateTime.UtcNow,direct);return direct;}}catch(HttpRequestException) { }
+        }
         foreach(var path in (await (searcher??QuestWikiResolver.Search)(map).WaitAsync(ct)).Take(5)) {
             try {var found=ParseMap(await Page(path,ct),map,path);if(found!=null){mapCache[map]=(DateTime.UtcNow,found);return found;}}catch(HttpRequestException) { }
         }

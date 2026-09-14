@@ -2,7 +2,7 @@ using Skua.Core.Models.Items;
 
 namespace Skua.Mac;
 
-/// <summary>Ranks documented wiki/guide routes. Never invents a map or monster.</summary>
+/// <summary>Ranks documented wiki/guide routes. Never invents a map or monster. Auto-do does not require C# quest scripts.</summary>
 public static class QuestFastestPath
 {
     public static bool Same(string? a, string? b) =>
