@@ -1,9 +1,10 @@
-const {app, BrowserWindow, Menu, dialog, clipboard, shell} = require('electron');
-const {spawn} = require('child_process');
+const {app, BrowserWindow, Menu, dialog, clipboard, shell, net} = require('electron');
+const {spawn, execFileSync} = require('child_process');
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
 const {pathToFileURL} = require('url');
+const updateCheck = require('./update-check.cjs');
 
 const flashPath = process.env.SKUA_FLASH_PLUGIN || '/Applications/Artix Game Launcher.app/Contents/Resources/plugins/PepperFlashPlayer.plugin';
 const swfPath = process.env.SKUA_SWF || path.join(__dirname, 'assets', 'skua.swf');
@@ -15,7 +16,7 @@ fs.mkdirSync(app.getPath('userData'), {recursive:true});
 const diagnostic = text => fs.appendFileSync(path.join(app.getPath('userData'), 'startup.log'), new Date().toISOString() + ' ' + text + '\n');
 app.commandLine.appendSwitch('ppapi-flash-path', flashPath);
 app.commandLine.appendSwitch('ppapi-flash-version', '32.0.0.344');
-let window, host, selected, running = false, pageURL;
+let window, host, selected, running = false, pageURL, updateUrl = '', pendingUpdateNotice = null;
 const requests = new Map();
 const events = new Set(['requestLoadGame','loaded','debug','pext','packet','pre-load','game-error']);
 function send(value) { if (host && !host.killed && host.stdin.writable) host.stdin.write(JSON.stringify(value) + '\n'); }
@@ -56,7 +57,37 @@ async function chooseScript() {
   const result = await dialog.showOpenDialog(window, {title:'Choose a Skua script', defaultPath:path.join(app.getPath('documents'), 'Skua', 'Scripts'), properties:['openFile'], filters:[{name:'C# scripts', extensions:['cs']}]});
   if (!result.canceled && result.filePaths.length === 1) send({type:'command', command:'load', path:result.filePaths[0]});
 }
+function deliverUpdateNotice() {
+  if (!pendingUpdateNotice || !liveContents()) return;
+  toWindow({type:'app-update', message:pendingUpdateNotice.message, url:pendingUpdateNotice.url, aheadBy:pendingUpdateNotice.aheadBy});
+  pendingUpdateNotice = null;
+}
+function checkAppUpdate() {
+  try {
+    if (!net || typeof net.request !== 'function') return Promise.resolve();
+    const identity = updateCheck.resolveIdentity({fs, path, dirname:__dirname, env:process.env, execFileSync});
+    const headers = updateCheck.githubHeaders(identity.version);
+    const getJson = url => updateCheck.requestGithubJson(net, url, headers, 10000);
+    return updateCheck.findUpdate({getJson, identity}).then(result => {
+      if (!result || !result.available || !updateCheck.isAllowedUpdateUrl(result.url)) return;
+      updateUrl = result.url;
+      pendingUpdateNotice = {message:result.message, url:result.url, aheadBy:result.aheadBy};
+      deliverUpdateNotice();
+    }).catch(error => diagnostic('Update check: ' + (error && error.message ? error.message : error)));
+  } catch (error) {
+    diagnostic('Update check: ' + error.message);
+    return Promise.resolve();
+  }
+}
 function command(name, value) {
+  if (name === 'app-update-open') {
+    if (!updateCheck.isAllowedUpdateUrl(updateUrl)) return;
+    const opened = shell.openExternal(updateUrl);
+    if (opened && typeof opened.then === 'function') {
+      opened.catch(error => log('Could not open the update page: ' + error.message));
+    }
+    return;
+  }
   if (name === 'gear-wiki-open') {
     if (typeof value !== 'string' || !/^http:\/\/aqwwiki\.wikidot\.com\/[a-z0-9-]+$/.test(value)) return;
     const browser=spawn('/usr/bin/open',['-a','Google Chrome',value]); browser.on('error',error=>log('Could not open Chrome: '+error.message)); return;
@@ -163,8 +194,9 @@ app.whenReady().then(async()=>{
     const missing=[];
     if(!fs.existsSync(flashPath))missing.push('Mac Flash plugin: '+flashPath);
     if(!fs.existsSync(swfPath))missing.push('Skua game bridge: '+swfPath);
-    if(missing.length)return toWindow({type:'setup-error',message:'Missing '+missing.join('\n')+'\nSee MACOS.md for setup.'});
-    toWindow({type:'load-game',url:pathToFileURL(swfPath).href});
+    if(missing.length) toWindow({type:'setup-error',message:'Missing '+missing.join('\n')+'\nSee MACOS.md for setup.'});
+    else toWindow({type:'load-game',url:pathToFileURL(swfPath).href});
+    deliverUpdateNotice();
   });
   Menu.setApplicationMenu(Menu.buildFromTemplate([
     {label:'Skua Mac',submenu:[{role:'about'},{type:'separator'},{role:'quit'}]},
@@ -174,6 +206,7 @@ app.whenReady().then(async()=>{
     {label:'Window',submenu:[{role:'minimize'},{role:'zoom'},{role:'close'}]}
   ]));
   window.loadURL(pageURL);
+  void checkAppUpdate();
 }).catch(error=>{dialog.showErrorBox('Skua Mac could not start',error.message);app.quit();});
 app.on('window-all-closed',()=>app.quit());
 app.on('before-quit',()=>{if(host){host.stdin.end();host.kill();}});

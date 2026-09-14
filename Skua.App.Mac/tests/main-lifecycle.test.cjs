@@ -17,8 +17,9 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
     get webContents(){if(this.dead)throw new Error('Object has been destroyed');return this.contents;}
     loadURL(){}
   }
-  const electron={app,BrowserWindow:Window,Menu:{setApplicationMenu(){},buildFromTemplate(){return[];}},dialog:{showErrorBox(_title,message){throw new Error(message);}},clipboard:{},shell:{}};
-  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){}}:require(name),process:{env:{},resourcesPath:'/test'},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
+  const electron={app,BrowserWindow:Window,Menu:{setApplicationMenu(){},buildFromTemplate(){return[];}},dialog:{showErrorBox(_title,message){throw new Error(message);}},clipboard:{},shell:{openExternal:()=>Promise.resolve()},net:undefined};
+  const updateCheckPath=path.join(__dirname,'../desktop/update-check.cjs');
+  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){},readFileSync(){throw new Error('missing');}}:name==='./update-check.cjs'?require(updateCheckPath):require(name),process:{env:{},resourcesPath:'/test'},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
   const contents=created.contents;
@@ -40,4 +41,10 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
   assert.doesNotThrow(()=>contents.emit('plugin-crashed'));
   assert.doesNotThrow(()=>vm.runInNewContext('toWindow({type:"test"})',context));
   await vm.runInNewContext('request({id:1,kind:"flash",data:{}})',context);
+  let opened=null;
+  electron.shell.openExternal=url=>{opened=url;return Promise.resolve();};
+  vm.runInNewContext('updateUrl="https://github.com/Crimson341/qexec/releases/tag/v0.2.0";command("app-update-open")',context);
+  assert.equal(opened,'https://github.com/Crimson341/qexec/releases/tag/v0.2.0');
+  vm.runInNewContext('updateUrl="https://evil.test/download";command("app-update-open")',context);
+  assert.equal(opened,'https://github.com/Crimson341/qexec/releases/tag/v0.2.0','Rejected URLs must not replace the last allowed update page');
 });

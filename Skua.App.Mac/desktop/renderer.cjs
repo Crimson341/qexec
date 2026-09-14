@@ -37,6 +37,8 @@ function rememberPicture(name,picture){
   while(itemPictures.size>500)itemPictures.delete(itemPictures.keys().next().value);
 }
 byId('item-image-close').onclick=()=>byId('item-image-dialog').close();
+byId('app-update-button').onclick=()=>window.skua.command('app-update-open');
+byId('app-update-dismiss').onclick=()=>{byId('app-update').hidden=true;};
 byId('become-op').onclick=()=>{window.skua.command('become-op');byId('nav-activity').onclick();};
 let autoEnabled = false;
 let stopping = false;
@@ -478,6 +480,12 @@ function handleHostMessage(message) {
     case 'game-ready': gameReady = true; byId('game-status').textContent = 'Game loaded'; log('Game bridge connected. Log in to play.'); break;
     case 'game-error': gameReady = false; byId('game-status').textContent = 'Game could not load'; log(message.message,'Error'); break;
     case 'setup-error': byId('game-status').textContent = 'Setup required'; if (byId('setup')) byId('setup').textContent = message.message; log(message.message, 'Error'); break;
+    case 'app-update':
+      if (!message.message) break;
+      byId('app-update-message').textContent = message.message;
+      byId('app-update').hidden = false;
+      log(message.message);
+      break;
     case 'engine-exit':
       stopping = true; restoreGameRendering();
       renderLedger([], 'Engine stopped. Reopen the app to reconnect.');
