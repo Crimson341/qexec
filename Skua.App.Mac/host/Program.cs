@@ -151,7 +151,7 @@ try
     var gearIdentity = new GearIdentity(ClientFileSources.SkuaQuestsFile);
     var gearOwnership = new GearOwnership(bot, flash);
     var questPlanner = new QuestPlanner(bot, ClientFileSources.SkuaScriptsDIR, gearOwnership);
-    var achievements = new Achievements(bot, gearOwnership, Achievements.StoreFile(ClientFileSources.SkuaDIR));
+    var achievements = new Achievements(bot, gearOwnership, Achievements.StoreFile(ClientFileSources.SkuaDIR), ClientFileSources.SkuaScriptsDIR);
     using var achievementGate = new SemaphoreSlim(1, 1);
     long lastAchievementScan = 0;
     async Task ScanAchievements(bool force = false)
@@ -410,6 +410,17 @@ try
                     rpc.Send(new { type = "quest-started", running = manager.ScriptRunning });
                     rpc.Send(new { type = "status", running = manager.ScriptRunning });
                     break;
+                case "achievements-go":
+                    if (manager.ScriptRunning || adaptive.Enabled) throw new InvalidOperationException("Stop the current script or auto attack first.");
+                    if (!Volatile.Read(ref gameReady) || !bot.Player.LoggedIn) throw new InvalidOperationException("Log in before farming a milestone.");
+                    string achievementScript = await achievements.Resolve((string?)message["value"] ?? "");
+                    manager.SetLoadedScript(achievementScript);
+                    rpc.Send(new { type = "selected", path = achievementScript });
+                    Exception? achievementError = await manager.StartScript();
+                    if (achievementError != null) throw achievementError;
+                    rpc.Send(new { type = "achievements-started", running = manager.ScriptRunning, id = (string?)message["value"] ?? "" });
+                    rpc.Send(new { type = "status", running = manager.ScriptRunning });
+                    break;
                 case "gear-go":
                     if (manager.ScriptRunning || adaptive.Enabled) throw new InvalidOperationException("Stop the current script or auto attack first.");
                     if (!Volatile.Read(ref gameReady) || !bot.Player.LoggedIn) throw new InvalidOperationException("Log in before farming.");
@@ -465,6 +476,8 @@ try
                 rpc.Send(new { type = "gear-error", message = ex.GetBaseException().Message });
             if (((string?)message["command"])?.StartsWith("catalog-") == true)
                 rpc.Send(new { type = "catalog-error", message = ex is OperationCanceledException ? "Catalog lookup canceled or timed out. Retry Find farming plan." : ex.GetBaseException().Message });
+            if (((string?)message["command"])?.StartsWith("achievements") == true)
+                rpc.Send(new { type = "achievements-error", message = ex.GetBaseException().Message });
         }
         finally { commandGate.Release(); }
     }

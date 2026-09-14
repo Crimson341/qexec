@@ -131,6 +131,7 @@ button:active:enabled{box-shadow:inset 0 0 0 1px var(--accent-strong);background
 .achievement-card strong{font-size:13px;font-weight:500;color:var(--accent-fg);overflow-wrap:anywhere}
 .achievement-card.locked strong{color:var(--muted)}
 .achievement-card .hint{margin:0}
+.achievement-card .achievement-go{align-self:flex-start;margin-top:4px}
 .achievement-card .achievement-state{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold)}
 .achievement-card.locked .achievement-state{color:var(--muted)}
 @media(prefers-reduced-motion:reduce){#achievements-view:not([hidden]),.achievement-card{animation:none}}

@@ -172,8 +172,27 @@ try {
     Assert(again["vhl"].EarnedAt == 1_700_000_000_000, "Re-checks do not rewrite the original award time.");
 } finally { File.Delete(storeFile); if (File.Exists(storeFile+".tmp")) File.Delete(storeFile+".tmp"); }
 Assert(Achievements.Catalog.Select(a => a.Id).Distinct().Count() == Achievements.Catalog.Length, "Achievement ids are unique.");
-Assert(Achievements.Catalog.All(a => a.Image.EndsWith(".png")), "Every achievement ships an image name.");
-Console.WriteLine("PASS: Achievement inventory, story, bank, and persisted awards.");
+Assert(Achievements.Catalog.All(a => a.Image == a.Id + ".png"), "Every achievement ships a matching image name.");
+Assert(Achievements.Catalog.Length == 62, "Planner set plus fifty added milestones.");
+Assert(Achievements.Catalog.Count(a => Achievements.SafeScript(a.Script)) == 61, "Every mapped farm uses a safe official bot path.");
+Assert(!Achievements.SafeScript(""), "Unmapped milestones have no script.");
+Assert(!Achievements.SafeScript("../Evil/NSoD/0NecroticSwordOfDoom.cs"), "Reject parent-directory script paths.");
+var missingWithBots = Achievements.Evaluate(emptyItems,emptyItems,true,_ => false,emptyAchievements,_ => true);
+Assert(missingWithBots.Single(a => a.Id == "vhl").CanRun && missingWithBots.Single(a => a.Id == "blod").CanRun, "Missing milestones with installed bots can launch.");
+Assert(!missingWithBots.Single(a => a.Id == "chaos-avenger").CanRun, "Chaos Avenger has no official bot mapping.");
+Assert(!Achievements.Evaluate(new[]{vhl},emptyItems,true,_ => false,emptyAchievements,_ => true).Single(a => a.Id == "vhl").CanRun, "Owned milestones do not offer Go.");
+Assert(!Achievements.Evaluate(emptyItems,emptyItems,false,_ => false,emptyAchievements,_ => true).Single(a => a.Id == "vhl").CanRun, "Unknown bank blocks milestone farms.");
+Assert(!Achievements.Evaluate(emptyItems,emptyItems,true,_ => false,emptyAchievements,_ => false).Single(a => a.Id == "vhl").CanRun, "Missing bots cannot launch.");
+var scriptsRoot = Path.Combine(Path.GetTempPath(),"skua-achievement-scripts-"+Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(Path.Combine(scriptsRoot,"Nation","VHL"));
+File.WriteAllText(Path.Combine(scriptsRoot,"Nation","VHL","0VoidHighlord.cs"),"// test");
+Assert(Achievements.ResolvePath("vhl",scriptsRoot,File.Exists).EndsWith(Path.Combine("Nation","VHL","0VoidHighlord.cs")), "Resolve the catalog's official VHL bot.");
+try { Achievements.ResolvePath("chaos-avenger",scriptsRoot,File.Exists); throw new Exception("Accepted an unmapped milestone."); }
+catch (InvalidOperationException) { }
+try { Achievements.ResolvePath("missing-id",scriptsRoot,File.Exists); throw new Exception("Accepted an unknown achievement."); }
+catch (ArgumentException) { }
+Directory.Delete(scriptsRoot,true);
+Console.WriteLine("PASS: Achievement inventory, story, bank, persisted awards, and mapped farms.");
 
 var bankProbe = new Skua.Core.Scripts.ScriptBank(null!,null!,null!,null!,null!,null!,null!,null!);
 CommunityToolkit.Mvvm.Messaging.StrongReferenceMessenger.Default.Send<Skua.Core.Messaging.BankLoadedMessage,int>(new(),(int)Skua.Core.Messaging.MessageChannels.GameEvents);

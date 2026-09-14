@@ -267,8 +267,8 @@ test('achievements panel shows images and earned state from host checks', () => 
   assert.deepEqual(commands.pop(),['achievements']);
   context.window.receiveHostMessage({type:'achievements',character:'Scott',earned:1,total:2,note:'Inventory, bank, and story progress checked.',newlyEarned:['vhl'],
     items:[
-      {Id:'vhl',Title:'Void Highlord',Detail:'Nation grind',Image:'vhl.png',Earned:true,Reason:'Inventory',Location:'Inventory'},
-      {Id:'order',Title:'Lord of Order',Detail:'Daily class',Image:'order.png',Earned:false,Reason:'Not earned yet',Location:'Missing'}
+      {Id:'vhl',Title:'Void Highlord',Detail:'Nation grind',Image:'vhl.png',Earned:true,Reason:'Inventory',Location:'Inventory',Script:'Nation/VHL/0VoidHighlord.cs',CanRun:false},
+      {Id:'blod',Title:'Blinding Light of Destiny',Detail:'Good-path axe',Image:'blod.png',Earned:false,Reason:'Not earned yet',Location:'Missing',Script:'Good/BLoD/0TheBlindingLightofDestiny.cs',CanRun:true}
     ]});
   const cards=elements.get('achievements-grid').children;
   assert.equal(cards.length,2);
@@ -277,13 +277,20 @@ test('achievements panel shows images and earned state from host checks', () => 
   assert.equal(cards[0].children[0].src,'brand/achievements/vhl.png');
   assert.equal(cards[0].children[0].alt,'Void Highlord');
   assert.match(cards[0].children[1].textContent,/Earned · Inventory/);
+  assert.equal(cards[0].children.length,4);
   assert.equal(cards[1].className,'achievement-card locked');
-  assert.equal(cards[1].children[0].src,'brand/achievements/order.png');
+  assert.equal(cards[1].children[0].src,'brand/achievements/blod.png');
+  assert.equal(cards[1].children[4].textContent,'Go');
   assert.match(elements.get('achievements-status').textContent,/Scott · 1\/2 earned/);
+  cards[1].children[4].onclick();
+  assert.deepEqual(commands.pop(),['achievements-go','blod']);
+  context.window.receiveHostMessage({type:'achievements-started',running:true,id:'blod'});
+  assert.match(elements.get('achievements-status').textContent,/Mapped bot started/);
   assert.equal(vm.runInNewContext("achievementImage('vhl.png')",context),'brand/achievements/vhl.png');
   assert.equal(vm.runInNewContext("achievementImage('https://evil.test/x.png')",context),'');
   const art=path.join(__dirname,'../desktop/brand/achievements');
-  for (const name of ['vhl','order','paladin','revenant','dragon','nsod','awe','blade-awe','chaos-avenger','archmage','lightcaster','scarlet']) {
+  const badges=['vhl','order','paladin','revenant','dragon','nsod','awe','blade-awe','chaos-avenger','archmage','lightcaster','scarlet','blood-sorceress','lightmage','dragon-shinobi','dragonslayer','dsg','frost-spirit','kings-echo','lich','martial-artist','necromancer','proto','sentinel','storms','vdk','arcana','arachnomancer','bard','chaos-slayer','deathknight','dracomancer','inversionist','evolved-shaman','glacial','horc','chunin','lycan','master-ranger','battle-mage','shaman','stonecrusher','thief-hours','troll-spellsmith','good-paladin','silver-paladin','cryomancer','pyromancer','shadowscythe','ynr','swordmaster','ildc','rustbucket','mecha','blaze-binder','blod','slod','armor-awe','helm-awe','awescended','sdka','soh'];
+  for (const name of badges) {
     assert.ok(fs.existsSync(path.join(art,name+'.png')), 'Missing achievement image '+name);
   }
 });
