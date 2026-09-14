@@ -34,7 +34,10 @@ public sealed class ItemPreview(Func<string,Task<string>>? loader=null)
                 }
                 picture=new(name,images,images.Length>0?"Wiki appearance preview":"No verified item image available.");
             } catch(Exception e) when(e is HttpRequestException or TaskCanceledException or InvalidOperationException) {picture=new(name,[],"Image source unavailable. Try again shortly.");}
-            if(cache.Count>=500)cache.Clear();cache[name]=(DateTime.UtcNow,picture);return picture;
+            if(cache.Count>=500)
+                foreach(var stale in cache.OrderBy(entry=>entry.Value.At).Take(100).Select(entry=>entry.Key).ToArray())
+                    cache.TryRemove(stale,out _);
+            cache[name]=(DateTime.UtcNow,picture);return picture;
         } finally {gate.Release();}
     }
     public static string[] Parse(HtmlNode root,string name) {

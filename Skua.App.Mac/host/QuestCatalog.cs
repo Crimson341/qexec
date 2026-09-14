@@ -11,16 +11,23 @@ public sealed class CatalogItem
     public HashSet<string> NeededFor = new();
     public HashSet<string> RewardsFrom = new();
     public HashSet<string> DropsFrom = new();
+    public string SearchText = "";
 }
 
 // Local evidence index, not a claim that historical rewards are still obtainable.
 public sealed class QuestCatalog(string questsFile, GearFinder finder)
 {
-    private readonly Lazy<List<CatalogItem>> index = new(() => Build(questsFile, finder.Drops));
+    private readonly Lazy<(List<CatalogItem> Items, HashSet<string> Ambiguous)> index = new(() => {
+        var items = Build(questsFile, finder.Drops);
+        foreach (var item in items)
+            item.SearchText = item.Name+" "+item.Category+" "+item.Description+" "+string.Join(" ",item.NeededFor);
+        var ambiguous = items.GroupBy(i=>i.Name,StringComparer.OrdinalIgnoreCase).Where(g=>g.Count()>1).Select(g=>g.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return (items, ambiguous);
+    });
     public static List<CatalogItem> Build(string questsFile, IEnumerable<GearDrop> drops)
     {
         var items = new Dictionary<int,CatalogItem>();
-        foreach (var quest in JArray.Parse(File.ReadAllText(questsFile)).OfType<JObject>())
+        foreach (var quest in QuestDataCache.Load(questsFile).OfType<JObject>())
         foreach (string field in new[]{"Rewards","SimpleRewards","Requirements","AcceptRequirements"})
         foreach (var raw in (quest[field] as JArray ?? new()).OfType<JObject>())
         {
@@ -53,8 +60,8 @@ public sealed class QuestCatalog(string questsFile, GearFinder finder)
         var invIds = inv.Select(i=>i.ID).ToHashSet(); var bankIds=stored.Select(i=>i.ID).ToHashSet();
         var invNames=inv.Select(i=>i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase); var bankNames=stored.Select(i=>i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         string Location(CatalogItem i) => (i.Id>0 ? invIds.Contains(i.Id) : invNames.Contains(i.Name)) ? "Inventory" : !bankLoaded ? "Unknown" : (i.Id>0 ? bankIds.Contains(i.Id) : bankNames.Contains(i.Name)) ? "Bank" : "Missing";
-        var ambiguousNames = index.Value.GroupBy(i=>i.Name,StringComparer.OrdinalIgnoreCase).Where(g=>g.Count()>1).Select(g=>g.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        var results = index.Value.Where(i => (search.Length == 0 || (i.Name+" "+i.Category+" "+i.Description+" "+string.Join(" ",i.NeededFor)).Contains(search,StringComparison.OrdinalIgnoreCase)) && (filter switch {
+        var catalog = index.Value;
+        var results = catalog.Items.Where(i => (search.Length == 0 || i.SearchText.Contains(search,StringComparison.OrdinalIgnoreCase)) && (filter switch {
             "missing" => !i.Temporary && Location(i)=="Missing",
             "owned" => Location(i) is "Inventory" or "Bank",
             "materials" => i.NeededFor.Count>0,
@@ -63,12 +70,12 @@ public sealed class QuestCatalog(string questsFile, GearFinder finder)
             _ => !i.Temporary
         })).OrderByDescending(i=>i.NeededFor.Count).ThenBy(i=>i.Name,StringComparer.OrdinalIgnoreCase).ToList();
         page=Math.Min(page,Math.Max(0,(results.Count-1)/50));
-        return new { type="quest-catalog", total=index.Value.Count, matches=results.Count,page, bankLoaded,
+        return new { type="quest-catalog", total=catalog.Items.Count, matches=results.Count,page, bankLoaded,
             items=results.Skip(page*50).Take(50).Select(i=>new { id=i.Id,name=i.Name,category=i.Category,ownership=Location(i),temporary=i.Temporary,
                 detail=(i.NeededFor.Count>0 ? "Required by "+i.NeededFor.Count+" quests: "+string.Join(", ",i.NeededFor.Take(3))+". " : "")+
                     (i.RewardsFrom.Count>0 ? "Reward: "+string.Join(", ",i.RewardsFrom.Take(2))+". " : "")+
                     (i.DropsFrom.Count>0 ? "Drop evidence: "+string.Join(", ",i.DropsFrom.Take(2))+". " : ""),
                 description=i.Description == "x" ? "" : i.Description,
-                canFind=!i.Temporary && !ambiguousNames.Contains(i.Name) && Location(i)=="Missing", routeNote=ambiguousNames.Contains(i.Name) ? "Ambiguous item name" : i.Temporary ? "Quest material" : Location(i), availability="Rarity / current availability unverified" }).ToArray() };
+                canFind=!i.Temporary && !catalog.Ambiguous.Contains(i.Name) && Location(i)=="Missing", routeNote=catalog.Ambiguous.Contains(i.Name) ? "Ambiguous item name" : i.Temporary ? "Quest material" : Location(i), availability="Rarity / current availability unverified" }).ToArray() };
     }
 }

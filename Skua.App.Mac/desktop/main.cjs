@@ -24,11 +24,30 @@ function liveContents() {
   const contents = window.webContents;
   return contents && !contents.isDestroyed() ? contents : null;
 }
-function toWindow(value) {
+const pendingUi = [];
+let flushScheduled = false;
+function scheduleFlush() {
+  if (flushScheduled) return;
+  flushScheduled = true;
+  const later = typeof setImmediate === 'function' ? setImmediate : fn => setTimeout(fn, 0);
+  later(flushToWindow);
+}
+function flushToWindow() {
+  flushScheduled = false;
+  if (!pendingUi.length) return;
+  const batch = pendingUi.splice(0);
   try {
     const contents = liveContents();
-    if (contents) contents.executeJavaScript('window.receiveHostMessage(' + JSON.stringify(value) + ')').catch(error => diagnostic('UI delivery: '+error.message));
+    if (!contents) return;
+    const code = batch.length === 1
+      ? 'window.receiveHostMessage(' + JSON.stringify(batch[0]) + ')'
+      : 'window.receiveHostMessages(' + JSON.stringify(batch) + ')';
+    contents.executeJavaScript(code).catch(error => diagnostic('UI delivery: '+error.message));
   } catch (error) { diagnostic('UI delivery: '+error.message); }
+}
+function toWindow(value) {
+  pendingUi.push(value);
+  scheduleFlush();
 }
 function reply(id, value, error) { send({type:'reply', id, value, error}); }
 function log(message, kind = 'Error') { toWindow({type:'log', kind, message}); }

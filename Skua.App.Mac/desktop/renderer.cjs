@@ -31,6 +31,11 @@ function itemPicture(parent,name){
   parent.append(button);
   if(itemPictures.has(name))paintPicture(button,itemPictures.get(name));else if(pictureObserver)pictureObserver.observe(button);
 }
+function rememberPicture(name,picture){
+  if(itemPictures.has(name))itemPictures.delete(name);
+  itemPictures.set(name,picture);
+  while(itemPictures.size>500)itemPictures.delete(itemPictures.keys().next().value);
+}
 byId('item-image-close').onclick=()=>byId('item-image-dialog').close();
 byId('become-op').onclick=()=>{window.skua.command('become-op');byId('nav-activity').onclick();};
 let autoEnabled = false;
@@ -317,9 +322,9 @@ function receiveArea(message) {
   }
 }
 
-window.skua.onMessage(message => {
+function handleHostMessage(message) {
   if(message.type==='item-preview'){
-    picturePending.delete(message.name);if(itemPictures.size>=500)itemPictures.clear();itemPictures.set(message.name,message.picture);
+    picturePending.delete(message.name);rememberPicture(message.name,message.picture);
     for(const button of document.querySelectorAll('.item-picture'))if(button.dataset.itemName===message.name)paintPicture(button,message.picture);
     return;
   }
@@ -493,6 +498,11 @@ window.skua.onMessage(message => {
       } catch (error) { window.skua.reply(message.id, null, error.message); }
       break;
   }
+}
+window.skua.onMessage(message => { handleHostMessage(message); controls(); });
+window.receiveHostMessages = messages => {
+  if (!Array.isArray(messages)) return;
+  for (const message of messages) handleHostMessage(message);
   controls();
-});
+};
 controls();

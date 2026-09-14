@@ -22,7 +22,7 @@ public sealed class QuestPlanner(IScriptInterface bot, string scriptsRoot, GearO
         new("dragon", "Dragon of Time", "Solo", 90, "Other/Classes/DragonOfTime.cs", "Alternative combat class goal with a substantial quest chain."),
         new("nsod", "Necrotic Sword of Doom", "Weapon", 100, "Evil/NSoD/0NecroticSwordOfDoom.cs", "Long-term endgame weapon goal. Review the script options and resource requirements.")
     ];
-    private static readonly HttpClient Http = new() { Timeout = TimeSpan.FromSeconds(12) };
+    private static readonly HttpClient Http = new(new SocketsHttpHandler { PooledConnectionLifetime = TimeSpan.FromMinutes(5) }) { Timeout = TimeSpan.FromSeconds(12) };
     public static bool PirateVerified(DateTime today) => today.Date >= new DateTime(2026,9,4) && today.Date <= new DateTime(2026,9,18);
     public static List<QuestSuggestion> Recommend(IEnumerable<InventoryItem> inventory, IEnumerable<InventoryItem> bank, bool bankLoaded, int level, Func<string,bool> scriptExists)
     {

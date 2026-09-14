@@ -91,7 +91,7 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   assert.equal(elements.get('quest-goals').children[0].children[1].disabled,true);
   assert.match(elements.get('quest-equipped').textContent,/Void Highlord/);
   assert.equal(elements.get('quest-event-go').disabled,true);
-  receive({type:'quest-catalog',total:19065,matches:1,page:0,bankLoaded:true,items:[{id:100,name:'Sword',category:'Sword',ownership:'Bank',detail:'Reward',description:'',availability:'Unverified',canFind:false}]});
+  context.window.receiveHostMessages([{type:'quest-catalog',total:19065,matches:1,page:0,bankLoaded:true,items:[{id:100,name:'Sword',category:'Sword',ownership:'Bank',detail:'Reward',description:'',availability:'Unverified',canFind:false}]}]);
   assert.equal(elements.get('catalog-items').children[0].children[1].disabled,true);
   assert.equal(elements.get('catalog-next').disabled,true);
   receive({type:'gear-sources',sources:[{Name:'Open shop',Description:'Shop route',File:'Evidence',Code:'script',Action:'Go — open shop',Id:'route'}],message:'Generated route'});

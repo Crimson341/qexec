@@ -19,18 +19,12 @@ main{position:relative}#quest-view{position:absolute;inset:0;overflow:auto;backg
 .vibe-top{top:0}.vibe-bottom{bottom:0;transform:rotate(180deg)}
 .vibe-left,.vibe-right{top:28px;bottom:28px;width:28px;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(32,1fr)}
 .vibe-left{left:0}.vibe-right{right:0;transform:rotate(180deg)}
-.vibe-pixels i{display:block;background:#ad98fc;opacity:.08;animation:vibe-pixel 3.8s ease-in-out infinite}
-.vibe-pixels i:nth-child(3n){animation-delay:-1.6s;background:#d5caff}
-.vibe-pixels i:nth-child(5n){animation-delay:-2.8s;background:#8f89eb}
-.vibe-pixels i:nth-child(7n){animation-delay:-.7s}
-.vibe-pixels i:nth-child(4n+1){visibility:hidden}
-.vibe-top i:nth-child(n+33),.vibe-bottom i:nth-child(n+33){background:#9a7bf0;animation-duration:5.1s}
-.vibe-top i:nth-child(n+65),.vibe-bottom i:nth-child(n+65){animation-duration:6.7s}
-.vibe-left i:nth-child(3n),.vibe-right i:nth-child(3n){animation-duration:6.7s}
+.vibe-top,.vibe-bottom{background:repeating-linear-gradient(90deg,#ad98fc 0 8px,transparent 8px 14px,#d5caff 14px 20px,transparent 20px 26px,#8f89eb 26px 32px,transparent 32px 40px);opacity:.35;animation:vibe-pixel 3.8s ease-in-out infinite}
+.vibe-left,.vibe-right{background:repeating-linear-gradient(180deg,#ad98fc 0 8px,transparent 8px 14px,#d5caff 14px 20px,transparent 20px 26px,#8f89eb 26px 32px,transparent 32px 40px);opacity:.35;animation:vibe-pixel 5.1s ease-in-out infinite}
 .vibe-label{position:absolute;bottom:12px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;padding:7px 12px;color:#eee8ff;background:#201d2ee8;border:1px solid #a58cdb66;box-shadow:0 2px 16px #08071066;font-size:11px;font-weight:500;letter-spacing:.35px;white-space:nowrap}
 .vibe-mark{font-size:16px;color:#c4adff;line-height:1}.vibe-dots{color:#c4adff;letter-spacing:2px;animation:vibe-pixel 2s ease-in-out infinite}
 @keyframes vibe-pixel{0%,100%{opacity:.06}35%{opacity:.17}55%{opacity:.7}75%{opacity:.12}}
-@media(prefers-reduced-motion:reduce){.vibe-pixels i,.vibe-dots{animation:none;opacity:.22}}
+@media(prefers-reduced-motion:reduce){.vibe-pixels,.vibe-dots{animation:none;opacity:.22}}
 
 /* Motion follows interaction; the Flash surface itself never moves. */
 :root{--motion-quick:140ms;--motion-panel:220ms;--motion-ease:cubic-bezier(.2,.7,.2,1)}
