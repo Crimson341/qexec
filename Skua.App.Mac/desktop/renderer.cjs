@@ -604,6 +604,9 @@ function handleHostMessage(message) {
       if (!message.message) break;
       byId('app-update-message').textContent = message.message;
       byId('app-update').hidden = false;
+      byId('app-update-button').disabled = !!message.applying;
+      byId('app-update-dismiss').disabled = !!message.applying;
+      byId('app-update-button').textContent = message.applying ? 'Updating…' : 'Update';
       log(message.message);
       break;
     case 'engine-exit':

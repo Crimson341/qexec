@@ -193,6 +193,9 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   const updateCommands=[];context.window.skua.command=(...args)=>updateCommands.push(args);
   elements.get('app-update-button').onclick();
   assert.deepEqual(updateCommands.pop(),['app-update-open']);
+  receive({type:'app-update',message:'Downloading update…',applying:true});
+  assert.equal(elements.get('app-update-button').disabled,true);
+  assert.equal(elements.get('app-update-button').textContent,'Updating…');
   elements.get('app-update-dismiss').onclick();
   assert.equal(elements.get('app-update').hidden,true);
   receive({type:'engine-exit',code:1});

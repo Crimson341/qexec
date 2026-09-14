@@ -1,10 +1,12 @@
 const {app, BrowserWindow, Menu, dialog, clipboard, shell, net} = require('electron');
-const {spawn, execFileSync} = require('child_process');
+const {spawn, execFile, execFileSync} = require('child_process');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 const readline = require('readline');
 const {pathToFileURL} = require('url');
 const updateCheck = require('./update-check.cjs');
+const updateInstall = require('./update-install.cjs');
 
 const flashPath = process.env.SKUA_FLASH_PLUGIN || '/Applications/Artix Game Launcher.app/Contents/Resources/plugins/PepperFlashPlayer.plugin';
 const swfPath = process.env.SKUA_SWF || path.join(__dirname, 'assets', 'skua.swf');
@@ -16,7 +18,7 @@ fs.mkdirSync(app.getPath('userData'), {recursive:true});
 const diagnostic = text => fs.appendFileSync(path.join(app.getPath('userData'), 'startup.log'), new Date().toISOString() + ' ' + text + '\n');
 app.commandLine.appendSwitch('ppapi-flash-path', flashPath);
 app.commandLine.appendSwitch('ppapi-flash-version', '32.0.0.344');
-let window, host, selected, running = false, pageURL, updateUrl = '', pendingUpdateNotice = null;
+let window, host, selected, running = false, pageURL, updateDownloadUrl = '', pendingUpdateNotice = null, applyingUpdate = false;
 const requests = new Map();
 const events = new Set(['requestLoadGame','loaded','debug','pext','packet','pre-load','game-error']);
 function send(value) { if (host && !host.killed && host.stdin.writable) host.stdin.write(JSON.stringify(value) + '\n'); }
@@ -59,8 +61,13 @@ async function chooseScript() {
 }
 function deliverUpdateNotice() {
   if (!pendingUpdateNotice || !liveContents()) return;
-  toWindow({type:'app-update', message:pendingUpdateNotice.message, url:pendingUpdateNotice.url, aheadBy:pendingUpdateNotice.aheadBy});
-  pendingUpdateNotice = null;
+  toWindow({
+    type:'app-update',
+    message:pendingUpdateNotice.message,
+    aheadBy:pendingUpdateNotice.aheadBy,
+    applying:pendingUpdateNotice.applying === true
+  });
+  if (!pendingUpdateNotice.applying) pendingUpdateNotice = null;
 }
 function checkAppUpdate() {
   try {
@@ -69,9 +76,10 @@ function checkAppUpdate() {
     const headers = updateCheck.githubHeaders(identity.version);
     const getJson = url => updateCheck.requestGithubJson(net, url, headers, 10000);
     return updateCheck.findUpdate({getJson, identity}).then(result => {
-      if (!result || !result.available || !updateCheck.isAllowedUpdateUrl(result.url)) return;
-      updateUrl = result.url;
-      pendingUpdateNotice = {message:result.message, url:result.url, aheadBy:result.aheadBy};
+      const downloadUrl = result && (result.downloadUrl || result.url);
+      if (!result || !result.available || !updateCheck.isAllowedDownloadUrl(downloadUrl)) return;
+      updateDownloadUrl = downloadUrl;
+      pendingUpdateNotice = {message:result.message, aheadBy:result.aheadBy, applying:false};
       deliverUpdateNotice();
     }).catch(error => diagnostic('Update check: ' + (error && error.message ? error.message : error)));
   } catch (error) {
@@ -79,13 +87,43 @@ function checkAppUpdate() {
     return Promise.resolve();
   }
 }
+function applyAppUpdate() {
+  if (applyingUpdate) return;
+  if (!updateCheck.isAllowedDownloadUrl(updateDownloadUrl)) {
+    log('No packaged update is available.');
+    return;
+  }
+  applyingUpdate = true;
+  pendingUpdateNotice = {message:'Downloading update…', applying:true};
+  deliverUpdateNotice();
+  const identity = updateCheck.resolveIdentity({fs, path, dirname:__dirname, env:process.env, execFileSync});
+  updateInstall.applyPackagedUpdate({
+    net,
+    url: updateDownloadUrl,
+    headers: updateCheck.githubHeaders(identity.version),
+    execPath: process.execPath,
+    pid: process.pid,
+    spawn,
+    execFile,
+    fs,
+    path,
+    tmpdir: os.tmpdir(),
+    app
+  }).then(() => {
+    pendingUpdateNotice = {message:'Installing and restarting…', applying:true};
+    deliverUpdateNotice();
+  }).catch(error => {
+    applyingUpdate = false;
+    const message = 'Update failed: ' + (error && error.message ? error.message : error);
+    diagnostic(message);
+    log(message);
+    pendingUpdateNotice = {message, applying:false};
+    deliverUpdateNotice();
+  });
+}
 function command(name, value) {
   if (name === 'app-update-open') {
-    if (!updateCheck.isAllowedUpdateUrl(updateUrl)) return;
-    const opened = shell.openExternal(updateUrl);
-    if (opened && typeof opened.then === 'function') {
-      opened.catch(error => log('Could not open the update page: ' + error.message));
-    }
+    applyAppUpdate();
     return;
   }
   if (name === 'gear-wiki-open') {
