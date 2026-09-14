@@ -1,5 +1,6 @@
 using HtmlAgilityPack;
 using Skua.Core.Models.Items;
+using System.Collections.Concurrent;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -10,7 +11,8 @@ public sealed record QuestPickup(string Map,string Item,bool Temporary,string Ev
 public sealed record QuestResolution(IReadOnlyList<GearDrop> Drops,IReadOnlyList<QuestPickup> Pickups);
 public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Func<string,Task<IReadOnlyList<string>>>? searcher=null)
 {
-    static readonly HttpClient Client=new(new HttpClientHandler { AllowAutoRedirect=false }) { Timeout=TimeSpan.FromSeconds(10) };
+    static readonly HttpClient Client=new(new SocketsHttpHandler { AllowAutoRedirect=false, PooledConnectionLifetime=TimeSpan.FromMinutes(5) }) { Timeout=TimeSpan.FromSeconds(10) };
+    static readonly ConcurrentDictionary<string,Lazy<Task<(DateTime At,string Html)>>> Pages=new(StringComparer.Ordinal);
     static string Text(HtmlNode n)=>Normalize(WebUtility.HtmlDecode(n.InnerText));
     static string Normalize(string s)=>Regex.Replace(s.Replace('’','\''),@"\s+"," ").Trim();
     static bool Same(string a,string b)=>string.Equals(Normalize(a),Normalize(b),StringComparison.OrdinalIgnoreCase);
@@ -23,6 +25,24 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
     }
     internal static async Task<string> Download(string path)
     {
+        if(Pages.TryGetValue(path,out var existing)) {
+            try {
+                var hit=await existing.Value;
+                if(DateTime.UtcNow-hit.At<TimeSpan.FromMinutes(30)) return hit.Html;
+            } catch { /* Expired or failed entries are fetched again. */ }
+            Pages.TryRemove(path,out _);
+        }
+        var lazy=Pages.GetOrAdd(path,_=>new Lazy<Task<(DateTime At,string Html)>>(()=>Fetch(path)));
+        try {
+            var page=await lazy.Value;
+            if(Pages.Count>256)
+                foreach(var key in Pages.Keys.Take(64).ToArray())
+                    Pages.TryRemove(key,out _);
+            return page.Html;
+        } catch { Pages.TryRemove(path,out _); throw; }
+    }
+    static async Task<(DateTime At,string Html)> Fetch(string path)
+    {
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
         using var request=new HttpRequestMessage(HttpMethod.Get,"http://aqwwiki.wikidot.com"+path);
         request.Headers.UserAgent.ParseAdd("qexec/0.1");
@@ -31,7 +51,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
         using var stream=await response.Content.ReadAsStreamAsync(deadline.Token);
         using var buffer=new MemoryStream();var chunk=new byte[8192];int count;
         while((count=await stream.ReadAsync(chunk,deadline.Token))>0) { if(buffer.Length+count>2_000_000) throw new InvalidOperationException("Wiki page is too large.");buffer.Write(chunk,0,count); }
-        return System.Text.Encoding.UTF8.GetString(buffer.ToArray());
+        return (DateTime.UtcNow,System.Text.Encoding.UTF8.GetString(buffer.ToArray()));
     }
     static IEnumerable<HtmlNode> Field(HtmlNode scope,string label)
     {

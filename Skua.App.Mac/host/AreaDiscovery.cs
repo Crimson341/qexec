@@ -1,6 +1,4 @@
 using HtmlAgilityPack;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Net;
 using System.Text.RegularExpressions;
 
@@ -85,19 +83,10 @@ public sealed class AreaDiscovery(Func<string,Task<string>>? loader=null,Func<st
     }
     public static IReadOnlyList<AreaShop> IndexShops(string root,string map) {
         var result=new List<AreaShop>();
-        foreach(var file in Directory.EnumerateFiles(root,"*.cs",SearchOption.AllDirectories)) {
-            if(file.Contains("Generated-") || new FileInfo(file).Length>2_000_000)continue;
-            string text=File.ReadAllText(file);if(!text.Contains(map,StringComparison.OrdinalIgnoreCase))continue;
-            foreach(var call in CSharpSyntaxTree.ParseText(text).GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()) {
-                if(call.Expression is not MemberAccessExpressionSyntax member || member.Name.Identifier.ValueText is not ("StartBuyAllMerge" or "BuyItem"))continue;
-                var args=call.ArgumentList.Arguments;
-                ExpressionSyntax? Arg(string name,int i)=>args.FirstOrDefault(a=>a.NameColon?.Name.Identifier.ValueText==name)?.Expression ?? (args.Count>i && args[i].NameColon==null?args[i].Expression:null);
-                if(Arg("map",0) is not LiteralExpressionSyntax m || m.Token.Value is not string route || !Same(route,map))continue;
-                if(Arg("shopID",1) is not LiteralExpressionSyntax id || id.Token.Value is not int shop || shop<=0)continue;
-                string name=Regex.Replace(Path.GetFileNameWithoutExtension(file),"([a-z])([A-Z])","$1 $2");
-                result.Add(new(shop.ToString(),name,shop,map,""));
-            }
-        }
+        foreach(var script in ScriptEvidence.Scan(root))
+            foreach(var shop in script.Shops)
+                if(Same(shop.Map,map))
+                    result.Add(new(shop.ShopId.ToString(),script.DisplayName,shop.ShopId,map,""));
         return result.DistinctBy(s=>s.ID).OrderBy(s=>s.Name).Take(100).ToArray();
     }
 }

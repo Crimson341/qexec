@@ -6,7 +6,7 @@ namespace Skua.Mac;
 
 public sealed class GearIdentity(string questFile)
 {
-    private static readonly HttpClient Client = new(new HttpClientHandler { AllowAutoRedirect = false }) { Timeout = TimeSpan.FromSeconds(12) };
+    private static readonly HttpClient Client = new(new SocketsHttpHandler { AllowAutoRedirect = false, PooledConnectionLifetime = TimeSpan.FromMinutes(5) }) { Timeout = TimeSpan.FromSeconds(12) };
     static GearIdentity() { Client.DefaultRequestHeaders.UserAgent.ParseAdd("SkuaMac/0.1"); Client.DefaultRequestHeaders.Accept.ParseAdd("text/html"); }
     private Dictionary<int,string>? names;
     public static string SlotLabel(string slot) => slot switch {
@@ -31,7 +31,7 @@ public sealed class GearIdentity(string questFile)
         {
             names = new();
             if (File.Exists(questFile))
-                foreach (var obj in JArray.Parse(File.ReadAllText(questFile)).Descendants().OfType<JObject>())
+                foreach (var obj in QuestDataCache.Load(questFile).Descendants().OfType<JObject>())
                     if (int.TryParse((string?)obj["ItemID"],out int id) && id > 0 && (string?)obj["sName"] is { Length: > 0 } name)
                         names.TryAdd(id,name);
         }

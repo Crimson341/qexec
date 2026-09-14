@@ -18,17 +18,19 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
     loadURL(){}
   }
   const electron={app,BrowserWindow:Window,Menu:{setApplicationMenu(){},buildFromTemplate(){return[];}},dialog:{showErrorBox(_title,message){throw new Error(message);}},clipboard:{},shell:{}};
-  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){}}:require(name),process:{env:{},resourcesPath:'/test'},__dirname:'/test',console};
+  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){}}:require(name),process:{env:{},resourcesPath:'/test'},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
   const contents=created.contents;
   contents.emit('console-message',{},0,'__SKUA_UI__{"type":"command","command":"area-quest-open","value":"key"}');
   assert.equal(reads,1,'Live renderer messages still validate their origin');
-  vm.runInNewContext('toWindow({type:"test"})',context);
-  assert.equal(delivered,1);
+  vm.runInNewContext('toWindow({type:"a"});toWindow({type:"b"})',context);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(delivered,1,'Host UI messages flush as one executeJavaScript call');
   contents.dead=true;
   assert.doesNotThrow(()=>contents.emit('console-message',{},0,'__SKUA_UI__{}'));
   assert.doesNotThrow(()=>vm.runInNewContext('toWindow({type:"test"})',context));
+  await new Promise(resolve=>setImmediate(resolve));
   assert.equal(reads,1,'Destroyed webContents never receives getURL');
   assert.equal(delivered,1,'Destroyed webContents never receives JavaScript');
   created.dead=true;

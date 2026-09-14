@@ -1,6 +1,5 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Skua.Mac;
 
@@ -8,33 +7,9 @@ public record GearQuestRecipe(string File,string Class,string Method,string Enum
 public static class GearQuestRecipes
 {
     public static List<GearQuestRecipe> Find(string root,int questId,int itemId)
-    {
-        var results=new List<GearQuestRecipe>();
-        foreach(var file in Directory.EnumerateFiles(root,"*.cs",SearchOption.AllDirectories)) {
-            if((file.Contains(Path.DirectorySeparatorChar+"Generated-Area"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Gear"+Path.DirectorySeparatorChar) || file.Contains(Path.DirectorySeparatorChar+"Generated-Quests"+Path.DirectorySeparatorChar)) || new FileInfo(file).Length>2_000_000) continue;
-            string text=File.ReadAllText(file);
-            if(!text.Contains(itemId.ToString()) || !text.Contains(questId.ToString())) continue;
-            var tree=CSharpSyntaxTree.ParseText(text).GetRoot();
-            foreach(var cls in tree.DescendantNodes().OfType<ClassDeclarationSyntax>()) {
-                if(cls.TypeParameterList!=null || cls.Modifiers.Any(m=>m.IsKind(SyntaxKind.SealedKeyword) || m.IsKind(SyntaxKind.StaticKeyword) || m.IsKind(SyntaxKind.AbstractKeyword)) || cls.Members.OfType<ConstructorDeclarationSyntax>().Any()) continue;
-                if(!cls.Members.OfType<FieldDeclarationSyntax>().Any(f=>f.Modifiers.Any(m=>m.IsKind(SyntaxKind.PublicKeyword)) && f.Declaration.Variables.Any(v=>v.Identifier.ValueText=="OptionsStorage"))) continue;
-                foreach(var en in cls.Members.OfType<EnumDeclarationSyntax>()) {
-                    if(!en.Members.Any(m=>m.EqualsValue?.Value is LiteralExpressionSyntax l && l.Token.ValueText==itemId.ToString())) continue;
-                    var option=cls.DescendantNodes().OfType<ObjectCreationExpressionSyntax>().FirstOrDefault(o=>o.Type is GenericNameSyntax g && g.Identifier.ValueText=="Option" && g.TypeArgumentList.Arguments.Count==1 && g.TypeArgumentList.Arguments[0].ToString()==en.Identifier.ValueText);
-                    if(option?.ArgumentList?.Arguments.FirstOrDefault()?.Expression is not LiteralExpressionSyntax key || !key.IsKind(SyntaxKind.StringLiteralExpression)) continue;
-                    foreach(var method in cls.Members.OfType<MethodDeclarationSyntax>()) {
-                        if(!method.Modifiers.Any(m=>m.IsKind(SyntaxKind.PublicKeyword)) || method.Modifiers.Any(m=>m.IsKind(SyntaxKind.StaticKeyword))) continue;
-                        var args=method.ParameterList.Parameters;
-                        if(args.Count==0 || args[0].Type?.ToString()!=en.Identifier.ValueText || args.Skip(1).Any(p=>p.Default==null)) continue;
-                        bool accepts=method.DescendantNodes().OfType<InvocationExpressionSyntax>().Any(call=>call.Expression is MemberAccessExpressionSyntax member && member.Name.Identifier.ValueText is "EnsureAccept" or "Accept" && call.ArgumentList.Arguments.FirstOrDefault()?.Expression is LiteralExpressionSyntax id && id.Token.ValueText==questId.ToString());
-                        if(!accepts) continue;
-                        results.Add(new(Path.GetRelativePath(root,file).Replace('\\','/'),cls.Identifier.ValueText,method.Identifier.ValueText,en.Identifier.ValueText,key.Token.ValueText,questId,itemId));
-                    }
-                }
-            }
-        }
-        return results.Distinct().Take(3).ToList();
-    }
+        => ScriptEvidence.Scan(root).SelectMany(script => script.Recipes)
+            .Where(recipe => recipe.Quest==questId && recipe.Item==itemId)
+            .Distinct().Take(3).ToList();
     public static string Generate(GearQuestRecipe recipe)
     {
         string Q(string s)=>SymbolDisplay.FormatLiteral(s,true);

@@ -90,6 +90,16 @@ try {
     try { finder.Resolve(found[0].Id); throw new Exception("Accepted stale source."); } catch (ArgumentException) { }
     try { finder.Resolve("../../script.cs"); throw new Exception("Accepted arbitrary path."); } catch (ArgumentException) { }
 } finally { Directory.Delete(gearRoot,true); }
+var cacheRoot=Path.Combine(Path.GetTempPath(),"skua-script-cache-"+Guid.NewGuid().ToString("N"));
+Directory.CreateDirectory(cacheRoot);
+try {
+    var cacheFile=Path.Combine(cacheRoot,"Farm.cs");
+    File.WriteAllText(cacheFile,"public void ScriptMain() { Core.HuntMonster(\"battleon\", \"Slime\", \"Cache Sword\", 1, false); }");
+    Assert(new GearFinder(cacheRoot).Drops.Single().Monster=="Slime","Index first script contents.");
+    File.WriteAllText(cacheFile,"public void ScriptMain() { Core.HuntMonster(\"battleon\", \"Wolf\", \"Cache Sword\", 1, false); }");
+    File.SetLastWriteTimeUtc(cacheFile,File.GetLastWriteTimeUtc(cacheFile).AddSeconds(2));
+    Assert(new GearFinder(cacheRoot).Drops.Single().Monster=="Wolf","Edited script files invalidate the shared evidence cache.");
+} finally { Directory.Delete(cacheRoot,true); }
 Console.WriteLine("PASS: Gear source matching, helper exclusion, and candidate validation.");
 
 var characterHtml = "<h1>Chibisaur</h1><label>Class:</label><a>Blaze Binder</a><label>Weapon:</label><a>Dark Wizard&#39;s Disparage</a><label>Armor:</label><a>Chaos Doom Robe</a><label>Helm:</label><a>Diabolical Witch Hat + Blindfold</a><label>Cape:</label><a>Cape of Awe</a><label>Pet:</label><a>Gravelyn Bank Buddy</a>";

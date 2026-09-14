@@ -1,7 +1,5 @@
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Skua.Core.Models;
 
@@ -14,33 +12,7 @@ public sealed class GearFinder(string scriptsRoot, string? questsPath = null)
     private readonly Lazy<List<GearDrop>> indexedDrops = new(() => IndexDrops(scriptsRoot));
     public List<GearDrop> Drops => indexedDrops.Value;
     private static List<GearDrop> IndexDrops(string scriptsRoot)
-    {
-        var drops = new List<GearDrop>();
-        foreach (string file in Directory.EnumerateFiles(scriptsRoot, "*.cs", SearchOption.AllDirectories))
-        {
-            if (Path.GetRelativePath(scriptsRoot,file).Split(Path.DirectorySeparatorChar).Any(part=>part is "Generated-Gear" or "Generated-Quests" or "Generated-Area")) continue;
-            if (new FileInfo(file).Length > 2_000_000) continue;
-            string text = File.ReadAllText(file);
-            if (!text.Contains("HuntMonster(")) continue;
-            var root = CSharpSyntaxTree.ParseText(text).GetRoot();
-            foreach (var call in root.DescendantNodes().OfType<InvocationExpressionSyntax>())
-            {
-                if (call.Expression is not MemberAccessExpressionSyntax member || member.Name.Identifier.ValueText != "HuntMonster") continue;
-                var args = call.ArgumentList.Arguments;
-                ExpressionSyntax? Arg(string name, int index) => args.FirstOrDefault(a => a.NameColon?.Name.Identifier.ValueText == name)?.Expression
-                    ?? (args.Count > index && args[index].NameColon == null ? args[index].Expression : null);
-                string? Text(string name,int index) => Arg(name,index) is LiteralExpressionSyntax literal && literal.IsKind(SyntaxKind.StringLiteralExpression) ? literal.Token.ValueText : null;
-                string? map = Text("map",0), monster = Text("monster",1), drop = Text("item",2);
-                var temp = Arg("isTemp",4);
-                if (map == null || monster == null || drop == null || (temp != null && temp is not LiteralExpressionSyntax)) continue;
-                if (temp != null && !temp.IsKind(SyntaxKind.TrueLiteralExpression) && !temp.IsKind(SyntaxKind.FalseLiteralExpression)) continue;
-                bool temporary = temp == null || temp.IsKind(SyntaxKind.TrueLiteralExpression);
-                int line = call.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
-                drops.Add(new(map,monster,drop,temporary,Path.GetRelativePath(scriptsRoot,file) + ":" + line));
-            }
-        }
-        return drops;
-    }
+        => ScriptEvidence.Scan(scriptsRoot).SelectMany(script => script.Drops).ToList();
     private readonly System.Collections.Concurrent.ConcurrentDictionary<string, GearSource> allowed = new();
     private static string Quote(string value) => SymbolDisplay.FormatLiteral(value, true);
     public List<GearSource> Find(string item, int itemId = 0)
@@ -63,7 +35,7 @@ public sealed class GearFinder(string scriptsRoot, string? questsPath = null)
             Add("Monster drop: " + drop.Monster + " in /join " + drop.Map + ". Stop after owning one. Source: local script call; map access may be required.",new[]{(drop,1)});
         string questFile = questsPath ?? ClientFileSources.SkuaQuestsFile;
         if (File.Exists(questFile))
-        foreach (var quest in JArray.Parse(File.ReadAllText(questFile)).OfType<JObject>())
+        foreach (var quest in QuestDataCache.Load(questFile).OfType<JObject>())
         {
             var reward = ((quest["Rewards"] as JArray) ?? new()).Concat((quest["SimpleRewards"] as JArray) ?? new())
                 .FirstOrDefault(r => (itemId <= 0 || (int?)r["ItemID"] == itemId) && string.Equals((string?)r["sName"],item,StringComparison.OrdinalIgnoreCase));
