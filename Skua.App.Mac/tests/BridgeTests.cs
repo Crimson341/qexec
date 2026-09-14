@@ -200,6 +200,25 @@ catch (InvalidOperationException) { }
 try { Achievements.ResolvePath("missing-id",scriptsRoot,File.Exists); throw new Exception("Accepted an unknown achievement."); }
 catch (ArgumentException) { }
 Directory.Delete(scriptsRoot,true);
+var cachedStory = new Skua.Core.Models.Quests.QuestData { ID = 7165, Slot = 5, Value = 3, Name = "The Final Challenge" };
+Assert(Achievements.StoryCompleteQuiet(7165, null, cachedStory, (slot, value) => slot == 5 && value == 3), "Story checks use QuestData.json slot/value, not showQuests.");
+Assert(!Achievements.StoryCompleteQuiet(7165, null, cachedStory, (_, _) => false), "Unfinished story stays incomplete without loading the game panel.");
+var treeStory = new Skua.Core.Models.Quests.Quest { ID = 7165, Slot = 5, Value = 3, Name = "The Final Challenge" };
+Assert(Achievements.StoryCompleteQuiet(7165, treeStory, null, (slot, _) => slot == 5), "A quest already in the tree is enough.");
+Assert(!Achievements.StoryCompleteQuiet(99, null, null, (_, _) => true), "Missing cache does not invent story completion.");
+Assert(Achievements.StoryCompleteQuiet(2187, null, new Skua.Core.Models.Quests.QuestData { ID = 2187, Slot = -1, Value = 1, Name = "SDK" }, (_, _) => false), "Slot-less cached quests are treated complete without Flash.");
+string hostDir = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "..", "host"));
+if (!Directory.Exists(hostDir)) hostDir = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "host"));
+if (Directory.Exists(hostDir))
+{
+    string achievementsCs = File.ReadAllText(Path.Combine(hostDir, "Achievements.cs"));
+    Assert(!achievementsCs.Contains("Quests.Load("), "Achievement scans must not call IScriptQuest.Load / world.showQuests.");
+    Assert(!achievementsCs.Contains("HasBeenCompleted(questId)"), "HasBeenCompleted(int) EnsureLoads and opens Available Quests.");
+    string programCs = File.ReadAllText(Path.Combine(hostDir, "Program.cs"));
+    int poll = programCs.IndexOf("command\"] == \"active-quests\"", StringComparison.Ordinal);
+    int next = programCs.IndexOf("command\"] == \"gear-find\"", StringComparison.Ordinal);
+    Assert(poll >= 0 && next > poll && !programCs[poll..next].Contains("ScanAchievements"), "The 3s ledger poll must not scan achievements.");
+}
 Console.WriteLine("PASS: Achievement inventory, story, bank, persisted awards, and mapped farms.");
 
 var bankProbe = new Skua.Core.Scripts.ScriptBank(null!,null!,null!,null!,null!,null!,null!,null!);

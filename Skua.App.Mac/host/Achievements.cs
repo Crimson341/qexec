@@ -1,6 +1,7 @@
 using Newtonsoft.Json.Linq;
 using Skua.Core.Interfaces;
 using Skua.Core.Models.Items;
+using Skua.Core.Models.Quests;
 
 namespace Skua.Mac;
 
@@ -252,9 +253,31 @@ public sealed class Achievements(IScriptInterface bot, GearOwnership ownership, 
         };
     }
 
+    /// <summary>
+    /// Story progress from the live quest tree or QuestData.json. Never calls
+    /// <c>IScriptQuest.Load</c> / <c>world.showQuests</c> (that opens the Flash Available Quests panel).
+    /// </summary>
+    public static bool StoryCompleteQuiet(int questId, Quest? treeQuest, QuestData? cached, Func<int, int, bool> slotCompleted)
+    {
+        if (questId <= 0) return false;
+        if (treeQuest != null && treeQuest.ID == questId)
+            return treeQuest.Slot < 0 || slotCompleted(treeQuest.Slot, treeQuest.Value);
+        if (cached != null && cached.ID == questId)
+            return cached.Slot < 0 || slotCompleted(cached.Slot, cached.Value);
+        return false;
+    }
+
     public bool StoryComplete(int questId)
     {
-        try { return bot.Quests.HasBeenCompleted(questId); }
+        try
+        {
+            bot.Quests.TryGetQuest(questId, out var live);
+            try { bot.Quests.LoadCachedQuests(); } catch { /* QuestData.json missing; inventory awards still apply. */ }
+            QuestData? cached = null;
+            try { bot.Quests.CachedDictionary.TryGetValue(questId, out cached); } catch { }
+            return StoryCompleteQuiet(questId, live, cached, (slot, value) =>
+                bot.Quests.HasBeenCompleted(new Quest { ID = questId, Slot = slot, Value = value, Name = "" }));
+        }
         catch (Exception) { return false; }
     }
 
@@ -288,11 +311,8 @@ public sealed class Achievements(IScriptInterface bot, GearOwnership ownership, 
             loaded = false;
             bank = [];
         }
-        if (Catalog.SelectMany(d => d.StoryQuests).Distinct().ToArray() is { Length: > 0 } quests)
-        {
-            try { bot.Quests.Load(quests); }
-            catch (Exception) { /* Story checks then report incomplete; inventory awards still apply. */ }
-        }
+        try { bot.Quests.LoadCachedQuests(); }
+        catch (Exception) { /* Story checks then report incomplete; inventory awards still apply. */ }
         var store = LoadStore(storePath);
         var persisted = ReadAwards(store, character);
         var evaluated = Evaluate(inventory, bank, loaded, StoryComplete, persisted, Installed);
