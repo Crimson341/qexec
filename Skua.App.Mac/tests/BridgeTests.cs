@@ -59,6 +59,14 @@ var stallStart=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc);
 Assert(QuestHunt.Stalled(2,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"Unchanged quantity for the stall window is stuck.");
 Assert(!QuestHunt.Stalled(3,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"A quantity gain is not a stall.");
 Assert(QuestHunt.HasMonster(new[]{new Skua.Core.Models.Monsters.Monster{Name=" Infernal Mage "}},"Infernal Mage"),"Monster names match after trim.");
+Assert(QuestHunt.NextRoute("forest","Wolf",[("cave","Bat")],0)?.Monster=="Bat","Documented alternate hunt routes are offered after a stall.");
+Assert(QuestHunt.NextRoute("forest","Wolf",[("forest","Wolf"),("cave","Bat")],0)?.Map=="cave","The current map/monster is not reused as an alternate.");
+Assert(QuestHunt.NextRoute("forest","Wolf",null,0)==null,"No invented alternate when the wiki listed only one route.");
+Assert(QuestFastestPath.IsFarmable(false,false) && !QuestFastestPath.IsFarmable(true,false) && !QuestFastestPath.IsFarmable(false,true),"Repeatable farms are !Once and not daily-done.");
+var far=new GearDrop("other","Bat","Fang",true,"https://aqwwiki.wikidot.com/quest");
+var near=new GearDrop("forest","Wolf","Fang",true,"https://aqwwiki.wikidot.com/quest");
+Assert(QuestFastestPath.PickDrop(new[]{far,near},"forest")!.Map=="forest","Among documented maps, stay on the current map.");
+Assert(QuestFastestPath.SelectDrops(new[]{far,near},"other").Single().Alternates!.Single().Map=="forest","Slower documented maps stay available as hunt alternates.");
 Console.WriteLine("PASS: Adaptive combat health thresholds, recovery hysteresis, encounter estimate, and class profile selection.");
 
 var heroSouls = new[] {new Skua.Core.Models.Items.ItemBase { ID=13949, Name="Hero Souls", Quantity=5, Temp=true }};
@@ -269,7 +277,7 @@ Console.WriteLine("PASS: Automatic quest-recipe discovery, exact reward selectio
 var requirement=new Skua.Core.Models.Items.ItemBase{ID=321,Name="Quest Fang",Temp=true,Quantity=5};
 var autoQuest=ActiveQuestMaker.Generate(42,100,new[]{requirement},new[]{new GearDrop("forest","Wolf","Quest Fang",true,"test")},(_,_)=>null);
 Assert(autoQuest.Contains("bot.TempInv.Contains(321,5)") && autoQuest.Contains("EnsureComplete(42,100)") && autoQuest.Contains("CanCompleteFullCheck(42)"),"Auto quest uses exact objective quantity, item check, and chosen reward.");
-Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true)") && autoQuest.Contains("core.Join(\"forest\")"),"Generated hunts use adaptive QuestHunt instead of a fixed Farm combo.");
+Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true)") && autoQuest.Contains("core.Join(\"forest\")") && autoQuest.Contains("string.Equals(bot.Map.Name,\"forest\""),"Generated hunts use adaptive QuestHunt and skip a join when already on the map.");
 Assert(autoQuest.Contains("Quest step: hunt Quest Fang") && autoQuest.Contains("Quest step: turn-in"),"Generated scripts emit structured hunt and turn-in logs for the ledger.");
 Assert(!autoQuest.Contains("EnsureAccept") && !autoQuest.Contains("RegisterQuests") && !autoQuest.Contains("while ("),"Never accept another quest, register loops, or repeat selected quest.");
 Assert(autoQuest.Contains("Quest was abandoned") && autoQuest.Contains("finally {core.SetOptions(false);}"),"Abort abandoned quest and restore settings.");
@@ -281,6 +289,9 @@ Assert(bankedQuest.Contains("core.Unbank(456)") && !bankedQuest.Contains("HuntMo
 Assert(bankedQuest.Contains("Quest step: unbank Banked Item") && readyQuest.Contains("Quest step: turn-in"),"Banked and ready quests still emit unbank/turn-in step logs.");
 var ledger=JObject.FromObject(ActiveQuestMaker.Describe(42,"Hunt",new[]{requirement},(id,temp)=>id==321&&temp?2:0,false,false,false,false,true,Array.Empty<object>()));
 Assert((int?)ledger["objectives"]![0]!["have"]==2 && (int?)ledger["objectives"]![0]!["need"]==5 && (string?)ledger["objectives"]![0]!["name"]=="Quest Fang","Ledger rows include live objective counts.");
+Assert((bool?)ledger["farmable"]==true && (bool?)ledger["once"]==false,"Repeatable accepted quests are marked farmable.");
+var onceQuest=JObject.FromObject(ActiveQuestMaker.Describe(43,"Story",Array.Empty<Skua.Core.Models.Items.ItemBase>(),(_,_)=>0,false,false,false,false,true,Array.Empty<object>(),true));
+Assert((bool?)onceQuest["farmable"]==false && (bool?)onceQuest["once"]==true,"Once-only story quests are not offered as farms.");
 var dailyBlocked=JObject.FromObject(ActiveQuestMaker.Describe(1,"Daily",Array.Empty<Skua.Core.Models.Items.ItemBase>(),(_,_)=>0,false,true,false,false,true,Array.Empty<object>()));
 Assert((bool?)dailyBlocked["blocked"]==true && (bool?)dailyBlocked["dailyDone"]==true,"Daily-done quests are not offered as runnable.");
 var memberReady=JObject.FromObject(ActiveQuestMaker.Describe(2,"Cape",Array.Empty<Skua.Core.Models.Items.ItemBase>(),(_,_)=>0,true,false,false,true,false,Array.Empty<object>()));
@@ -295,6 +306,17 @@ Assert(magusRoutes.Count==1 && magusRoutes[0].Map=="infernalarena" && magusRoute
 var magusScript=ActiveQuestMaker.Generate(9356,-1,new[]{magusRequirement},magusRoutes,(_,_)=>null);
 Assert(magusScript.Contains("QuestHunt.Monster(bot,9356,\"Infernal Mage\",79629,\"Mage Construct Defeated\",1,true)") && magusScript.Contains("core.Join(\"infernalarena\")") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
 Assert(AcceptedQuestRoutes.Parse("// Story.KillQuest(9356, \"wrong\", \"wrong\");",9356,new[]{magusRequirement},"fixture").Count==0, "Ignore commented routes.");
+var storyRoot=Path.Combine(Path.GetTempPath(),"qexec-story-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(storyRoot);
+try {
+    var leaf=new Skua.Core.Models.Items.ItemBase{ID=7,Name="Leaf",Temp=true,Quantity=1};
+    File.WriteAllText(Path.Combine(storyRoot,"StoryFarm.cs"),"class StoryFarm { void Run(){ Story.KillQuest(42, \"forest\", \"Wolf\"); Story.KillQuest(42, \"cave\", \"Bat\"); Story.MapItemQuest(42,\"forest\",99,1);} }");
+    var storyFind=AcceptedQuestRoutes.Find(storyRoot,42,new[]{requirement,leaf});
+    Assert(string.Join(",",storyFind.Select(r=>r.Map+":"+r.Monster).OrderBy(s=>s))=="cave:Bat,forest:Wolf","Guide KillQuest variants stay available for fastest-path ranking.");
+    var storyPickup=AcceptedQuestRoutes.FindPickups(storyRoot,42,new[]{requirement,leaf}).Single();
+    Assert(storyPickup.Map=="forest" && storyPickup.MapItemID==99,"Cached story scans still split MapItemQuest from KillQuest.");
+    Assert(AcceptedQuestRoutes.Find(storyRoot,42,new[]{requirement,leaf}).Count==2,"Repeated Auto-do planning reuses the script cache.");
+} finally {Directory.Delete(storyRoot,true);}
+Assert(ActiveQuestMaker.Travel("forest").Contains("string.Equals(bot.Map.Name,\"forest\"") && ActiveQuestMaker.Travel("forest").Contains("core.Join(\"forest\")"),"Travel is a no-op when already on the objective map.");
 Console.WriteLine("PASS: Temporary quest bank bypass and exact Maligned Magus route generation.");
 
 // Reduced factual fixtures based on aqwwiki.wikidot.com/valencia-s-quests and linked monster/map pages.
@@ -317,6 +339,10 @@ var wikiScript=ActiveQuestMaker.Generate(10799,-1,wikiItems,wikiRoutes,(_,_)=>nu
 Assert(wikiScript.Contains("101978,1") && wikiScript.Contains("twilightedge") && !wikiScript.Contains("Bank.Load"),"Generate complete multi-map quest with exact objective checks and no unnecessary bank load.");
 File.WriteAllText("/tmp/qexec-wiki-generated-test.cs",wikiScript);
 Assert((await wikiResolver.Resolve("Other Quest",new[]{"Demnra's Deception Polearm"},wikiItems)).Count==0,"Never mix another quest's objective routes.");
+wikiPages["/chaosweaver-warrior"]="<div id='page-title'>ChaosWeaver Warrior</div><div id='page-content'><p><strong>Locations:</strong> <a href='/twilight-s-edge'>Twilight</a> <a href='/chaos-web'>Chaos Web</a><br></p><ul><li>Polearm Handle (Dropped during the '<a href='/valencia-s-quests#Hunt'>"+wikiQuest+"</a>' quest)</li></ul></div>";
+var fastestWiki=await wikiResolver.ResolvePlan(wikiQuest,new[]{"Demnra's Deception Polearm"},new[]{wikiItems[0]},questSources:new[]{"/valencia-s-quests"},pickupMap:"chaosweb");
+Assert(fastestWiki.Drops.Single().Map=="chaosweb" && fastestWiki.Drops.Single().Alternates!.Single().Map=="twilightedge","Wiki listing two unrestricted maps prefers the map Scott is already on.");
+wikiPages["/chaosweaver-warrior"]=MonsterFixture("ChaosWeaver Warrior","/twilight-s-edge","Polearm Handle");
 wikiItems[0].Quantity=2;
 Assert((await wikiResolver.Resolve(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems)).Count==2,"Reject a mismatched live quantity.");
 wikiItems[0].Quantity=1;

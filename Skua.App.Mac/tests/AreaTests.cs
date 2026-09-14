@@ -70,7 +70,7 @@ static class AreaTests
         Assert(portalCode.Contains("AcquireKnown(bot,4499,30996,\"Portal Revealed\",1,true,3693)")&&portalCode.Contains("bot.TempInv.Contains(30996,1)")&&portalCode.Contains("EnsureComplete(4499,-1)"),"Generate exact pickup acquisition with item verification and selected quest turn-in.");
         var returnCode=ActiveQuestMaker.Generate(4499,-1,new[]{portal},Array.Empty<GearDrop>(),(_,_)=>null,pickups:portalRoutes,returnTo:new QuestReturnPoint("celestialrealm","r2","Left"));
         Assert(returnCode.IndexOf("AcquireKnown")<returnCode.IndexOf("Quest step: return") && returnCode.IndexOf("Quest step: return")<returnCode.IndexOf("EnsureComplete(4499"),"Return after collecting objectives and before turning in, so completion monitoring cannot interrupt travel.");
-        Assert(returnCode.Contains("core.Join(\"celestialrealm\",\"r2\",\"Left\")") && returnCode.Contains("bot.Player.Cell!=\"r2\""),"Return to and verify the recorded cell, with stop guards.");
+        Assert(returnCode.Contains("core.Join(\"celestialrealm\",\"r2\",\"Left\")") && returnCode.Contains("bot.Player.Cell!=\"r2\"") && returnCode.Contains("turning in here if ready") && !returnCode.Contains("Quest was not turned in."),"Return when needed, log a cell miss, and still turn in.");
         File.WriteAllText("/tmp/qexec-portal-generated-test.cs",returnCode);
         var swf=new byte[70000];swf[0]=(byte)'F';swf[1]=(byte)'W';swf[2]=(byte)'S';swf[3]=15;
         int chunks=0,releases=0;

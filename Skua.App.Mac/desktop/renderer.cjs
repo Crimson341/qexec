@@ -212,6 +212,7 @@ byId('gear-refresh').onclick = () => {
 function questBadges(quest) {
   const badges=[];
   if(quest.ready) badges.push('Ready to turn in'); else badges.push('In progress');
+  if(quest.farmable) badges.push('Farm / repeatable');
   if(quest.dailyDone) badges.push('Daily done');
   if(quest.member) badges.push('Member');
   if(quest.locked) badges.push('Locked');
@@ -253,15 +254,37 @@ function renderLedger(quests, note) {
   }
 }
 byId('ledger-refresh').onclick=()=>pollActiveQuests(true);
-let activeQuestGenerating=false,questFromLedger=false;
-function startAcceptedQuest(quest,reward,fromLedger=false){
+let activeQuestGenerating=false,questFromLedger=false,repeatOffer=null;
+function hideRepeatPrompt(){
+  repeatOffer=null;
+  byId('ledger-repeat').hidden=true;byId('active-quest-repeat').hidden=true;
+  byId('ledger-repeat-note').textContent='';byId('active-quest-repeat-note').textContent='';
+}
+function showRepeatPrompt(offer){
+  repeatOffer=offer;
+  const note=offer.message || ((offer.name||'This quest')+' is a farming quest. Do the same route again?');
+  byId('ledger-repeat-note').textContent=note;byId('active-quest-repeat-note').textContent=note;
+  byId('ledger-repeat').hidden=false;
+  if(byId('active-quest-dialog').open)byId('active-quest-repeat').hidden=false;
+}
+function startAcceptedQuest(quest,reward,fromLedger=false,repeat=false){
   if(activeQuestGenerating)return;
+  hideRepeatPrompt();
   activeQuestGenerating=true;questFromLedger=fromLedger;
   byId('active-quest-cancel').hidden=false;byId('ledger-cancel').hidden=!fromLedger;
-  const message='Generating a script for '+quest.name+'…';
+  const message=(repeat?'Repeating ':'Generating a script for ')+quest.name+'…';
   byId('active-quest-status').textContent=message;if(fromLedger)byId('ledger-status').textContent=message;
-  window.skua.command('active-quest-go',JSON.stringify({id:quest.id,reward}));
+  const payload={id:quest.id,reward}; if(repeat) payload.repeat=true;
+  window.skua.command('active-quest-go',JSON.stringify(payload));
 }
+function acceptRepeat(){
+  if(!repeatOffer || activeQuestGenerating)return;
+  startAcceptedQuest({id:repeatOffer.id,name:repeatOffer.name||'quest',rewards:[],blocked:false},repeatOffer.reward??-1,true,true);
+}
+byId('ledger-repeat-yes').onclick=acceptRepeat;
+byId('active-quest-repeat-yes').onclick=acceptRepeat;
+byId('ledger-repeat-no').onclick=hideRepeatPrompt;
+byId('active-quest-repeat-no').onclick=hideRepeatPrompt;
 byId('ledger-cancel').onclick=()=>window.skua.command('cancel-active-quest');
 byId('active-quest-cancel').onclick=()=>window.skua.command('cancel-active-quest');
 let areaBusy=false, areaPlanKey='', areaMap='';
@@ -413,6 +436,7 @@ function handleHostMessage(message) {
       activeQuestPending=false; activeQuestSignature=''; byId('active-quest-list').replaceChildren(); byId('active-quest-status').textContent='Could not read accepted quests: '+message.message; break;
     case 'active-quest-error':
       activeQuestGenerating=false; byId('active-quest-cancel').hidden=true;
+      hideRepeatPrompt();
       byId('ledger-cancel').hidden=true;if(questFromLedger){byId('ledger-status').textContent=message.message;break;}
       byId('active-quest-status').textContent=message.message; if(!byId('active-quest-dialog').open) byId('active-quest-dialog').showModal(); break;
     case 'active-quest-progress':
@@ -425,6 +449,14 @@ function handleHostMessage(message) {
     case 'active-quest-opened':
       byId('ledger-status').textContent=message.message;
       if(message.opened)byId('nav-game').onclick();
+      break;
+    case 'active-quest-finished':
+      activeQuestGenerating=false; byId('active-quest-cancel').hidden=true; byId('ledger-cancel').hidden=true;
+      byId('active-quest-status').textContent=message.message;
+      byId('ledger-status').textContent=message.message;
+      if(message.farmable) showRepeatPrompt(message);
+      else hideRepeatPrompt();
+      pollActiveQuests(true);
       break;
     case 'active-quests': {
       activeQuestPending=false;

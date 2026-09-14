@@ -32,14 +32,16 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         Try(()=>bot.Quests.IsDailyComplete(q)),
         !Try(()=>bot.Quests.IsUnlocked(q),true),
         q.Upgrade,Try(()=>bot.Player.IsMember,true),
-        q.SimpleRewards.Where(r=>r.Type==2).Select(r=>new {id=r.ID,name=q.Rewards.FirstOrDefault(i=>i.ID==r.ID)?.Name??"Item #"+r.ID}));
+        q.SimpleRewards.Where(r=>r.Type==2).Select(r=>new {id=r.ID,name=q.Rewards.FirstOrDefault(i=>i.ID==r.ID)?.Name??"Item #"+r.ID}),
+        q.Once);
     static bool Try(Func<bool> check, bool fallback=false) { try { return check(); } catch { return fallback; } }
-    public static object Describe(int id,string name,IEnumerable<ItemBase> requirements,Func<int,bool,int> quantity,bool ready,bool dailyDone,bool locked,bool member,bool isMember,IEnumerable<object> rewards)
+    public static object Describe(int id,string name,IEnumerable<ItemBase> requirements,Func<int,bool,int> quantity,bool ready,bool dailyDone,bool locked,bool member,bool isMember,IEnumerable<object> rewards,bool once=false)
     {
         var objectives=requirements.Where(r=>r.ID>0 && r.Quantity>0 && !string.IsNullOrWhiteSpace(r.Name))
             .Select(r=>new {id=r.ID,name=r.Name,have=Math.Max(0,quantity(r.ID,r.Temp)),need=r.Quantity,temporary=r.Temp}).ToArray();
+        bool farmable=QuestFastestPath.IsFarmable(once,dailyDone,locked);
         bool blocked=!ready && (dailyDone || locked || (member && !isMember));
-        return new {id,name,ready,dailyDone,member,locked,blocked,objectives,rewards=rewards.ToArray()};
+        return new {id,name,ready,dailyDone,member,locked,blocked,once,farmable,objectives,rewards=rewards.ToArray()};
     }
     public object OpenInGame(int questId)
     {
@@ -82,7 +84,7 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         var missing=requirements.Where(r=>!Owned(r)).ToList();
         ThrowIfManualObjective(questId,missing);
         var bankOwned=requirements.Where(r=>!r.Temp && bot.Bank.Loaded && bot.Bank.Contains(r.ID,r.Quantity)).Select(r=>r.ID).ToHashSet();
-        var routes=finder.Drops.Concat(AcceptedQuestRoutes.Find(scriptsRoot,questId,missing)).ToList();
+        var routes=AcceptedQuestRoutes.Find(scriptsRoot,questId,missing).ToList();
         var pickups=AcceptedQuestRoutes.FindPickups(scriptsRoot,questId,requirements);
         var verified=AcceptedQuestRoutes.Verified(questId,missing);
         routes.AddRange(verified.Drops);pickups.AddRange(verified.Pickups);
@@ -104,7 +106,12 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
                 throw new InvalidOperationException("Accepted quest changed during source lookup. Refresh and retry.");
             missing=missing.Where(r=>!Owned(r)).ToList();
         }
+        var stillOpen=missing.Where(r=>!r.Temp && !bankOwned.Contains(r.ID) && !pickups.Any(p=>!p.Temporary && string.Equals(p.Item,r.Name,StringComparison.OrdinalIgnoreCase)) && !routes.Any(d=>!d.Temporary && string.Equals(d.Item,r.Name,StringComparison.OrdinalIgnoreCase))).Select(r=>r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        if(stillOpen.Count>0) routes.AddRange(finder.Drops.Where(d=>!d.Temporary && stillOpen.Contains(d.Item)));
+        routes=QuestFastestPath.SelectDrops(routes,returnTo.Map).ToList();
+        pickups=QuestFastestPath.SelectPickups(pickups,returnTo.Map,routes.Select(r=>r.Map)).ToList();
         cancellation.ThrowIfCancellationRequested();
+        foreach(var drop in routes) progress?.Invoke("Fastest documented route for "+drop.Item+": "+drop.Monster+" in /"+drop.Map+(QuestFastestPath.Same(drop.Map,returnTo.Map)?" (already there)":"")+".");
         progress?.Invoke("Writing a new script with verified objective steps…");
         string code=Generate(questId,rewardId,missing,routes,(name,id)=>GearRoutes.Shops(scriptsRoot,name,id).FirstOrDefault(),bankOwned,pickups,bot.Bank.Loaded,returnTo);
         string dir=Path.Combine(scriptsRoot,"Generated-Quests");Directory.CreateDirectory(dir);
@@ -117,15 +124,34 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         if(questId==2423 && missing.Any(r=>r.ID==13949))
             throw new InvalidOperationException("Hero Souls requires 5 player kills in /doomarena or /bludrutbrawl (PvP), according to the Death's Realm story script. Automatic PvP quest completion is not supported yet. Complete those kills, then click Auto-do this quest again to turn it in. No script was started.");
     }
+    public static string Travel(string map,string cell="",string pad="") {
+        if(string.IsNullOrWhiteSpace(map))return "";
+        string Q(string value)=>SymbolDisplay.FormatLiteral(value,true);
+        string dest=Q(map);
+        if(string.IsNullOrWhiteSpace(cell))
+            return "if(!string.Equals(bot.Map.Name,"+dest+",StringComparison.OrdinalIgnoreCase)) core.Join("+dest+");";
+        string cellLit=Q(cell),padLit=Q(string.IsNullOrWhiteSpace(pad)?"Spawn":pad);
+        return "if(!string.Equals(bot.Map.Name,"+dest+",StringComparison.OrdinalIgnoreCase) || bot.Player.Cell!="+cellLit+") core.Join("+dest+","+cellLit+","+padLit+");";
+    }
     public static string ReturnCode(QuestReturnPoint? point) {
         if(point==null || string.IsNullOrWhiteSpace(point.Map))return "";
         string Q(string value)=>SymbolDisplay.FormatLiteral(value,true);
         string cell=string.IsNullOrWhiteSpace(point.Cell)?"Enter":point.Cell,pad=string.IsNullOrWhiteSpace(point.Pad)?"Spawn":point.Pad;
-        return "if(bot.ShouldExit) return; bot.Log(\"Quest step: return\"); core.Join("+Q(point.Map)+","+Q(cell)+","+Q(pad)+"); if(bot.ShouldExit) return; if(!bot.Player.LoggedIn || bot.Map.Name!="+Q(point.Map)+" || bot.Player.Cell!="+Q(cell)+") throw new InvalidOperationException(\"Could not return to the quest location. Quest was not turned in.\");\n";
+        return "if(bot.ShouldExit) return; bot.Log(\"Quest step: return\"); "+Travel(point.Map,cell,pad)+" if(bot.ShouldExit) return; if(!bot.Player.LoggedIn) throw new InvalidOperationException(\"Disconnected before turn-in.\"); if(bot.Map.Name!="+Q(point.Map)+" || bot.Player.Cell!="+Q(cell)+") bot.Log(\"Could not return to the recorded cell; turning in here if ready.\");\n";
     }
     public static string Generate(int questId,int rewardId,IEnumerable<ItemBase> requirements,IEnumerable<GearDrop> drops,Func<string,int,GearShop?> shopFor,ISet<int>? bankOwned=null,IEnumerable<QuestPickup>? pickups=null,bool bankAvailable=true,QuestReturnPoint? returnTo=null)
     {
-        requirements=requirements.ToList();
+        drops=drops.ToList();
+        pickups=pickups?.ToList();
+        string MapOf(ItemBase r) {
+            var pickup=pickups?.FirstOrDefault(p=>p.Temporary==r.Temp && string.Equals(p.Item,r.Name,StringComparison.OrdinalIgnoreCase));
+            if(pickup!=null) return pickup.Map;
+            var drop=drops.FirstOrDefault(d=>d.Temporary==r.Temp && string.Equals(d.Item,r.Name,StringComparison.OrdinalIgnoreCase));
+            if(drop!=null) return drop.Map;
+            if(!r.Temp && shopFor(r.Name,r.ID) is GearShop shop) return shop.Map;
+            return "";
+        }
+        requirements=QuestFastestPath.OrderSteps(requirements,MapOf,returnTo?.Map);
         ThrowIfManualObjective(questId,requirements);
         string Q(string s)=>SymbolDisplay.FormatLiteral(s,true);
         var steps=new List<string>();var blocked=new List<string>();bool needsBank=false;
@@ -135,14 +161,19 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
             string inventory=r.Temp ? "bot.TempInv" : "bot.Inventory";
             var drop=drops.FirstOrDefault(d=>d.Temporary==r.Temp && string.Equals(d.Item,r.Name,StringComparison.OrdinalIgnoreCase));
             string guard="if(!bot.Quests.IsInProgress("+questId+")) throw new InvalidOperationException(\"Quest was abandoned; stopping.\"); if(bot.ShouldExit) return;\n";
-            string unbank=r.Temp ? "" : "if(bot.Bank.Loaded && bot.Bank.Contains("+r.ID+")) { bot.Log("+Q("Quest step: unbank "+r.Name)+"); core.Unbank("+r.ID+"); for(int sync=0;sync<20 && !bot.Inventory.Contains("+r.ID+","+r.Quantity+") && !bot.ShouldExit;sync++) System.Threading.Thread.Sleep(100); }\n";
+            string unbank=r.Temp ? "" : "if(bot.Bank.Loaded && bot.Bank.Contains("+r.ID+")) { bot.Log("+Q("Quest step: unbank "+r.Name)+"); core.Unbank("+r.ID+"); for(int sync=0;sync<8 && !bot.Inventory.Contains("+r.ID+","+r.Quantity+") && !bot.ShouldExit;sync++) System.Threading.Thread.Sleep(50); }\n";
             string action;
             if(!r.Temp && bankOwned?.Contains(r.ID)==true) action="";
             else if(pickups?.FirstOrDefault(p=>p.Temporary==r.Temp && string.Equals(p.Item,r.Name,StringComparison.OrdinalIgnoreCase)) is QuestPickup pickup)
-                action="bot.Log("+Q("Quest step: pickup "+r.Name)+"); core.Join("+Q(pickup.Map)+"); Skua.Core.Scripts.QuestMapPickup."+(pickup.MapItemID>0?"AcquireKnown":"Acquire")+"(bot,"+questId+","+r.ID+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant()+(pickup.MapItemID>0?","+pickup.MapItemID:"")+");";
-            else if(drop!=null) action="bot.Log("+Q("Quest step: hunt "+r.Name)+"); core.Join("+Q(drop.Map)+"); Skua.Core.Scripts.QuestHunt.Monster(bot,"+questId+","+Q(drop.Monster)+","+r.ID+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant()+");";
+                action="bot.Log("+Q("Quest step: pickup "+r.Name)+"); "+Travel(pickup.Map)+" Skua.Core.Scripts.QuestMapPickup."+(pickup.MapItemID>0?"AcquireKnown":"Acquire")+"(bot,"+questId+","+r.ID+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant()+(pickup.MapItemID>0?","+pickup.MapItemID:"")+");";
+            else if(drop!=null) {
+                string hunt="Skua.Core.Scripts.QuestHunt.Monster(bot,"+questId+","+Q(drop.Monster)+","+r.ID+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant();
+                var alts=(drop.Alternates??[]).Where(a=>!string.IsNullOrWhiteSpace(a.Map)&&!string.IsNullOrWhiteSpace(a.Monster)).ToArray();
+                if(alts.Length>0) hunt+=",null,new (string,string)[]{"+string.Join(",",alts.Select(a=>"("+Q(a.Map)+","+Q(a.Monster)+")"))+"}";
+                action="bot.Log("+Q("Quest step: hunt "+r.Name)+"); "+Travel(drop.Map)+" "+hunt+");";
+            }
             else if(bankAvailable && !r.Temp && shopFor(r.Name,r.ID) is GearShop shop) {
-                action="bot.Log("+Q("Quest step: shop "+r.Name)+"); core.Join("+Q(shop.Map)+"); bot.Shops.Load("+shop.ShopId+"); if(!bot.Shops.IsLoaded || bot.Shops.ID!="+shop.ShopId+") throw new InvalidOperationException(\"Required shop could not load.\");\n"+
+                action="bot.Log("+Q("Quest step: shop "+r.Name)+"); "+Travel(shop.Map)+" bot.Shops.Load("+shop.ShopId+"); if(!bot.Shops.IsLoaded || bot.Shops.ID!="+shop.ShopId+") throw new InvalidOperationException(\"Required shop could not load.\");\n"+
                 "var item=bot.Shops.Items.FirstOrDefault(i=>i.ID=="+r.ID+"); if(item==null) throw new InvalidOperationException(\"Required item not in shop.\"); if(item.Coins && item.Cost>0) throw new InvalidOperationException(\"Objective requires a premium-currency purchase. Buy it manually before retrying.\");\n"+
                 "if(item.Requirements.Any(x=>!core.CheckInventory(x.ID,x.Quantity))) throw new InvalidOperationException(\"Shop ingredient has unresolved merge requirements.\");\n"+
                 "bot.Shops.BuyItem(item.ID,item.ShopItemID,"+r.Quantity+"-bot.Inventory.GetQuantity("+r.ID+"));";
