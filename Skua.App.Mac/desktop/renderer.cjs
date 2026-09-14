@@ -324,7 +324,13 @@ function renderAchievements(items,note){
     state.textContent=item.Earned?(item.Reason==='Story'?'Earned · story complete':'Earned · '+(item.Reason||item.Location||'owned')):(item.Reason||'Not earned yet');
     const title=document.createElement('strong');title.textContent=item.Title;
     const detail=document.createElement('p');detail.className='hint';detail.textContent=item.Detail;
-    card.append(img,state,title,detail);byId('achievements-grid').append(card);
+    card.append(img,state,title,detail);
+    if(item.CanRun){
+      const go=document.createElement('button');go.type='button';go.className='achievement-go';go.textContent='Go';
+      go.onclick=()=>{go.disabled=true;byId('achievements-status').textContent='Starting the mapped farm for '+item.Title+'…';window.skua.command('achievements-go',item.Id);};
+      card.append(go);
+    }
+    byId('achievements-grid').append(card);
   }
 }
 function refreshAchievements(){
@@ -582,6 +588,11 @@ function handleHostMessage(message) {
         const item = (message.items||[]).find(entry => entry.Id === id);
         log('Achievement earned: ' + (item ? item.Title : id));
       }
+      break;
+    case 'achievements-started':
+      byId('achievements-refresh').disabled = false;
+      byId('achievements-status').textContent = message.running ? 'Mapped bot started. Watch progress in Activity, or Stop in Script controls.' : 'Mapped bot finished or was cancelled. Recheck to update badges.';
+      byId('nav-game').onclick();
       break;
     case 'achievements-error':
       byId('achievements-refresh').disabled = false;
