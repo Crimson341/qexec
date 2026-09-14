@@ -187,6 +187,7 @@ try {
     var indexed = QuestCatalog.Build(catalogFixture,new[]{new GearDrop("mine","Slime","Sword",false,"fixture")});
     Assert(indexed.Count==2 && indexed.Single(i=>i.Id==200).NeededFor.Count==1,"Automatically index reward and material dependencies.");
     Assert(indexed.Single(i=>i.Id==100).DropsFrom.Count==1,"Attach exact script drop evidence.");
+    Assert(indexed.Single(i=>i.Id==100).RewardQuests.Single().Id==42,"Remember which accepted quest can Auto-do a catalog reward.");
     var catalogScripts = Path.Combine(Path.GetTempPath(),"catalog-test-"+Guid.NewGuid().ToString("N")); Directory.CreateDirectory(catalogScripts);
     try {
         var catalog = new QuestCatalog(catalogFixture,new GearFinder(catalogScripts));
@@ -195,6 +196,10 @@ try {
         Assert((int?)missing["matches"]==0,"Banked reward and temporary material excluded from missing gear.");
         var unknown = JObject.FromObject(catalog.Query("{}",emptyItems,emptyItems,false));
         Assert((bool?)unknown["items"]![0]!["canFind"]==false,"Unknown bank blocks catalog farms.");
+        var acceptedReward = JObject.FromObject(catalog.Query("{\"search\":\"Sword\"}",emptyItems,emptyItems,true,new HashSet<int>{42}));
+        Assert((int?)acceptedReward["items"]![0]!["acceptedQuestId"]==42,"Catalog marks a missing reward when that quest is currently accepted.");
+        var idleReward = JObject.FromObject(catalog.Query("{\"search\":\"Sword\"}",emptyItems,emptyItems,true));
+        Assert((int?)idleReward["items"]![0]!["acceptedQuestId"]==0,"No accepted-quest Auto-do when the reward quest is not accepted.");
         var material = JObject.FromObject(catalog.Query("{\"filter\":\"materials\",\"search\":\"Sword quest\"}",emptyItems,emptyItems,true));
         Assert((int?)material["matches"]==1 && (int?)material["items"]![0]!["id"]==200,"Search required materials by quest name.");
     } finally { Directory.Delete(catalogScripts,true); }
@@ -246,6 +251,7 @@ var requirement=new Skua.Core.Models.Items.ItemBase{ID=321,Name="Quest Fang",Tem
 var autoQuest=ActiveQuestMaker.Generate(42,100,new[]{requirement},new[]{new GearDrop("forest","Wolf","Quest Fang",true,"test")},(_,_)=>null);
 Assert(autoQuest.Contains("bot.TempInv.Contains(321,5)") && autoQuest.Contains("EnsureComplete(42,100)") && autoQuest.Contains("CanCompleteFullCheck(42)"),"Auto quest uses exact objective quantity, item check, and chosen reward.");
 Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true)") && autoQuest.Contains("core.Join(\"forest\")"),"Generated hunts use adaptive QuestHunt instead of a fixed Farm combo.");
+Assert(autoQuest.Contains("Quest step: hunt Quest Fang") && autoQuest.Contains("Quest step: turn-in"),"Generated scripts emit structured hunt and turn-in logs for the ledger.");
 Assert(!autoQuest.Contains("EnsureAccept") && !autoQuest.Contains("RegisterQuests") && !autoQuest.Contains("while ("),"Never accept another quest, register loops, or repeat selected quest.");
 Assert(autoQuest.Contains("Quest was abandoned") && autoQuest.Contains("finally {core.SetOptions(false);}"),"Abort abandoned quest and restore settings.");
 try {ActiveQuestMaker.Generate(42,-1,new[]{requirement},Array.Empty<GearDrop>(),(_,_)=>null);throw new Exception("Accepted unknown objective.");} catch(InvalidOperationException ex) {Assert(ex.Message.Contains("Quest Fang"),"Explain exact unresolved objective.");}
@@ -253,6 +259,7 @@ var readyQuest=ActiveQuestMaker.Generate(42,-1,Array.Empty<Skua.Core.Models.Item
 Assert(!readyQuest.Contains("HuntMonster") && !readyQuest.Contains("Bank.Load"),"Ready quest only turns in, without bank load or farming.");
 var bankedQuest=ActiveQuestMaker.Generate(42,-1,new[]{new Skua.Core.Models.Items.ItemBase{ID=456,Name="Banked Item",Quantity=1}},Array.Empty<GearDrop>(),(_,_)=>null,new HashSet<int>{456});
 Assert(bankedQuest.Contains("core.Unbank(456)") && !bankedQuest.Contains("HuntMonster"),"Use banked materials without farming duplicates.");
+Assert(bankedQuest.Contains("Quest step: unbank Banked Item") && readyQuest.Contains("Quest step: turn-in"),"Banked and ready quests still emit unbank/turn-in step logs.");
 var ledger=JObject.FromObject(ActiveQuestMaker.Describe(42,"Hunt",new[]{requirement},(id,temp)=>id==321&&temp?2:0,false,false,false,false,true,Array.Empty<object>()));
 Assert((int?)ledger["objectives"]![0]!["have"]==2 && (int?)ledger["objectives"]![0]!["need"]==5 && (string?)ledger["objectives"]![0]!["name"]=="Quest Fang","Ledger rows include live objective counts.");
 var dailyBlocked=JObject.FromObject(ActiveQuestMaker.Describe(1,"Daily",Array.Empty<Skua.Core.Models.Items.ItemBase>(),(_,_)=>0,false,true,false,false,true,Array.Empty<object>()));

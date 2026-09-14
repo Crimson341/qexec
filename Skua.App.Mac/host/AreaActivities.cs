@@ -148,11 +148,18 @@ public sealed class AreaActivities(IScriptInterface bot,GearFinder finder,GearOw
         return new {type="area-quest-action",key,id=selected.ID,accepted,opened=!accept,
             message=accept ? accepted ? selected.Name+" accepted. Use Accepted quests to auto-do it." : "The game did not accept this quest. Check its prerequisites, membership requirements, or quest limit in the open game panel." : selected.Name+" opened in game."};
     }
-    public async Task<object> Plan(string key,int quantity,Action<string> progress,CancellationToken ct) {
-        Check();if(quantity<1 || quantity>999)throw new ArgumentException("Choose a quantity from 1 to 999.");
+    public Task<object> PlanKnownItem(int itemId,string name,int quantity,Action<string> progress,CancellationToken ct) {
+        if(!bot.Player.LoggedIn)throw new InvalidOperationException("Log in before planning a catalog farm.");
+        if(itemId<=0 || string.IsNullOrWhiteSpace(name))throw new ArgumentException("Select a catalog item with a known ID.");
+        map=bot.Map.Name;
+        if(string.IsNullOrWhiteSpace(map))throw new InvalidOperationException("Enter a map before planning a catalog farm.");
+        return Plan("",quantity,progress,ct,new ItemBase{ID=itemId,Name=name},"catalog-plan");
+    }
+    public async Task<object> Plan(string key,int quantity,Action<string> progress,CancellationToken ct,ItemBase? known=null,string resultType="area-plan") {
+        if(known==null)Check();if(quantity<1 || quantity>999)throw new ArgumentException("Choose a quantity from 1 to 999.");
         planKey="";code="";
         progress("Checking inventory and bank before planning materials…");
-        if(!await ownership.LoadBank() && items.ContainsKey(key))throw new InvalidOperationException("Bank could not be verified. Refresh and retry before planning merge materials.");
+        if(!await ownership.LoadBank() && (known!=null || items.ContainsKey(key)))throw new InvalidOperationException("Bank could not be verified. Refresh and retry before planning merge materials.");
         var stock=new AreaFarmStock();int count=0;
         async Task<AreaFarmNode> Build(ItemBase target,int amount,HashSet<int> ancestors,AreaShop? explicitShop=null,ShopItem? explicitItem=null,AreaMonster? explicitMonster=null) {
             ct.ThrowIfCancellationRequested();Check();if(++count>80 || ancestors.Count>8)throw new InvalidOperationException("Material chain is too large to verify in one plan.");
@@ -208,14 +215,15 @@ public sealed class AreaActivities(IScriptInterface bot,GearFinder finder,GearOw
             throw new InvalidOperationException("No verified acquisition source for "+target.Name+" (#"+target.ID+"). No partial farm was started.");
         }
         AreaFarmNode root;
-        if(items.TryGetValue(key,out var item) && loadedItems.TryGetValue(item.ID,out var source)) {if(item.MaxStack>0 && quantity>item.MaxStack)throw new InvalidOperationException("Target exceeds this item’s stack limit of "+item.MaxStack+".");root=await Build(item,quantity,new(),source.Shop,item);}
+        if(known!=null) root=await Build(known,quantity,new());
+        else if(items.TryGetValue(key,out var item) && loadedItems.TryGetValue(item.ID,out var source)) {if(item.MaxStack>0 && quantity>item.MaxStack)throw new InvalidOperationException("Target exceeds this item’s stack limit of "+item.MaxStack+".");root=await Build(item,quantity,new(),source.Shop,item);}
         else if(drops.TryGetValue(key,out var selected)) {
             if(selected.Drop.Temporary)throw new InvalidOperationException("Use Auto-do for the drop's accepted quest.");
             int id=bot.Quests.Cached.SelectMany(q=>q.Rewards.Concat(q.Requirements)).FirstOrDefault(i=>AreaDiscovery.Same(i.Name,selected.Drop.Name))?.ID??0;
             root=await Build(new ItemBase{ID=id,Name=selected.Drop.Name},quantity,new(),explicitMonster:selected.Monster);
         } else throw new InvalidOperationException("Item selection expired. Select the shop or monster again.");
         ct.ThrowIfCancellationRequested();Check();code=AreaFarmPlan.Generate(root);planKey=Guid.NewGuid().ToString("N");
-        return new {type="area-plan",key=planKey,root,code,note="Review the material tree, then start. Quantities are per purchase; inventory is rechecked at every step. Gold purchases and merge materials are consumed; AC purchases are blocked."};
+        return new {type=resultType,key=planKey,root,code,note="Review the material tree, then start. Quantities are per purchase; inventory is rechecked at every step. Gold purchases and merge materials are consumed; AC purchases are blocked."};
     }
     public async Task<string> Acquire(string key,int quantity,Action<string> progress,CancellationToken ct) {
         await Plan(key,quantity,progress,ct);

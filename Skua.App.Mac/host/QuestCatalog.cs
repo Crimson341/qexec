@@ -11,6 +11,7 @@ public sealed class CatalogItem
     public HashSet<string> NeededFor = new();
     public HashSet<string> RewardsFrom = new();
     public HashSet<string> DropsFrom = new();
+    public List<(int Id, string Name)> RewardQuests = new();
     public string SearchText = "";
 }
 
@@ -38,7 +39,12 @@ public sealed class QuestCatalog(string questsFile, GearFinder finder)
                 items[id] = item;
             }
             string evidence = ((string?)quest["Name"] ?? "Quest") + " (#" + quest["ID"] + ")";
-            if (field is "Rewards" or "SimpleRewards") item.RewardsFrom.Add(evidence); else item.NeededFor.Add(evidence);
+            if (field is "Rewards" or "SimpleRewards") {
+                item.RewardsFrom.Add(evidence);
+                int questId = (int?)quest["ID"] ?? 0;
+                string questName = (string?)quest["Name"] ?? "Quest";
+                if (questId>0 && !item.RewardQuests.Any(q=>q.Id==questId)) item.RewardQuests.Add((questId,questName));
+            } else item.NeededFor.Add(evidence);
         }
         var all = items.Values.ToList();
         var byName = all.GroupBy(i => i.Name,StringComparer.OrdinalIgnoreCase).ToDictionary(g => g.Key,g => g.ToList(),StringComparer.OrdinalIgnoreCase);
@@ -51,7 +57,7 @@ public sealed class QuestCatalog(string questsFile, GearFinder finder)
         }
         return all;
     }
-    public object Query(string request, IEnumerable<InventoryItem> inventory, IEnumerable<InventoryItem> bank, bool bankLoaded)
+    public object Query(string request, IEnumerable<InventoryItem> inventory, IEnumerable<InventoryItem> bank, bool bankLoaded, IReadOnlySet<int>? acceptedQuestIds=null)
     {
         JObject options = string.IsNullOrEmpty(request) ? new() : JObject.Parse(request);
         string search = ((string?)options["search"] ?? "").Trim(); string filter = (string?)options["filter"] ?? "all";
@@ -60,6 +66,8 @@ public sealed class QuestCatalog(string questsFile, GearFinder finder)
         var invIds = inv.Select(i=>i.ID).ToHashSet(); var bankIds=stored.Select(i=>i.ID).ToHashSet();
         var invNames=inv.Select(i=>i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase); var bankNames=stored.Select(i=>i.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
         string Location(CatalogItem i) => (i.Id>0 ? invIds.Contains(i.Id) : invNames.Contains(i.Name)) ? "Inventory" : !bankLoaded ? "Unknown" : (i.Id>0 ? bankIds.Contains(i.Id) : bankNames.Contains(i.Name)) ? "Bank" : "Missing";
+        var accepted = acceptedQuestIds ?? new HashSet<int>();
+        int AcceptedReward(CatalogItem i) => i.RewardQuests.Select(q=>q.Id).FirstOrDefault(accepted.Contains);
         var catalog = index.Value;
         var results = catalog.Items.Where(i => (search.Length == 0 || i.SearchText.Contains(search,StringComparison.OrdinalIgnoreCase)) && (filter switch {
             "missing" => !i.Temporary && Location(i)=="Missing",
@@ -76,6 +84,7 @@ public sealed class QuestCatalog(string questsFile, GearFinder finder)
                     (i.RewardsFrom.Count>0 ? "Reward: "+string.Join(", ",i.RewardsFrom.Take(2))+". " : "")+
                     (i.DropsFrom.Count>0 ? "Drop evidence: "+string.Join(", ",i.DropsFrom.Take(2))+". " : ""),
                 description=i.Description == "x" ? "" : i.Description,
-                canFind=!i.Temporary && !catalog.Ambiguous.Contains(i.Name) && Location(i)=="Missing", routeNote=catalog.Ambiguous.Contains(i.Name) ? "Ambiguous item name" : i.Temporary ? "Quest material" : Location(i), availability="Rarity / current availability unverified" }).ToArray() };
+                canFind=!i.Temporary && !catalog.Ambiguous.Contains(i.Name) && Location(i)=="Missing", acceptedQuestId=AcceptedReward(i),
+                routeNote=catalog.Ambiguous.Contains(i.Name) ? "Ambiguous item name" : i.Temporary ? "Quest material" : Location(i), availability="Rarity / current availability unverified" }).ToArray() };
     }
 }

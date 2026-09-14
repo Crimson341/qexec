@@ -35,6 +35,9 @@ static class AreaTests
         var aranx=File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"fixtures","AranxQuests.html"));
         var mixedResolver=new QuestWikiResolver(path=>Task.FromResult(path=="/aranx-s-quests"?aranx:path=="/underworld-hound-1"?File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"fixtures","UnderworldHound.html")):path=="/lost-ruins"?"<p><strong>Map Name:</strong> lostruins<br></p>":path=="/celestial-realm"?"<p><strong>Map Name:</strong> celestialrealm<br></p>":path=="/lost-ruins-war"?"<p><strong>Map Name:</strong> lostruinswar<br></p>":throw new Exception("Unexpected mixed quest lookup: "+path)));
         var hound=new Skua.Core.Models.Items.ItemBase{ID=30998,Name="Underworld Hound Defeated",Quantity=5,Temp=true};
+        var mixedSplit=AcceptedQuestRoutes.ParseMixed(mixed,4500,new[]{plant,hound},"fixture");
+        Assert(mixedSplit.Pickups.Single().MapItemID==3694 && mixedSplit.Drops.Single().Item=="Underworld Hound Defeated" && mixedSplit.Drops.Single().Monster=="Underworld Hound","Literals assign MapItemQuest qty to the unique temp, then leftover temps to KillQuest.");
+        Assert(AcceptedQuestRoutes.Parse(mixed,4500,new[]{plant,hound},"fixture").Single().Item=="Underworld Hound Defeated","KillQuest no longer claims the pickup already assigned by MapItemQuest.");
         var offlineMixed=AcceptedQuestRoutes.Verified(4500,new[]{plant,hound});
         Assert(offlineMixed.Pickups.Single().MapItemID==3694 && offlineMixed.Drops.Single().Monster=="Underworld Hound","Both verified objective routes resolve without any network lookup.");
         Assert(AcceptedQuestRoutes.Verified(4501,new[]{plant,hound}).Drops.Count==0,"Never reuse the recipe for a different quest.");
@@ -48,6 +51,7 @@ static class AreaTests
         var knownPlant=AcceptedQuestRoutes.ParsePickups(mixed,4500,new[]{plant},"fixture");
         var plantCode=ActiveQuestMaker.Generate(4500,-1,new[]{plant},[],(_,_)=>null,pickups:knownPlant);
         Assert(plantCode.Contains("AcquireKnown(bot,4500,30997,\"Plant Found\",3,true,3694)") && !plantCode.Contains("HuntMonster"),"Generate collection for the exact three plants, never hunting them.");
+        Assert(plantCode.Contains("Quest step: pickup Plant Found"),"Pickup steps emit the same ledger log prefix as hunt and turn-in.");
         File.WriteAllText("/tmp/qexec-plant-generated.cs",plantCode);
         int pageLoads=0,searches=0;
         var cachedWiki=new AreaDiscovery(_=>{pageLoads++;return Task.FromResult("<p><strong>Map Name:</strong> river<br></p>");},_=>{searches++;return Task.FromResult<IReadOnlyList<string>>([]);});
@@ -65,7 +69,7 @@ static class AreaTests
         var portalCode=ActiveQuestMaker.Generate(4499,-1,new[]{portal},Array.Empty<GearDrop>(),(_,_)=>null,pickups:portalRoutes);
         Assert(portalCode.Contains("AcquireKnown(bot,4499,30996,\"Portal Revealed\",1,true,3693)")&&portalCode.Contains("bot.TempInv.Contains(30996,1)")&&portalCode.Contains("EnsureComplete(4499,-1)"),"Generate exact pickup acquisition with item verification and selected quest turn-in.");
         var returnCode=ActiveQuestMaker.Generate(4499,-1,new[]{portal},Array.Empty<GearDrop>(),(_,_)=>null,pickups:portalRoutes,returnTo:new QuestReturnPoint("celestialrealm","r2","Left"));
-        Assert(returnCode.IndexOf("AcquireKnown")<returnCode.IndexOf("Returning to the quest") && returnCode.IndexOf("Returning to the quest")<returnCode.IndexOf("EnsureComplete(4499"),"Return after collecting objectives and before turning in, so completion monitoring cannot interrupt travel.");
+        Assert(returnCode.IndexOf("AcquireKnown")<returnCode.IndexOf("Quest step: return") && returnCode.IndexOf("Quest step: return")<returnCode.IndexOf("EnsureComplete(4499"),"Return after collecting objectives and before turning in, so completion monitoring cannot interrupt travel.");
         Assert(returnCode.Contains("core.Join(\"celestialrealm\",\"r2\",\"Left\")") && returnCode.Contains("bot.Player.Cell!=\"r2\""),"Return to and verify the recorded cell, with stop guards.");
         File.WriteAllText("/tmp/qexec-portal-generated-test.cs",returnCode);
         var swf=new byte[70000];swf[0]=(byte)'F';swf[1]=(byte)'W';swf[2]=(byte)'S';swf[3]=15;

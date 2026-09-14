@@ -64,8 +64,13 @@ nav{grid-column:2;grid-row:1;flex-direction:row;padding:0;border-right:0;border-
 .nav-item.active{border-left:0;border-bottom-color:var(--sea);background:#272330;color:#d0bdec}.nav-footer{display:none}
 main{grid-column:2;grid-row:2}aside{grid-column:1;grid-row:1/4;border-left:0;border-right:1px solid var(--line);padding:0 18px;display:block;background:#1c1c22}
 .ledger{padding-top:20px;padding-bottom:18px;border-bottom:1px solid var(--line);min-height:160px}.ledger h2{font-size:16px;font-weight:500}.ledger .panel-heading button{font-size:10px;background:transparent;border:0;color:var(--muted);padding:5px}
+.ledger-row{display:flex;flex-wrap:wrap;align-items:flex-start;gap:8px;border-bottom:1px solid var(--line)}
 .ledger-quest{display:block;width:100%;text-align:left;background:transparent;border:0;border-bottom:1px solid var(--line);padding:16px 0;animation:skua-fade-in 180ms ease both}
+.ledger-row .ledger-quest{flex:1;min-width:0;width:auto;border-bottom:0}
+.ledger-open{font-size:11px;margin-top:16px;background:transparent;border:1px solid var(--line);color:var(--muted);padding:5px 10px}
+.ledger-open:hover:enabled{color:var(--sea);border-color:var(--sea)}
 .ledger-quest strong{display:block;font-size:13px;font-weight:500;color:#d7c9ed;line-height:1.5}.ledger-quest span{display:block;font-size:11px;color:var(--muted);margin-top:6px}.ledger-quest .ledger-objectives{color:#c4b6d8}.ledger-quest:hover:enabled{background:#27232f}.ledger-quest:disabled{opacity:.55;cursor:not-allowed}.ledger-quest:focus-visible{outline-offset:2px}
+#catalog-plan-view{border-top:2px solid var(--sea);margin-top:26px;padding-top:18px}#catalog-plan-view[hidden]{display:none}#catalog-go{margin-top:16px}#catalog-cancel[hidden]{display:none}
 .script-panel,.session-panel,.auto-panel{padding:18px 0}.shortcuts{display:none}.field-caption{margin-top:12px}.session-panel dl>div{padding:5px 0}
 .game-bar{background:#19191e}.game-controls{display:flex;align-items:center;gap:14px;padding:10px 14px;min-height:58px;border-top:1px solid var(--line);background:#1c1c22}.game-controls .hint{margin:0}.game-controls .actions{margin:0 0 0 auto;gap:8px}.game-controls button{min-width:94px}#elapsed{font-size:13px;color:#d6c8ed}#run{background:#302938;border-color:#5f5070}#run:hover:enabled{background:#41364e}#stop:enabled{background:#4b3d62;border-color:#a68ac7}
 .logs-panel{grid-column:2;grid-row:3;background:#17171c}.statusbar{background:#19191e}#quest-view{padding:22px}
