@@ -18,6 +18,26 @@ public static class QuestHunt
     public static bool HasMonster(IEnumerable<Monster> map, string name) =>
         map.Any(m => string.Equals((m.Name ?? "").Trim(), (name ?? "").Trim(), StringComparison.OrdinalIgnoreCase));
 
+    public static bool SameMap(string? a, string? b) =>
+        !string.IsNullOrWhiteSpace(a) && !string.IsNullOrWhiteSpace(b) &&
+        string.Equals(a.Trim(), b.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    public static void JoinIfNeeded(IScriptInterface bot, string map)
+    {
+        if (string.IsNullOrWhiteSpace(map) || SameMap(bot.Map.Name, map)) return;
+        bot.Map.Join(map);
+    }
+
+    public static (string Map, string Monster)? NextRoute(string map, string monster, IReadOnlyList<(string Map, string Monster)>? alternates, int tried)
+    {
+        if (alternates == null || tried < 0 || tried >= alternates.Count) return null;
+        var next = alternates[tried];
+        if (string.IsNullOrWhiteSpace(next.Map) || string.IsNullOrWhiteSpace(next.Monster)) return null;
+        if (SameMap(next.Map, map) && string.Equals((next.Monster ?? "").Trim(), (monster ?? "").Trim(), StringComparison.OrdinalIgnoreCase))
+            return tried + 1 < alternates.Count ? NextRoute(map, monster, alternates, tried + 1) : null;
+        return next;
+    }
+
     public static IEnumerable<AdvancedSkill> Profiles(IScriptInterface bot) =>
         bot.Skills is ScriptSkill skills ? skills.AdvancedSkillContainer.LoadedSkills : Array.Empty<AdvancedSkill>();
 
@@ -42,7 +62,7 @@ public static class QuestHunt
         return key;
     }
 
-    public static void Monster(IScriptInterface bot, int questId, string monster, int itemId, string itemName, int quantity, bool temporary, TimeSpan? stallTimeout = null)
+    public static void Monster(IScriptInterface bot, int questId, string monster, int itemId, string itemName, int quantity, bool temporary, TimeSpan? stallTimeout = null, IReadOnlyList<(string Map, string Monster)>? alternates = null)
     {
         if (questId <= 0 || itemId <= 0 || quantity <= 0 || string.IsNullOrWhiteSpace(monster) || string.IsNullOrWhiteSpace(itemName))
             throw new ArgumentException("Invalid hunt objective.");
@@ -55,21 +75,45 @@ public static class QuestHunt
         bool defending = false;
         string? lastKey = null;
         var profiles = Profiles(bot).ToList();
-        bool sawMonster = HasMonster(bot.Monsters.MapMonsters, monster);
-        bot.Log("Hunting " + monster + " for " + itemName + " (" + have + "/" + quantity + ").");
+        string currentMonster = monster;
+        int tried = 0;
+        bool sawMonster = HasMonster(bot.Monsters.MapMonsters, currentMonster);
+        bot.Log("Hunting " + currentMonster + " for " + itemName + " (" + have + "/" + quantity + ").");
         while (have < quantity)
         {
             if (bot.ShouldExit) return;
             if (!bot.Player.LoggedIn) throw new InvalidOperationException("Disconnected while hunting " + itemName + ".");
             if (!bot.Quests.IsInProgress(questId)) throw new InvalidOperationException("Quest was abandoned; stopping.");
             if (Stalled(have, quantity, lastHave, lastGain, DateTime.UtcNow, timeout))
-                throw new InvalidOperationException("No progress on " + itemName + " (" + have + "/" + quantity + ") after hunting " + monster + ". Check the map and monster, then retry Auto-do.");
+            {
+                var next = NextRoute(bot.Map.Name, currentMonster, alternates, tried);
+                if (next == null)
+                    throw new InvalidOperationException("No progress on " + itemName + " (" + have + "/" + quantity + ") after hunting " + currentMonster + ". Check the map and monster, then retry Auto-do.");
+                tried++;
+                bot.Log("Quest step: hunt " + itemName + " — trying documented alternate " + next.Value.Monster + " in /" + next.Value.Map);
+                JoinIfNeeded(bot, next.Value.Map);
+                currentMonster = next.Value.Monster;
+                lastGain = DateTime.UtcNow;
+                sawMonster = HasMonster(bot.Monsters.MapMonsters, currentMonster);
+                continue;
+            }
             lastKey = ApplySkills(bot, profiles, defending, lastKey, out defending);
-            if (HasMonster(bot.Monsters.MapMonsters, monster)) sawMonster = true;
+            if (HasMonster(bot.Monsters.MapMonsters, currentMonster)) sawMonster = true;
             else if (!sawMonster && DateTime.UtcNow - lastGain >= TimeSpan.FromSeconds(30))
-                throw new InvalidOperationException(monster + " was not found on this map. Stopped without turning in.");
+            {
+                var next = NextRoute(bot.Map.Name, currentMonster, alternates, tried);
+                if (next == null)
+                    throw new InvalidOperationException(currentMonster + " was not found on this map. Stopped without turning in.");
+                tried++;
+                bot.Log("Quest step: hunt " + itemName + " — " + currentMonster + " missing; trying /" + next.Value.Map);
+                JoinIfNeeded(bot, next.Value.Map);
+                currentMonster = next.Value.Monster;
+                lastGain = DateTime.UtcNow;
+                sawMonster = HasMonster(bot.Monsters.MapMonsters, currentMonster);
+                continue;
+            }
             using var slice = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-            try { bot.Hunt.Monster(monster, slice.Token); }
+            try { bot.Hunt.Monster(currentMonster, slice.Token); }
             catch (OperationCanceledException) { }
             have = Have();
             if (have > lastHave) { lastHave = have; lastGain = DateTime.UtcNow; bot.Log(itemName + " " + have + "/" + quantity); }

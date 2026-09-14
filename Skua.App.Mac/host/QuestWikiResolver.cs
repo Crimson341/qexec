@@ -291,9 +291,14 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                 }
             }
             var distinct=candidates.DistinctBy(d=>(d.Map,d.Monster)).ToArray();
-            // Multiple documented monsters are valid alternatives, not ambiguous identities.
-            if(distinct.Length>0) results.Add(distinct[0]);
+            // Multiple documented monsters are valid alternatives; pick the fastest available map.
+            if(distinct.Length>0) {
+                var preferred=results.Select(d=>d.Map).Concat(pickups.Select(p=>p.Map));
+                var chosen=QuestFastestPath.PickDrop(distinct,pickupMap,preferred) ?? distinct[0];
+                var alternates=distinct.Where(d=>!QuestFastestPath.Same(d.Map,chosen.Map) || !QuestFastestPath.Same(d.Monster,chosen.Monster)).ToList();
+                results.Add(chosen with { Alternates = alternates.Count>0 ? alternates : null });
+            }
         }
-        return new(results,pickups.GroupBy(p=>(p.Item,p.Temporary)).Where(g=>g.Select(p=>p.Map).Distinct().Count()==1).Select(g=>g.First()).ToArray());
+        return new(results,QuestFastestPath.SelectPickups(pickups,pickupMap,results.Select(d=>d.Map)).ToArray());
     }
 }

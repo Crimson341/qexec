@@ -25,7 +25,8 @@ public sealed class MacLog(Rpc rpc) : ILogService
         queue.Enqueue(message);
         while (queue.Count > 1000) queue.TryDequeue(out _);
         rpc.Send(new { type = "log", kind = kind.ToString(), message });
-        if (kind == LogType.Script && message.StartsWith("Quest step:", StringComparison.Ordinal))
+        ActiveQuestRun.NoteLog(message);
+        if (kind == LogType.Script && (message.StartsWith("Quest step:", StringComparison.Ordinal) || message.StartsWith("Selected quest completed", StringComparison.Ordinal)))
             rpc.Send(new { type = "active-quest-progress", message });
     }
     public void DebugLog(string message) => Add(LogType.Debug, message);

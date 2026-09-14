@@ -25,15 +25,10 @@ public static class AcceptedQuestRoutes
     // Only literal, exact quest IDs and unambiguous map/monster pairs are usable.
     public static List<GearDrop> Find(string root, int questId, IEnumerable<ItemBase> requirements)
     {
-        var routes = new List<GearDrop>();
         var all=requirements.ToList();
-        foreach (var file in Directory.EnumerateFiles(root, "*.cs", SearchOption.AllDirectories))
-        {
-            if (file.Contains(Path.DirectorySeparatorChar + "Generated-") || new FileInfo(file).Length > 2_000_000) continue;
-            string source = File.ReadAllText(file);
-            if (!source.Contains(questId.ToString()) || !source.Contains("KillQuest")) continue;
-            routes.AddRange(Parse(source, questId, all, Path.GetRelativePath(root, file)));
-        }
+        var routes = new List<GearDrop>();
+        foreach (var script in ScriptEvidence.Scan(root))
+            routes.AddRange(FromStory(script, questId, all).Drops);
         return Unambiguous(routes);
     }
 
@@ -42,15 +37,29 @@ public static class AcceptedQuestRoutes
 
     public static List<QuestPickup> FindPickups(string root,int questId,IReadOnlyList<ItemBase> requirements) {
         var routes=new List<QuestPickup>();
-        foreach(var file in Directory.EnumerateFiles(root,"*.cs",SearchOption.AllDirectories)) {
-            if(file.Contains(Path.DirectorySeparatorChar+"Generated-") || new FileInfo(file).Length>2_000_000)continue;
-            string source=File.ReadAllText(file);
-            if(!source.Contains("MapItemQuest") || !source.Contains(questId.ToString()))continue;
-            routes.AddRange(ParsePickups(source,questId,requirements,Path.GetRelativePath(root,file)));
-        }
+        foreach(var script in ScriptEvidence.Scan(root))
+            routes.AddRange(FromStory(script,questId,requirements).Pickups);
         return routes.GroupBy(r=>r.Item,StringComparer.OrdinalIgnoreCase)
             .Where(g=>g.Select(r=>(r.Map,r.MapItemID)).Distinct().Count()==1)
             .Select(g=>g.First()).ToList();
+    }
+
+    internal static QuestResolution FromStory(ParsedScript script,int questId,IReadOnlyList<ItemBase> requirements)
+    {
+        var temps=requirements.Where(r=>r.Temp && r.ID>0 && !string.IsNullOrWhiteSpace(r.Name) && r.Quantity>0).ToList();
+        var assigned=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var pickups=new List<QuestPickup>();
+        foreach(var call in script.MapItems.Where(c=>c.QuestId==questId)) {
+            var matches=temps.Where(r=>r.Quantity==call.Amount && !assigned.Contains(r.Name)).ToList();
+            if(matches.Count!=1)continue;
+            assigned.Add(matches[0].Name);
+            pickups.Add(new(call.Map,matches[0].Name,true,call.Evidence,call.MapItemId));
+        }
+        var remaining=temps.Where(r=>!assigned.Contains(r.Name)).ToList();
+        var drops=new List<GearDrop>();
+        foreach(var call in script.KillQuests.Where(c=>c.QuestId==questId))
+            drops.AddRange(remaining.Select(r=>new GearDrop(call.Map,call.Monster,r.Name,r.Temp,call.Evidence)));
+        return new(drops,pickups);
     }
     public static List<QuestPickup> ParsePickups(string source,int questId,IReadOnlyList<ItemBase> requirements,string evidence)
         => ParseMixed(source,questId,requirements,evidence).Pickups.ToList();
@@ -96,8 +105,8 @@ public static class AcceptedQuestRoutes
         args=call.ArgumentList.Arguments;return true;
     }
 
+    // Keep every documented map/monster pair. Ranking picks the fastest; extras become hunt alternates.
     private static List<GearDrop> Unambiguous(List<GearDrop> routes) => routes
-        .GroupBy(r => (r.Item, r.Temporary))
-        .Where(g => g.Select(r => (r.Map, r.Monster)).Distinct().Count() == 1)
+        .GroupBy(r => string.Join('\n', (r.Item ?? "").ToLowerInvariant(), r.Temporary, (r.Map ?? "").ToLowerInvariant(), (r.Monster ?? "").ToLowerInvariant()))
         .Select(g => g.First()).ToList();
 }

@@ -11,6 +11,8 @@ internal sealed class ParsedScript
     public string RelativePath = "";
     public string DisplayName = "";
     public List<GearDrop> Drops = [];
+    public List<(int QuestId, string Map, string Monster, string Evidence)> KillQuests = [];
+    public List<(int QuestId, string Map, int MapItemId, int Amount, string Evidence)> MapItems = [];
     public List<ShopInvocation> Shops = [];
     public List<(string Class, string Title)> FullFarms = [];
     public List<GearQuestRecipe> Recipes = [];
@@ -80,6 +82,7 @@ internal static class ScriptEvidence
         string farmTitle = title.Success ? title.Groups[1].Value.Trim() : "";
 
         if (!text.Contains("HuntMonster(") && !text.Contains("BuyItem") && !text.Contains("StartBuyAllMerge")
+            && !text.Contains("KillQuest") && !text.Contains("MapItemQuest")
             && !text.Contains("OptionsStorage") && farmTitle.Length == 0)
             return parsed;
 
@@ -106,6 +109,31 @@ internal static class ScriptEvidence
                 bool temporary = temp == null || temp.IsKind(SyntaxKind.TrueLiteralExpression);
                 int line = call.GetLocation().GetLineSpan().StartLinePosition.Line + 1;
                 parsed.Drops.Add(new(map, monster, drop, temporary, relative + ":" + line));
+            }
+
+            if (member.Expression.ToString() == "Story" && method is "KillQuest" or "MapItemQuest")
+            {
+                if (args.Count < 3 || args.Take(method == "KillQuest" ? 3 : 3).Any(a => a.NameColon != null)) continue;
+                if (Arg("questId", 0) is not LiteralExpressionSyntax questLit || questLit.Token.Value is not int questId || questId <= 0) continue;
+                string? map = Str(Arg("map", 1));
+                if (string.IsNullOrWhiteSpace(map) || !Regex.IsMatch(map, @"^[a-zA-Z0-9_]+$")) continue;
+                if (method == "KillQuest")
+                {
+                    string? monster = Str(Arg("monster", 2));
+                    if (string.IsNullOrWhiteSpace(monster)) continue;
+                    parsed.KillQuests.Add((questId, map, monster, relative));
+                }
+                else
+                {
+                    if (Arg("itemID", 2) is not LiteralExpressionSyntax pickup || pickup.Token.Value is not int pickupId || pickupId <= 0) continue;
+                    int amount = 1;
+                    if (args.Count > 3)
+                    {
+                        if (Arg("amount", 3) is not LiteralExpressionSyntax count || count.Token.Value is not int value) continue;
+                        amount = value;
+                    }
+                    parsed.MapItems.Add((questId, map, pickupId, amount, relative));
+                }
             }
 
             if (method is "BuyItem" or "StartBuyAllMerge")

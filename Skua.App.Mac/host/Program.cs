@@ -59,7 +59,13 @@ try
     Trace.Listeners.Add(new Skua.Core.Services.DebugListener(provider.GetRequiredService<ILogService>()));
     var lifetime = new object();
     StrongReferenceMessenger.Default.Register<object, ScriptStoppedMessage, int>(lifetime,
-        (int)MessageChannels.ScriptStatus, (_, _) => rpc.Send(new { type = "status", running = false }));
+        (int)MessageChannels.ScriptStatus, (_, _) => {
+            rpc.Send(new { type = "status", running = false });
+            if (ActiveQuestRun.Completed && ActiveQuestRun.QuestId > 0) {
+                rpc.Send(ActiveQuestRun.Finished());
+                ActiveQuestRun.Clear();
+            }
+        });
     StrongReferenceMessenger.Default.Register<object, ScriptErrorMessage, int>(lifetime,
         (int)MessageChannels.ScriptStatus, (_, _) => rpc.Send(new { type = "log", kind = "Error", message = "Script failed. See the diagnostic log." }));
 
@@ -222,12 +228,13 @@ try
             try {
                 rpc.Send(activeQuestMaker.Snapshot());
                 if (bot.Player.LoggedIn) _ = ScanAchievements();
-                if(manager.ScriptRunning && manager.LoadedScript==watchedQuestScript && bot.Player.Playing && !bot.Quests.IsInProgress(watchedQuestId)) {
+                if(manager.ScriptRunning && manager.LoadedScript==watchedQuestScript && bot.Player.Playing && watchedQuestId>0 && !bot.Quests.IsInProgress(watchedQuestId)) {
                     await commandGate.WaitAsync();
                     try {
                         if(manager.ScriptRunning && manager.LoadedScript==watchedQuestScript && !bot.Quests.IsInProgress(watchedQuestId)) {
                             await manager.StopScript();
-                            rpc.Send(new {type="active-quest-error",message="Selected quest is no longer active. Auto-do stopped."});
+                            if(ActiveQuestRun.Completed) { rpc.Send(ActiveQuestRun.Finished()); ActiveQuestRun.Clear(); }
+                            else rpc.Send(new {type="active-quest-error",message="Selected quest is no longer active. Auto-do stopped."});
                         }
                     } finally {commandGate.Release();}
                 }
@@ -385,14 +392,32 @@ try
                     questPlanningCancellation?.Dispose();
                     questPlanningCancellation=new CancellationTokenSource();
                     var questRequest=JObject.Parse((string?)message["value"] ?? "{}");
-                    if(activeQuestMaker.NeedsBank((int?)questRequest["id"] ?? 0)) {
+                    int requestQuestId=(int?)questRequest["id"] ?? 0;
+                    int requestReward=(int?)questRequest["reward"] ?? -1;
+                    if((bool?)questRequest["repeat"]==true) {
+                        rpc.Send(new {type="active-quest-progress",message="Accepting the same farming quest again…"});
+                        var loaded=bot.Quests.EnsureLoad(requestQuestId) ?? throw new InvalidOperationException("Could not load this quest to repeat it.");
+                        if(loaded.Once) throw new InvalidOperationException("This quest can only be completed once.");
+                        bool dailyDone=false; try { dailyDone=bot.Quests.IsDailyComplete(loaded); } catch { }
+                        if(dailyDone) throw new InvalidOperationException("This daily quest is already completed today.");
+                        if(!bot.Quests.IsInProgress(requestQuestId) && !bot.Quests.EnsureAccept(requestQuestId))
+                            throw new InvalidOperationException("Could not accept this quest again. Check prerequisites, then retry.");
+                    }
+                    if(activeQuestMaker.NeedsBank(requestQuestId)) {
                         rpc.Send(new {type="active-quest-progress",message="Checking inventory and bank for permanent materials…"});
                         if(!await gearOwnership.LoadBank()) rpc.Send(new {type="active-quest-progress",message="Bank did not respond. Resolving free acquisition routes; purchases remain blocked."});
                     }
                     rpc.Send(new {type="active-quest-progress",message="Checking objective routes and looking up missing wiki sources…"});
-                    string activeScript=await activeQuestMaker.CreateAsync((int?)questRequest["id"] ?? 0,(int?)questRequest["reward"] ?? -1,detail=>rpc.Send(new {type="active-quest-progress",message=detail}),questPlanningCancellation.Token);
+                    string activeScript=await activeQuestMaker.CreateAsync(requestQuestId,requestReward,detail=>rpc.Send(new {type="active-quest-progress",message=detail}),questPlanningCancellation.Token);
                     questPlanningCancellation.Token.ThrowIfCancellationRequested();
-                    watchedQuestScript=activeScript; watchedQuestId=(int?)questRequest["id"] ?? 0;
+                    var watched=bot.Quests.Active.SingleOrDefault(q=>q.ID==requestQuestId);
+                    bool daily=false, unlocked=true;
+                    if(watched!=null) {
+                        try { daily=bot.Quests.IsDailyComplete(watched); } catch { }
+                        try { unlocked=bot.Quests.IsUnlocked(watched); } catch { }
+                    }
+                    ActiveQuestRun.Watch(requestQuestId,requestReward,watched!=null && QuestFastestPath.IsFarmable(watched.Once,daily,!unlocked),watched?.Name ?? "");
+                    watchedQuestScript=activeScript; watchedQuestId=requestQuestId;
                     manager.SetLoadedScript(activeScript);
                     rpc.Send(new {type="selected",path=activeScript});
                     rpc.Send(new {type="active-quest-starting",path=activeScript});

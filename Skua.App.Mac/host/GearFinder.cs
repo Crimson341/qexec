@@ -6,7 +6,7 @@ using Skua.Core.Models;
 namespace Skua.Mac;
 
 public sealed record GearSource(string Id, string Name, string Description, string File, string Code, string Item, int ItemId = 0, string Action = "Go — farm item", bool RequiresMissing = true);
-public sealed record GearDrop(string Map, string Monster, string Item, bool Temporary, string Evidence);
+public sealed record GearDrop(string Map, string Monster, string Item, bool Temporary, string Evidence, IReadOnlyList<GearDrop>? Alternates = null);
 public sealed class GearFinder(string scriptsRoot, string? questsPath = null)
 {
     private readonly Lazy<List<GearDrop>> indexedDrops = new(() => IndexDrops(scriptsRoot));
