@@ -7,6 +7,7 @@ const readline = require('readline');
 const {pathToFileURL} = require('url');
 const updateCheck = require('./update-check.cjs');
 const updateInstall = require('./update-install.cjs');
+const flashTrust = require('./flash-trust.cjs');
 
 const flashPath = process.env.SKUA_FLASH_PLUGIN || '/Applications/Artix Game Launcher.app/Contents/Resources/plugins/PepperFlashPlayer.plugin';
 const swfPath = process.env.SKUA_SWF || path.join(__dirname, 'assets', 'skua.swf');
@@ -16,6 +17,18 @@ app.setName('Skua Mac');
 app.setPath('userData', path.join(app.getPath('appData'), 'Skua Mac'));
 fs.mkdirSync(app.getPath('userData'), {recursive:true});
 const diagnostic = text => fs.appendFileSync(path.join(app.getPath('userData'), 'startup.log'), new Date().toISOString() + ' ' + text + '\n');
+try {
+  const trust = flashTrust.ensureFlashTrust({
+    fs,
+    path,
+    userData: app.getPath('userData'),
+    swfPath
+  });
+  if (trust.ok && trust.added) diagnostic('Flash trust: added ' + trust.path);
+  else if (!trust.ok) diagnostic('Flash trust: ' + trust.reason);
+} catch (error) {
+  diagnostic('Flash trust: ' + (error && error.message ? error.message : error));
+}
 app.commandLine.appendSwitch('ppapi-flash-path', flashPath);
 app.commandLine.appendSwitch('ppapi-flash-version', '32.0.0.344');
 let window, host, selected, running = false, pageURL, updateDownloadUrl = '', pendingUpdateNotice = null, applyingUpdate = false;

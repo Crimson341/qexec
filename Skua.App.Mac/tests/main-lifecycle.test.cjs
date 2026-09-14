@@ -20,7 +20,8 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
   const electron={app,BrowserWindow:Window,Menu:{setApplicationMenu(){},buildFromTemplate(){return[];}},dialog:{showErrorBox(_title,message){throw new Error(message);}},clipboard:{},shell:{openExternal:()=>Promise.resolve()},net:undefined};
   const updateCheckPath=path.join(__dirname,'../desktop/update-check.cjs');
   const updateInstallPath=path.join(__dirname,'../desktop/update-install.cjs');
-  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){},readFileSync(){throw new Error('missing');}}:name==='./update-check.cjs'?require(updateCheckPath):name==='./update-install.cjs'?require(updateInstallPath):require(name),process:{env:{},resourcesPath:'/test',execPath:'/usr/local/bin/electron',pid:1},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
+  const flashTrustPath=path.join(__dirname,'../desktop/flash-trust.cjs');
+  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){},readFileSync(){throw new Error('missing');}}:name==='./update-check.cjs'?require(updateCheckPath):name==='./update-install.cjs'?require(updateInstallPath):name==='./flash-trust.cjs'?require(flashTrustPath):require(name),process:{env:{},resourcesPath:'/test',execPath:'/usr/local/bin/electron',pid:1},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
   const contents=created.contents;
