@@ -115,3 +115,19 @@ button:active:enabled{box-shadow:inset 0 0 0 1px var(--accent-strong);background
 .theme-custom{display:flex;align-items:center;gap:12px}
 #theme-accent{width:52px;height:32px;padding:3px;flex:none}
 #theme-accent-hex{display:inline;margin:0;font:12px Menlo,Consolas,monospace;color:var(--accent-fg)}
+
+#achievements-view{position:absolute;inset:0;overflow:auto;background:var(--ink);padding:22px;z-index:2}
+#achievements-view[hidden]{display:none}
+.achievements-open .game-panel{visibility:hidden}
+#achievements-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(196px,1fr));gap:16px;margin-top:20px}
+.achievement-card{display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid var(--line);background:#17171c;min-width:0}
+.achievement-card img{width:100%;aspect-ratio:1;object-fit:cover;border:1px solid var(--line);background:#11111c}
+.achievement-card.locked img{filter:grayscale(.85) brightness(.55);opacity:.72}
+.achievement-card strong{font-size:13px;font-weight:500;color:var(--accent-fg);overflow-wrap:anywhere}
+.achievement-card.locked strong{color:var(--muted)}
+.achievement-card .hint{margin:0}
+.achievement-card .achievement-state{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--gold)}
+.achievement-card.locked .achievement-state{color:var(--muted)}
+@media(prefers-reduced-motion:reduce){#achievements-view:not([hidden]),.achievement-card{animation:none}}
+#achievements-view:not([hidden]){animation:skua-panel-in var(--motion-panel) var(--motion-ease) both}
+.achievement-card{animation:skua-fade-in 180ms ease both}

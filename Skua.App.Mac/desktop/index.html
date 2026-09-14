@@ -22,6 +22,7 @@
       <button class="nav-item" id="become-op" title="Apply class enhancements and owned consumables">Become OP</button>
       <button class="nav-item" id="nav-area">What to do</button>
       <button class="nav-item" id="nav-quest">Quests</button>
+      <button class="nav-item" id="nav-achievements">Achievements</button>
       <button class="nav-item" id="gear-open">Inspect gear</button>
       <div class="nav-footer"><span class="small-dot"></span> macOS client</div>
     </nav>
@@ -61,6 +62,12 @@
         <h3>This week &amp; seasonal events</h3><p id="quest-event-detail" class="hint"></p><button id="quest-event-go" disabled>Run Doom Pirate story</button>
         <p class="engine">Event source: aq.com/gamedesignnotes/aqw-brasilpirates-4sept26-10452</p>
         <p id="quest-news-status" class="hint" role="status"></p><div id="quest-news"></div>
+      </section>
+      <section id="achievements-view" hidden aria-label="Achievements">
+        <div class="panel-heading"><div><p class="area-kicker">MILESTONES</p><h2>Achievements</h2></div><button id="achievements-refresh">Recheck</button></div>
+        <p id="achievements-status" class="hint" role="status">Log in, then qexec checks inventory, bank, and story quests.</p>
+        <p class="engine">Same ownership data as Quests and the planner. Awards stick per character after the first time they are detected.</p>
+        <div id="achievements-grid"></div>
       </section>
     </main>
     <aside aria-label="Quest ledger and script controls">
