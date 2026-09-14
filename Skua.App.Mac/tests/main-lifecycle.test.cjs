@@ -19,7 +19,8 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
   }
   const electron={app,BrowserWindow:Window,Menu:{setApplicationMenu(){},buildFromTemplate(){return[];}},dialog:{showErrorBox(_title,message){throw new Error(message);}},clipboard:{},shell:{openExternal:()=>Promise.resolve()},net:undefined};
   const updateCheckPath=path.join(__dirname,'../desktop/update-check.cjs');
-  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){},readFileSync(){throw new Error('missing');}}:name==='./update-check.cjs'?require(updateCheckPath):require(name),process:{env:{},resourcesPath:'/test'},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
+  const updateInstallPath=path.join(__dirname,'../desktop/update-install.cjs');
+  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){},readFileSync(){throw new Error('missing');}}:name==='./update-check.cjs'?require(updateCheckPath):name==='./update-install.cjs'?require(updateInstallPath):require(name),process:{env:{},resourcesPath:'/test',execPath:'/usr/local/bin/electron',pid:1},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
   const contents=created.contents;
@@ -43,8 +44,10 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
   await vm.runInNewContext('request({id:1,kind:"flash",data:{}})',context);
   let opened=null;
   electron.shell.openExternal=url=>{opened=url;return Promise.resolve();};
-  vm.runInNewContext('updateUrl="https://github.com/Crimson341/qexec/releases/tag/v0.2.0";command("app-update-open")',context);
-  assert.equal(opened,'https://github.com/Crimson341/qexec/releases/tag/v0.2.0');
-  vm.runInNewContext('updateUrl="https://evil.test/download";command("app-update-open")',context);
-  assert.equal(opened,'https://github.com/Crimson341/qexec/releases/tag/v0.2.0','Rejected URLs must not replace the last allowed update page');
+  vm.runInNewContext('updateDownloadUrl="https://github.com/Crimson341/qexec/releases/download/v0.2.1/qexec-v0.2.1-macos-apple-silicon.zip";command("app-update-open")',context);
+  await new Promise(resolve=>setImmediate(resolve));
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(opened,null,'Update must install the zip instead of opening GitHub');
+  vm.runInNewContext('applyingUpdate=false;updateDownloadUrl="https://evil.test/qexec.zip";command("app-update-open")',context);
+  assert.equal(opened,null,'Rejected URLs must not open a browser');
 });

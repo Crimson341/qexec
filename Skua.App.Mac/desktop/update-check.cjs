@@ -36,6 +36,28 @@ function isAllowedUpdateUrl(url) {
   }
 }
 
+function isAllowedDownloadUrl(url) {
+  if (!isAllowedUpdateUrl(url)) return false;
+  try {
+    const parsed = new URL(url);
+    return parsed.pathname.startsWith('/' + OWNER + '/' + REPO + '/releases/download/')
+      && /\/qexec-[A-Za-z0-9._-]+-macos-apple-silicon\.zip$/i.test(parsed.pathname);
+  } catch (_error) {
+    return false;
+  }
+}
+
+function pickMacAsset(release) {
+  if (!release || !Array.isArray(release.assets)) return null;
+  return release.assets.find(asset =>
+    asset
+    && asset.state === 'uploaded'
+    && typeof asset.name === 'string'
+    && /macos-apple-silicon\.zip$/i.test(asset.name)
+    && isAllowedDownloadUrl(asset.browser_download_url)
+  ) || null;
+}
+
 function readJson(fs, file) {
   try {
     const value = JSON.parse(fs.readFileSync(file, 'utf8'));
@@ -245,13 +267,15 @@ async function findUpdate({getJson, identity}) {
       }
     }
   }
-  const releaseUrl = releasePageUrl(newest);
-  const hasReleaseUpdate = releaseAhead > 0 && !!releaseUrl;
-  if (aheadBy <= 0 && !hasReleaseUpdate) return {available: false, aheadBy: 0};
+  const asset = pickMacAsset(newest);
+  const downloadUrl = asset ? asset.browser_download_url : '';
+  const canInstall = !!downloadUrl && (releaseAhead > 0 || (aheadBy > 0 && !isSameRelease(identity, newest)));
+  if (!canInstall) return {available: false, aheadBy: 0};
   return {
     available: true,
     aheadBy: aheadBy || releaseAhead,
-    url: hasReleaseUpdate ? releaseUrl : await chooseUpdateUrl(getJson, identity, compare, newest),
+    url: downloadUrl,
+    downloadUrl,
     message: updateMessage(identity, aheadBy, newest)
   };
 }
@@ -263,6 +287,8 @@ module.exports = {
   RELEASES_PAGE,
   githubHeaders,
   isAllowedUpdateUrl,
+  isAllowedDownloadUrl,
+  pickMacAsset,
   isGithubApiUrl,
   comparePath,
   pickNewestRelease,

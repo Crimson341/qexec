@@ -4,6 +4,19 @@ const path = require('node:path');
 const {EventEmitter} = require('node:events');
 const update = require('../desktop/update-check.cjs');
 
+function macRelease(tag, extras) {
+  return Object.assign({
+    draft: false,
+    tag_name: tag,
+    html_url: 'https://github.com/Crimson341/qexec/releases/tag/' + tag,
+    assets: [{
+      state: 'uploaded',
+      name: 'qexec-' + tag + '-macos-apple-silicon.zip',
+      browser_download_url: 'https://github.com/Crimson341/qexec/releases/download/' + tag + '/qexec-' + tag + '-macos-apple-silicon.zip'
+    }]
+  }, extras || {});
+}
+
 test('identity prefers baked commit, then git, then the version tag', () => {
   const files = {
     [path.join('/app', 'package.json')]: '{"version":"0.2.0"}',
@@ -65,17 +78,13 @@ test('compare reports updates only when main is ahead, and opens a newer release
           html_url: 'https://github.com/Crimson341/qexec/compare/1111111...main'
         };
       }
-      return [{
-        draft: false,
-        prerelease: true,
-        tag_name: 'v0.3.0',
-        html_url: 'https://github.com/Crimson341/qexec/releases/tag/v0.3.0'
-      }];
+      return [macRelease('v0.3.0', {prerelease: true})];
     }
   });
   assert.equal(pending.available, true);
   assert.equal(pending.aheadBy, 3);
-  assert.equal(pending.url, 'https://github.com/Crimson341/qexec/releases/tag/v0.3.0');
+  assert.equal(pending.downloadUrl, 'https://github.com/Crimson341/qexec/releases/download/v0.3.0/qexec-v0.3.0-macos-apple-silicon.zip');
+  assert.equal(pending.url, pending.downloadUrl);
   assert.match(pending.message, /3 commits ahead of this build \(1111111\)/);
   assert.ok(requested[0].includes('1111111...main'));
 
@@ -85,10 +94,10 @@ test('compare reports updates only when main is ahead, and opens a newer release
       if (url.includes('/compare/')) {
         return {ahead_by: 1, html_url: 'https://github.com/Crimson341/qexec/compare/v0.2.0...main'};
       }
-      return [{draft: false, tag_name: 'v0.2.0', html_url: 'https://github.com/Crimson341/qexec/releases/tag/v0.2.0'}];
+      return [macRelease('v0.2.0')];
     }
   });
-  assert.equal(sameRelease.url, 'https://github.com/Crimson341/qexec/compare/v0.2.0...main');
+  assert.deepEqual(sameRelease, {available: false, aheadBy: 0});
 });
 
 test('a newer GitHub release is discoverable even when main is not ahead', async () => {
@@ -99,16 +108,11 @@ test('a newer GitHub release is discoverable even when main is not ahead', async
       if (url.includes('/compare/')) {
         return {ahead_by: 0, status: 'identical', html_url: 'https://github.com/Crimson341/qexec/compare/812e2ad...main'};
       }
-      return [{
-        draft: false,
-        prerelease: false,
-        tag_name: 'v0.2.1',
-        html_url: 'https://github.com/Crimson341/qexec/releases/tag/v0.2.1'
-      }];
+      return [macRelease('v0.2.1')];
     }
   });
   assert.equal(fromTag.available, true);
-  assert.equal(fromTag.url, 'https://github.com/Crimson341/qexec/releases/tag/v0.2.1');
+  assert.equal(fromTag.downloadUrl, 'https://github.com/Crimson341/qexec/releases/download/v0.2.1/qexec-v0.2.1-macos-apple-silicon.zip');
   assert.match(fromTag.message, /GitHub release v0\.2\.1 is newer than this build \(812e2ad\)/);
 
   const fromCommit = await update.findUpdate({
@@ -120,16 +124,12 @@ test('a newer GitHub release is discoverable even when main is not ahead', async
       if (url.includes('...preview')) {
         return {ahead_by: 2, html_url: 'https://github.com/Crimson341/qexec/compare/812e2ad...preview'};
       }
-      return [{
-        draft: false,
-        tag_name: 'preview',
-        html_url: 'https://github.com/Crimson341/qexec/releases/tag/preview'
-      }];
+      return [macRelease('preview')];
     }
   });
   assert.equal(fromCommit.available, true);
   assert.equal(fromCommit.aheadBy, 2);
-  assert.equal(fromCommit.url, 'https://github.com/Crimson341/qexec/releases/tag/preview');
+  assert.equal(fromCommit.downloadUrl, 'https://github.com/Crimson341/qexec/releases/download/preview/qexec-preview-macos-apple-silicon.zip');
 
   const installedRelease = await update.findUpdate({
     identity: {version: '0.2.1', commit: '24e582f', tag: 'v0.2.1', ref: '24e582f'},
@@ -160,9 +160,10 @@ test('unknown local commit falls back to the version tag, and foreign URLs are r
       throw new Error('unexpected ' + url);
     }
   });
-  assert.equal(notice.available, true);
-  assert.equal(notice.aheadBy, 2);
+  assert.deepEqual(notice, {available: false, aheadBy: 0});
   assert.equal(update.isAllowedUpdateUrl('https://github.com/Crimson341/qexec/releases/tag/v0.2.0'), true);
+  assert.equal(update.isAllowedDownloadUrl('https://github.com/Crimson341/qexec/releases/download/v0.2.1/qexec-v0.2.1-macos-apple-silicon.zip'), true);
+  assert.equal(update.isAllowedDownloadUrl('https://github.com/Crimson341/qexec/releases/tag/v0.2.1'), false);
   assert.equal(update.isAllowedUpdateUrl('https://github.com/Crimson341/qexec/releases'), true);
   assert.equal(update.isAllowedUpdateUrl('https://evil.test/Crimson341/qexec/releases'), false);
   assert.equal(update.isAllowedUpdateUrl('https://github.com/evil/qexec/releases'), false);
