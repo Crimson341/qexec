@@ -14,8 +14,10 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   const html = fs.readFileSync(path.join(__dirname,'../desktop/index.html'),'utf8');
   for (const match of html.matchAll(/id="([^"]+)"/g)) elements.set(match[1],element());
   let now = 0, timer;
-  const context = {document:{getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
+  const context = {document:{documentElement:{style:{setProperty(){}}},
+    getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
     createElement:element, createTextNode:text=>text, body:element(), querySelectorAll:()=>[]},
+    localStorage:{getItem(){return null;},setItem(){}},
     window:{}, console:{log(){}}, Date:class extends Date {static now(){return now;}},
     setInterval:(callback,ms)=>{if(ms===1000)timer=callback;}, setTimeout(){}, clearTimeout(){}};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/renderer.cjs'),'utf8'),context);
@@ -159,4 +161,43 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   elements.get('clear').onclick();
   assert.equal(elements.get('logs').childElementCount,0);
   assert.equal(elements.get('log-count').textContent,'0');
+});
+
+test('theme accent applies immediately and is restored on reload', () => {
+  const html = fs.readFileSync(path.join(__dirname,'../desktop/index.html'),'utf8');
+  const store = {};
+  const css = {};
+  const boot = () => {
+    const elements = new Map();
+    const element = () => ({textContent:'', children:[], disabled:false, dataset:{},style:{}, value:'',
+      classList:{toggle(){}}, setAttribute(){}, hasAttribute(){return false;},
+      addEventListener(){}, append(...items){this.children.push(...items);},
+      replaceChildren(){this.children=[];}, showModal(){this.open=true;}, close(){this.open=false;}});
+    for (const match of html.matchAll(/id="([^"]+)"/g)) elements.set(match[1],element());
+    const context = {document:{documentElement:{style:{setProperty(name,value){css[name]=value;},getPropertyValue(name){return css[name]||'';}}},
+      getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
+      createElement:element, createTextNode:text=>text, body:element(), querySelectorAll:()=>[]},
+      localStorage:{getItem(key){return store[key] ?? null;}, setItem(key,value){store[key]=value;}},
+      window:{}, console:{log(){}}, Date, setInterval(){}, setTimeout(){}, clearTimeout(){}};
+    vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/renderer.cjs'),'utf8'),context);
+    return elements;
+  };
+  const first = boot();
+  assert.equal(css['--sea'],'#b09add','Default accent is the current violet ledger color');
+  first.get('theme-open').onclick();
+  assert.equal(first.get('theme-dialog').open,true);
+  first.get('theme-sea').onclick();
+  assert.equal(css['--sea'],'#6ba0cc');
+  assert.equal(first.get('theme-accent').value,'#6ba0cc');
+  assert.equal(first.get('theme-accent-hex').textContent,'#6ba0cc');
+  assert.equal(JSON.parse(store['qexec.theme']).accent,'#6ba0cc');
+  first.get('theme-accent').value='#d88aa8';
+  first.get('theme-accent').oninput({target:first.get('theme-accent')});
+  assert.equal(css['--sea'],'#d88aa8','Custom color input applies immediately');
+  for (const key of Object.keys(css)) delete css[key];
+  const second = boot();
+  assert.equal(css['--sea'],'#d88aa8','Stored accent survives a renderer reload');
+  second.get('theme-reset').onclick();
+  assert.equal(css['--sea'],'#b09add');
+  assert.equal(JSON.parse(store['qexec.theme']).accent,'#b09add');
 });

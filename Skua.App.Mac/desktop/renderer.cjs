@@ -513,4 +513,75 @@ window.receiveHostMessages = messages => {
   for (const message of messages) handleHostMessage(message);
   controls();
 };
+const THEME_KEY = 'qexec.theme';
+const DEFAULT_ACCENT = '#b09add';
+const THEME_PALETTES = [
+  {id:'violet', accent:'#b09add'},
+  {id:'sea', accent:'#6ba0cc'},
+  {id:'gold', accent:'#d7a67b'},
+  {id:'moss', accent:'#77c985'},
+  {id:'rose', accent:'#d88aa8'}
+];
+function parseAccent(value) {
+  return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value) ? value.toLowerCase() : null;
+}
+function hexParts(hex) {
+  return {r:parseInt(hex.slice(1,3),16), g:parseInt(hex.slice(3,5),16), b:parseInt(hex.slice(5,7),16)};
+}
+function toHex(r,g,b) {
+  return '#' + [r,g,b].map(n => Math.max(0, Math.min(255, Math.round(n))).toString(16).padStart(2,'0')).join('');
+}
+function mixHex(hex, other, amount) {
+  const a = hexParts(hex), b = hexParts(other);
+  return toHex(a.r+(b.r-a.r)*amount, a.g+(b.g-a.g)*amount, a.b+(b.b-a.b)*amount);
+}
+function themeTokens(accent) {
+  const ink = '#19191e', paper = '#ffffff';
+  const rgb = hexParts(accent);
+  return {
+    '--sea': accent,
+    '--accent-fg': mixHex(accent, paper, 0.28),
+    '--accent-soft': mixHex(ink, accent, 0.16),
+    '--accent-run': mixHex(ink, accent, 0.22),
+    '--accent-press': mixHex(ink, accent, 0.38),
+    '--accent-border': mixHex(accent, ink, 0.42),
+    '--accent-strong': mixHex(accent, ink, 0.12),
+    '--accent-hover': mixHex(accent, paper, 0.42),
+    '--vibe-ring': `rgba(${rgb.r},${rgb.g},${rgb.b},0.53)`,
+    '--vibe-glow': `rgba(${rgb.r},${rgb.g},${rgb.b},0.33)`,
+    '--vibe-label': mixHex(ink, accent, 0.2)
+  };
+}
+function readStoredTheme() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(THEME_KEY) || 'null');
+    return parseAccent(parsed && parsed.accent) || DEFAULT_ACCENT;
+  } catch {
+    return DEFAULT_ACCENT;
+  }
+}
+function persistTheme(accent) {
+  try { localStorage.setItem(THEME_KEY, JSON.stringify({accent})); } catch { /* private mode */ }
+}
+function applyTheme(accent) {
+  const hex = parseAccent(accent) || DEFAULT_ACCENT;
+  const tokens = themeTokens(hex);
+  const root = document.documentElement;
+  for (const name of Object.keys(tokens)) root.style.setProperty(name, tokens[name]);
+  byId('theme-accent').value = hex;
+  byId('theme-accent-hex').textContent = hex;
+  for (const palette of THEME_PALETTES) {
+    byId('theme-'+palette.id).setAttribute('aria-pressed', String(palette.accent === hex));
+  }
+  persistTheme(hex);
+  return hex;
+}
+byId('theme-open').onclick = () => byId('theme-dialog').showModal();
+byId('theme-close').onclick = () => byId('theme-dialog').close();
+byId('theme-reset').onclick = () => applyTheme(DEFAULT_ACCENT);
+byId('theme-accent').oninput = event => applyTheme(event.target.value);
+for (const palette of THEME_PALETTES) {
+  byId('theme-'+palette.id).onclick = () => applyTheme(palette.accent);
+}
+applyTheme(readStoredTheme());
 controls();
