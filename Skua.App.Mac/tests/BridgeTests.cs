@@ -315,7 +315,7 @@ var dailyBlocked=JObject.FromObject(ActiveQuestMaker.Describe(1,"Daily",Array.Em
 Assert((bool?)dailyBlocked["blocked"]==true && (bool?)dailyBlocked["dailyDone"]==true,"Daily-done quests are not offered as runnable.");
 var memberReady=JObject.FromObject(ActiveQuestMaker.Describe(2,"Cape",Array.Empty<Skua.Core.Models.Items.ItemBase>(),(_,_)=>0,true,false,false,true,false,Array.Empty<object>()));
 Assert((bool?)memberReady["blocked"]==false && (bool?)memberReady["member"]==true,"Ready member quests can still turn in.");
-Console.WriteLine("PASS: Single accepted quest, exact objectives/reward, abandonment, ready-only turn-in, banked requirements, unknown-route rejection.");
+Console.WriteLine("PASS: Single accepted quest, exact objectives/reward, abandonment, ready-only turn-in, banked requirements, unnamed wiki objective.");
 
 Assert(!autoQuest.Contains("Bank.Load") && !autoQuest.Contains("core.SetOptions();"), "Temporary objectives never trigger bank preflight or CoreBots bank startup.");
 Assert(bankedQuest.Contains("Bank.Load"), "Permanent objectives retain ownership verification.");
@@ -366,12 +366,43 @@ wikiItems[0].Quantity=2;
 Assert((await wikiResolver.Resolve(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems)).Count==2,"Reject a mismatched live quantity.");
 wikiItems[0].Quantity=1;
 wikiPages["/chaos-web"]="<p>Map name unavailable</p>";
-var partialWiki=await wikiResolver.Resolve(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems);
-bool partialRejected=false;try {ActiveQuestMaker.Generate(10799,-1,wikiItems,partialWiki,(_,_)=>null);}catch(InvalidOperationException){partialRejected=true;}
-Assert(partialRejected,"Partial wiki evidence never generates a complete-looking script.");
+var fallbackWiki=await wikiResolver.ResolvePlan(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems,questSources:new[]{"/valencia-s-quests"},pickupMap:"twilightedge");
+Assert(fallbackWiki.Drops.Count==3 && fallbackWiki.Drops.All(d=>d.Map.Length>0),"A documented quest map still builds every hunt when one monster map page is incomplete.");
+var fallbackScript=ActiveQuestMaker.Generate(10799,-1,wikiItems,fallbackWiki.Drops,(_,_)=>null);
+Assert(fallbackScript.Contains("QuestHunt.Monster") && !fallbackScript.Contains("Wiki/guides did not name"),"Partial monster pages do not block a wiki-built run.");
+wikiPages["/chaos-web"]="<p><strong>Map Name:</strong> chaosweb<br></p>";
 bool externalRejected=false;try{QuestWikiResolver.WikiPath("https://example.com/monster");}catch(InvalidOperationException){externalRejected=true;}
 Assert(externalRejected,"Reject off-origin wiki links.");
 Console.WriteLine("PASS: Automatic wiki quest discovery, multi-map routes, variant selection, quantity mismatch, partial evidence and origin restrictions.");
+
+var wayfarerItems=new[]{
+    new Skua.Core.Models.Items.ItemBase{ID=56059,Name="Leaf of Visibility",Quantity=1,Temp=true},
+    new Skua.Core.Models.Items.ItemBase{ID=56060,Name="Root of Clarity",Quantity=1,Temp=true},
+    new Skua.Core.Models.Items.ItemBase{ID=56061,Name="Spice of Direction",Quantity=1,Temp=true},
+    new Skua.Core.Models.Items.ItemBase{ID=56062,Name="Broth",Quantity=1,Temp=true}};
+string wayfarerHtml=File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"fixtures","AranxPastSelfQuests.html"));
+string WrongBacklink(string title)=>"<div id='page-title'>"+title+"</div><div id='page-content'><p><strong>Location:</strong> <a href='/celestial-past'>Celestial Past</a></p><ul><li>Root of Clarity (Dropped during the '<a href='/aranx-past-self-s-quests'>Wayfarer Potion</a>' quest)</li></ul></div>";
+var wayfarerPages=new Dictionary<string,string>(StringComparer.OrdinalIgnoreCase){
+    ["/aranx-past-self-s-quests"]=wayfarerHtml,
+    ["/celestial-past"]="<div id='page-title'>Celestial Past</div><div id='page-content'><p><strong>Map Name:</strong> celestialpast<br></p><p><strong>Quests:</strong></p><ul><li><a href='/aranx-past-self-s-quests'>Aranx (Past Self)'s Quests</a></li></ul></div>",
+    ["/blessed-deer"]=WrongBacklink("Blessed Deer"),
+    ["/blessed-bear"]=WrongBacklink("Blessed Bear"),
+    ["/blessed-centaur"]=WrongBacklink("Blessed Centaur"),
+    ["/blessed-hydra"]=WrongBacklink("Blessed Hydra")};
+var wayfarerResolver=new QuestWikiResolver(path=>wayfarerPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/aranx-past-self-s-quests"}));
+var wayfarerPlan=await wayfarerResolver.ResolvePlan("Wayfarer Potion",Array.Empty<string>(),wayfarerItems,questSources:new[]{"/aranx-past-self-s-quests"},pickupMap:"celestialpast");
+Assert(wayfarerPlan.Drops.Count==4 && wayfarerPlan.Drops.All(d=>d.Map=="celestialpast"),"Wayfarer Potion hunts use the quest map even when monster pages list the wrong item.");
+Assert(wayfarerPlan.Drops.Select(d=>d.Monster).OrderBy(s=>s).SequenceEqual(new[]{"Blessed Bear","Blessed Centaur","Blessed Deer","Blessed Hydra"}),"Each ingredient keeps the quest-page monster, not a backlink guess.");
+var wayfarerFromMap=await wayfarerResolver.ResolvePlan("Wayfarer Potion",Array.Empty<string>(),wayfarerItems,pickupMap:"celestialpast");
+Assert(wayfarerFromMap.Drops.Count==4,"Current-map wiki quest list finds the guide without a C# script or verified table.");
+var wayfarerFromSearch=await new QuestWikiResolver(path=>wayfarerPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound),query=>Task.FromResult<IReadOnlyList<string>>(query.Contains("Wayfarer")?new[]{"/aranx-past-self-s-quests"}:Array.Empty<string>())).ResolvePlan("Wayfarer Potion",Array.Empty<string>(),wayfarerItems);
+Assert(wayfarerFromSearch.Drops.Count==4,"Search still finds the quest guide when the map slug is missing.");
+var wayfarerScript=ActiveQuestMaker.Generate(56000,-1,wayfarerItems,wayfarerPlan.Drops,(_,_)=>null,returnTo:new QuestReturnPoint("celestialpast","Enter","Spawn"));
+Assert(wayfarerScript.Contains("QuestHunt.Monster(bot,56000,\"Blessed Deer\",56059,\"Leaf of Visibility\",1,true)") && wayfarerScript.Contains("56062") && wayfarerScript.Contains("EnsureComplete(56000,-1)") && !wayfarerScript.Contains("Missing objective") && !wayfarerScript.Contains("No script was started"),"Auto-do writes a complete farm run from the wiki guide.");
+var pathRevealed=new[]{new Skua.Core.Models.Items.ItemBase{ID=56070,Name="Beasts Cleared",Quantity=5,Temp=true},new Skua.Core.Models.Items.ItemBase{ID=56071,Name="Source Revealed",Quantity=1,Temp=true}};
+var revealedPlan=await wayfarerResolver.ResolvePlan("The Path Revealed",Array.Empty<string>(),pathRevealed,questSources:new[]{"/aranx-past-self-s-quests"},pickupMap:"celestialpast");
+Assert(revealedPlan.Drops.Single().Monster=="Blessed Bear" && revealedPlan.Drops.Single().Alternates!.Count==3 && revealedPlan.Pickups.Single().Item=="Source Revealed" && revealedPlan.Pickups.Single().Map=="celestialpast","Walk-to-screen pickups and multi-monster farms come from the same guide.");
+Console.WriteLine("PASS: Wiki-only Wayfarer Potion farm builds without scripts, verified tables, or matching monster backlinks.");
 
 // Script-independent discovery fixtures, reduced from the linked AQW Wiki pages.
 var decoder=new Skua.Core.Models.Items.ItemBase{ID=4733,Name="Dwakel Decoder",Temp=false,Quantity=1};

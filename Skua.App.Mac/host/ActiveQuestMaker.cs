@@ -69,7 +69,7 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
     public bool NeedsBank(int questId)
     {
         var quest=bot.Quests.Active.SingleOrDefault(q=>q.ID==questId) ?? throw new InvalidOperationException("This quest is no longer accepted.");
-        return !bot.Quests.CanCompleteFullCheck(questId) && quest.Requirements.Any(r=>!r.Temp && !bot.Inventory.Contains(r.ID,r.Quantity));
+        return !Try(()=>bot.Quests.CanComplete(questId),quest.Status=="c") && quest.Requirements.Any(r=>!r.Temp && !bot.Inventory.Contains(r.ID,r.Quantity));
     }
 
     public async Task<string> CreateAsync(int questId,int rewardId,Action<string>? progress=null,CancellationToken cancellation=default)
@@ -83,41 +83,36 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         if(Try(()=>bot.Quests.IsDailyComplete(quest))) throw new InvalidOperationException("This daily quest is already completed today.");
         if(!Try(()=>bot.Quests.IsUnlocked(quest),true)) throw new InvalidOperationException("This quest is locked.");
         if(quest.Upgrade && !Try(()=>bot.Player.IsMember,true)) throw new InvalidOperationException("This quest requires membership.");
-        bool ready=bot.Quests.CanCompleteFullCheck(questId);
+        // Inventory / CanComplete only — CanCompleteFullCheck calls EnsureLoad → world.showQuests.
+        bool ready=Try(()=>bot.Quests.CanComplete(questId),quest.Status=="c")
+            || quest.Requirements.Where(r=>r.ID>0 && r.Quantity>0).All(r=>r.Temp?bot.TempInv.Contains(r.ID,r.Quantity):bot.Inventory.Contains(r.ID,r.Quantity));
         var requirements=ready ? new List<ItemBase>() : quest.Requirements;
         bool Owned(ItemBase req) => req.Temp ? bot.TempInv.Contains(req.ID,req.Quantity) : bot.Inventory.Contains(req.ID,req.Quantity);
         var missing=requirements.Where(r=>!Owned(r)).ToList();
         ThrowIfManualObjective(questId,missing);
         var bankOwned=requirements.Where(r=>!r.Temp && bot.Bank.Loaded && bot.Bank.Contains(r.ID,r.Quantity)).Select(r=>r.ID).ToHashSet();
-        var routes=AcceptedQuestRoutes.Find(scriptsRoot,questId,missing).ToList();
-        var pickups=AcceptedQuestRoutes.FindPickups(scriptsRoot,questId,requirements);
-        var verified=AcceptedQuestRoutes.Verified(questId,missing);
-        routes.AddRange(verified.Drops);pickups.AddRange(verified.Pickups);
-        var unresolved=missing.Where(r=>!bankOwned.Contains(r.ID) && !pickups.Any(p=>p.Temporary==r.Temp && string.Equals(p.Item,r.Name,StringComparison.OrdinalIgnoreCase)) && !routes.Any(d=>d.Temporary==r.Temp && string.Equals(d.Item,r.Name,StringComparison.OrdinalIgnoreCase))).ToList();
+        var routes=new List<GearDrop>();
+        var pickups=new List<QuestPickup>();
+        var unresolved=missing.Where(r=>!bankOwned.Contains(r.ID)).ToList();
         if(unresolved.Count>0) {
             var signature=string.Join(";",quest.Requirements.Select(r=>$"{r.ID}:{r.Name}:{r.Quantity}:{r.Temp}"));
             IReadOnlyList<AreaLink> questSources=[];
             try {questSources=(await new AreaDiscovery().Map(bot.Map.Name,cancellation))?.Quests??[];}
             catch(Exception e) when(!cancellation.IsCancellationRequested && e is HttpRequestException or TimeoutException or OperationCanceledException) { }
+            progress?.Invoke("Building a wiki/guide run for "+quest.Name+"…");
             var plan=await new QuestWikiResolver().ResolvePlan(quest.Name,quest.Rewards.OrderByDescending(r=>r.ID==rewardId).Select(r=>r.Name),unresolved,progress,cancellation,questSources.Select(q=>q.Path),bot.Map.Name);
             routes.AddRange(plan.Drops);
-            foreach(var pickup in plan.Pickups) {
-                var req=unresolved.SingleOrDefault(r=>r.Temp==pickup.Temporary && string.Equals(r.Name,pickup.Item,StringComparison.OrdinalIgnoreCase));
-                var known=req==null?null:AcceptedQuestRoutes.FindPickups(scriptsRoot,questId,new[]{req}).FirstOrDefault(p=>p.Map==pickup.Map);
-                pickups.Add(known??pickup);
-            }
+            pickups.AddRange(plan.Pickups);
             var current=bot.Quests.Active.SingleOrDefault(q=>q.ID==questId);
             if(!bot.Player.LoggedIn || current==null || signature!=string.Join(";",current.Requirements.Select(r=>$"{r.ID}:{r.Name}:{r.Quantity}:{r.Temp}")))
                 throw new InvalidOperationException("Accepted quest changed during source lookup. Refresh and retry.");
             missing=missing.Where(r=>!Owned(r)).ToList();
         }
-        var stillOpen=missing.Where(r=>!r.Temp && !bankOwned.Contains(r.ID) && !pickups.Any(p=>!p.Temporary && string.Equals(p.Item,r.Name,StringComparison.OrdinalIgnoreCase)) && !routes.Any(d=>!d.Temporary && string.Equals(d.Item,r.Name,StringComparison.OrdinalIgnoreCase))).Select(r=>r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
-        if(stillOpen.Count>0) routes.AddRange(finder.Drops.Where(d=>!d.Temporary && stillOpen.Contains(d.Item)));
         routes=QuestFastestPath.SelectDrops(routes,returnTo.Map).ToList();
         pickups=QuestFastestPath.SelectPickups(pickups,returnTo.Map,routes.Select(r=>r.Map)).ToList();
         cancellation.ThrowIfCancellationRequested();
-        foreach(var drop in routes) progress?.Invoke("Fastest documented route for "+drop.Item+": "+drop.Monster+" in /"+drop.Map+(QuestFastestPath.Same(drop.Map,returnTo.Map)?" (already there)":"")+".");
-        progress?.Invoke("Writing a new script with verified objective steps…");
+        foreach(var drop in routes) progress?.Invoke("Wiki/guide route for "+drop.Item+": "+drop.Monster+" in /"+drop.Map+(QuestFastestPath.Same(drop.Map,returnTo.Map)?" (already there)":"")+".");
+        progress?.Invoke("Writing the auto-built quest run…");
         string code=Generate(questId,rewardId,missing,routes,(name,id)=>GearRoutes.Shops(scriptsRoot,name,id).FirstOrDefault(),bankOwned,pickups,bot.Bank.Loaded,returnTo);
         string dir=Path.Combine(scriptsRoot,"Generated-Quests");Directory.CreateDirectory(dir);
         string file=Path.Combine(dir,"Quest-"+questId+"-"+Guid.NewGuid().ToString("N")+".cs");File.WriteAllText(file,string.Join("\n",routes.Select(r=>r.Evidence).Concat(pickups.Select(p=>p.Evidence)).Where(e=>e.StartsWith("http")).Distinct().Select(e=>"// Verified source: "+e.Replace("\n"," ").Replace("\r"," ")))+"\n"+code);return file;
@@ -185,7 +180,7 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
             } else { blocked.Add(r.Name+" (#"+r.ID+", x"+r.Quantity+")");continue; }
             steps.Add(guard+unbank+"if(!"+inventory+".Contains("+r.ID+","+r.Quantity+")) { "+(r.Temp ? "" : "core.AddDrop("+Q(r.Name)+");")+action+" }\nif(!"+inventory+".Contains("+r.ID+","+r.Quantity+")) throw new InvalidOperationException("+Q("Objective ID/quantity not acquired: "+r.Name)+");");
         }
-        if(blocked.Count>0) throw new InvalidOperationException("Cannot generate a complete script yet. Missing objective routes: "+string.Join("; ",blocked)+". No script was started.");
+        if(blocked.Count>0) throw new InvalidOperationException("Wiki/guides did not name a map or monster for: "+string.Join("; ",blocked)+".");
         var code=new StringBuilder("// Generated to complete exactly one accepted quest, once.\n//cs_include Scripts/CoreBots.cs\nusing System;\nusing System.Linq;\nusing Skua.Core.Interfaces;\npublic class GeneratedAcceptedQuest { public void ScriptMain(IScriptInterface bot) { var core=CoreBots.Instance;\n");
         code.AppendLine("if(!bot.Quests.IsInProgress("+questId+")) throw new InvalidOperationException(\"Quest is no longer accepted.\");\n"+(needsBank ? "core.SetOptions(); " : "")+"try {");
         if(!bankAvailable && requirements.Any(r=>!r.Temp)) code.AppendLine("bot.Log(\"Bank could not be verified. Checking inventory and farming only free quest objectives; no purchases.\");");
