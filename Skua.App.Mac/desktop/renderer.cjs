@@ -74,10 +74,14 @@ function updateElapsed() {
   const seconds = Math.floor((startedAt === null ? elapsedMs : Date.now() - startedAt) / 1000);
   byId('elapsed').textContent = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60].map(value => String(value).padStart(2, '0')).join(':');
 }
+function hideWorkspaceViews() {
+  byId('area-view').hidden=true;byId('quest-view').hidden=true;byId('achievements-view').hidden=true;
+  document.body.classList.remove('area-open','quest-open','achievements-open');
+}
 setInterval(() => {updateElapsed(); pollActiveQuests();}, 1000);
 for (const [id, target] of [['nav-game','game'], ['nav-script','choose'], ['nav-activity','logs']]) {
   byId(id).onclick = () => {
-    byId('area-view').hidden=true;document.body.classList.remove('area-open');byId('quest-view').hidden = true; document.body.classList.remove('quest-open');
+    hideWorkspaceViews();
     for (const item of document.querySelectorAll('.nav-item')) {
       item.classList.toggle('active', item.id === id);
       if (item.id === id) item.setAttribute('aria-current', 'location');
@@ -185,7 +189,7 @@ function refreshQuests() {
   window.skua.command('quest-refresh');
 }
 byId('nav-quest').onclick = () => {
-  byId('area-view').hidden=true;document.body.classList.remove('area-open');
+  hideWorkspaceViews();
   byId('quest-view').hidden = false; document.body.classList.add('quest-open');
   for (const item of document.querySelectorAll('.nav-item')) {
     item.classList.toggle('active', item.id === 'nav-quest');
@@ -307,8 +311,40 @@ function areaTree(node,depth=0,parent) {
   row.textContent=node.Name+' ×'+node.Quantity+' — '+(descriptions[node.Kind]||node.Kind);itemPicture(row,node.Name);parent.append(row);
   for(const child of node.Children||[])areaTree(child,depth+1,parent);
 }
+const ACHIEVEMENT_IMAGES=/^[a-z0-9-]+\.png$/;
+function achievementImage(name){return ACHIEVEMENT_IMAGES.test(name)?'brand/achievements/'+name:'';}
+function renderAchievements(items,note){
+  byId('achievements-status').textContent=note||'';
+  byId('achievements-grid').replaceChildren();
+  for(const item of items||[]){
+    const card=document.createElement('article');card.className='achievement-card'+(item.Earned?'':' locked');
+    card.dataset.achievementId=item.Id;
+    const img=document.createElement('img');img.alt=item.Title;img.src=achievementImage(item.Image);img.width=196;img.height=196;
+    const state=document.createElement('span');state.className='achievement-state';
+    state.textContent=item.Earned?(item.Reason==='Story'?'Earned · story complete':'Earned · '+(item.Reason||item.Location||'owned')):(item.Reason||'Not earned yet');
+    const title=document.createElement('strong');title.textContent=item.Title;
+    const detail=document.createElement('p');detail.className='hint';detail.textContent=item.Detail;
+    card.append(img,state,title,detail);byId('achievements-grid').append(card);
+  }
+}
+function refreshAchievements(){
+  byId('achievements-refresh').disabled=true;
+  byId('achievements-status').textContent='Checking inventory, bank, and story quests…';
+  window.skua.command('achievements');
+}
+byId('nav-achievements').onclick=()=>{
+  hideWorkspaceViews();
+  byId('achievements-view').hidden=false;document.body.classList.add('achievements-open');
+  for(const item of document.querySelectorAll('.nav-item')){
+    item.classList.toggle('active',item.id==='nav-achievements');
+    if(item.id==='nav-achievements')item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');
+  }
+  refreshAchievements();
+};
+byId('achievements-refresh').onclick=refreshAchievements;
 byId('nav-area').onclick=()=>{
-  byId('quest-view').hidden=true;byId('area-view').hidden=false;document.body.classList.remove('quest-open');document.body.classList.add('area-open');
+  hideWorkspaceViews();
+  byId('area-view').hidden=false;document.body.classList.add('area-open');
   for(const item of document.querySelectorAll('.nav-item')) {item.classList.toggle('active',item.id==='nav-area');if(item.id==='nav-area')item.setAttribute('aria-current','page');else item.removeAttribute('aria-current');}
   if(!byId('area-shops').childElementCount)areaRequest('area-scan');
 };
@@ -499,7 +535,7 @@ function handleHostMessage(message) {
       break;
     }
     case 'gear-starting':
-      byId('gear-status').textContent = message.message; byId('gear-dialog').close(); byId('area-view').hidden=true;document.body.classList.remove('area-open');byId('quest-view').hidden = true; document.body.classList.remove('quest-open'); break;
+      byId('gear-status').textContent = message.message; byId('gear-dialog').close(); hideWorkspaceViews(); break;
     case 'gear-sources': {
       byId('gear-sources').replaceChildren();
       byId('gear-status').textContent = message.message || (message.sources.length ? 'Generated item-specific routes. Review the action before Go.' : 'No verified route found for this item.');
@@ -538,7 +574,19 @@ function handleHostMessage(message) {
         }
       }, 15000);
       break;
-    case 'game-ready': gameReady = true; byId('game-status').textContent = 'Game loaded'; log('Game bridge connected. Log in to play.'); break;
+    case 'game-ready': gameReady = true; byId('game-status').textContent = 'Game loaded'; log('Game bridge connected. Log in to play.'); refreshAchievements(); break;
+    case 'achievements':
+      byId('achievements-refresh').disabled = false;
+      renderAchievements(message.items, (message.character ? message.character + ' · ' : '') + (message.earned||0) + '/' + (message.total||0) + ' earned. ' + (message.note||''));
+      for (const id of message.newlyEarned || []) {
+        const item = (message.items||[]).find(entry => entry.Id === id);
+        log('Achievement earned: ' + (item ? item.Title : id));
+      }
+      break;
+    case 'achievements-error':
+      byId('achievements-refresh').disabled = false;
+      byId('achievements-status').textContent = message.message;
+      break;
     case 'game-error': gameReady = false; byId('game-status').textContent = 'Game could not load'; log(message.message,'Error'); break;
     case 'setup-error': byId('game-status').textContent = 'Setup required'; if (byId('setup')) byId('setup').textContent = message.message; log(message.message, 'Error'); break;
     case 'app-update':
@@ -557,6 +605,7 @@ function handleHostMessage(message) {
       running = message.running;
       if (!running) restoreGameRendering();
       else if (!wasRunning) stopping = false;
+      if (wasRunning && !running) refreshAchievements();
       byId('engine').textContent = running ? 'Script running' : 'Script idle'; break;
     }
     case 'log': log(message.message, message.kind); break;

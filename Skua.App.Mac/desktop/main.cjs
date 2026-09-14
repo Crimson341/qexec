@@ -98,7 +98,7 @@ function command(name, value) {
     browser.on('error',error => log('Could not open Chrome: ' + error.message));
     return;
   }
-  if (['become-op','area-acquire','area-item-shop','item-preview','area-quest-open','area-quest-accept','area-deep','area-location','area-scan','area-shop','area-monster','area-quests','area-plan','area-go','area-cancel','gear-inspect','gear-find','gear-go','quest-refresh','quest-go','quest-catalog','catalog-farm','catalog-go','active-quests','active-quest-go','active-quest-open','cancel-active-quest'].includes(name)) {
+  if (['become-op','area-acquire','area-item-shop','item-preview','area-quest-open','area-quest-accept','area-deep','area-location','area-scan','area-shop','area-monster','area-quests','area-plan','area-go','area-cancel','gear-inspect','gear-find','gear-go','quest-refresh','quest-go','quest-catalog','catalog-farm','catalog-go','active-quests','active-quest-go','active-quest-open','cancel-active-quest','achievements'].includes(name)) {
     if (value !== undefined && (typeof value !== 'string' || value.length > (name === 'gear-find' || name === 'catalog-farm' ? 512 : 200))) return;
     return send({type:'command',command:name,value});
   }
