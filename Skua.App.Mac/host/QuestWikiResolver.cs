@@ -59,24 +59,28 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
         if(heading==null) yield break;
         for(var n=heading.NextSibling;n!=null && n.Name!="br" && n.Name!="strong";n=n.NextSibling) yield return n;
     }
+    static IEnumerable<HtmlNode> FieldFrom(HtmlNode heading)
+    {
+        for(var n=heading.NextSibling;n!=null && n.Name!="br" && n.Name!="strong";n=n.NextSibling) yield return n;
+    }
     static IEnumerable<HtmlNode> Locations(HtmlNode scope)
     {
         foreach(string label in new[]{"Location","Locations"}) {
-            var heading=scope.Descendants("strong").FirstOrDefault(n=>Same(Text(n).TrimEnd(':'),label));
-            if(heading==null) continue;
-            var links=Links(Field(scope,label)).ToArray();
-            // Wikidot renders plural fields as a standalone paragraph followed by a list.
-            // Only use its immediate list; never scan forward into drops or notes.
-            if(links.Length==0 && heading.ParentNode?.Name=="p" && Same(Text(heading.ParentNode).TrimEnd(':'),label)) {
-                var next=heading.ParentNode.NextSibling;
-                while(next!=null && (next.NodeType==HtmlNodeType.Comment || next.NodeType==HtmlNodeType.Text && string.IsNullOrWhiteSpace(next.InnerText))) next=next.NextSibling;
-                if(next?.Name is "ul" or "ol") links=next.Descendants("a").ToArray();
-            }
-            foreach(var link in links) {
-                var row=link.Ancestors("li").FirstOrDefault() ?? link.ParentNode;
-                // A documented seasonal/rare/member-only alternative is not an always-available route.
-                if(row!=null && row.Descendants("img").Any(img=>Regex.IsMatch(img.GetAttributeValue("src",""),@"(?:seasonal|rare|legend)(?:small|large)\.png",RegexOptions.IgnoreCase))) continue;
-                yield return link;
+            foreach(var heading in scope.Descendants("strong").Where(n=>Same(Text(n).TrimEnd(':'),label))) {
+                var links=Links(FieldFrom(heading)).ToArray();
+                // Wikidot renders plural fields as a standalone paragraph followed by a list.
+                // Only use its immediate list; never scan forward into drops or notes.
+                if(links.Length==0 && heading.ParentNode?.Name=="p" && Same(Text(heading.ParentNode).TrimEnd(':'),label)) {
+                    var next=heading.ParentNode.NextSibling;
+                    while(next!=null && (next.NodeType==HtmlNodeType.Comment || next.NodeType==HtmlNodeType.Text && string.IsNullOrWhiteSpace(next.InnerText))) next=next.NextSibling;
+                    if(next?.Name is "ul" or "ol") links=next.Descendants("a").ToArray();
+                }
+                foreach(var link in links) {
+                    var row=link.Ancestors("li").FirstOrDefault() ?? link.ParentNode;
+                    // A documented seasonal/rare/member-only alternative is not an always-available route.
+                    if(row!=null && row.Descendants("img").Any(img=>Regex.IsMatch(img.GetAttributeValue("src",""),@"(?:seasonal|rare|legend)(?:small|large)\.png",RegexOptions.IgnoreCase))) continue;
+                    yield return link;
+                }
             }
         }
     }
@@ -356,7 +360,11 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                             var requiredLevel=Regex.Match(Text(source),@"\(Level (\d+)\)");
                             var scope=monster.SelectSingleNode("//*[@id='page-content']") ?? monster;
                             string level=Normalize(string.Concat(Field(scope,"Level").Select(Text)));
-                            if(!(requiredLevel.Success && level.Length>0 && level!=requiredLevel.Groups[1].Value)) {
+                            bool backlink=scope.Descendants("a").Any(a=>{
+                                try {return Same(Text(a),quest) && WikiPath(a.GetAttributeValue("href",""))==questPath;}
+                                catch(InvalidOperationException) {return false;}
+                            });
+                            if(backlink && !(requiredLevel.Success && level.Length>0 && level!=requiredLevel.Groups[1].Value)) {
                                 foreach(var location in Locations(scope).Take(4)) {
                                     try {
                                         string mapPath=WikiPath(location.GetAttributeValue("href",""));var mapPage=await Page(mapPath);
