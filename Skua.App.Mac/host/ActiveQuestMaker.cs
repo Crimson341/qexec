@@ -170,7 +170,8 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
                 string hunt="Skua.Core.Scripts.QuestHunt.Monster(bot,"+questId+","+Q(drop.Monster)+","+r.ID+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant();
                 var alts=(drop.Alternates??[]).Where(a=>!string.IsNullOrWhiteSpace(a.Map)&&!string.IsNullOrWhiteSpace(a.Monster)).ToArray();
                 if(alts.Length>0) hunt+=",null,new (string,string)[]{"+string.Join(",",alts.Select(a=>"("+Q(a.Map)+","+Q(a.Monster)+")"))+"}";
-                action="bot.Log("+Q("Quest step: hunt "+r.Name)+"); "+Travel(drop.Map)+" "+hunt+");";
+                hunt+=",map:"+Q(drop.Map);
+                action="bot.Log("+Q("Quest step: hunt "+r.Name)+"); Skua.Core.Scripts.QuestHunt.JoinIfNeeded(bot,"+Q(drop.Map)+"); "+hunt+");";
             }
             else if(bankAvailable && !r.Temp && shopFor(r.Name,r.ID) is GearShop shop) {
                 action="bot.Log("+Q("Quest step: shop "+r.Name)+"); "+Travel(shop.Map)+" bot.Shops.Load("+shop.ShopId+"); if(!bot.Shops.IsLoaded || bot.Shops.ID!="+shop.ShopId+") throw new InvalidOperationException(\"Required shop could not load.\");\n"+

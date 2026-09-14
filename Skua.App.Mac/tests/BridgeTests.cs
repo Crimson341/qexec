@@ -59,6 +59,10 @@ var stallStart=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc);
 Assert(QuestHunt.Stalled(2,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"Unchanged quantity for the stall window is stuck.");
 Assert(!QuestHunt.Stalled(3,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"A quantity gain is not a stall.");
 Assert(QuestHunt.HasMonster(new[]{new Skua.Core.Models.Monsters.Monster{Name=" Infernal Mage "}},"Infernal Mage"),"Monster names match after trim.");
+Assert(QuestHunt.MapKey("voidvortex-100000")=="voidvortex" && QuestHunt.MapKey("battleon")=="battleon" && QuestHunt.MapKey("")=="","Room numbers are stripped; empty maps stay empty.");
+Assert(QuestHunt.SameMap("voidvortex-100000","voidvortex") && !QuestHunt.SameMap("","voidvortex") && !QuestHunt.SameMap("battleon","voidvortex"),"Skip-join matches roomed names, never empty or a different map.");
+Assert(QuestHunt.HuntName(new[]{new Skua.Core.Models.Monsters.Monster{Name="Vortex Guardian"}},"vortex guardian")=="Vortex Guardian","Hunt uses the live monster name so cell lookup is not case-sensitive.");
+Assert(QuestHunt.HuntCell(new[]{new Skua.Core.Models.Monsters.Monster{Name="Vortex Guardian",Cell="r2",HP=100,State=1}},"Vortex Guardian")=="r2","Hunt jumps to the living monster cell.");
 Assert(QuestHunt.NextRoute("forest","Wolf",[("cave","Bat")],0)?.Monster=="Bat","Documented alternate hunt routes are offered after a stall.");
 Assert(QuestHunt.NextRoute("forest","Wolf",[("forest","Wolf"),("cave","Bat")],0)?.Map=="cave","The current map/monster is not reused as an alternate.");
 Assert(QuestHunt.NextRoute("forest","Wolf",null,0)==null,"No invented alternate when the wiki listed only one route.");
@@ -296,7 +300,7 @@ Console.WriteLine("PASS: Automatic quest-recipe discovery, exact reward selectio
 var requirement=new Skua.Core.Models.Items.ItemBase{ID=321,Name="Quest Fang",Temp=true,Quantity=5};
 var autoQuest=ActiveQuestMaker.Generate(42,100,new[]{requirement},new[]{new GearDrop("forest","Wolf","Quest Fang",true,"test")},(_,_)=>null);
 Assert(autoQuest.Contains("bot.TempInv.Contains(321,5)") && autoQuest.Contains("EnsureComplete(42,100)") && autoQuest.Contains("CanCompleteFullCheck(42)"),"Auto quest uses exact objective quantity, item check, and chosen reward.");
-Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true)") && autoQuest.Contains("core.Join(\"forest\")") && autoQuest.Contains("string.Equals(bot.Map.Name,\"forest\""),"Generated hunts use adaptive QuestHunt and skip a join when already on the map.");
+Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true") && autoQuest.Contains("map:\"forest\"") && autoQuest.Contains("QuestHunt.JoinIfNeeded(bot,\"forest\")"),"Generated hunts pass the documented map and join through QuestHunt, not a CoreBots skip-join.");
 Assert(autoQuest.Contains("Quest step: hunt Quest Fang") && autoQuest.Contains("Quest step: turn-in"),"Generated scripts emit structured hunt and turn-in logs for the ledger.");
 Assert(!autoQuest.Contains("EnsureAccept") && !autoQuest.Contains("RegisterQuests") && !autoQuest.Contains("while ("),"Never accept another quest, register loops, or repeat selected quest.");
 Assert(autoQuest.Contains("Quest was abandoned") && autoQuest.Contains("finally {core.SetOptions(false);}"),"Abort abandoned quest and restore settings.");
@@ -323,7 +327,7 @@ var magusRequirement=new Skua.Core.Models.Items.ItemBase{ID=79629,Name="Mage Con
 var magusRoutes=AcceptedQuestRoutes.Parse("class StoryFixture { void Run() { Story.KillQuest(9356, \"infernalarena\", \"Infernal Mage\"); Story.KillQuest(9357, \"wrong\", \"Wrong Monster\"); } }",9356,new[]{magusRequirement},"fixture");
 Assert(magusRoutes.Count==1 && magusRoutes[0].Map=="infernalarena" && magusRoutes[0].Monster=="Infernal Mage", "Resolve only the exact accepted quest's literal KillQuest route.");
 var magusScript=ActiveQuestMaker.Generate(9356,-1,new[]{magusRequirement},magusRoutes,(_,_)=>null);
-Assert(magusScript.Contains("QuestHunt.Monster(bot,9356,\"Infernal Mage\",79629,\"Mage Construct Defeated\",1,true)") && magusScript.Contains("core.Join(\"infernalarena\")") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
+Assert(magusScript.Contains("QuestHunt.Monster(bot,9356,\"Infernal Mage\",79629,\"Mage Construct Defeated\",1,true") && magusScript.Contains("map:\"infernalarena\"") && magusScript.Contains("QuestHunt.JoinIfNeeded(bot,\"infernalarena\")") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
 Assert(AcceptedQuestRoutes.Parse("// Story.KillQuest(9356, \"wrong\", \"wrong\");",9356,new[]{magusRequirement},"fixture").Count==0, "Ignore commented routes.");
 var storyRoot=Path.Combine(Path.GetTempPath(),"qexec-story-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(storyRoot);
 try {
@@ -335,7 +339,7 @@ try {
     Assert(storyPickup.Map=="forest" && storyPickup.MapItemID==99,"Cached story scans still split MapItemQuest from KillQuest.");
     Assert(AcceptedQuestRoutes.Find(storyRoot,42,new[]{requirement,leaf}).Count==2,"Repeated Auto-do planning reuses the script cache.");
 } finally {Directory.Delete(storyRoot,true);}
-Assert(ActiveQuestMaker.Travel("forest").Contains("string.Equals(bot.Map.Name,\"forest\"") && ActiveQuestMaker.Travel("forest").Contains("core.Join(\"forest\")"),"Travel is a no-op when already on the objective map.");
+Assert(ActiveQuestMaker.Travel("forest").Contains("string.Equals(bot.Map.Name,\"forest\"") && ActiveQuestMaker.Travel("forest").Contains("core.Join(\"forest\")"),"Pickup and return travel still skip a CoreBots join when already on that map.");
 Console.WriteLine("PASS: Temporary quest bank bypass and exact Maligned Magus route generation.");
 
 // Reduced factual fixtures based on aqwwiki.wikidot.com/valencia-s-quests and linked monster/map pages.
@@ -373,6 +377,20 @@ Assert(fallbackScript.Contains("QuestHunt.Monster") && !fallbackScript.Contains(
 wikiPages["/chaos-web"]="<p><strong>Map Name:</strong> chaosweb<br></p>";
 bool externalRejected=false;try{QuestWikiResolver.WikiPath("https://example.com/monster");}catch(InvalidOperationException){externalRejected=true;}
 Assert(externalRejected,"Reject off-origin wiki links.");
+var vortexItem=new Skua.Core.Models.Items.ItemBase{ID=88001,Name="Vortex Essence",Quantity=12,Temp=true};
+var vortexPages=new Dictionary<string,string>{
+["/vortex-quests"]="<p><strong>Quest Location:</strong><a href='/void-vortex'>Void Vortex</a><br></p><div class='yui-navset'><ul class='yui-nav'><li>Gather Essence</li></ul><div class='yui-content'><div><p><strong>Items Required</strong></p><ul><li>Vortex Essence x12<ul><li>Dropped by <a href='/vortex-guardian'>Vortex Guardian</a></li></ul></li></ul></div></div></div>",
+["/void-vortex"]="<p><strong>Map Name:</strong> voidvortex<br></p>",
+["/vortex-guardian"]="<div id='page-title'>Vortex Guardian</div><div id='page-content'><p><strong>Location:</strong> <a href='/void-vortex'>Void Vortex</a><br></p><ul><li>Vortex Essence (Dropped during the '<a href='/vortex-quests'>Gather Essence</a>' quest)</li></ul></div>"};
+var vortexResolver=new QuestWikiResolver(path=>Task.FromResult(vortexPages[path]));
+var vortexPlan=await vortexResolver.ResolvePlan("Gather Essence",Array.Empty<string>(),new[]{vortexItem},questSources:new[]{"/vortex-quests"},pickupMap:"battleon");
+Assert(vortexPlan.Drops.Single() is {Map:"voidvortex",Monster:"Vortex Guardian"},"Standing in battleon must not replace the documented Vortex hunt map.");
+Assert(vortexPlan.Drops.Single().Alternates==null || vortexPlan.Drops.Single().Alternates!.All(a=>a.Map!="battleon"),"The current map is not an invented hunt alternate.");
+var vortexScript=ActiveQuestMaker.Generate(8800,-1,new[]{vortexItem},vortexPlan.Drops,(_,_)=>null);
+Assert(vortexScript.Contains("map:\"voidvortex\"") && vortexScript.Contains("QuestHunt.JoinIfNeeded(bot,\"voidvortex\")"),"Vortex hunts join the documented map instead of hunting in place.");
+Assert(!vortexScript.Contains("JoinIfNeeded(bot,\"battleon\")") && !vortexScript.Contains("map:\"battleon\""),"Generated Vortex hunts never join the map Scott happened to be standing in.");
+var unverifiedHunt=ActiveQuestMaker.Generate(8800,-1,new[]{new Skua.Core.Models.Items.ItemBase{ID=88001,Name="Vortex Essence",Quantity=12,Temp=false}},new[]{new GearDrop("voidvortex","Vortex Guardian","Vortex Essence",false,"wiki")},(_,_)=>null,null,null,false);
+Assert(unverifiedHunt.Contains("Bank could not be verified") && unverifiedHunt.Contains("QuestHunt.JoinIfNeeded(bot,\"voidvortex\")") && unverifiedHunt.Contains("map:\"voidvortex\"") && !unverifiedHunt.Contains("Bank.Load") && !unverifiedHunt.Contains("bot.Shops.BuyItem"),"Bank-unverified still joins and hunts; it only skips purchases.");
 Console.WriteLine("PASS: Automatic wiki quest discovery, multi-map routes, variant selection, quantity mismatch, partial evidence and origin restrictions.");
 
 var wayfarerItems=new[]{

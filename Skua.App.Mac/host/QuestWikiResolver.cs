@@ -292,7 +292,6 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
         var label=section.Descendants("strong").FirstOrDefault(n=>Same(Text(n).TrimEnd(':'),"Items Required"));
         var list=label?.ParentNode?.SelectSingleNode("following-sibling::ul[1]");if(list==null) return new([],[]);
         var questMaps=new List<string>();
-        if(ValidMap(pickupMap)) questMaps.Add(pickupMap!);
         foreach(var link in QuestLocationLinks(section).Take(4)) {
             try {
                 string mapPath=WikiPath(link.GetAttributeValue("href",""));
@@ -373,6 +372,12 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                 foreach(string map in questMaps.Where(ValidMap))
                     candidates.Add(new GearDrop(map,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+(monsterPath.Length>0?" -> "+monsterPath:"")+" -> /"+map));
             }
+            if(candidates.Count==0 && dropSources.Length>0 && ValidMap(pickupMap))
+                foreach(var source in dropSources.Take(6)) {
+                    string monsterName=MonsterName(Text(source));
+                    if(!string.IsNullOrWhiteSpace(monsterName))
+                        candidates.Add(new GearDrop(pickupMap!,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+" -> /"+pickupMap));
+                }
             var distinct=candidates.DistinctBy(d=>(d.Map,d.Monster)).ToArray();
             if(distinct.Length>0) {
                 var preferred=results.Select(d=>d.Map).Concat(pickups.Select(p=>p.Map)).Concat(questMaps);
