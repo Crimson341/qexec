@@ -178,6 +178,22 @@ try {
     Assert(stillEarned.Single(a => a.Id == "vhl").Earned && stillEarned.Single(a => a.Id == "vhl").EarnedAt == 1_700_000_000_000, "Persisted awards survive a later missing inventory.");
     var again = Achievements.MergeAwards(reloaded, stillEarned, 1_800_000_000_000);
     Assert(again["vhl"].EarnedAt == 1_700_000_000_000, "Re-checks do not rewrite the original award time.");
+    Assert(Achievements.RestoredPayload(Achievements.LoadStore(storeFile), "scott") == null, "Awards without a complete snapshot still need one live pass.");
+    var firstPass = Achievements.Evaluate(new[]{vhl},emptyItems,true,_ => false,reloaded,_ => true);
+    var completeStore = Achievements.LoadStore(storeFile);
+    Achievements.WriteComplete(completeStore, "scott", again, Achievements.BuildSnapshot("Scott", true, "Inventory, bank, and story progress checked.", firstPass));
+    Achievements.SaveStore(storeFile, completeStore);
+    Assert(Achievements.SnapshotComplete(Achievements.ReadSnapshot(completeStore, "scott")), "The first complete catalog plus awards is persisted.");
+    var restored = JObject.FromObject(Achievements.RestoredPayload(Achievements.LoadStore(storeFile), "scott")!);
+    Assert((string?)restored["character"] == "Scott" && (int?)restored["earned"] == 1 && (int?)restored["total"] == Achievements.Catalog.Length, "Later launches reuse the saved catalog and progress.");
+    Assert(((JArray)restored["newlyEarned"]!).Count == 0, "Restored snapshots do not re-announce awards.");
+    Assert(Achievements.RestoredPayload(Achievements.LoadStore(storeFile), null) != null, "A later launch can restore the last character before login.");
+    Achievements.WriteAwards(completeStore, "scott", again);
+    Assert(Achievements.SnapshotComplete(Achievements.ReadSnapshot(completeStore, "scott")), "Award writes keep the saved snapshot.");
+    var corrupt = Achievements.BuildSnapshot("Scott", true, "checked", firstPass);
+    corrupt["catalogIds"] = new JArray("vhl");
+    Assert(!Achievements.SnapshotComplete(corrupt), "A catalog mismatch is treated as corrupt and rescans.");
+    Assert(!Achievements.SnapshotComplete(new JObject { ["complete"] = true, ["version"] = Achievements.StoreVersion, ["character"] = "Scott" }), "A snapshot missing items is corrupt.");
 } finally { File.Delete(storeFile); if (File.Exists(storeFile+".tmp")) File.Delete(storeFile+".tmp"); }
 Assert(Achievements.Catalog.Select(a => a.Id).Distinct().Count() == Achievements.Catalog.Length, "Achievement ids are unique.");
 Assert(Achievements.Catalog.All(a => a.Image == a.Id + ".png"), "Every achievement ships a matching image name.");
@@ -218,6 +234,14 @@ if (Directory.Exists(hostDir))
     int poll = programCs.IndexOf("command\"] == \"active-quests\"", StringComparison.Ordinal);
     int next = programCs.IndexOf("command\"] == \"gear-find\"", StringComparison.Ordinal);
     Assert(poll >= 0 && next > poll && !programCs[poll..next].Contains("ScanAchievements("), "The 3s ledger poll must not scan achievements.");
+    Assert(programCs.Contains("command\"] == \"achievements-refresh\""), "Recheck uses a dedicated force scan.");
+    Assert(programCs.Contains("ScanAchievements(false)") && programCs.Contains("ScanAchievements(true)"), "Launch restores a saved snapshot; Recheck forces a live scan.");
+    int questRefresh = programCs.IndexOf("command\"] == \"quest-refresh\"", StringComparison.Ordinal);
+    int itemPreview = programCs.IndexOf("command\"] == \"item-preview\"", StringComparison.Ordinal);
+    Assert(questRefresh >= 0 && itemPreview > questRefresh && !programCs[questRefresh..itemPreview].Contains("ScanAchievements("), "Quest refresh must not rescan achievements.");
+    int stopCase = programCs.IndexOf("case \"stop\":", StringComparison.Ordinal);
+    int unknown = programCs.IndexOf("default: throw new ArgumentException(\"Unknown host command.\")", StringComparison.Ordinal);
+    Assert(stopCase >= 0 && unknown > stopCase && !programCs[stopCase..unknown].Contains("ScanAchievements("), "Script stop must not rescan achievements.");
 }
 Console.WriteLine("PASS: Achievement inventory, story, bank, persisted awards, and mapped farms.");
 
