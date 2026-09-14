@@ -88,6 +88,16 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   assert.equal(elements.get('ledger-status').textContent,'Quest step: hunt Quest Fang','Step logs keep updating the ledger after start');
   receive({type:'active-quest-error',message:'Quest locked'});
   assert.equal(elements.get('ledger-status').textContent,'Quest locked','Ledger failures stay inline without a dialog');
+  receive({type:'active-quests',quests:[{id:50,name:'Plant hunt',ready:false,rewards:[],objectives:[{name:'Plant Found',have:1,need:3}],dailyDone:false,member:false,locked:false,blocked:false}]});
+  const plantRow=elements.get('ledger-list').children[0].children[0];
+  assert.match(plantRow.children[1].textContent,/In progress/);
+  assert.match(plantRow.children[2].textContent,/Plant Found 1\/3/);
+  receive({type:'active-quests',quests:[{id:51,name:'Member daily',ready:false,rewards:[],objectives:[],dailyDone:true,member:true,locked:true,blocked:true}]});
+  const blockedRow=elements.get('ledger-list').children[0].children[0];
+  assert.match(blockedRow.children[1].textContent,/Daily done/);
+  assert.match(blockedRow.children[1].textContent,/Member/);
+  assert.match(blockedRow.children[1].textContent,/Locked/);
+  assert.equal(blockedRow.disabled,true);
   receive({type:'active-quests',quests:[{id:43,name:'Choose reward',ready:false,rewards:[{id:1,name:'Sword'},{id:2,name:'Cape'}]}]});
   const rewardGroup=elements.get('ledger-list').children[0];
   assert.equal(rewardGroup.children[1].textContent,'Open');

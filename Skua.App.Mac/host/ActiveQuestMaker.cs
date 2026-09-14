@@ -24,12 +24,23 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
                 seenQuests=ids;
             }
         }
-        return new {type="active-quests",quests=active.Select(Describe).ToArray()};
+        return new {type="active-quests",quests=active.Select(DescribeQuest).ToArray()};
     }
-    static object Describe(Quest q) => new {
-        id=q.ID,name=q.Name,ready=q.Status=="c",
-        rewards=q.SimpleRewards.Where(r=>r.Type==2).Select(r=>new {id=r.ID,name=q.Rewards.FirstOrDefault(i=>i.ID==r.ID)?.Name??"Item #"+r.ID}).ToArray()
-    };
+    object DescribeQuest(Quest q) => Describe(q.ID,q.Name,q.Requirements,
+        (id,temp)=>temp?bot.TempInv.GetQuantity(id):bot.Inventory.GetQuantity(id)+(bot.Bank.Loaded?bot.Bank.GetQuantity(id):0),
+        Try(()=>bot.Quests.CanCompleteFullCheck(q.ID),q.Status=="c"),
+        Try(()=>bot.Quests.IsDailyComplete(q)),
+        !Try(()=>bot.Quests.IsUnlocked(q),true),
+        q.Upgrade,Try(()=>bot.Player.IsMember,true),
+        q.SimpleRewards.Where(r=>r.Type==2).Select(r=>new {id=r.ID,name=q.Rewards.FirstOrDefault(i=>i.ID==r.ID)?.Name??"Item #"+r.ID}));
+    static bool Try(Func<bool> check, bool fallback=false) { try { return check(); } catch { return fallback; } }
+    public static object Describe(int id,string name,IEnumerable<ItemBase> requirements,Func<int,bool,int> quantity,bool ready,bool dailyDone,bool locked,bool member,bool isMember,IEnumerable<object> rewards)
+    {
+        var objectives=requirements.Where(r=>r.ID>0 && r.Quantity>0 && !string.IsNullOrWhiteSpace(r.Name))
+            .Select(r=>new {id=r.ID,name=r.Name,have=Math.Max(0,quantity(r.ID,r.Temp)),need=r.Quantity,temporary=r.Temp}).ToArray();
+        bool blocked=!ready && (dailyDone || locked || (member && !isMember));
+        return new {id,name,ready,dailyDone,member,locked,blocked,objectives,rewards=rewards.ToArray()};
+    }
     public object OpenInGame(int questId)
     {
         if(!bot.Player.LoggedIn) throw new InvalidOperationException("Log in first.");
@@ -45,13 +56,13 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         var quest=matches[0];
         var choices=quest.SimpleRewards.Where(r=>r.Type==2).Select(r=>r.ID).ToArray();
         if(choices.Length>0 && !choices.Contains(itemId)) return null;
-        return new {type="catalog-autodo",quest=Describe(quest),reward=choices.Length==0?-1:itemId};
+        return new {type="catalog-autodo",quest=DescribeQuest(quest),reward=choices.Length==0?-1:itemId};
     }
 
     public bool NeedsBank(int questId)
     {
         var quest=bot.Quests.Active.SingleOrDefault(q=>q.ID==questId) ?? throw new InvalidOperationException("This quest is no longer accepted.");
-        return !bot.Quests.CanComplete(questId) && quest.Requirements.Any(r=>!r.Temp && !bot.Inventory.Contains(r.ID,r.Quantity));
+        return !bot.Quests.CanCompleteFullCheck(questId) && quest.Requirements.Any(r=>!r.Temp && !bot.Inventory.Contains(r.ID,r.Quantity));
     }
 
     public async Task<string> CreateAsync(int questId,int rewardId,Action<string>? progress=null,CancellationToken cancellation=default)
@@ -62,7 +73,10 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         var choices=quest.SimpleRewards.Where(r=>r.Type==2).Select(r=>r.ID).ToArray();
         if(choices.Length>0 && !choices.Contains(rewardId)) throw new InvalidOperationException("Choose a reward for this quest.");
         if(choices.Length==0 && rewardId!=-1) throw new InvalidOperationException("This quest has no selectable reward.");
-        bool ready=bot.Quests.CanComplete(questId);
+        if(Try(()=>bot.Quests.IsDailyComplete(quest))) throw new InvalidOperationException("This daily quest is already completed today.");
+        if(!Try(()=>bot.Quests.IsUnlocked(quest),true)) throw new InvalidOperationException("This quest is locked.");
+        if(quest.Upgrade && !Try(()=>bot.Player.IsMember,true)) throw new InvalidOperationException("This quest requires membership.");
+        bool ready=bot.Quests.CanCompleteFullCheck(questId);
         var requirements=ready ? new List<ItemBase>() : quest.Requirements;
         bool Owned(ItemBase req) => req.Temp ? bot.TempInv.Contains(req.ID,req.Quantity) : bot.Inventory.Contains(req.ID,req.Quantity);
         var missing=requirements.Where(r=>!Owned(r)).ToList();
@@ -126,7 +140,7 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
             if(!r.Temp && bankOwned?.Contains(r.ID)==true) action="";
             else if(pickups?.FirstOrDefault(p=>p.Temporary==r.Temp && string.Equals(p.Item,r.Name,StringComparison.OrdinalIgnoreCase)) is QuestPickup pickup)
                 action="bot.Log("+Q("Quest step: pickup "+r.Name)+"); core.Join("+Q(pickup.Map)+"); Skua.Core.Scripts.QuestMapPickup."+(pickup.MapItemID>0?"AcquireKnown":"Acquire")+"(bot,"+questId+","+r.ID+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant()+(pickup.MapItemID>0?","+pickup.MapItemID:"")+");";
-            else if(drop!=null) action="bot.Log("+Q("Quest step: hunt "+r.Name)+"); core.HuntMonster("+Q(drop.Map)+","+Q(drop.Monster)+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant()+");";
+            else if(drop!=null) action="bot.Log("+Q("Quest step: hunt "+r.Name)+"); core.Join("+Q(drop.Map)+"); Skua.Core.Scripts.QuestHunt.Monster(bot,"+questId+","+Q(drop.Monster)+","+r.ID+","+Q(r.Name)+","+r.Quantity+","+r.Temp.ToString().ToLowerInvariant()+");";
             else if(bankAvailable && !r.Temp && shopFor(r.Name,r.ID) is GearShop shop) {
                 action="bot.Log("+Q("Quest step: shop "+r.Name)+"); core.Join("+Q(shop.Map)+"); bot.Shops.Load("+shop.ShopId+"); if(!bot.Shops.IsLoaded || bot.Shops.ID!="+shop.ShopId+") throw new InvalidOperationException(\"Required shop could not load.\");\n"+
                 "var item=bot.Shops.Items.FirstOrDefault(i=>i.ID=="+r.ID+"); if(item==null) throw new InvalidOperationException(\"Required item not in shop.\"); if(item.Coins && item.Cost>0) throw new InvalidOperationException(\"Objective requires a premium-currency purchase. Buy it manually before retrying.\");\n"+
@@ -140,9 +154,8 @@ public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, st
         code.AppendLine("if(!bot.Quests.IsInProgress("+questId+")) throw new InvalidOperationException(\"Quest is no longer accepted.\");\n"+(needsBank ? "core.SetOptions(); " : "")+"try {");
         if(!bankAvailable && requirements.Any(r=>!r.Temp)) code.AppendLine("bot.Log(\"Bank could not be verified. Checking inventory and farming only free quest objectives; no purchases.\");");
         if(needsBank) code.AppendLine("if(!bot.Bank.Loaded) bot.Bank.Load(); if(!bot.Bank.Loaded) throw new InvalidOperationException(\"Bank check failed for permanent quest materials.\");");
-        if(steps.Count>0) code.AppendLine("bot.Skills.StartAdvanced(bot.Player.CurrentClass?.Name ?? \"generic\",false);");
         foreach(string step in steps) code.AppendLine(step);
-        code.AppendLine("if(bot.ShouldExit) return; if(!bot.Quests.IsInProgress("+questId+")) throw new InvalidOperationException(\"Quest was abandoned.\"); if(!bot.Quests.CanComplete("+questId+")) throw new InvalidOperationException(\"Quest requirements changed or remain incomplete.\");\n"+ReturnCode(returnTo)+"bot.Log(\"Quest step: turn-in\"); if(!bot.Quests.EnsureComplete("+questId+","+rewardId+")) throw new InvalidOperationException(\"Quest turn-in failed.\"); bot.Log(\"Selected quest completed once.\");\n} finally {core.SetOptions(false);} } }");
+        code.AppendLine("if(bot.ShouldExit) return; if(!bot.Quests.IsInProgress("+questId+")) throw new InvalidOperationException(\"Quest was abandoned.\"); if(!bot.Quests.CanCompleteFullCheck("+questId+")) throw new InvalidOperationException(\"Quest requirements changed or remain incomplete.\");\n"+ReturnCode(returnTo)+"bot.Log(\"Quest step: turn-in\"); if(!bot.Quests.EnsureComplete("+questId+","+rewardId+")) throw new InvalidOperationException(\"Quest turn-in failed.\"); bot.Log(\"Selected quest completed once.\");\n} finally {core.SetOptions(false);} } }");
         return code.ToString();
     }
 }
