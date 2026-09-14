@@ -59,6 +59,10 @@ var stallStart=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc);
 Assert(QuestHunt.Stalled(2,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"Unchanged quantity for the stall window is stuck.");
 Assert(!QuestHunt.Stalled(3,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"A quantity gain is not a stall.");
 Assert(QuestHunt.HasMonster(new[]{new Skua.Core.Models.Monsters.Monster{Name=" Infernal Mage "}},"Infernal Mage"),"Monster names match after trim.");
+Assert(QuestHunt.MapKey("voidvortex-100000")=="voidvortex" && QuestHunt.MapKey("battleon")=="battleon" && QuestHunt.MapKey("")=="","Room numbers are stripped; empty maps stay empty.");
+Assert(QuestHunt.SameMap("voidvortex-100000","voidvortex") && !QuestHunt.SameMap("","voidvortex") && !QuestHunt.SameMap("battleon","voidvortex"),"Skip-join matches roomed names, never empty or a different map.");
+Assert(QuestHunt.HuntName(new[]{new Skua.Core.Models.Monsters.Monster{Name="Vortex Guardian"}},"vortex guardian")=="Vortex Guardian","Hunt uses the live monster name so cell lookup is not case-sensitive.");
+Assert(QuestHunt.HuntCell(new[]{new Skua.Core.Models.Monsters.Monster{Name="Vortex Guardian",Cell="r2",HP=100,State=1}},"Vortex Guardian")=="r2","Hunt jumps to the living monster cell.");
 Assert(QuestHunt.NextRoute("forest","Wolf",[("cave","Bat")],0)?.Monster=="Bat","Documented alternate hunt routes are offered after a stall.");
 Assert(QuestHunt.NextRoute("forest","Wolf",[("forest","Wolf"),("cave","Bat")],0)?.Map=="cave","The current map/monster is not reused as an alternate.");
 Assert(QuestHunt.NextRoute("forest","Wolf",null,0)==null,"No invented alternate when the wiki listed only one route.");
@@ -320,7 +324,7 @@ Console.WriteLine("PASS: Automatic quest-recipe discovery, exact reward selectio
 var requirement=new Skua.Core.Models.Items.ItemBase{ID=321,Name="Quest Fang",Temp=true,Quantity=5};
 var autoQuest=ActiveQuestMaker.Generate(42,100,new[]{requirement},new[]{new GearDrop("forest","Wolf","Quest Fang",true,"test")},(_,_)=>null);
 Assert(autoQuest.Contains("bot.TempInv.Contains(321,5)") && autoQuest.Contains("EnsureComplete(42,100)") && autoQuest.Contains("CanCompleteFullCheck(42)"),"Auto quest uses exact objective quantity, item check, and chosen reward.");
-Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true)") && autoQuest.Contains("core.Join(\"forest\")") && autoQuest.Contains("string.Equals(bot.Map.Name,\"forest\""),"Generated hunts use adaptive QuestHunt and skip a join when already on the map.");
+Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true") && autoQuest.Contains("map:\"forest\"") && autoQuest.Contains("QuestHunt.JoinIfNeeded(bot,\"forest\")"),"Generated hunts pass the documented map and join through QuestHunt, not a CoreBots skip-join.");
 Assert(autoQuest.Contains("Quest step: hunt Quest Fang") && autoQuest.Contains("Quest step: turn-in"),"Generated scripts emit structured hunt and turn-in logs for the ledger.");
 Assert(!autoQuest.Contains("EnsureAccept") && !autoQuest.Contains("RegisterQuests") && !autoQuest.Contains("while ("),"Never accept another quest, register loops, or repeat selected quest.");
 Assert(autoQuest.Contains("Quest was abandoned") && autoQuest.Contains("finally {core.SetOptions(false);}"),"Abort abandoned quest and restore settings.");
@@ -347,7 +351,7 @@ var magusRequirement=new Skua.Core.Models.Items.ItemBase{ID=79629,Name="Mage Con
 var magusRoutes=AcceptedQuestRoutes.Parse("class StoryFixture { void Run() { Story.KillQuest(9356, \"infernalarena\", \"Infernal Mage\"); Story.KillQuest(9357, \"wrong\", \"Wrong Monster\"); } }",9356,new[]{magusRequirement},"fixture");
 Assert(magusRoutes.Count==1 && magusRoutes[0].Map=="infernalarena" && magusRoutes[0].Monster=="Infernal Mage", "Resolve only the exact accepted quest's literal KillQuest route.");
 var magusScript=ActiveQuestMaker.Generate(9356,-1,new[]{magusRequirement},magusRoutes,(_,_)=>null);
-Assert(magusScript.Contains("QuestHunt.Monster(bot,9356,\"Infernal Mage\",79629,\"Mage Construct Defeated\",1,true)") && magusScript.Contains("core.Join(\"infernalarena\")") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
+Assert(magusScript.Contains("QuestHunt.Monster(bot,9356,\"Infernal Mage\",79629,\"Mage Construct Defeated\",1,true") && magusScript.Contains("map:\"infernalarena\"") && magusScript.Contains("QuestHunt.JoinIfNeeded(bot,\"infernalarena\")") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
 Assert(AcceptedQuestRoutes.Parse("// Story.KillQuest(9356, \"wrong\", \"wrong\");",9356,new[]{magusRequirement},"fixture").Count==0, "Ignore commented routes.");
 var storyRoot=Path.Combine(Path.GetTempPath(),"qexec-story-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(storyRoot);
 try {
@@ -359,7 +363,7 @@ try {
     Assert(storyPickup.Map=="forest" && storyPickup.MapItemID==99,"Cached story scans still split MapItemQuest from KillQuest.");
     Assert(AcceptedQuestRoutes.Find(storyRoot,42,new[]{requirement,leaf}).Count==2,"Repeated Auto-do planning reuses the script cache.");
 } finally {Directory.Delete(storyRoot,true);}
-Assert(ActiveQuestMaker.Travel("forest").Contains("string.Equals(bot.Map.Name,\"forest\"") && ActiveQuestMaker.Travel("forest").Contains("core.Join(\"forest\")"),"Travel is a no-op when already on the objective map.");
+Assert(ActiveQuestMaker.Travel("forest").Contains("string.Equals(bot.Map.Name,\"forest\"") && ActiveQuestMaker.Travel("forest").Contains("core.Join(\"forest\")"),"Pickup and return travel still skip a CoreBots join when already on that map.");
 Console.WriteLine("PASS: Temporary quest bank bypass and exact Maligned Magus route generation.");
 
 // Reduced factual fixtures based on aqwwiki.wikidot.com/valencia-s-quests and linked monster/map pages.
@@ -375,7 +379,7 @@ string MonsterFixture(string name,string map,string item)=>"<div id='page-title'
 wikiPages["/chaosweaver-warrior"]=MonsterFixture("ChaosWeaver Warrior","/twilight-s-edge","Polearm Handle");
 wikiPages["/chaosweaver-cleric-monster"]=MonsterFixture("ChaosWeaver Cleric (Monster)","/chaos-web","Polearm Blade");
 wikiPages["/breken-the-vile"]="<div id='page-title'>Breken the Vile</div><div id='page-content'><div class='yui-content'><div><p><strong>Location:</strong><a href='/wrong-map'>Rare old location</a><br></p></div><div><p><strong>Location:</strong><a href='/greenguard-west'>Greenguard West</a><br></p><ul><li>Elemental Spirit Core (Dropped during the '<a href='/valencia-s-quests#Hunt'>"+wikiQuest+"</a>' quest)</li></ul></div></div></div>";
-var wikiResolver=new QuestWikiResolver(path=>Task.FromResult(wikiPages[path]));
+var wikiResolver=new QuestWikiResolver(path=>wikiPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound));
 var wikiRoutes=await wikiResolver.Resolve(wikiQuest,new[]{"Demnra's Deception Polearm"},wikiItems);
 Assert(wikiRoutes.Count==3 && wikiRoutes.Any(r=>r.Monster=="ChaosWeaver Cleric" && r.Map=="chaosweb") && wikiRoutes.Any(r=>r.Monster=="Breken the Vile" && r.Map=="greenguardwest"),"Discover reward quest and all three monster routes, selecting the correct Breken variant.");
 var wikiScript=ActiveQuestMaker.Generate(10799,-1,wikiItems,wikiRoutes,(_,_)=>null);
@@ -397,6 +401,20 @@ Assert(fallbackScript.Contains("QuestHunt.Monster") && !fallbackScript.Contains(
 wikiPages["/chaos-web"]="<p><strong>Map Name:</strong> chaosweb<br></p>";
 bool externalRejected=false;try{QuestWikiResolver.WikiPath("https://example.com/monster");}catch(InvalidOperationException){externalRejected=true;}
 Assert(externalRejected,"Reject off-origin wiki links.");
+var vortexItem=new Skua.Core.Models.Items.ItemBase{ID=88001,Name="Vortex Essence",Quantity=12,Temp=true};
+var vortexPages=new Dictionary<string,string>{
+["/vortex-quests"]="<p><strong>Quest Location:</strong><a href='/void-vortex'>Void Vortex</a><br></p><div class='yui-navset'><ul class='yui-nav'><li>Gather Essence</li></ul><div class='yui-content'><div><p><strong>Items Required</strong></p><ul><li>Vortex Essence x12<ul><li>Dropped by <a href='/vortex-guardian'>Vortex Guardian</a></li></ul></li></ul></div></div></div>",
+["/void-vortex"]="<p><strong>Map Name:</strong> voidvortex<br></p>",
+["/vortex-guardian"]="<div id='page-title'>Vortex Guardian</div><div id='page-content'><p><strong>Location:</strong> <a href='/void-vortex'>Void Vortex</a><br></p><ul><li>Vortex Essence (Dropped during the '<a href='/vortex-quests'>Gather Essence</a>' quest)</li></ul></div>"};
+var vortexResolver=new QuestWikiResolver(path=>vortexPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound));
+var vortexPlan=await vortexResolver.ResolvePlan("Gather Essence",Array.Empty<string>(),new[]{vortexItem},questSources:new[]{"/vortex-quests"},pickupMap:"battleon");
+Assert(vortexPlan.Drops.Single() is {Map:"voidvortex",Monster:"Vortex Guardian"},"Standing in battleon must not replace the documented Vortex hunt map.");
+Assert(vortexPlan.Drops.Single().Alternates==null || vortexPlan.Drops.Single().Alternates!.All(a=>a.Map!="battleon"),"The current map is not an invented hunt alternate.");
+var vortexScript=ActiveQuestMaker.Generate(8800,-1,new[]{vortexItem},vortexPlan.Drops,(_,_)=>null);
+Assert(vortexScript.Contains("map:\"voidvortex\"") && vortexScript.Contains("QuestHunt.JoinIfNeeded(bot,\"voidvortex\")"),"Vortex hunts join the documented map instead of hunting in place.");
+Assert(!vortexScript.Contains("JoinIfNeeded(bot,\"battleon\")") && !vortexScript.Contains("map:\"battleon\""),"Generated Vortex hunts never join the map Scott happened to be standing in.");
+var unverifiedHunt=ActiveQuestMaker.Generate(8800,-1,new[]{new Skua.Core.Models.Items.ItemBase{ID=88001,Name="Vortex Essence",Quantity=12,Temp=false}},new[]{new GearDrop("voidvortex","Vortex Guardian","Vortex Essence",false,"wiki")},(_,_)=>null,null,null,false);
+Assert(unverifiedHunt.Contains("Bank could not be verified") && unverifiedHunt.Contains("QuestHunt.JoinIfNeeded(bot,\"voidvortex\")") && unverifiedHunt.Contains("map:\"voidvortex\"") && !unverifiedHunt.Contains("Bank.Load()") && !unverifiedHunt.Contains("bot.Shops.BuyItem"),"Bank-unverified still joins and hunts; it only skips purchases.");
 Console.WriteLine("PASS: Automatic wiki quest discovery, multi-map routes, variant selection, quantity mismatch, partial evidence and origin restrictions.");
 
 var wayfarerItems=new[]{
@@ -422,7 +440,7 @@ Assert(wayfarerFromMap.Drops.Count==4,"Current-map wiki quest list finds the gui
 var wayfarerFromSearch=await new QuestWikiResolver(path=>wayfarerPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound),query=>Task.FromResult<IReadOnlyList<string>>(query.Contains("Wayfarer")?new[]{"/aranx-past-self-s-quests"}:Array.Empty<string>())).ResolvePlan("Wayfarer Potion",Array.Empty<string>(),wayfarerItems);
 Assert(wayfarerFromSearch.Drops.Count==4,"Search still finds the quest guide when the map slug is missing.");
 var wayfarerScript=ActiveQuestMaker.Generate(56000,-1,wayfarerItems,wayfarerPlan.Drops,(_,_)=>null,returnTo:new QuestReturnPoint("celestialpast","Enter","Spawn"));
-Assert(wayfarerScript.Contains("QuestHunt.Monster(bot,56000,\"Blessed Deer\",56059,\"Leaf of Visibility\",1,true)") && wayfarerScript.Contains("56062") && wayfarerScript.Contains("EnsureComplete(56000,-1)") && !wayfarerScript.Contains("Missing objective") && !wayfarerScript.Contains("No script was started"),"Auto-do writes a complete farm run from the wiki guide.");
+Assert(wayfarerScript.Contains("QuestHunt.Monster(bot,56000,\"Blessed Deer\",56059,\"Leaf of Visibility\",1,true") && wayfarerScript.Contains("map:\"celestialpast\"") && wayfarerScript.Contains("56062") && wayfarerScript.Contains("EnsureComplete(56000,-1)") && !wayfarerScript.Contains("Missing objective") && !wayfarerScript.Contains("No script was started"),"Auto-do writes a complete farm run from the wiki guide.");
 var pathRevealed=new[]{new Skua.Core.Models.Items.ItemBase{ID=56070,Name="Beasts Cleared",Quantity=5,Temp=true},new Skua.Core.Models.Items.ItemBase{ID=56071,Name="Source Revealed",Quantity=1,Temp=true}};
 var revealedPlan=await wayfarerResolver.ResolvePlan("The Path Revealed",Array.Empty<string>(),pathRevealed,questSources:new[]{"/aranx-past-self-s-quests"},pickupMap:"celestialpast");
 Assert(revealedPlan.Drops.Single().Monster=="Blessed Bear" && revealedPlan.Drops.Single().Alternates!.Count==3 && revealedPlan.Pickups.Single().Item=="Source Revealed" && revealedPlan.Pickups.Single().Map=="celestialpast","Walk-to-screen pickups and multi-monster farms come from the same guide.");
@@ -443,7 +461,7 @@ var autonomousPages=new Dictionary<string,string>{
 ["/beleen-s-quests"]=QuestFixture("Flowers for the Pink Gal","<li>Lotus Flower x4<ul><li>Dropped by <a href='/lotus-spider'>Lotus Spider (Level 33)</a></li></ul></li>"),
 ["/lotus-spider"]="<div id='page-title'>Lotus Spider</div><div id='page-content'><div class='yui-content'><div><p><strong>Location:</strong><a href='/wrong-map'>Wrong</a><br></p></div><div><p><strong>Location:</strong><a href='/cave-of-wanders'>Cave of Wanders</a><br></p><ul><li>Lotus Flower (Dropped during the '<a href='/beleen-s-quests#1'>Flowers for the Pink Gal</a>' quest</li></ul></div></div></div>",
 ["/cave-of-wanders"]="<p><strong>Map Name:</strong> wanders<br></p>"};
-var independentResolver=new QuestWikiResolver(path=>Task.FromResult(autonomousPages[path]));
+var independentResolver=new QuestWikiResolver(path=>autonomousPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound));
 var decoderPlan=await independentResolver.ResolvePlan("Find the Map",Array.Empty<string>(),new[]{decoder,mapOfLore});
 Assert(decoderPlan.Pickups.Count==1 && decoderPlan.Pickups[0].Map=="crashsite" && decoderPlan.Drops.Single().Monster=="Infernal Knight","No-reward quest resolves through required item backlink, separately from its monster objective.");
 var decoderScript=ActiveQuestMaker.Generate(4498,-1,new[]{decoder,mapOfLore},decoderPlan.Drops,(_,_)=>null,null,decoderPlan.Pickups,false);
@@ -451,7 +469,7 @@ Assert(decoderScript.Contains("QuestMapPickup.Acquire(bot,4498,4733") && decoder
 File.WriteAllText("/tmp/qexec-decoder-generated-test.cs",decoderScript);
 var lotusPlan=await independentResolver.ResolvePlan("Flowers for the Pink Gal",new[]{"Fuchsia Dye"},new[]{lotus});
 Assert(lotusPlan.Drops.Single().Map=="wanders","Reward quest links outside Price are followed, preserving monster variant.");
-var searchResolver=new QuestWikiResolver(path=>Task.FromResult(autonomousPages[path]),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/beleen-s-quests"}));
+var searchResolver=new QuestWikiResolver(path=>autonomousPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/beleen-s-quests"}));
 Assert((await searchResolver.ResolvePlan("Flowers for the Pink Gal",Array.Empty<string>(),new[]{lotus})).Drops.Count==1,"Unknown quest without any rewards discovers its own source through search.");
 Assert(AcceptedQuestRoutes.Parse("class T { void Run(){ Story.KillQuest(4498,\"celestialrealm\",\"Infernal Knight\"); }}",4498,new[]{decoder,mapOfLore},"fixture").All(r=>r.Temporary),"Generic KillQuest must never assign monster sources to permanent pickups.");
 Assert(GearOwnership.IsCompleteBankSnapshot("[{\"ItemID\":4733}]","1") && !GearOwnership.IsCompleteBankSnapshot("[]","1") && !GearOwnership.IsCompleteBankSnapshot(null,"0"),"Only complete bank snapshots are adopted; unavailable is never empty.");
@@ -465,7 +483,7 @@ Console.WriteLine("PASS: No-script quest discovery, no-reward quests, permanent 
 Assert(Skua.Core.Scripts.QuestMapPickup.Select(Skua.Core.Scripts.QuestMapPickup.Parse(File.ReadAllText(Path.Combine(AppContext.BaseDirectory,"fixtures","PickupFixture.as.txt"))),4498)==106,"Parse pickup ID from an actual compiled and decompiled Flash fixture.");
 Assert(Skua.Core.Scripts.QuestMapPickup.Parse("function sample():void { trace(\"getMapItem(999)\"); /* getMapItem(998); */ getMapItem(106); }").Single().ID==106,"Ignore strings and comments when discovering executable pickup calls.");
 autonomousPages["/collection-quests"]="<p><strong>Quest Location:</strong><a href='/dwakel-crash-site'>Crash Site</a><br></p>"+QuestFixture("Collect Clues","<li>Clue x2<ul><li>Click on the blue arrows around the map.</li></ul></li>");
-var collectionResolver=new QuestWikiResolver(path=>Task.FromResult(autonomousPages[path]),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/collection-quests"}));
+var collectionResolver=new QuestWikiResolver(path=>autonomousPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/collection-quests"}));
 var collectionPlan=await collectionResolver.ResolvePlan("Collect Clues",Array.Empty<string>(),new[]{new Skua.Core.Models.Items.ItemBase{ID=123,Name="Clue",Temp=true,Quantity=2}});
 Assert(collectionPlan.Pickups.Single().Map=="crashsite","Discover collection objectives from the quest's location when the objective has no item page.");
 using(var canceledLookup=new CancellationTokenSource()) {
@@ -487,11 +505,11 @@ var materialResolver=new QuestWikiResolver(path=>{if(path=="/star-scrap-metal" &
 var materialPlan=await materialResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{scrap},recoveryMessages.Add);
 Assert(materialPlan.Drops.Single() is {Map:"dreadspace",Monster:"Troblor",Temporary:false} && recoveryMessages.Any(m=>m.StartsWith("Retrying")),"Recover transient lookup and trace a permanent material's monster source without a quest-only drop backlink.");
 var scrapScript=ActiveQuestMaker.Generate(9679,-1,new[]{scrap},materialPlan.Drops,(_,_)=>null,null,null,false);
-Assert(scrapScript.Contains("QuestHunt.Monster(bot,9679,\"Troblor\",30018,\"Star Scrap Metal\",10,false)") && scrapScript.Contains("bot.Inventory.Contains(30018,10)"),"Farm permanent material with the exact live inventory ID and quantity.");
+Assert(scrapScript.Contains("QuestHunt.Monster(bot,9679,\"Troblor\",30018,\"Star Scrap Metal\",10,false") && scrapScript.Contains("bot.Inventory.Contains(30018,10)"),"Farm permanent material with the exact live inventory ID and quantity.");
 File.WriteAllText("/tmp/qexec-scrap-generated-test.cs",scrapScript);
-var noQuestPageResolver=new QuestWikiResolver(path=>Task.FromResult(materialPages[path]));
+var noQuestPageResolver=new QuestWikiResolver(path=>materialPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound));
 Assert((await noQuestPageResolver.ResolvePlan("A Different Quest Using Scrap",Array.Empty<string>(),new[]{scrap})).Drops.Count==1,"Recover permanent material sources independently when the quest page cannot be found.");
-var unavailableSearch=new QuestWikiResolver(path=>Task.FromResult(materialPages[path]),_=>throw new HttpRequestException("search unavailable"));
+var unavailableSearch=new QuestWikiResolver(path=>materialPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound),_=>throw new HttpRequestException("search unavailable"));
 Assert((await unavailableSearch.ResolvePlan("A Different Quest Using Scrap",Array.Empty<string>(),new[]{scrap})).Drops.Count==1,"Search provider failure falls back to direct material discovery.");
 materialPages["/troblor"]=materialPages["/troblor"].Replace("<strong>Items Dropped:</strong>","<strong>Unrelated Links:</strong>");
 Assert((await noQuestPageResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{scrap})).Drops.Count==0,"An unrelated item link is not proof of a monster drop.");
@@ -505,11 +523,11 @@ var chestPages=new Dictionary<string,string>{
 ["/twilly-s-quests"]=QuestFixture("Chest Thumping","<li>Muck Covered Chest x1<ul><li>Dropped by <a href='/kuro'>Kuro</a></li></ul></li>"),
 ["/kuro"]="<div id='page-title'>Kuro</div><div id='page-content'><p><strong>Locations:</strong></p>\n<ul><li><a href='/pollution'>Pollution</a><img src='seasonalsmall.png'></li><li><a href='/river'>River</a></li></ul><p><strong>Temporary Items Dropped:</strong></p><ul><li>Muck Covered Chest (Dropped during the '<a href='/twilly-s-quests'>Chest Thumping</a>' quest)</li></ul><p><strong>Notes:</strong></p><ul><li><a href='/unrelated'>Unrelated</a></li></ul></div>",
 ["/river"]="<p><strong>Map Name:</strong> river<br></p>"};
-var chestResolver=new QuestWikiResolver(path=>Task.FromResult(chestPages[path]),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/twilly-s-quests"}));
+var chestResolver=new QuestWikiResolver(path=>chestPages.TryGetValue(path,out var html)?Task.FromResult(html):throw new HttpRequestException("not found",null,System.Net.HttpStatusCode.NotFound),_=>Task.FromResult<IReadOnlyList<string>>(new[]{"/twilly-s-quests"}));
 var chestPlan=await chestResolver.ResolvePlan("Chest Thumping",Array.Empty<string>(),new[]{chest});
 Assert(chestPlan.Drops.Single() is {Map:"river",Monster:"Kuro",Temporary:true},"Plural sibling location lists resolve Kuro via its unrestricted River map.");
 var chestScript=ActiveQuestMaker.Generate(446,-1,new[]{chest},chestPlan.Drops,(_,_)=>null);
-Assert(chestScript.Contains("QuestHunt.Monster(bot,446,\"Kuro\",2570,\"Muck Covered Chest\",1,true)") && chestScript.Contains("bot.TempInv.Contains(2570,1)") && chestScript.Contains("EnsureComplete(446,-1)"),"Chest script farms the exact objective and turns in only quest 446.");
+Assert(chestScript.Contains("QuestHunt.Monster(bot,446,\"Kuro\",2570,\"Muck Covered Chest\",1,true") && chestScript.Contains("bot.TempInv.Contains(2570,1)") && chestScript.Contains("EnsureComplete(446,-1)"),"Chest script farms the exact objective and turns in only quest 446.");
 File.WriteAllText("/tmp/qexec-chest-generated-test.cs",chestScript);
 var kuroFixture=chestPages["/kuro"];
 chestPages["/kuro"]=kuroFixture.Replace("href='/twilly-s-quests'","href='/other-quests'");
