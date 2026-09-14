@@ -8,7 +8,9 @@ namespace Skua.Mac;
 
 public sealed record QuestReturnPoint(string Map,string Cell,string Pad);
 
+#pragma warning disable CS9113 // Host still constructs GearFinder; Auto-do no longer reads quest scripts from it.
 public sealed class ActiveQuestMaker(IScriptInterface bot, GearFinder finder, string scriptsRoot)
+#pragma warning restore CS9113
 {
     readonly object locationLock=new();
     readonly Dictionary<int,QuestReturnPoint> acceptedAt=new();

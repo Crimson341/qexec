@@ -221,16 +221,18 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
             var doc=new HtmlDocument();doc.LoadHtml(html);pages[path]=doc.DocumentNode;return doc.DocumentNode;
         }
         var sources=(questSources??[]).Where(s=>!string.IsNullOrWhiteSpace(s)).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        bool SkipMissing(Exception ex)=>ex is HttpRequestException or KeyNotFoundException
+            || (ex is InvalidOperationException && ex.Message.Contains("lookup limit",StringComparison.OrdinalIgnoreCase)==false);
         async Task AddMapGuides(string map) {
             foreach(string path in AreaDiscovery.MapPaths(map).Distinct(StringComparer.OrdinalIgnoreCase)) {
                 try {var parsed=AreaDiscovery.ParseMap(await Page(path),map,path);if(parsed!=null){sources.AddRange(parsed.Quests.Select(q=>q.Path));return;}}
-                catch(HttpRequestException) { }
+                catch(Exception ex) when(!cancellation.IsCancellationRequested && SkipMissing(ex)) { }
             }
             if(loader!=null && searcher==null) return;
             try {
                 foreach(string path in (await (searcher??Search)(map).WaitAsync(cancellation)).Take(5)) {
                     try {var parsed=AreaDiscovery.ParseMap(await Page(path),map,path);if(parsed!=null){sources.AddRange(parsed.Quests.Select(q=>q.Path));return;}}
-                    catch(HttpRequestException) { }
+                    catch(Exception ex) when(!cancellation.IsCancellationRequested && SkipMissing(ex)) { }
                 }
             } catch(Exception ex) when(!cancellation.IsCancellationRequested && (ex is HttpRequestException || ex is OperationCanceledException || ex is TimeoutException)) { }
         }
@@ -244,10 +246,10 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
             catch(HttpRequestException) { }
         }
         progress?.Invoke("Finding wiki/guide evidence for "+quest+"…");
-        foreach(string reward in (section!=null?Array.Empty<string>():requirements.Select(r=>r.Name).Concat(rewards).Where(n=>!string.IsNullOrWhiteSpace(n)).Distinct().Take(6))) {
+        foreach(string reward in (section!=null?Array.Empty<string>():requirements.Where(r=>!r.Temp).Select(r=>r.Name).Concat(rewards).Where(n=>!string.IsNullOrWhiteSpace(n)).Distinct().Take(6))) {
             string slug="/"+Regex.Replace(Normalize(reward).ToLowerInvariant(),"[^a-z0-9]+","-").Trim('-');
             HtmlNode page;
-            try { page=await Page(slug); } catch(HttpRequestException) { continue; }
+            try { page=await Page(slug); } catch(Exception ex) when(!cancellation.IsCancellationRequested && SkipMissing(ex)) { continue; }
             var title=page.SelectSingleNode("//*[@id='page-title']");if(title==null || !Same(Text(title),reward)) continue;
             var links=(page.SelectSingleNode("//*[@id='page-content']") ?? page).Descendants("a").Where(a=>Same(Text(a),quest)).DistinctBy(a=>a.GetAttributeValue("href","").Split('#')[0]).ToArray();
             if(links.Length!=1) continue;
@@ -336,7 +338,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                         string map=Normalize(string.Concat(Field(mapPage,"Map Name").Select(Text)));
                         if(ValidMap(map) && (locationLinks.Count<=1 || pickupMap==null || Same(map,pickupMap)))
                             pickups.Add(new(map,item.Name,item.Temp,"http://aqwwiki.wikidot.com"+questPath+" -> "+mapPath));
-                    } catch(HttpRequestException) { }
+                    } catch(Exception ex) when(!cancellation.IsCancellationRequested && SkipMissing(ex)) { }
                 }
                 foreach(string map in questMaps.Where(ValidMap))
                     if(!pickups.Any(p=>Same(p.Item,item.Name) && p.Temporary==item.Temp))
@@ -355,19 +357,21 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                         var title=monster.SelectSingleNode("//*[@id='page-title']");
                         if(title!=null && Same(MonsterName(Text(title)),monsterName)) {
                             var requiredLevel=Regex.Match(Text(source),@"\(Level (\d+)\)");
-                            var scope=monster.SelectSingleNode("//*[@id='page-content']") ?? monster;
-                            string level=Normalize(string.Concat(Field(scope,"Level").Select(Text)));
-                            if(!(requiredLevel.Success && level.Length>0 && level!=requiredLevel.Groups[1].Value)) {
+                            var backlinks=monster.Descendants("li").Where(li=>Text(li).StartsWith(item.Name+" (Dropped during",StringComparison.OrdinalIgnoreCase) && li.Descendants("a").Any(a=>Same(Text(a),quest) && WikiPath(a.GetAttributeValue("href",""))==questPath)).ToArray();
+                            foreach(var drop in backlinks) {
+                                var scope=drop.Ancestors("div").FirstOrDefault(n=>n.ParentNode!=null && HasClass(n.ParentNode,"yui-content")) ?? monster.SelectSingleNode("//*[@id='page-content']") ?? monster;
+                                string level=Normalize(string.Concat(Field(scope,"Level").Select(Text)));
+                                if(requiredLevel.Success && level.Length>0 && level!=requiredLevel.Groups[1].Value) continue;
                                 foreach(var location in Locations(scope).Take(4)) {
                                     try {
                                         string mapPath=WikiPath(location.GetAttributeValue("href",""));var mapPage=await Page(mapPath);
                                         string map=Normalize(string.Concat(Field(mapPage,"Map Name").Select(n=>WebUtility.HtmlDecode(n.InnerText))));
                                         if(ValidMap(map)) candidates.Add(new GearDrop(map,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+" -> "+monsterPath+" -> "+mapPath));
-                                    } catch(HttpRequestException) { }
+                                    } catch(Exception ex) when(!cancellation.IsCancellationRequested && SkipMissing(ex)) { }
                                 }
                             }
                         }
-                    } catch(HttpRequestException) { }
+                    } catch(Exception ex) when(!cancellation.IsCancellationRequested && SkipMissing(ex)) { }
                 }
                 // Quest-page "Dropped by" plus the documented quest map is enough. Do not require a matching monster-page backlink.
                 foreach(string map in questMaps.Where(ValidMap))

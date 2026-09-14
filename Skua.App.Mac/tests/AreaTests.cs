@@ -41,7 +41,7 @@ static class AreaTests
         var wikiMixed=await mixedResolver.ResolvePlan("Investigate the Ruins",[],new[]{plant,hound},questSources:new[]{"/aranx-s-quests"},pickupMap:"lostruins");
         Assert(wikiMixed.Pickups.Single().Map=="lostruins" && wikiMixed.Drops.Single().Monster=="Underworld Hound","Wiki/guides supply both ruins objectives without a verified-route table.");
         var fullMixedCode=ActiveQuestMaker.Generate(4500,-1,new[]{plant,hound},wikiMixed.Drops,(_,_)=>null,pickups:wikiMixed.Pickups,returnTo:new QuestReturnPoint("lostruins","Enter","Spawn"));
-        Assert(fullMixedCode.Contains("QuestMapPickup.Acquire") && fullMixedCode.Contains("30997") && fullMixedCode.Contains("QuestHunt.Monster(bot,4500,\"Underworld Hound\",30998,\"Underworld Hound Defeated\",5,true)"),"The full quest gets both the collection and combat steps.");
+        Assert(fullMixedCode.Contains("QuestMapPickup.Acquire") && fullMixedCode.Contains("30997") && fullMixedCode.Contains("QuestHunt.Monster(bot,4500,\"Underworld Hound\",30998,\"Underworld Hound Defeated\",5,true"),"The full quest gets both the collection and combat steps.");
         File.WriteAllText("/tmp/qexec-full-ruins.cs",fullMixedCode);
         Assert(wikiMixed.Pickups.Count==1 && wikiMixed.Drops.Any(d=>d.Monster=="Underworld Hound"),"Real wiki fixtures resolve both objectives, not only the plant.");
         var mixedPlan=await mixedResolver.ResolvePlan("Investigate the Ruins",[],new[]{plant},questSources:new[]{"/aranx-s-quests"},pickupMap:"lostruins");
