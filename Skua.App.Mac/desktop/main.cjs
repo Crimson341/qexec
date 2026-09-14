@@ -31,7 +31,9 @@ try {
 }
 app.commandLine.appendSwitch('ppapi-flash-path', flashPath);
 app.commandLine.appendSwitch('ppapi-flash-version', '32.0.0.344');
-let window, host, selected, running = false, pageURL, updateDownloadUrl = '', pendingUpdateNotice = null, applyingUpdate = false;
+let window, host, selected, running = false, pageURL, updateDownloadUrl = '', pendingUpdateNotice = null, applyingUpdate = false, pageReady = false, lastUpdateCheck = 0, updateCheckTimer = null;
+const UPDATE_CHECK_MS = 10 * 60 * 1000;
+const UPDATE_FOCUS_MS = 60 * 1000;
 const requests = new Map();
 const events = new Set(['requestLoadGame','loaded','debug','pext','packet','pre-load','game-error']);
 function send(value) { if (host && !host.killed && host.stdin.writable) host.stdin.write(JSON.stringify(value) + '\n'); }
@@ -73,7 +75,7 @@ async function chooseScript() {
   if (!result.canceled && result.filePaths.length === 1) send({type:'command', command:'load', path:result.filePaths[0]});
 }
 function deliverUpdateNotice() {
-  if (!pendingUpdateNotice || !liveContents()) return;
+  if (!pendingUpdateNotice || !liveContents() || !pageReady) return;
   toWindow({
     type:'app-update',
     message:pendingUpdateNotice.message,
@@ -84,7 +86,9 @@ function deliverUpdateNotice() {
 }
 function checkAppUpdate() {
   try {
+    if (applyingUpdate) return Promise.resolve();
     if (!net || typeof net.request !== 'function') return Promise.resolve();
+    lastUpdateCheck = Date.now();
     const identity = updateCheck.resolveIdentity({fs, path, dirname:__dirname, env:process.env, execFileSync});
     const headers = updateCheck.githubHeaders(identity.version);
     const getJson = url => updateCheck.requestGithubJson(net, url, headers, 10000);
@@ -99,6 +103,11 @@ function checkAppUpdate() {
     diagnostic('Update check: ' + error.message);
     return Promise.resolve();
   }
+}
+function scheduleUpdateChecks() {
+  if (updateCheckTimer) return;
+  updateCheckTimer = setInterval(() => { void checkAppUpdate(); }, UPDATE_CHECK_MS);
+  if (updateCheckTimer && typeof updateCheckTimer.unref === 'function') updateCheckTimer.unref();
 }
 function applyAppUpdate() {
   if (applyingUpdate) return;
@@ -239,8 +248,13 @@ app.whenReady().then(async()=>{
       else if(message.type==='reply' && requests.has(message.id)) {requests.delete(message.id);reply(message.id,message.value,message.error);}
     } catch(error) {log('Invalid client message: '+error.message);}
   });
+  window.on('focus',()=>{
+    if (applyingUpdate || Date.now() - lastUpdateCheck < UPDATE_FOCUS_MS) return;
+    void checkAppUpdate();
+  });
   window.webContents.once('did-finish-load',()=>{
     if (!liveContents()) return;
+    pageReady = true;
     startHost();
     const missing=[];
     if(!fs.existsSync(flashPath))missing.push('Mac Flash plugin: '+flashPath);
@@ -257,7 +271,11 @@ app.whenReady().then(async()=>{
     {label:'Window',submenu:[{role:'minimize'},{role:'zoom'},{role:'close'}]}
   ]));
   window.loadURL(pageURL);
+  scheduleUpdateChecks();
   void checkAppUpdate();
 }).catch(error=>{dialog.showErrorBox('Skua Mac could not start',error.message);app.quit();});
 app.on('window-all-closed',()=>app.quit());
-app.on('before-quit',()=>{if(host){host.stdin.end();host.kill();}});
+app.on('before-quit',()=>{
+  if (updateCheckTimer) {clearInterval(updateCheckTimer);updateCheckTimer=null;}
+  if(host){host.stdin.end();host.kill();}
+});
