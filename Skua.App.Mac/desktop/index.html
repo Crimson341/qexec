@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <header class="titlebar"><h1><img class="brand-wordmark" src="brand/qexec-wordmark.png" alt="qexec"> <span class="platform">— Quest Ledger</span></h1><span class="title-caption">AdventureQuest Worlds</span><span class="preview">v0.2.0 · Preview</span></header>
+  <header class="titlebar"><h1><img class="brand-wordmark" src="brand/qexec-wordmark.png" alt="qexec"> <span class="platform">— Quest Ledger</span></h1><span class="title-caption">AdventureQuest Worlds</span><button type="button" id="theme-open">Theme</button><span class="preview">v0.2.0 · Preview</span></header>
   <div id="app-update" hidden role="status">
     <p id="app-update-message"></p>
     <button type="button" id="app-update-button">Update</button>
@@ -81,6 +81,26 @@
   <dialog id="gear-dialog"><div class="panel-heading"><h2>Inspect gear</h2><button id="gear-close">Close</button></div><p class="hint">Select a player in the game, then inspect their equipped items.</p><button id="gear-refresh">Inspect selected player</button><p id="gear-status" class="hint" role="status"></p><div id="gear-sources"></div><div id="gear-items"></div></dialog>
   <dialog id="active-quest-dialog"><div class="panel-heading"><h2>Accepted quests</h2><button id="active-quest-close">Close</button></div><p class="hint">Choose one accepted quest. Auto-do generates a C# script, runs it, and turns in that quest once. Other accepted quests are left alone.</p><button id="active-quest-refresh">Refresh accepted quests</button><button id="active-quest-cancel" hidden>Cancel planning</button><p id="active-quest-status" class="hint" role="status"></p><div id="active-quest-list"></div></dialog>
   <dialog id="item-image-dialog"><button id="item-image-close">Close</button><h2 id="item-image-title"></h2><div id="item-image-gallery"></div></dialog>
+  <dialog id="theme-dialog">
+    <div class="panel-heading"><h2>Theme colors</h2><button type="button" id="theme-close">Close</button></div>
+    <p class="hint">Accent colors apply immediately and are remembered when you reopen qexec.</p>
+    <p class="field-caption">Palette</p>
+    <div class="theme-swatches" role="group" aria-label="Theme palettes">
+      <button type="button" id="theme-violet" class="theme-swatch" data-accent="#b09add" aria-pressed="true"><span class="theme-chip theme-chip-violet"></span>Violet</button>
+      <button type="button" id="theme-sea" class="theme-swatch" data-accent="#6ba0cc" aria-pressed="false"><span class="theme-chip theme-chip-sea"></span>Sea</button>
+      <button type="button" id="theme-gold" class="theme-swatch" data-accent="#d7a67b" aria-pressed="false"><span class="theme-chip theme-chip-gold"></span>Gold</button>
+      <button type="button" id="theme-moss" class="theme-swatch" data-accent="#77c985" aria-pressed="false"><span class="theme-chip theme-chip-moss"></span>Moss</button>
+      <button type="button" id="theme-rose" class="theme-swatch" data-accent="#d88aa8" aria-pressed="false"><span class="theme-chip theme-chip-rose"></span>Rose</button>
+    </div>
+    <label class="field"><span>Custom accent</span>
+      <div class="theme-custom">
+        <input id="theme-accent" type="color" value="#b09add" aria-label="Custom accent color">
+        <span id="theme-accent-hex">#b09add</span>
+      </div>
+      <small>Used for tabs, run/stop, ledger highlights, and focus rings.</small>
+    </label>
+    <div class="actions"><button type="button" id="theme-reset">Reset to Violet</button></div>
+  </dialog>
   <script src="renderer.cjs"></script>
 </body>
 </html>

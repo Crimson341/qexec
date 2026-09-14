@@ -77,3 +77,33 @@ main{grid-column:2;grid-row:2}aside{grid-column:1;grid-row:1/4;border-left:0;bor
 @media(max-width:1100px){.area-layout{grid-template-columns:150px 1fr;gap:16px}.area-item{align-items:flex-start;flex-direction:column}.area-quantity{flex-direction:column;align-items:flex-end}}
 
 .item-picture{display:block;width:88px;height:88px;padding:4px;margin:8px 0;background:transparent;border:1px solid var(--line);color:var(--muted);font-size:10px;cursor:zoom-in}.item-picture img{width:100%;height:100%;object-fit:contain}.area-ingredient .item-picture{width:56px;height:56px}.area-plan-step .item-picture{display:inline-block;vertical-align:middle;margin-left:12px}#item-image-dialog{width:min(850px,90vw);max-height:90vh}#item-image-gallery{display:flex;gap:20px;flex-wrap:wrap;justify-content:center}#item-image-gallery img{max-width:100%;max-height:65vh;object-fit:contain}#item-image-close{float:right}
+
+/* Accent tokens: JS sets these on :root so a chosen color applies immediately. */
+:root{--accent-fg:#d0bdec;--accent-soft:#272330;--accent-run:#302938;--accent-press:#4b3d62;--accent-border:#5f5070;--accent-strong:#a68ac7;--accent-hover:#e3ddec;--vibe-ring:#b4a3ff88;--vibe-glow:#8d69ff55;--vibe-label:#201d2ee8}
+.nav-item.active{background:var(--accent-soft);color:var(--accent-fg);border-bottom-color:var(--sea)}
+#run{background:var(--accent-run);border-color:var(--accent-border)}
+#run:hover:enabled{background:var(--accent-press)}
+#stop:enabled{background:var(--accent-press);border-color:var(--accent-strong)}
+#auto-toggle[aria-pressed="true"]{color:var(--accent-fg);background:var(--accent-soft);border-color:var(--sea)}
+.ledger-quest strong,#elapsed{color:var(--accent-fg)}
+.ledger-quest:hover:enabled{background:var(--accent-soft)}
+button:active:enabled{box-shadow:inset 0 0 0 1px var(--accent-strong);background:var(--accent-press)}
+.nav-item:hover:enabled{color:var(--accent-hover)}
+.nav-item:active:enabled{box-shadow:inset 2px 0 var(--sea)}
+#vibe-questing{box-shadow:inset 0 0 0 1px var(--vibe-ring),inset 0 0 24px var(--vibe-glow)}
+.vibe-top,.vibe-bottom{background:repeating-linear-gradient(90deg,var(--sea) 0 8px,transparent 8px 14px,var(--accent-fg) 14px 20px,transparent 20px 26px,var(--accent-strong) 26px 32px,transparent 32px 40px)}
+.vibe-left,.vibe-right{background:repeating-linear-gradient(180deg,var(--sea) 0 8px,transparent 8px 14px,var(--accent-fg) 14px 20px,transparent 20px 26px,var(--accent-strong) 26px 32px,transparent 32px 40px)}
+.vibe-label{color:var(--accent-hover);background:var(--vibe-label);border-color:var(--vibe-ring)}
+.vibe-mark,.vibe-dots{color:var(--accent-fg)}
+#theme-open{margin-left:auto;font-size:10px;padding:4px 10px;background:transparent;border-color:var(--line);color:var(--muted)}
+#theme-open:hover:enabled{color:var(--accent-hover);border-color:var(--sea)}
+.preview{margin-left:0}
+#theme-dialog{width:420px}
+.theme-swatches{display:flex;flex-wrap:wrap;gap:8px;margin:10px 0 4px}
+.theme-swatch{display:flex;align-items:center;gap:8px;padding:7px 10px}
+.theme-swatch[aria-pressed="true"]{border-color:var(--sea);background:var(--accent-soft);color:var(--accent-fg)}
+.theme-chip{width:12px;height:12px;flex-shrink:0}
+.theme-chip-violet{background:#b09add}.theme-chip-sea{background:#6ba0cc}.theme-chip-gold{background:#d7a67b}.theme-chip-moss{background:#77c985}.theme-chip-rose{background:#d88aa8}
+.theme-custom{display:flex;align-items:center;gap:12px}
+#theme-accent{width:52px;height:32px;padding:3px;flex:none}
+#theme-accent-hex{display:inline;margin:0;font:12px Menlo,Consolas,monospace;color:var(--accent-fg)}
