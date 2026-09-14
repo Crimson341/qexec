@@ -36,7 +36,7 @@ public interface IScriptMonster
     /// <returns><see langword="true"/> if the specified monster exists and is alive in the current cell.</returns>
     bool Exists(string name)
     {
-        return CurrentAvailableMonsters.Any(m => name == "*" || (m.Name.Trim() == name.Trim()));
+        return CurrentAvailableMonsters.Any(m => name == "*" || string.Equals(m.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase));
     }
 
     /// <summary>
@@ -61,7 +61,7 @@ public interface IScriptMonster
     {
         try
         {
-            return MapMonsters.Where(m => m.Alive && (name == "*" || m.Name.Trim() == name.Trim())).Select(m => m.Cell).Distinct().ToList();
+            return MapMonsters.Where(m => m.Alive && (name == "*" || string.Equals(m.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase))).Select(m => m.Cell).Distinct().ToList();
         }
         catch
         {
@@ -133,7 +133,7 @@ public interface IScriptMonster
     {
         try
         {
-            return MapMonsters.Where(m => m.Name.Trim() == name.Trim()).Select(m => m.Cell).Distinct().ToList();
+            return MapMonsters.Where(m => string.Equals(m.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase)).Select(m => m.Cell).Distinct().ToList();
         }
         catch
         {
@@ -174,7 +174,7 @@ public interface IScriptMonster
     /// <returns><see langword="true"/> if the monster with the given <paramref name="name"/> exists in the current map.</returns>
     bool TryGetMonster(string name, out Monster? monster)
     {
-        return (monster = MapMonsters.Find(m => name == "*" || m.Name.Trim() == name.Trim())) is not null;
+        return (monster = MapMonsters.Find(m => name == "*" || string.Equals(m.Name.Trim(), name.Trim(), StringComparison.OrdinalIgnoreCase))) is not null;
     }
 
     /// <summary>

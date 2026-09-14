@@ -135,6 +135,27 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
         return paths.Distinct().Take(6).ToArray();
     }
     static bool ValidMap(string? map)=>!string.IsNullOrWhiteSpace(map) && Regex.IsMatch(map,@"^[a-zA-Z0-9_-]+$");
+    /// <summary>
+    /// /join names next to the item or monster in the quest text. Skips leZard-style /Dreadssssspace runs.
+    /// Quest Location (accept town) is not a hunt map.
+    /// </summary>
+    public static IReadOnlyList<string> JoinHints(string text,string item,string monster)
+    {
+        if(string.IsNullOrWhiteSpace(text)) return [];
+        var found=new List<string>();
+        foreach(Match m in Regex.Matches(text,@"/(?:join\s+)?([A-Za-z][A-Za-z0-9]{1,32})\b"))
+        {
+            string raw=m.Groups[1].Value;
+            if(Regex.IsMatch(raw,@"(.)\1{2,}")) continue;
+            if(!ValidMap(raw)) continue;
+            int start=Math.Max(0,m.Index-96);
+            string around=text.Substring(start,Math.Min(text.Length-start,96+m.Length+16));
+            if((!string.IsNullOrWhiteSpace(monster) && around.IndexOf(monster,StringComparison.OrdinalIgnoreCase)>=0)
+                || (!string.IsNullOrWhiteSpace(item) && around.IndexOf(item,StringComparison.OrdinalIgnoreCase)>=0))
+                found.Add(raw.ToLowerInvariant());
+        }
+        return found.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+    }
     static bool IsPickupHint(string text)=>Regex.IsMatch(text,@"\b(?:Click(?:ing)?|Walk to Screen)\b",RegexOptions.IgnoreCase);
     static HtmlNode[] RequiredEntries(HtmlNode list,ItemBase item)
     {
@@ -346,7 +367,9 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                         pickups.Add(new(map,item.Name,item.Temp,"http://aqwwiki.wikidot.com"+questPath+" -> /"+map));
             }
             var dropSources=entries[0].Descendants("li").Where(n=>Regex.IsMatch(Text(n),@"^Dropped by\b",RegexOptions.IgnoreCase)).SelectMany(n=>n.Descendants("a")).ToArray();
-            var candidates=new List<GearDrop>();
+            var fromMonster=new List<GearDrop>();
+            var fromQuestMap=new List<GearDrop>();
+            var fromJoin=new List<GearDrop>();
             foreach(var source in dropSources.Take(6)) {
                 string monsterName=MonsterName(Text(source));
                 if(string.IsNullOrWhiteSpace(monsterName)) continue;
@@ -369,17 +392,22 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                                     try {
                                         string mapPath=WikiPath(location.GetAttributeValue("href",""));var mapPage=await Page(mapPath);
                                         string map=Normalize(string.Concat(Field(mapPage,"Map Name").Select(n=>WebUtility.HtmlDecode(n.InnerText))));
-                                        if(ValidMap(map)) candidates.Add(new GearDrop(map,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+" -> "+monsterPath+" -> "+mapPath));
+                                        if(ValidMap(map)) fromMonster.Add(new GearDrop(map,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+" -> "+monsterPath+" -> "+mapPath));
                                     } catch(HttpRequestException) { }
                                 }
                             }
                         }
                     } catch(HttpRequestException) { }
                 }
-                // Quest-page "Dropped by" plus the documented quest map is enough. Do not require a matching monster-page backlink.
+                // Quest Location is the accept/turn-in town. Use it only when no farm map is documented.
                 foreach(string map in questMaps.Where(ValidMap))
-                    candidates.Add(new GearDrop(map,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+(monsterPath.Length>0?" -> "+monsterPath:"")+" -> /"+map));
+                    fromQuestMap.Add(new GearDrop(map,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+(monsterPath.Length>0?" -> "+monsterPath:"")+" -> /"+map));
+                foreach(string map in JoinHints(Text(section),item.Name,monsterName))
+                    fromJoin.Add(new GearDrop(map,monsterName,item.Name,item.Temp,"https://aqwwiki.wikidot.com"+questPath+(monsterPath.Length>0?" -> "+monsterPath:"")+" -> /"+map));
             }
+            var candidates=new List<GearDrop>();
+            if(fromMonster.Count>0 || fromJoin.Count>0) { candidates.AddRange(fromMonster); candidates.AddRange(fromJoin); }
+            else candidates.AddRange(fromQuestMap);
             if(candidates.Count==0 && dropSources.Length>0 && ValidMap(pickupMap))
                 foreach(var source in dropSources.Take(6)) {
                     string monsterName=MonsterName(Text(source));
@@ -388,7 +416,7 @@ public sealed class QuestWikiResolver(Func<string,Task<string>>? loader=null,Fun
                 }
             var distinct=candidates.DistinctBy(d=>(d.Map,d.Monster)).ToArray();
             if(distinct.Length>0) {
-                var preferred=results.Select(d=>d.Map).Concat(pickups.Select(p=>p.Map)).Concat(questMaps);
+                var preferred=results.Select(d=>d.Map).Concat(pickups.Select(p=>p.Map)).Concat(fromJoin.Select(d=>d.Map)).Concat(fromMonster.Select(d=>d.Map));
                 var chosen=QuestFastestPath.PickDrop(distinct,pickupMap,preferred) ?? distinct[0];
                 var alternates=distinct.Where(d=>!QuestFastestPath.Same(d.Map,chosen.Map) || !QuestFastestPath.Same(d.Monster,chosen.Monster)).ToList();
                 results.Add(chosen with { Alternates = alternates.Count>0 ? alternates : null });

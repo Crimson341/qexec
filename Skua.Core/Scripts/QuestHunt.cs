@@ -39,9 +39,23 @@ public static class QuestHunt
     public static void JoinIfNeeded(IScriptInterface bot, string? map)
     {
         string dest = MapKey(map);
-        if (dest.Length == 0) return;
-        if (SameMap(bot.Map.Name, dest) && bot.Map.Loaded) return;
-        bot.Map.Join(dest);
+        string here = MapKey(bot.Map.Name);
+        if (dest.Length == 0)
+        {
+            bot.Log("Hunt map is empty; staying on /" + (here.Length > 0 ? here : "unknown") + ".");
+            return;
+        }
+        if (SameMap(here, dest) && bot.Map.Loaded) return;
+        bot.Log("Joining /" + dest + ".");
+        bot.Map.Join(dest, "Enter", "Spawn", true);
+        if (!SameMap(bot.Map.Name, dest))
+            throw new InvalidOperationException("Could not join /" + dest + " (still on /" + (MapKey(bot.Map.Name) is { Length: > 0 } stay ? stay : "unknown") + "). Check map access, then retry Auto-do.");
+    }
+
+    public static void WaitForMonster(IScriptInterface bot, string monster)
+    {
+        for (int i = 0; i < 20 && !HasMonster(bot.Monsters.MapMonsters, monster); i++)
+            Thread.Sleep(100);
     }
 
     public static string HuntName(IEnumerable<Monster> map, string name)
@@ -115,9 +129,10 @@ public static class QuestHunt
         string currentMonster = monster;
         int tried = 0;
         JoinIfNeeded(bot, currentMap);
+        WaitForMonster(bot, currentMonster);
         currentMonster = HuntName(bot.Monsters.MapMonsters, currentMonster);
         bool sawMonster = HasMonster(bot.Monsters.MapMonsters, currentMonster);
-        bot.Log("Hunting " + currentMonster + " for " + itemName + " (" + have + "/" + quantity + ").");
+        bot.Log("Hunting " + currentMonster + " for " + itemName + " (" + have + "/" + quantity + ")" + (currentMap.Length > 0 ? " in /" + currentMap : "") + ".");
         JumpIfNeeded(bot, currentMonster);
         while (have < quantity)
         {
@@ -126,6 +141,23 @@ public static class QuestHunt
             if (!bot.Quests.IsInProgress(questId)) throw new InvalidOperationException("Quest was abandoned; stopping.");
             if (currentMap.Length > 0 && !SameMap(bot.Map.Name, currentMap))
                 JoinIfNeeded(bot, currentMap);
+            if (!sawMonster && !HasMonster(bot.Monsters.MapMonsters, currentMonster))
+            {
+                var missing = NextRoute(bot.Map.Name, currentMonster, alternates, tried);
+                if (missing != null)
+                {
+                    tried++;
+                    bot.Log("Quest step: hunt " + itemName + " — " + currentMonster + " not on /" + (MapKey(bot.Map.Name) is { Length: > 0 } stay ? stay : "unknown") + "; joining /" + missing.Value.Map);
+                    currentMap = MapKey(missing.Value.Map);
+                    JoinIfNeeded(bot, currentMap);
+                    WaitForMonster(bot, missing.Value.Monster);
+                    currentMonster = HuntName(bot.Monsters.MapMonsters, missing.Value.Monster);
+                    lastGain = DateTime.UtcNow;
+                    sawMonster = HasMonster(bot.Monsters.MapMonsters, currentMonster);
+                    JumpIfNeeded(bot, currentMonster);
+                    continue;
+                }
+            }
             if (Stalled(have, quantity, lastHave, lastGain, DateTime.UtcNow, timeout))
             {
                 var next = NextRoute(bot.Map.Name, currentMonster, alternates, tried);
@@ -135,6 +167,7 @@ public static class QuestHunt
                 bot.Log("Quest step: hunt " + itemName + " — trying documented alternate " + next.Value.Monster + " in /" + next.Value.Map);
                 currentMap = MapKey(next.Value.Map);
                 JoinIfNeeded(bot, currentMap);
+                WaitForMonster(bot, next.Value.Monster);
                 currentMonster = HuntName(bot.Monsters.MapMonsters, next.Value.Monster);
                 lastGain = DateTime.UtcNow;
                 sawMonster = HasMonster(bot.Monsters.MapMonsters, currentMonster);
@@ -152,6 +185,7 @@ public static class QuestHunt
                 bot.Log("Quest step: hunt " + itemName + " — " + currentMonster + " missing; trying /" + next.Value.Map);
                 currentMap = MapKey(next.Value.Map);
                 JoinIfNeeded(bot, currentMap);
+                WaitForMonster(bot, next.Value.Monster);
                 currentMonster = HuntName(bot.Monsters.MapMonsters, next.Value.Monster);
                 lastGain = DateTime.UtcNow;
                 sawMonster = HasMonster(bot.Monsters.MapMonsters, currentMonster);
@@ -159,6 +193,8 @@ public static class QuestHunt
                 continue;
             }
             JumpIfNeeded(bot, currentMonster);
+            if (!HasMonster(bot.Monsters.MapMonsters, currentMonster))
+                Thread.Sleep(250);
             using var slice = new CancellationTokenSource(TimeSpan.FromSeconds(20));
             try { bot.Hunt.Monster(HuntName(bot.Monsters.MapMonsters, currentMonster), slice.Token); }
             catch (OperationCanceledException) { }
