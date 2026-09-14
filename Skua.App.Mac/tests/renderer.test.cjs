@@ -141,6 +141,14 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   assert.equal(elements.get('vibe-questing').hidden,true);
   receive({type:'game-ready'});
   assert.equal(elements.get('vibe-questing').hidden,false);
+  receive({type:'app-update',message:'Update available: main is 2 commits ahead of this build (v0.2.0).',url:'https://github.com/Crimson341/qexec/releases/tag/v0.3.0',aheadBy:2});
+  assert.equal(elements.get('app-update').hidden,false);
+  assert.match(elements.get('app-update-message').textContent,/2 commits ahead/);
+  const updateCommands=[];context.window.skua.command=(...args)=>updateCommands.push(args);
+  elements.get('app-update-button').onclick();
+  assert.deepEqual(updateCommands.pop(),['app-update-open']);
+  elements.get('app-update-dismiss').onclick();
+  assert.equal(elements.get('app-update').hidden,true);
   receive({type:'engine-exit',code:1});
   assert.equal(elements.get('vibe-questing').hidden,true);
   assert.equal(elements.get('run').disabled,true);

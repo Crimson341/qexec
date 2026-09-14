@@ -22,6 +22,8 @@ fi
 ditto desktop/node_modules/electron/dist/Electron.app "$skua_app"
 mkdir -p "$skua_app/Contents/Resources/app/assets"
 cp desktop/*.cjs desktop/*.html desktop/*.css desktop/package.json "$skua_app/Contents/Resources/app/"
+skua_commit="$(git -C "$skua_root/.." rev-parse HEAD 2>/dev/null || true)"
+printf '{"version":"0.2.0","commit":"%s"}\n' "$skua_commit" > "$skua_app/Contents/Resources/app/version.json"
 cp desktop/assets/skua.swf "$skua_app/Contents/Resources/app/assets/"
 ditto desktop/brand "$skua_app/Contents/Resources/app/brand"
 cp desktop/brand/qexec.icns "$skua_app/Contents/Resources/qexec.icns"
