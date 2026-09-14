@@ -21,7 +21,7 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
   const updateCheckPath=path.join(__dirname,'../desktop/update-check.cjs');
   const updateInstallPath=path.join(__dirname,'../desktop/update-install.cjs');
   const flashTrustPath=path.join(__dirname,'../desktop/flash-trust.cjs');
-  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){},readFileSync(){throw new Error('missing');}}:name==='./update-check.cjs'?require(updateCheckPath):name==='./update-install.cjs'?require(updateInstallPath):name==='./flash-trust.cjs'?require(flashTrustPath):require(name),process:{env:{},resourcesPath:'/test',execPath:'/usr/local/bin/electron',pid:1},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout};
+  const context={require:name=>name==='electron'?electron:name==='fs'?{existsSync:()=>false,mkdirSync(){},appendFileSync(){},readFileSync(){throw new Error('missing');}}:name==='./update-check.cjs'?require(updateCheckPath):name==='./update-install.cjs'?require(updateInstallPath):name==='./flash-trust.cjs'?require(flashTrustPath):require(name),process:{env:{},resourcesPath:'/test',execPath:'/usr/local/bin/electron',pid:1},__dirname:'/test',console,setImmediate,setTimeout,clearTimeout,setInterval,clearInterval,Date};
   vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/main.cjs'),'utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
   const contents=created.contents;
@@ -30,6 +30,11 @@ test('late renderer callbacks and host delivery tolerate destroyed windows and c
   vm.runInNewContext('toWindow({type:"a"});toWindow({type:"b"})',context);
   await new Promise(resolve=>setImmediate(resolve));
   assert.equal(delivered,1,'Host UI messages flush as one executeJavaScript call');
+  assert.ok(vm.runInNewContext('updateCheckTimer',context),'Update checks keep running after launch');
+  assert.equal(vm.runInNewContext('pageReady',context),false);
+  vm.runInNewContext('pendingUpdateNotice={message:"later",aheadBy:1,applying:false};deliverUpdateNotice()',context);
+  await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(delivered,1,'Update banner waits until the page has loaded');
   contents.dead=true;
   assert.doesNotThrow(()=>contents.emit('console-message',{},0,'__SKUA_UI__{}'));
   assert.doesNotThrow(()=>vm.runInNewContext('toWindow({type:"test"})',context));

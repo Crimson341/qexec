@@ -18,6 +18,8 @@ test('resolves the packaged app bundle and rejects unexpected zip names', () => 
     () => install.zipFileName('https://github.com/Crimson341/qexec/releases/download/v0.2.1/setup.exe'),
     /Unexpected update package name/
   );
+  assert.equal(install.isAllowedRedirectUrl('https://release-assets.githubusercontent.com/file.zip'), true);
+  assert.equal(install.isAllowedRedirectUrl('https://evil.test/qexec.zip'), false);
 });
 
 test('replace script waits for quit, copies qexec.app, and relaunches', () => {
@@ -29,15 +31,24 @@ test('replace script waits for quit, copies qexec.app, and relaunches', () => {
       pid: 4242,
       sourceApp: "/tmp/extract/qexec.app",
       targetApp: "/Applications/qexec.app",
-      cleanup: '/tmp/qexec-update-4242'
+      cleanup: '/tmp/qexec-update-4242',
+      finderScript: '/tmp/qexec-update-4242/replace.applescript'
     }
   );
   assert.equal(written.file, '/tmp/replace.sh');
   assert.match(written.text, /pid=4242/);
   assert.match(written.text, /\/usr\/bin\/ditto/);
+  assert.match(written.text, /\/usr\/bin\/osascript/);
+  assert.match(written.text, /Finder replaced the app after a blocked ditto/);
   assert.match(written.text, /\/usr\/bin\/open/);
   assert.doesNotMatch(written.text, /github\.com/);
   assert.equal(script, written.text);
+  const finder = install.writeFinderReplaceScript(
+    {writeFileSync(file, text) { written.finder = text; }},
+    '/tmp/replace.applescript'
+  );
+  assert.match(finder, /tell application "Finder"/);
+  assert.match(finder, /duplicate/);
 });
 
 test('applyPackagedUpdate downloads the zip, extracts qexec.app, then quits', async () => {
@@ -135,4 +146,45 @@ test('Electron download writes zip bytes and rejects oversized packages', async 
     () => install.downloadZip({request: () => huge}, 'https://github.com/Crimson341/qexec/releases/download/v0.2.1/qexec-v0.2.1-macos-apple-silicon.zip', '/tmp/big.zip', {}, fs, 1000),
     /too large/
   );
+});
+
+test('download follows a GitHub 302 to the official asset host', async () => {
+  const urls = [];
+  const fs = {
+    createWriteStream() {
+      return {write() { return true; }, end(done) { if (typeof done === 'function') done(); }, destroy() {}};
+    },
+    unlinkSync() {}
+  };
+  const first = new EventEmitter();
+  first.setHeader = () => {};
+  first.abort = () => {};
+  first.followRedirect = () => {};
+  first.end = function end() {
+    const response = new EventEmitter();
+    response.statusCode = 302;
+    response.headers = {location: 'https://release-assets.githubusercontent.com/qexec.zip'};
+    this.emit('response', response);
+  };
+  const second = new EventEmitter();
+  second.setHeader = () => {};
+  second.abort = () => {};
+  second.end = function end() {
+    const response = new EventEmitter();
+    response.statusCode = 200;
+    response.headers = {};
+    this.emit('response', response);
+    response.emit('data', Buffer.from('PK\x03\x04'));
+    response.emit('end');
+  };
+  const bytes = await install.downloadZip(
+    {request: ({url}) => { urls.push(url); return urls.length === 1 ? first : second; }},
+    'https://github.com/Crimson341/qexec/releases/download/v0.2.4/qexec-v0.2.4-macos-apple-silicon.zip',
+    '/tmp/qexec.zip',
+    {'Accept': 'application/vnd.github+json'},
+    fs,
+    1000
+  );
+  assert.equal(bytes, 4);
+  assert.equal(urls[1], 'https://release-assets.githubusercontent.com/qexec.zip');
 });
