@@ -141,6 +141,33 @@ Assert(newsPosts.Count == 1 && newsPosts[0].Title == "Bosses & rewards" && newsP
 Assert(QuestPlanner.ParseNews("<p class=\"date\">September 11, 2026</p><h2><a href=\"https://evil.test\">Fake</a></h2>").Count == 0, "Only accept official news paths.");
 Console.WriteLine("PASS: Quest ownership, role ranking, levels, bot availability, dated news and event expiry.");
 
+var emptyAchievements = new Dictionary<string, AchievementAward>();
+var vhlOwned = Achievements.Evaluate(new[]{vhl},emptyItems,true,_ => false,emptyAchievements);
+Assert(vhlOwned.Single(a => a.Id == "vhl").Earned && vhlOwned.Single(a => a.Id == "vhl").Reason == "Inventory", "VHL in inventory earns the milestone.");
+Assert(vhlOwned.Count(a => a.Earned) == 1, "Owning VHL does not grant unrelated milestones.");
+Assert(!Achievements.Evaluate(emptyItems,emptyItems,false,_ => false,emptyAchievements).Single(a => a.Id == "vhl").Earned, "Unknown bank does not invent a VHL award.");
+var looStory = Achievements.Evaluate(emptyItems,emptyItems,true,id => id == 7165,emptyAchievements);
+Assert(looStory.Single(a => a.Id == "order").Earned && looStory.Single(a => a.Id == "order").Reason == "Story", "Lord of Order story quest 7165 awards the milestone.");
+var bankedNsod = new Skua.Core.Models.Items.InventoryItem { ID = 30629, Name = "Necrotic Sword of Doom" };
+Assert(Achievements.Evaluate(emptyItems,new[]{bankedNsod},true,_ => false,emptyAchievements).Single(a => a.Id == "nsod").Reason == "Bank", "Banked NSoD is owned.");
+var storeFile = Path.GetTempFileName();
+try {
+    var detected = Achievements.Evaluate(new[]{vhl},emptyItems,true,_ => false,emptyAchievements);
+    var merged = Achievements.MergeAwards(emptyAchievements,detected,1_700_000_000_000);
+    Assert(merged["vhl"].Reason == "Inventory" && merged["vhl"].EarnedAt == 1_700_000_000_000, "First detection persists an award timestamp.");
+    var store = Achievements.LoadStore(storeFile);
+    Achievements.WriteAwards(store, Achievements.CharacterKey("Scott"), merged);
+    Achievements.SaveStore(storeFile, store);
+    var reloaded = Achievements.ReadAwards(Achievements.LoadStore(storeFile), "scott");
+    var stillEarned = Achievements.Evaluate(emptyItems,emptyItems,true,_ => false,reloaded);
+    Assert(stillEarned.Single(a => a.Id == "vhl").Earned && stillEarned.Single(a => a.Id == "vhl").EarnedAt == 1_700_000_000_000, "Persisted awards survive a later missing inventory.");
+    var again = Achievements.MergeAwards(reloaded, stillEarned, 1_800_000_000_000);
+    Assert(again["vhl"].EarnedAt == 1_700_000_000_000, "Re-checks do not rewrite the original award time.");
+} finally { File.Delete(storeFile); if (File.Exists(storeFile+".tmp")) File.Delete(storeFile+".tmp"); }
+Assert(Achievements.Catalog.Select(a => a.Id).Distinct().Count() == Achievements.Catalog.Length, "Achievement ids are unique.");
+Assert(Achievements.Catalog.All(a => a.Image.EndsWith(".png")), "Every achievement ships an image name.");
+Console.WriteLine("PASS: Achievement inventory, story, bank, and persisted awards.");
+
 var bankProbe = new Skua.Core.Scripts.ScriptBank(null!,null!,null!,null!,null!,null!,null!,null!);
 CommunityToolkit.Mvvm.Messaging.StrongReferenceMessenger.Default.Send<Skua.Core.Messaging.BankLoadedMessage,int>(new(),(int)Skua.Core.Messaging.MessageChannels.GameEvents);
 Assert(bankProbe.Loaded,"GameEvents bank response marks bank loaded.");

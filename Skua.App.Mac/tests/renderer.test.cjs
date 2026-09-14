@@ -16,7 +16,7 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   let now = 0, timer;
   const context = {document:{documentElement:{style:{setProperty(){}}},
     getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
-    createElement:element, createTextNode:text=>text, body:element(), querySelectorAll:()=>[]},
+    createElement:element, createTextNode:text=>text, body:{...element(),classList:{toggle(){},remove(){}}}, querySelectorAll:()=>[]},
     localStorage:{getItem(){return null;},setItem(){}},
     window:{}, console:{log(){}}, Date:class extends Date {static now(){return now;}},
     setInterval:(callback,ms)=>{if(ms===1000)timer=callback;}, setTimeout(){}, clearTimeout(){}};
@@ -176,7 +176,7 @@ test('theme accent applies immediately and is restored on reload', () => {
     for (const match of html.matchAll(/id="([^"]+)"/g)) elements.set(match[1],element());
     const context = {document:{documentElement:{style:{setProperty(name,value){css[name]=value;},getPropertyValue(name){return css[name]||'';}}},
       getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
-      createElement:element, createTextNode:text=>text, body:element(), querySelectorAll:()=>[]},
+      createElement:element, createTextNode:text=>text, body:{...element(),classList:{toggle(){},remove(){}}}, querySelectorAll:()=>[]},
       localStorage:{getItem(key){return store[key] ?? null;}, setItem(key,value){store[key]=value;}},
       window:{}, console:{log(){}}, Date, setInterval(){}, setTimeout(){}, clearTimeout(){}};
     vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/renderer.cjs'),'utf8'),context);
@@ -200,4 +200,46 @@ test('theme accent applies immediately and is restored on reload', () => {
   second.get('theme-reset').onclick();
   assert.equal(css['--sea'],'#b09add');
   assert.equal(JSON.parse(store['qexec.theme']).accent,'#b09add');
+});
+
+test('achievements panel shows images and earned state from host checks', () => {
+  const html = fs.readFileSync(path.join(__dirname,'../desktop/index.html'),'utf8');
+  const elements = new Map();
+  const element = () => ({textContent:'', children:[], disabled:false, dataset:{},style:{}, hidden:true, className:'',
+    classList:{toggle(){}, remove(){}}, setAttribute(){}, hasAttribute(){return false;},
+    addEventListener(){}, append(...items){this.children.push(...items);},
+    replaceChildren(){this.children=[];}, focus(){}, scrollIntoView(){}});
+  for (const match of html.matchAll(/id="([^"]+)"/g)) elements.set(match[1],element());
+  const commands=[];
+  const context = {document:{documentElement:{style:{setProperty(){}}},
+    getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
+    createElement:element, createTextNode:text=>text, body:{...element(),classList:{toggle(){},remove(){},add(){}}}, querySelectorAll:()=>[]},
+    localStorage:{getItem(){return null;},setItem(){}},
+    window:{}, console:{log(){}}, Date, setInterval(){}, setTimeout(){}, clearTimeout(){}};
+  vm.runInNewContext(fs.readFileSync(path.join(__dirname,'../desktop/renderer.cjs'),'utf8'),context);
+  context.window.skua.command=(...args)=>commands.push(args);
+  elements.get('nav-achievements').onclick();
+  assert.equal(elements.get('achievements-view').hidden,false);
+  assert.deepEqual(commands.pop(),['achievements']);
+  context.window.receiveHostMessage({type:'achievements',character:'Scott',earned:1,total:2,note:'Inventory, bank, and story progress checked.',newlyEarned:['vhl'],
+    items:[
+      {Id:'vhl',Title:'Void Highlord',Detail:'Nation grind',Image:'vhl.png',Earned:true,Reason:'Inventory',Location:'Inventory'},
+      {Id:'order',Title:'Lord of Order',Detail:'Daily class',Image:'order.png',Earned:false,Reason:'Not earned yet',Location:'Missing'}
+    ]});
+  const cards=elements.get('achievements-grid').children;
+  assert.equal(cards.length,2);
+  assert.equal(cards[0].className,'achievement-card');
+  assert.equal(cards[0].dataset.achievementId,'vhl');
+  assert.equal(cards[0].children[0].src,'brand/achievements/vhl.png');
+  assert.equal(cards[0].children[0].alt,'Void Highlord');
+  assert.match(cards[0].children[1].textContent,/Earned · Inventory/);
+  assert.equal(cards[1].className,'achievement-card locked');
+  assert.equal(cards[1].children[0].src,'brand/achievements/order.png');
+  assert.match(elements.get('achievements-status').textContent,/Scott · 1\/2 earned/);
+  assert.equal(vm.runInNewContext("achievementImage('vhl.png')",context),'brand/achievements/vhl.png');
+  assert.equal(vm.runInNewContext("achievementImage('https://evil.test/x.png')",context),'');
+  const art=path.join(__dirname,'../desktop/brand/achievements');
+  for (const name of ['vhl','order','paladin','revenant','dragon','nsod','awe','blade-awe','chaos-avenger','archmage','lightcaster','scarlet']) {
+    assert.ok(fs.existsSync(path.join(art,name+'.png')), 'Missing achievement image '+name);
+  }
 });
