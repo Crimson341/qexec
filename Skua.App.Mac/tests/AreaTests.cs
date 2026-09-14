@@ -39,7 +39,7 @@ static class AreaTests
         Assert(offlineMixed.Pickups.Single().MapItemID==3694 && offlineMixed.Drops.Single().Monster=="Underworld Hound","Both verified objective routes resolve without any network lookup.");
         Assert(AcceptedQuestRoutes.Verified(4501,new[]{plant,hound}).Drops.Count==0,"Never reuse the recipe for a different quest.");
         var fullMixedCode=ActiveQuestMaker.Generate(4500,-1,new[]{plant,hound},offlineMixed.Drops,(_,_)=>null,pickups:offlineMixed.Pickups,returnTo:new QuestReturnPoint("lostruins","Enter","Spawn"));
-        Assert(fullMixedCode.Contains("AcquireKnown(bot,4500,30997,\"Plant Found\",3,true,3694)") && fullMixedCode.Contains("core.HuntMonster(\"lostruins\",\"Underworld Hound\",\"Underworld Hound Defeated\",5,true)"),"The full quest gets both the collection and combat steps.");
+        Assert(fullMixedCode.Contains("AcquireKnown(bot,4500,30997,\"Plant Found\",3,true,3694)") && fullMixedCode.Contains("QuestHunt.Monster(bot,4500,\"Underworld Hound\",30998,\"Underworld Hound Defeated\",5,true)"),"The full quest gets both the collection and combat steps.");
         File.WriteAllText("/tmp/qexec-full-ruins.cs",fullMixedCode);
         var bothWiki=await mixedResolver.ResolvePlan("Investigate the Ruins",[],new[]{plant,hound},questSources:new[]{"/aranx-s-quests"},pickupMap:"lostruins");
         Assert(bothWiki.Pickups.Count==1 && bothWiki.Drops.Any(d=>d.Monster=="Underworld Hound"),"Real wiki fixtures resolve both objectives, not only the plant.");

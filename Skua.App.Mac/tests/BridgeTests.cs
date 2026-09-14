@@ -2,6 +2,8 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Xml.Linq;
 using Newtonsoft.Json.Linq;
+using Skua.Core;
+using Skua.Core.Scripts;
 using Skua.Mac;
 
 static void Assert(bool value, string message) { if (!value) throw new Exception(message); }
@@ -52,6 +54,11 @@ Assert(CombatPolicy.Select(profiles,"mage",false,false)?.Skills == "1", "Choose 
 Assert(CombatPolicy.Select(profiles,"Mage",false,true)?.Skills == "2", "Choose solo for boss estimate.");
 Assert(CombatPolicy.Select(profiles,"Mage",true,true)?.Skills == "3", "Defense takes precedence over boss mode.");
 Assert(CombatPolicy.Select(profiles,"Unknown",false,false) == null, "Never use another class's combo.");
+Assert(QuestHunt.Owned(1,4,2,false)==5 && QuestHunt.Owned(1,4,2,true)==2,"Permanent counts include bank; temp items use temp inventory.");
+var stallStart=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc);
+Assert(QuestHunt.Stalled(2,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"Unchanged quantity for the stall window is stuck.");
+Assert(!QuestHunt.Stalled(3,5,2,stallStart,stallStart.AddMinutes(3),TimeSpan.FromMinutes(3)),"A quantity gain is not a stall.");
+Assert(QuestHunt.HasMonster(new[]{new Skua.Core.Models.Monsters.Monster{Name=" Infernal Mage "}},"Infernal Mage"),"Monster names match after trim.");
 Console.WriteLine("PASS: Adaptive combat health thresholds, recovery hysteresis, encounter estimate, and class profile selection.");
 
 var heroSouls = new[] {new Skua.Core.Models.Items.ItemBase { ID=13949, Name="Hero Souls", Quantity=5, Temp=true }};
@@ -210,7 +217,8 @@ Console.WriteLine("PASS: Automatic quest-recipe discovery, exact reward selectio
 
 var requirement=new Skua.Core.Models.Items.ItemBase{ID=321,Name="Quest Fang",Temp=true,Quantity=5};
 var autoQuest=ActiveQuestMaker.Generate(42,100,new[]{requirement},new[]{new GearDrop("forest","Wolf","Quest Fang",true,"test")},(_,_)=>null);
-Assert(autoQuest.Contains("bot.TempInv.Contains(321,5)") && autoQuest.Contains("EnsureComplete(42,100)"),"Auto quest uses exact objective quantity and chosen reward.");
+Assert(autoQuest.Contains("bot.TempInv.Contains(321,5)") && autoQuest.Contains("EnsureComplete(42,100)") && autoQuest.Contains("CanCompleteFullCheck(42)"),"Auto quest uses exact objective quantity, item check, and chosen reward.");
+Assert(autoQuest.Contains("QuestHunt.Monster(bot,42,\"Wolf\",321,\"Quest Fang\",5,true)") && autoQuest.Contains("core.Join(\"forest\")"),"Generated hunts use adaptive QuestHunt instead of a fixed Farm combo.");
 Assert(!autoQuest.Contains("EnsureAccept") && !autoQuest.Contains("RegisterQuests") && !autoQuest.Contains("while ("),"Never accept another quest, register loops, or repeat selected quest.");
 Assert(autoQuest.Contains("Quest was abandoned") && autoQuest.Contains("finally {core.SetOptions(false);}"),"Abort abandoned quest and restore settings.");
 try {ActiveQuestMaker.Generate(42,-1,new[]{requirement},Array.Empty<GearDrop>(),(_,_)=>null);throw new Exception("Accepted unknown objective.");} catch(InvalidOperationException ex) {Assert(ex.Message.Contains("Quest Fang"),"Explain exact unresolved objective.");}
@@ -218,6 +226,12 @@ var readyQuest=ActiveQuestMaker.Generate(42,-1,Array.Empty<Skua.Core.Models.Item
 Assert(!readyQuest.Contains("HuntMonster") && !readyQuest.Contains("Bank.Load"),"Ready quest only turns in, without bank load or farming.");
 var bankedQuest=ActiveQuestMaker.Generate(42,-1,new[]{new Skua.Core.Models.Items.ItemBase{ID=456,Name="Banked Item",Quantity=1}},Array.Empty<GearDrop>(),(_,_)=>null,new HashSet<int>{456});
 Assert(bankedQuest.Contains("core.Unbank(456)") && !bankedQuest.Contains("HuntMonster"),"Use banked materials without farming duplicates.");
+var ledger=JObject.FromObject(ActiveQuestMaker.Describe(42,"Hunt",new[]{requirement},(id,temp)=>id==321&&temp?2:0,false,false,false,false,true,Array.Empty<object>()));
+Assert((int?)ledger["objectives"]![0]!["have"]==2 && (int?)ledger["objectives"]![0]!["need"]==5 && (string?)ledger["objectives"]![0]!["name"]=="Quest Fang","Ledger rows include live objective counts.");
+var dailyBlocked=JObject.FromObject(ActiveQuestMaker.Describe(1,"Daily",Array.Empty<Skua.Core.Models.Items.ItemBase>(),(_,_)=>0,false,true,false,false,true,Array.Empty<object>()));
+Assert((bool?)dailyBlocked["blocked"]==true && (bool?)dailyBlocked["dailyDone"]==true,"Daily-done quests are not offered as runnable.");
+var memberReady=JObject.FromObject(ActiveQuestMaker.Describe(2,"Cape",Array.Empty<Skua.Core.Models.Items.ItemBase>(),(_,_)=>0,true,false,false,true,false,Array.Empty<object>()));
+Assert((bool?)memberReady["blocked"]==false && (bool?)memberReady["member"]==true,"Ready member quests can still turn in.");
 Console.WriteLine("PASS: Single accepted quest, exact objectives/reward, abandonment, ready-only turn-in, banked requirements, unknown-route rejection.");
 
 Assert(!autoQuest.Contains("Bank.Load") && !autoQuest.Contains("core.SetOptions();"), "Temporary objectives never trigger bank preflight or CoreBots bank startup.");
@@ -226,7 +240,7 @@ var magusRequirement=new Skua.Core.Models.Items.ItemBase{ID=79629,Name="Mage Con
 var magusRoutes=AcceptedQuestRoutes.Parse("class StoryFixture { void Run() { Story.KillQuest(9356, \"infernalarena\", \"Infernal Mage\"); Story.KillQuest(9357, \"wrong\", \"Wrong Monster\"); } }",9356,new[]{magusRequirement},"fixture");
 Assert(magusRoutes.Count==1 && magusRoutes[0].Map=="infernalarena" && magusRoutes[0].Monster=="Infernal Mage", "Resolve only the exact accepted quest's literal KillQuest route.");
 var magusScript=ActiveQuestMaker.Generate(9356,-1,new[]{magusRequirement},magusRoutes,(_,_)=>null);
-Assert(magusScript.Contains("HuntMonster(\"infernalarena\",\"Infernal Mage\",\"Mage Construct Defeated\",1,true)") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
+Assert(magusScript.Contains("QuestHunt.Monster(bot,9356,\"Infernal Mage\",79629,\"Mage Construct Defeated\",1,true)") && magusScript.Contains("core.Join(\"infernalarena\")") && !magusScript.Contains("Bank.Load"), "Maligned Magus farms its temporary drop without the bank.");
 Assert(AcceptedQuestRoutes.Parse("// Story.KillQuest(9356, \"wrong\", \"wrong\");",9356,new[]{magusRequirement},"fixture").Count==0, "Ignore commented routes.");
 Console.WriteLine("PASS: Temporary quest bank bypass and exact Maligned Magus route generation.");
 
@@ -320,7 +334,7 @@ var materialResolver=new QuestWikiResolver(path=>{if(path=="/star-scrap-metal" &
 var materialPlan=await materialResolver.ResolvePlan("Blinded by the Black Light",Array.Empty<string>(),new[]{scrap},recoveryMessages.Add);
 Assert(materialPlan.Drops.Single() is {Map:"dreadspace",Monster:"Troblor",Temporary:false} && recoveryMessages.Any(m=>m.StartsWith("Retrying")),"Recover transient lookup and trace a permanent material's monster source without a quest-only drop backlink.");
 var scrapScript=ActiveQuestMaker.Generate(9679,-1,new[]{scrap},materialPlan.Drops,(_,_)=>null,null,null,false);
-Assert(scrapScript.Contains("HuntMonster(\"dreadspace\",\"Troblor\",\"Star Scrap Metal\",10,false)") && scrapScript.Contains("bot.Inventory.Contains(30018,10)"),"Farm permanent material with the exact live inventory ID and quantity.");
+Assert(scrapScript.Contains("QuestHunt.Monster(bot,9679,\"Troblor\",30018,\"Star Scrap Metal\",10,false)") && scrapScript.Contains("bot.Inventory.Contains(30018,10)"),"Farm permanent material with the exact live inventory ID and quantity.");
 File.WriteAllText("/tmp/qexec-scrap-generated-test.cs",scrapScript);
 var noQuestPageResolver=new QuestWikiResolver(path=>Task.FromResult(materialPages[path]));
 Assert((await noQuestPageResolver.ResolvePlan("A Different Quest Using Scrap",Array.Empty<string>(),new[]{scrap})).Drops.Count==1,"Recover permanent material sources independently when the quest page cannot be found.");
@@ -342,7 +356,7 @@ var chestResolver=new QuestWikiResolver(path=>Task.FromResult(chestPages[path]),
 var chestPlan=await chestResolver.ResolvePlan("Chest Thumping",Array.Empty<string>(),new[]{chest});
 Assert(chestPlan.Drops.Single() is {Map:"river",Monster:"Kuro",Temporary:true},"Plural sibling location lists resolve Kuro via its unrestricted River map.");
 var chestScript=ActiveQuestMaker.Generate(446,-1,new[]{chest},chestPlan.Drops,(_,_)=>null);
-Assert(chestScript.Contains("core.HuntMonster(\"river\",\"Kuro\",\"Muck Covered Chest\",1,true)") && chestScript.Contains("bot.TempInv.Contains(2570,1)") && chestScript.Contains("EnsureComplete(446,-1)"),"Chest script farms the exact objective and turns in only quest 446.");
+Assert(chestScript.Contains("QuestHunt.Monster(bot,446,\"Kuro\",2570,\"Muck Covered Chest\",1,true)") && chestScript.Contains("bot.TempInv.Contains(2570,1)") && chestScript.Contains("EnsureComplete(446,-1)"),"Chest script farms the exact objective and turns in only quest 446.");
 File.WriteAllText("/tmp/qexec-chest-generated-test.cs",chestScript);
 var kuroFixture=chestPages["/kuro"];
 chestPages["/kuro"]=kuroFixture.Replace("href='/twilly-s-quests'","href='/other-quests'");
