@@ -1,0 +1,98 @@
+# Builds the documented Mac app (Skua.App.Mac/build-macos.sh) from main and
+# publishes a non-prerelease so GET /repos/Crimson341/qexec/releases/latest works.
+# Official Actions: checkout@v7, setup-dotnet@v6, setup-node@v7, setup-java@v6.
+# Release via GitHub CLI (`gh release create --latest`) on the hosted runner.
+# Packaging follows this repo's Electron.app ditto path (MACOS.md), not electron-builder.
+name: Mac app release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    permissions:
+      contents: write
+    env:
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event_name == 'workflow_dispatch' && 'refs/heads/main' || github.sha }}
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: |
+            Skua.App.Mac/desktop/package-lock.json
+            Skua.App.Mac/tools/package-lock.json
+
+      - name: Set up Java (Flash / Royale)
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '11'
+
+      - name: Choose release version
+        id: version
+        run: |
+          version="0.2.${GITHUB_RUN_NUMBER}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=v${version}" >> "$GITHUB_OUTPUT"
+
+      - name: Build qexec.app
+        working-directory: Skua.App.Mac
+        env:
+          QEXEC_VERSION: ${{ steps.version.outputs.version }}
+          QEXEC_BUNDLE_VERSION: ${{ github.run_number }}
+        run: ./build-macos.sh
+
+      - name: Package release zip
+        id: package
+        env:
+          TAG: ${{ steps.version.outputs.tag }}
+        run: |
+          set -euo pipefail
+          stage="${RUNNER_TEMP}/qexec-release"
+          mkdir -p "$stage"
+          ditto "Skua.App.Mac/build/qexec.app" "$stage/qexec.app"
+          cp "Skua.App.Mac/configure-flash-trust.sh" "$stage/"
+          cp "Skua.App.Mac/MACOS.md" "$stage/SETUP.md"
+          cp "docs/ATTRIBUTION.md" "$stage/ATTRIBUTION.md"
+          asset="qexec-${TAG}-macos-apple-silicon.zip"
+          ditto -c -k "$stage" "$asset"
+          shasum -a 256 "$asset" > SHA256SUMS.txt
+          echo "asset=${asset}" >> "$GITHUB_OUTPUT"
+
+      - name: Publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ steps.version.outputs.tag }}
+          VERSION: ${{ steps.version.outputs.version }}
+          ASSET: ${{ steps.package.outputs.asset }}
+        run: |
+          set -euo pipefail
+          commit="$(git rev-parse HEAD)"
+          if ! gh release create "$TAG" \
+            --target "$commit" \
+            --title "qexec macOS ${VERSION}" \
+            --latest \
+            --generate-notes \
+            --fail-on-no-commits \
+            --notes "Apple Silicon \`qexec.app\` built from \`main\` with \`Skua.App.Mac/build-macos.sh\`. Ad-hoc signed, not notarized. Extract the zip, move \`qexec.app\` to Applications, and follow SETUP.md. In-app **Update** opens this release page when the running build is behind." \
+            "${ASSET}#qexec macOS Apple Silicon" \
+            "SHA256SUMS.txt#SHA256 checksums"; then
+            echo "::error::Could not publish ${TAG}. If this commit added or changed .github/workflows, GITHUB_TOKEN cannot tag it; the next main push that does not change workflows will publish."
+            exit 1
+          fi

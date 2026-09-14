@@ -90,8 +90,23 @@ function isNewerTag(tag, version) {
   return false;
 }
 
-function comparePath(base) {
-  return API_ROOT + '/compare/' + encodeURIComponent(base) + '...main?per_page=1';
+function comparePath(base, head) {
+  const target = typeof head === 'string' && head ? head : 'main';
+  return API_ROOT + '/compare/' + encodeURIComponent(base) + '...' + encodeURIComponent(target) + '?per_page=1';
+}
+
+function pickNewestRelease(releases) {
+  if (!Array.isArray(releases)) return null;
+  return releases.find(release =>
+    release && !release.draft && isAllowedUpdateUrl(release.html_url)) || null;
+}
+
+function isSameRelease(identity, release) {
+  return !!(identity && release && identity.tag && release.tag_name === identity.tag);
+}
+
+function releasePageUrl(release) {
+  return release && isAllowedUpdateUrl(release.html_url) ? release.html_url : '';
 }
 
 function httpError(message, statusCode, body) {
@@ -161,19 +176,49 @@ async function readCompare(getJson, identity) {
   throw lastError || new Error('GitHub compare failed');
 }
 
-async function chooseUpdateUrl(getJson, identity, compare) {
-  if (isAllowedUpdateUrl(compare && compare.html_url)) {
+async function readNewestRelease(getJson) {
+  return pickNewestRelease(await getJson(API_ROOT + '/releases?per_page=5'));
+}
+
+async function releaseAheadBy(getJson, identity, release) {
+  if (!release || typeof release.tag_name !== 'string' || !release.tag_name) return 0;
+  if (isSameRelease(identity, release)) return 0;
+  const refs = [];
+  if (identity.commit) refs.push(identity.commit);
+  if (identity.tag && !refs.includes(identity.tag)) refs.push(identity.tag);
+  for (const ref of refs) {
     try {
-      const releases = await getJson(API_ROOT + '/releases?per_page=5');
-      const newest = Array.isArray(releases) && releases.find(release =>
-        release && !release.draft && isAllowedUpdateUrl(release.html_url));
-      if (newest && isNewerTag(newest.tag_name, identity.version)) return newest.html_url;
-      return compare.html_url;
-    } catch (_error) {
-      return compare.html_url;
+      const compare = await getJson(comparePath(ref, release.tag_name));
+      if (compare && typeof compare.ahead_by === 'number') return compare.ahead_by;
+    } catch (error) {
+      if (!error || error.statusCode !== 404) throw error;
     }
   }
+  return isNewerTag(release.tag_name, identity.version) ? 1 : 0;
+}
+
+async function chooseUpdateUrl(getJson, identity, compare, newest) {
+  let release = newest;
+  if (release === undefined) {
+    try { release = await readNewestRelease(getJson); }
+    catch (_error) { release = null; }
+  }
+  const releaseUrl = releasePageUrl(release);
+  if (releaseUrl && !isSameRelease(identity, release) && isNewerTag(release.tag_name, identity.version)) {
+    return releaseUrl;
+  }
+  if (isAllowedUpdateUrl(compare && compare.html_url)) return compare.html_url;
   return RELEASES_PAGE;
+}
+
+function updateMessage(identity, aheadBy, release) {
+  const label = identity.commit ? identity.commit.slice(0, 7) : identity.tag;
+  if (aheadBy > 0) {
+    return 'Update available: main is ' + aheadBy + ' commit' + (aheadBy === 1 ? '' : 's')
+      + ' ahead of this build (' + label + ').';
+  }
+  const tag = release && release.tag_name ? release.tag_name : 'latest';
+  return 'Update available: GitHub release ' + tag + ' is newer than this build (' + label + ').';
 }
 
 async function findUpdate({getJson, identity}) {
@@ -182,15 +227,32 @@ async function findUpdate({getJson, identity}) {
   }
   const compare = await readCompare(getJson, identity);
   const aheadBy = Number(compare.ahead_by) || 0;
-  if (aheadBy <= 0) return {available: false, aheadBy: 0};
-  const url = await chooseUpdateUrl(getJson, identity, compare);
-  const label = identity.commit ? identity.commit.slice(0, 7) : identity.tag;
+  let newest = null;
+  try {
+    newest = await readNewestRelease(getJson);
+  } catch (_error) {
+    newest = null;
+  }
+  let releaseAhead = 0;
+  if (newest && !isSameRelease(identity, newest)) {
+    if (isNewerTag(newest.tag_name, identity.version)) {
+      releaseAhead = 1;
+    } else if (aheadBy <= 0) {
+      try {
+        releaseAhead = await releaseAheadBy(getJson, identity, newest);
+      } catch (_error) {
+        releaseAhead = 0;
+      }
+    }
+  }
+  const releaseUrl = releasePageUrl(newest);
+  const hasReleaseUpdate = releaseAhead > 0 && !!releaseUrl;
+  if (aheadBy <= 0 && !hasReleaseUpdate) return {available: false, aheadBy: 0};
   return {
     available: true,
-    aheadBy,
-    url,
-    message: 'Update available: main is ' + aheadBy + ' commit' + (aheadBy === 1 ? '' : 's')
-      + ' ahead of this build (' + label + ').'
+    aheadBy: aheadBy || releaseAhead,
+    url: hasReleaseUpdate ? releaseUrl : await chooseUpdateUrl(getJson, identity, compare, newest),
+    message: updateMessage(identity, aheadBy, newest)
   };
 }
 
@@ -203,6 +265,7 @@ module.exports = {
   isAllowedUpdateUrl,
   isGithubApiUrl,
   comparePath,
+  pickNewestRelease,
   resolveIdentity,
   isNewerTag,
   requestGithubJson,

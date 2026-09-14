@@ -46,6 +46,7 @@ test('compare reports updates only when main is ahead, and opens a newer release
   const current = await update.findUpdate({
     identity,
     getJson: async url => {
+      if (url.includes('/releases')) return [];
       assert.equal(url, update.comparePath('1111111'));
       return {ahead_by: 0, status: 'identical', html_url: 'https://github.com/Crimson341/qexec/compare/1111111...main'};
     }
@@ -90,6 +91,58 @@ test('compare reports updates only when main is ahead, and opens a newer release
   assert.equal(sameRelease.url, 'https://github.com/Crimson341/qexec/compare/v0.2.0...main');
 });
 
+test('a newer GitHub release is discoverable even when main is not ahead', async () => {
+  const identity = {version: '0.2.0', commit: '812e2ad', tag: 'v0.2.0', ref: '812e2ad'};
+  const fromTag = await update.findUpdate({
+    identity,
+    getJson: async url => {
+      if (url.includes('/compare/')) {
+        return {ahead_by: 0, status: 'identical', html_url: 'https://github.com/Crimson341/qexec/compare/812e2ad...main'};
+      }
+      return [{
+        draft: false,
+        prerelease: false,
+        tag_name: 'v0.2.1',
+        html_url: 'https://github.com/Crimson341/qexec/releases/tag/v0.2.1'
+      }];
+    }
+  });
+  assert.equal(fromTag.available, true);
+  assert.equal(fromTag.url, 'https://github.com/Crimson341/qexec/releases/tag/v0.2.1');
+  assert.match(fromTag.message, /GitHub release v0\.2\.1 is newer than this build \(812e2ad\)/);
+
+  const fromCommit = await update.findUpdate({
+    identity,
+    getJson: async url => {
+      if (url.includes('...main')) {
+        return {ahead_by: 0, status: 'identical', html_url: 'https://github.com/Crimson341/qexec/compare/812e2ad...main'};
+      }
+      if (url.includes('...preview')) {
+        return {ahead_by: 2, html_url: 'https://github.com/Crimson341/qexec/compare/812e2ad...preview'};
+      }
+      return [{
+        draft: false,
+        tag_name: 'preview',
+        html_url: 'https://github.com/Crimson341/qexec/releases/tag/preview'
+      }];
+    }
+  });
+  assert.equal(fromCommit.available, true);
+  assert.equal(fromCommit.aheadBy, 2);
+  assert.equal(fromCommit.url, 'https://github.com/Crimson341/qexec/releases/tag/preview');
+
+  const installedRelease = await update.findUpdate({
+    identity: {version: '0.2.1', commit: '24e582f', tag: 'v0.2.1', ref: '24e582f'},
+    getJson: async url => {
+      if (url.includes('/compare/')) {
+        return {ahead_by: 0, status: 'identical', html_url: 'https://github.com/Crimson341/qexec/compare/24e582f...main'};
+      }
+      return [{draft: false, tag_name: 'v0.2.1', html_url: 'https://github.com/Crimson341/qexec/releases/tag/v0.2.1'}];
+    }
+  });
+  assert.deepEqual(installedRelease, {available: false, aheadBy: 0});
+});
+
 test('unknown local commit falls back to the version tag, and foreign URLs are rejected', async () => {
   const identity = {version: '0.2.0', commit: 'deadbeefdeadbeefdeadbeefdeadbeefdeadbeef', tag: 'v0.2.0', ref: 'deadbeef'};
   const notice = await update.findUpdate({
@@ -103,6 +156,7 @@ test('unknown local commit falls back to the version tag, and foreign URLs are r
       if (url.includes('v0.2.0...main')) {
         return {ahead_by: 2, html_url: 'https://github.com/Crimson341/qexec/compare/v0.2.0...main'};
       }
+      if (url.includes('/releases')) return [];
       throw new Error('unexpected ' + url);
     }
   });

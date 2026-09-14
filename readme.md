@@ -48,7 +48,7 @@ See the [full roadmap and completion criteria](docs/ROADMAP.md).
 
 ## Build and run
 
-The current macOS build needs macOS, .NET 10 SDK, Node.js/npm, Java, and an existing Artix Game Launcher Flash plugin. Apple Silicon also needs Rosetta for the Intel renderer. The [v0.2.0 preview release](https://github.com/Crimson341/qexec/releases/tag/v0.2.0) includes an Apple Silicon Mac app download and setup instructions. It is ad-hoc signed, not notarized.
+The current macOS build needs macOS, .NET 10 SDK, Node.js/npm, Java, and an existing Artix Game Launcher Flash plugin. Apple Silicon also needs Rosetta for the Intel renderer. The [latest GitHub Release](https://github.com/Crimson341/qexec/releases/latest) is an Apple Silicon Mac app zip built from `main` by Actions (`build-macos.sh`). It is ad-hoc signed, not notarized.
 
 ```sh
 git clone https://github.com/Crimson341/qexec.git
