@@ -632,6 +632,12 @@ function handleHostMessage(message) {
       break;
     case 'game-error': gameReady = false; byId('game-status').textContent = 'Game could not load'; log(message.message,'Error'); break;
     case 'setup-error': byId('game-status').textContent = 'Setup required'; if (byId('setup')) byId('setup').textContent = message.message; log(message.message, 'Error'); break;
+    case 'app-identity':
+      if (typeof message.label === 'string' && message.label) {
+        byId('app-version').textContent = message.label;
+        if (typeof message.tag === 'string' && message.tag) document.title = 'qexec ' + message.tag;
+      }
+      break;
     case 'app-update':
       if (!message.message) break;
       byId('app-update-message').textContent = message.message;

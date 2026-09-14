@@ -94,6 +94,14 @@ function resolveIdentity({fs, path, dirname, env, execFileSync}) {
   return {version, commit, tag, ref: commit || tag};
 }
 
+function formatIdentityLabel(identity) {
+  if (!identity || typeof identity.tag !== 'string' || !identity.tag) return '';
+  const sha = typeof identity.commit === 'string' && /^[0-9a-f]{7,40}$/i.test(identity.commit)
+    ? identity.commit.slice(0, 7)
+    : '';
+  return sha ? identity.tag + ' · ' + sha : identity.tag;
+}
+
 function parseVersion(value) {
   return String(value || '').replace(/^v/i, '').split(/[.+-]/).slice(0, 3).map(part => {
     const number = parseInt(part, 10);
@@ -293,6 +301,7 @@ module.exports = {
   comparePath,
   pickNewestRelease,
   resolveIdentity,
+  formatIdentityLabel,
   isNewerTag,
   requestGithubJson,
   findUpdate
