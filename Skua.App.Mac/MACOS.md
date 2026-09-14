@@ -36,15 +36,17 @@ Flash plugin from an existing installation of the official Artix Game Launcher:
 /Applications/Artix Game Launcher.app/Contents/Resources/plugins/PepperFlashPlayer.plugin
 ```
 
-Flash must trust the bundled bridge for local desktop hosting. Preview the exact
-SWF and configuration paths with `./configure-flash-trust.sh`. If you accept
-granting this SWF local-file and network access, install the entry with
-`./configure-flash-trust.sh --enable`. It names one file, not the whole folder.
-The entry is stored only in Skua Mac's Pepper profile under Application Support:
+Flash must trust the bundled bridge for local desktop hosting. On launch the app
+appends the SWF it is about to load to Skua Mac's Pepper trust file if that path
+is missing. Preview the same paths with `./configure-flash-trust.sh`. If you
+accept granting those SWFs local-file and network access, install them with
+`./configure-flash-trust.sh --enable`. Each entry names one file, not the whole
+folder. The file is stored only in Skua Mac's Pepper profile under Application
+Support:
 `Skua Mac/Pepper Data/Shockwave Flash/WritableRoot/#Security/FlashPlayerTrust/SkuaMac.cfg`.
-Chrome and system-wide Flash settings are not changed. The app itself does not install this trust entry.
-Moving the app requires updating the entry. Removing the generated `SkuaMac.cfg`
-revokes this added trust. An existing different entry is never overwritten.
+Chrome and system-wide Flash settings are not changed. Existing entries are kept
+when a new SWF path is added. Removing the generated `SkuaMac.cfg` revokes this
+added trust.
 
 The proprietary Flash plugin is not redistributed in this repository or bundle.
 The legacy Electron 11.5.0 and Flash runtimes are unsupported and have known
@@ -85,7 +87,8 @@ For development:
 dotnet build host -c Release -p:SkuaPortable=true
 ./build-flash.sh
 npm ci --prefix desktop --arch=x64
-SKUA_SWF="$PWD/build/qexec.app/Contents/Resources/app/assets/skua.swf" npm start --prefix desktop
+unset SKUA_SWF
+npm start --prefix desktop
 ```
 
 Optional environment overrides: `SKUA_DATA_DIR` (data root), `SKUA_SCRIPTS_DIR` (script collection), `SKUA_FLASH_PLUGIN`
