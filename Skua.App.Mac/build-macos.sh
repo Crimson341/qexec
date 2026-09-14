@@ -34,6 +34,7 @@ if [[ ! "$skua_bundle_version" =~ ^[0-9]+$ ]]; then
 fi
 skua_commit="$(git -C "$skua_root/.." rev-parse HEAD 2>/dev/null || true)"
 printf '{"version":"%s","commit":"%s"}\n' "$skua_version" "$skua_commit" > "$skua_app/Contents/Resources/app/version.json"
+node desktop/bake-version.cjs "$skua_app/Contents/Resources/app" "$skua_version" "$skua_commit"
 cp desktop/assets/skua.swf "$skua_app/Contents/Resources/app/assets/"
 ditto desktop/brand "$skua_app/Contents/Resources/app/brand"
 cp desktop/brand/qexec.icns "$skua_app/Contents/Resources/qexec.icns"

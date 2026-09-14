@@ -15,7 +15,7 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   const html = fs.readFileSync(path.join(__dirname,'../desktop/index.html'),'utf8');
   for (const match of html.matchAll(/id="([^"]+)"/g)) elements.set(match[1],element());
   let now = 0, timer;
-  const context = {document:{documentElement:{style:{setProperty(){}}},
+  const context = {document:{title:'qexec',documentElement:{style:{setProperty(){}}},
     getElementById:id=>{assert.ok(elements.has(id), `Missing ${id}`);return elements.get(id);},
     createElement:element, createTextNode:text=>text, body:{...element(),classList:{toggle(){},remove(){}}}, querySelectorAll:()=>[]},
     localStorage:{getItem(){return null;},setItem(){}},
@@ -194,6 +194,9 @@ test('script controls and elapsed time follow host lifecycle, and logs remain bo
   assert.equal(elements.get('vibe-questing').hidden,true);
   receive({type:'game-ready'});
   assert.equal(elements.get('vibe-questing').hidden,false);
+  receive({type:'app-identity',version:'0.2.4',commit:'2c3a10cabcdef',tag:'v0.2.4',label:'v0.2.4 · 2c3a10c'});
+  assert.equal(elements.get('app-version').textContent,'v0.2.4 · 2c3a10c');
+  assert.equal(context.document.title,'qexec v0.2.4');
   receive({type:'app-update',message:'Update available: main is 2 commits ahead of this build (v0.2.0).',url:'https://github.com/Crimson341/qexec/releases/tag/v0.3.0',aheadBy:2});
   assert.equal(elements.get('app-update').hidden,false);
   assert.match(elements.get('app-update-message').textContent,/2 commits ahead/);

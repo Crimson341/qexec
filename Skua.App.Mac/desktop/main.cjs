@@ -74,6 +74,17 @@ async function chooseScript() {
   const result = await dialog.showOpenDialog(window, {title:'Choose a Skua script', defaultPath:path.join(app.getPath('documents'), 'Skua', 'Scripts'), properties:['openFile'], filters:[{name:'C# scripts', extensions:['cs']}]});
   if (!result.canceled && result.filePaths.length === 1) send({type:'command', command:'load', path:result.filePaths[0]});
 }
+function deliverAppIdentity() {
+  if (!liveContents()) return;
+  const identity = updateCheck.resolveIdentity({fs, path, dirname:__dirname, env:process.env, execFileSync});
+  toWindow({
+    type:'app-identity',
+    version:identity.version,
+    commit:identity.commit,
+    tag:identity.tag,
+    label:updateCheck.formatIdentityLabel(identity)
+  });
+}
 function deliverUpdateNotice() {
   if (!pendingUpdateNotice || !liveContents() || !pageReady) return;
   toWindow({
@@ -255,6 +266,7 @@ app.whenReady().then(async()=>{
   window.webContents.once('did-finish-load',()=>{
     if (!liveContents()) return;
     pageReady = true;
+    deliverAppIdentity();
     startHost();
     const missing=[];
     if(!fs.existsSync(flashPath))missing.push('Mac Flash plugin: '+flashPath);

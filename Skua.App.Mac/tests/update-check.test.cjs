@@ -30,6 +30,8 @@ test('identity prefers baked commit, then git, then the version tag', () => {
     execFileSync: () => { throw new Error('git should not run'); }
   });
   assert.deepEqual(baked, {version: '0.2.0', commit: 'abc1234def', tag: 'v0.2.0', ref: 'abc1234def'});
+  assert.equal(update.formatIdentityLabel(baked), 'v0.2.0 · abc1234');
+  assert.equal(update.formatIdentityLabel({tag: 'v0.2.4', commit: ''}), 'v0.2.4');
 
   const fromGit = update.resolveIdentity({
     fs: {readFileSync: file => file.endsWith('package.json') ? '{"version":"0.2.0"}' : (() => { throw new Error('no bake'); })()},
